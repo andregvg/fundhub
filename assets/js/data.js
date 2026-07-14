@@ -61,6 +61,41 @@ function rotulaPapel(p) {
   return { gestor: 'Gestor(a)', coordenador: 'Coordenador(a)', supervisor: 'Supervisor(a)' }[p] || p;
 }
 
+// Campos editáveis de uma unidade escolar (o resto é derivado/sistema).
+const CAMPOS_UNIDADE = ['nome', 'nome_oficial', 'apelido', 'segmento', 'endereco',
+  'telefones', 'email', 'oferta', 'tem_transporte', 'tem_eja', 'inep', 'site_apm',
+  'latitude', 'longitude', 'whatsapp', 'link_prestacao_contas'];
+
+function limparPayloadUnidade(p) {
+  const out = {};
+  for (const k of CAMPOS_UNIDADE) if (p[k] !== undefined) out[k] = p[k];
+  return out;
+}
+
+export async function criarUnidade(payload) {
+  if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
+  const { data, error } = await sb().from('unidade_escolar')
+    .insert(limparPayloadUnidade(payload)).select().single();
+  if (error) throw error;
+  _cache = null;
+  return data;
+}
+
+export async function atualizarUnidade(id, payload) {
+  if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
+  const patch = { ...limparPayloadUnidade(payload), atualizado_em: new Date().toISOString() };
+  const { error } = await sb().from('unidade_escolar').update(patch).eq('id', id);
+  if (error) throw error;
+  _cache = null;
+}
+
+export async function excluirUnidade(id) {
+  if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
+  const { error } = await sb().from('unidade_escolar').delete().eq('id', id);
+  if (error) throw error;
+  _cache = null;
+}
+
 // ── SATE ─────────────────────────────────────────────────────
 let _atvCache = null;
 export async function getAtividades() {

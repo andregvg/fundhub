@@ -11,7 +11,7 @@ import {
 const CAP_ONIBUS = 44;          // capacidade padrão por ônibus
 const ANTECEDENCIA_MIN = 5;     // dias mínimos para a escola (admin não tem limite)
 const PERIODOS = { manha: 'Manhã', tarde: 'Tarde', noite: 'Noite' };
-const STATUS = { solicitado: 'Solicitado', em_analise: 'Em análise', confirmado: 'Confirmado', negado: 'Negado', cancelado: 'Cancelado' };
+const STATUS = { solicitado: 'Solicitado', em_analise: 'Em análise', aguardando_transporte_adaptado: 'Aguardando adaptado', confirmado: 'Confirmado', negado: 'Negado', cancelado: 'Cancelado' };
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const hojeISO = () => new Date().toLocaleDateString('sv-SE');
@@ -116,19 +116,27 @@ function itemSolic(s) {
   const acoes = (perfil?.isAdmin && s.status !== 'cancelado') ? `
     <div class="solic-acoes">
       ${s.status !== 'em_analise' ? btn(s.id, 'em_analise', 'Em análise') : ''}
+      ${s.qtd_cadeirante > 0 && s.status !== 'aguardando_transporte_adaptado' ? btn(s.id, 'aguardando_transporte_adaptado', '♿ Adaptado') : ''}
       ${s.status !== 'confirmado' ? btn(s.id, 'confirmado', 'Confirmar', 'ok') : ''}
       ${s.status !== 'negado' ? btn(s.id, 'negado', 'Negar', 'no') : ''}
     </div>` : '';
+  const nome = s.atividade?.nome || s.atividade_livre || 'Atividade';
+  const livre = !s.atividade?.nome && s.atividade_livre;
+  const horarios = [s.horario_embarque, s.horario_retorno].filter(Boolean).join(' → ');
   return `<div class="solic" style="border-left:3px solid ${esc(cor)}">
     <div class="solic-main">
       <div class="di-top">
-        <b>${esc(s.atividade?.nome || 'Atividade')}</b>
+        <b>${esc(nome)}</b>
+        ${livre ? '<span class="tag">Organizada pela escola</span>' : ''}
         <span class="tag st-${esc(s.status)}">${esc(STATUS[s.status] || s.status)}</span>
       </div>
       <div class="di-meta">${esc(escola)} · ${esc(fmtData(s.data))} · ${esc(PERIODOS[s.periodo] || s.periodo || '')}
         ${s.turmas ? '· ' + esc(s.turmas) : ''}
         ${s.qtd_alunos ? '· ' + esc(s.qtd_alunos) + ' alunos' : ''}
-        ${s.qtd_onibus ? '· ' + esc(s.qtd_onibus) + ' ônibus' : ''}</div>
+        ${s.qtd_onibus ? '· ' + esc(s.qtd_onibus) + ' ônibus' : ''}
+        ${s.qtd_cadeirante > 0 ? '· ♿ ' + esc(s.qtd_cadeirante) : ''}</div>
+      ${s.destino_nome ? `<div class="di-meta">Destino: ${esc(s.destino_nome)}${s.destino_endereco ? ' — ' + esc(s.destino_endereco) : ''}</div>` : ''}
+      ${horarios ? `<div class="di-meta">Horário: ${esc(horarios)}</div>` : ''}
       ${s.contato_professor ? `<div class="di-meta">Contato: ${esc(s.contato_professor)}</div>` : ''}
     </div>
     ${acoes}
@@ -143,6 +151,7 @@ async function mudarStatus(id, status) {
 }
 
 // ── Nova solicitação ─────────────────────────────────────────
+let modoNova = 'catalogo'; // 'catalogo' | 'livre'
 function renderNova() {
   const box = document.getElementById('sate-body');
   const minData = perfil?.isAdmin ? hojeISO() : addDias(hojeISO(), ANTECEDENCIA_MIN);
@@ -152,9 +161,20 @@ function renderNova() {
 
   box.innerHTML = `
     <form id="nova-form" class="sate-form">
+      <div class="modo-toggle">
+        <label class="inline"><input type="radio" name="modo" value="catalogo" ${modoNova === 'catalogo' ? 'checked' : ''}/> Atividade do catálogo</label>
+        <label class="inline"><input type="radio" name="modo" value="livre" ${modoNova === 'livre' ? 'checked' : ''}/> Outra atividade (organizada pela escola)</label>
+      </div>
       <div class="form-grid">
-        <label>Atividade
-          <select id="f-ativ" required><option value="">Selecione…</option>${optsAtiv}</select></label>
+        <label class="m-catalogo">Atividade
+          <select id="f-ativ"><option value="">Selecione…</option>${optsAtiv}</select></label>
+        <label class="m-livre col-2">Nome da atividade / evento
+          <input id="f-ativ-livre" type="text" placeholder="Ex.: Visita ao Teatro Pedro II" /></label>
+        <label class="m-livre">Destino (local)
+          <input id="f-dest-nome" type="text" placeholder="Ex.: Teatro Pedro II" /></label>
+        <label class="m-livre">Endereço do destino
+          <input id="f-dest-end" type="text" placeholder="Rua, nº - bairro" /></label>
+
         <label>Escola
           <select id="f-esc" required><option value="">Selecione…</option>${optsEsc}</select></label>
         <label>Data
@@ -168,6 +188,12 @@ function renderNova() {
           <input id="f-turmas" type="text" placeholder="Ex.: 5º A, 5º B" /></label>
         <label>Nº de alunos
           <input id="f-alunos" type="number" min="1" required /></label>
+        <label>Nº de cadeirantes (transporte adaptado)
+          <input id="f-cadeira" type="number" min="0" value="0" /></label>
+        <label>Horário de embarque
+          <input id="f-emb" type="time" /></label>
+        <label>Horário de retorno
+          <input id="f-ret" type="time" /></label>
         <label class="col-2">Contato do professor(a)
           <input id="f-contato" type="text" placeholder="Nome e telefone" /></label>
         <label class="col-2">Observação
@@ -180,53 +206,77 @@ function renderNova() {
       <p id="f-msg" class="auth-msg"></p>
     </form>`;
 
-  if (!atividades.length || !unidades.length) {
-    document.getElementById('f-hint').textContent = 'Catálogo/escolas ainda não carregados no banco.';
-  }
+  const form = document.getElementById('nova-form');
+  const aplicarModo = () => {
+    form.classList.toggle('is-livre', modoNova === 'livre');
+    form.classList.toggle('is-catalogo', modoNova === 'catalogo');
+  };
+  form.querySelectorAll('input[name="modo"]').forEach(r =>
+    r.addEventListener('change', () => { modoNova = r.value; aplicarModo(); atualizaHint(); }));
+  aplicarModo();
+
   const ativSel = document.getElementById('f-ativ');
   const alunos = document.getElementById('f-alunos');
   const hint = document.getElementById('f-hint');
-  const atualizaHint = () => {
-    const a = atividades.find(x => x.id === ativSel.value);
+  function atualizaHint() {
     const n = parseInt(alunos.value, 10);
-    if (a && n > 0) {
-      const onibus = a.usa_onibus ? Math.ceil(n / CAP_ONIBUS) : 0;
-      hint.textContent = a.usa_onibus ? `≈ ${onibus} ônibus (${CAP_ONIBUS} lugares)` : 'Atividade na escola (sem ônibus)';
-    } else hint.textContent = '';
-  };
+    if (!(n > 0)) { hint.textContent = ''; return; }
+    let usaOnibus = true;
+    if (modoNova === 'catalogo') {
+      const a = atividades.find(x => x.id === ativSel.value);
+      usaOnibus = a ? a.usa_onibus : true;
+    }
+    hint.textContent = usaOnibus ? `≈ ${Math.ceil(n / CAP_ONIBUS)} ônibus (${CAP_ONIBUS} lugares)` : 'Sem ônibus';
+  }
   ativSel.addEventListener('change', atualizaHint);
   alunos.addEventListener('input', atualizaHint);
 
-  document.getElementById('nova-form').addEventListener('submit', enviarNova);
+  form.addEventListener('submit', enviarNova);
 }
 
 async function enviarNova(e) {
   e.preventDefault();
   const msg = document.getElementById('f-msg'); msg.className = 'auth-msg';
-  const a = atividades.find(x => x.id === document.getElementById('f-ativ').value);
+  const val = (id) => document.getElementById(id).value.trim();
   const escId = document.getElementById('f-esc').value;
   const data = document.getElementById('f-data').value;
   const periodo = document.getElementById('f-per').value;
   const qtd = parseInt(document.getElementById('f-alunos').value, 10);
+  const cadeira = parseInt(document.getElementById('f-cadeira').value, 10) || 0;
 
-  if (!a || !escId || !data || !periodo || !qtd) {
-    return fail(msg, 'Preencha atividade, escola, data, período e nº de alunos.');
+  let a = null, atividadeLivre = null, usaOnibus = true;
+  if (modoNova === 'catalogo') {
+    a = atividades.find(x => x.id === document.getElementById('f-ativ').value);
+    if (!a) return fail(msg, 'Selecione uma atividade do catálogo (ou use “Outra atividade”).');
+    usaOnibus = a.usa_onibus;
+  } else {
+    atividadeLivre = val('f-ativ-livre');
+    if (!atividadeLivre) return fail(msg, 'Informe o nome da atividade organizada pela escola.');
+  }
+  if (!escId || !data || !periodo || !qtd) {
+    return fail(msg, 'Preencha escola, data, período e nº de alunos.');
   }
   if (data < hojeISO()) return fail(msg, 'A data não pode ser no passado.');
   if (!perfil?.isAdmin && data < addDias(hojeISO(), ANTECEDENCIA_MIN)) {
     return fail(msg, `A escola deve solicitar com no mínimo ${ANTECEDENCIA_MIN} dias de antecedência.`);
   }
-  if (a.min_participantes && qtd < a.min_participantes) {
+  if (a?.min_participantes && qtd < a.min_participantes) {
     return fail(msg, `Esta atividade exige no mínimo ${a.min_participantes} participantes.`);
   }
 
   const payload = {
-    atividade_id: a.id, unidade_id: isUuid(escId) ? escId : null,
-    data, periodo, qtd_alunos: qtd,
-    qtd_onibus: a.usa_onibus ? Math.ceil(qtd / CAP_ONIBUS) : 0,
-    turmas: document.getElementById('f-turmas').value.trim() || null,
-    contato_professor: document.getElementById('f-contato').value.trim() || null,
-    observacao: document.getElementById('f-obs').value.trim() || null,
+    atividade_id: a ? a.id : null,
+    atividade_livre: atividadeLivre,
+    unidade_id: isUuid(escId) ? escId : null,
+    data, periodo, qtd_alunos: qtd, qtd_cadeirante: cadeira,
+    qtd_onibus: usaOnibus ? Math.ceil(qtd / CAP_ONIBUS) : 0,
+    turmas: val('f-turmas') || null,
+    destino_nome: val('f-dest-nome') || null,
+    destino_endereco: val('f-dest-end') || null,
+    horario_embarque: val('f-emb') || null,
+    horario_retorno: val('f-ret') || null,
+    contato_professor: val('f-contato') || null,
+    observacao: val('f-obs') || null,
   };
   const btn = document.getElementById('f-submit'); btn.disabled = true; btn.textContent = 'Enviando…';
   try {
