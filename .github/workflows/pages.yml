@@ -14,7 +14,7 @@ permissions:
 
 concurrency:
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false   # enfileira; não cancela deploy em andamento (evita raiz obsoleta)
 
 jobs:
   build-deploy:
