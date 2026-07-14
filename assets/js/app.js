@@ -12,6 +12,7 @@ import { renderEscolas } from './tools/escolas.js';
 import { renderSate } from './tools/sate.js';
 import { renderViagens } from './tools/viagens.js';
 import { renderCalendario } from './tools/calendario.js';
+import { renderAfastamentos } from './tools/afastamentos.js';
 
 // Catálogo de módulos do hub (14 áreas do FundHub).
 const MODULOS = [
@@ -20,7 +21,7 @@ const MODULOS = [
   { id: 'gestores',     ico: '👥', nome: 'Gestores & Coordenadores', desc: 'Equipe gestora, vínculos e contatos.' },
   { id: 'calendario',   ico: '📅', nome: 'Calendário Escolar',       desc: 'Dias letivos, eventos e bloqueios de data.', rota: '#/calendario', ativo: true },
   { id: 'horarios',     ico: '🕒', nome: 'Horários de Trabalho',     desc: 'Jornada da equipe gestora, validada por regra.' },
-  { id: 'afastamentos', ico: '🌴', nome: 'Afastamentos',             desc: 'Férias, licenças e afastamentos.' },
+  { id: 'afastamentos', ico: '🌴', nome: 'Afastamentos',             desc: 'Férias, licenças e afastamentos.', rota: '#/afastamentos', ativo: true },
   { id: 'sate',         ico: '🚌', nome: 'SATE · Transporte',        desc: 'Agendamento de transporte extraclasse.', rota: '#/sate', ativo: true },
   { id: 'viagens',      ico: '📄', nome: 'Programação de Viagens',    desc: 'Viagens confirmadas para a empresa de transporte.', rota: '#/viagens', ativo: true },
   { id: 'projetos',     ico: '🔬', nome: 'Projetos & Pesquisas',     desc: 'Ofertas às escolas, anuências e interesse.' },
@@ -65,6 +66,7 @@ const routes = {
   '#/sate': () => renderSate(app),
   '#/viagens': () => renderViagens(app),
   '#/calendario': () => renderCalendario(app),
+  '#/afastamentos': () => renderAfastamentos(app),
 };
 
 async function route() {

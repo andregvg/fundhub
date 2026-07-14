@@ -5,6 +5,7 @@
 // calendário entram conforme os módulos ficam prontos.
 // ============================================================
 import { getStats, getSolicitacoesDoDia } from '../data/solicitacoes.js';
+import { getAfastamentos } from '../data/afastamentos.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const hojeISO = () => new Date().toLocaleDateString('sv-SE'); // yyyy-mm-dd local
@@ -26,9 +27,9 @@ export async function renderDashboard(app) {
         <h2>🚌 Extraclasse hoje</h2>
         <div id="extraclasse"><div class="loading">Carregando…</div></div>
       </section>
-      <section class="panel soon-panel">
+      <section class="panel">
         <h2>🌴 Afastamentos hoje</h2>
-        <div class="empty small"><p>Entra com o módulo de Afastamentos.</p></div>
+        <div id="afastamentos"><div class="loading">Carregando…</div></div>
       </section>
       <section class="panel soon-panel">
         <h2>📅 Calendário hoje</h2>
@@ -55,7 +56,35 @@ export async function renderDashboard(app) {
     document.getElementById('extraclasse').innerHTML =
       `<div class="empty small"><p>Não foi possível carregar: ${esc(err.message || err)}</p></div>`;
   }
+
+  // Afastamentos vigentes hoje
+  try {
+    const afs = await getAfastamentos({ vigentesEm: hojeISO() });
+    renderAfastamentos(afs);
+  } catch (err) {
+    document.getElementById('afastamentos').innerHTML =
+      `<div class="empty small"><p>Não foi possível carregar: ${esc(err.message || err)}</p></div>`;
+  }
 }
+
+function renderAfastamentos(afs) {
+  const box = document.getElementById('afastamentos');
+  if (!box) return;
+  if (!afs.length) {
+    box.innerHTML = `<div class="empty small"><p>Nenhum afastamento vigente hoje.</p></div>`;
+    return;
+  }
+  box.innerHTML = afs.map(a => {
+    const nome = a.servidor?.nome || '—';
+    const unidade = a.unidade?.apelido || a.unidade?.nome;
+    return `<div class="dash-item">
+      <div class="di-top"><b>${esc(nome)}</b><span class="tag">${esc(a.tipo)}</span></div>
+      <div class="di-meta">${a.fim ? 'até ' + fmtBR(a.fim) : 'em aberto'}${unidade ? ' · ' + esc(unidade) : ''}</div>
+    </div>`;
+  }).join('');
+}
+
+function fmtBR(iso) { const [y, m, d] = String(iso).split('-'); return `${d}/${m}/${y}`; }
 
 function statTile(ico, num, label, extra = '') {
   return `<div class="stat-tile ${extra}">
