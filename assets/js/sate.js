@@ -6,6 +6,7 @@
 import {
   getAtividades, getUnidades, getPerfilAtual,
   listSolicitacoes, criarSolicitacao, atualizarStatusSolicitacao,
+  getOfertaDia, setOferta, getUsoDia, STATUS_RESERVA,
 } from './data.js';
 
 const CAP_ONIBUS = 44;          // capacidade padrão por ônibus
@@ -28,18 +29,21 @@ export async function renderSate(app) {
     <div class="tabbar">
       <button class="tab" data-aba="solicitacoes">Solicitações</button>
       <button class="tab" data-aba="nova">Nova solicitação</button>
+      <button class="tab" data-aba="frota" data-admin>Frota</button>
       <button class="tab" data-aba="catalogo">Catálogo</button>
     </div>
     <div id="sate-body"><div class="loading">Carregando…</div></div>`;
-
-  app.querySelectorAll('.tab').forEach(b =>
-    b.addEventListener('click', () => { aba = b.dataset.aba; paintTabs(); renderAba(); }));
 
   try {
     [perfil, atividades, unidades] = await Promise.all([
       getPerfilAtual(), getAtividades().catch(() => []), getUnidades().catch(() => []),
     ]);
   } catch (_) {}
+
+  if (!perfil?.isAdmin) app.querySelectorAll('.tab[data-admin]').forEach(b => b.remove());
+  app.querySelectorAll('.tab').forEach(b =>
+    b.addEventListener('click', () => { aba = b.dataset.aba; paintTabs(); renderAba(); }));
+
   paintTabs();
   renderAba();
 }
@@ -51,6 +55,7 @@ function paintTabs() {
 function renderAba() {
   if (aba === 'catalogo') return renderCatalogo();
   if (aba === 'nova') return renderNova();
+  if (aba === 'frota') return renderFrota();
   return renderSolicitacoes();
 }
 
@@ -84,6 +89,7 @@ function cardAtividade(a) {
 
 // ── Solicitações (lista + validação) ─────────────────────────
 let filtroStatus = '';
+let solicLista = [];
 async function renderSolicitacoes() {
   const box = document.getElementById('sate-body');
   box.innerHTML = `
@@ -103,6 +109,7 @@ async function renderSolicitacoes() {
     document.getElementById('st-lista').innerHTML = `<p class="count">Erro: ${esc(err.message || err)}</p>`;
     return;
   }
+  solicLista = lista;
   const el = document.getElementById('st-lista');
   if (!lista.length) { el.innerHTML = emptyBox('📭', 'Nenhuma solicitação', 'Crie uma em “Nova solicitação”.'); return; }
   el.innerHTML = lista.map(itemSolic).join('');
@@ -146,6 +153,23 @@ const btn = (id, acao, txt, kind = '') =>
   `<button class="mini-btn ${kind}" data-id="${id}" data-acao="${acao}">${txt}</button>`;
 
 async function mudarStatus(id, status) {
+  // Ao confirmar, checa saldo de frota do dia/período.
+  if (status === 'confirmado') {
+    const s = solicLista.find(x => x.id === id);
+    if (s && (s.qtd_onibus || 0) > 0) {
+      try {
+        const [oferta, uso] = await Promise.all([getOfertaDia(s.data), getUsoDia(s.data)]);
+        const cap = oferta[s.periodo] || 0;
+        const jaReserva = STATUS_RESERVA.includes(s.status);
+        const projetado = (uso[s.periodo] || 0) + (jaReserva ? 0 : s.qtd_onibus);
+        if (cap === 0) {
+          if (!confirm(`A oferta de ônibus não está definida para ${fmtData(s.data)} (${s.periodo}). Confirmar mesmo assim?`)) return;
+        } else if (projetado > cap) {
+          if (!confirm(`Frota insuficiente: oferta ${cap}, uso ficaria ${projetado} ônibus em ${fmtData(s.data)} (${s.periodo}). Confirmar mesmo assim?`)) return;
+        }
+      } catch (_) { /* se a checagem falhar, segue o fluxo normal */ }
+    }
+  }
   try { await atualizarStatusSolicitacao(id, status); renderSolicitacoes(); }
   catch (err) { alert('Não foi possível atualizar: ' + (err.message || err)); }
 }
@@ -286,6 +310,49 @@ async function enviarNova(e) {
     fail(msg, 'Não foi possível enviar: ' + (err.message || err));
     btn.disabled = false; btn.textContent = 'Enviar solicitação';
   }
+}
+
+// ── Frota (oferta de ônibus por dia/período) ─────────────────
+async function renderFrota() {
+  const box = document.getElementById('sate-body');
+  box.innerHTML = `
+    <div class="toolbar">
+      <label class="search" style="flex:0 0 auto">📅 <input id="fr-data" type="date" value="${hojeISO()}" /></label>
+      <span class="count">Defina os ônibus disponíveis por período e acompanhe o saldo.</span>
+    </div>
+    <div id="fr-body"><div class="loading">Carregando…</div></div>`;
+
+  const load = async () => {
+    const data = document.getElementById('fr-data').value;
+    const body = document.getElementById('fr-body');
+    let oferta = {}, uso = {};
+    try { [oferta, uso] = await Promise.all([getOfertaDia(data), getUsoDia(data)]); }
+    catch (err) { body.innerHTML = `<p class="count">Erro: ${esc(err.message || err)}</p>`; return; }
+    body.innerHTML = `
+      <div class="frota">
+        ${['manha', 'tarde', 'noite'].map(p => {
+          const cap = oferta[p] || 0, u = uso[p] || 0, saldo = cap - u;
+          return `<div class="frota-row">
+            <div class="fr-per">${PERIODOS[p]}</div>
+            <label class="fr-of">Ônibus disponíveis <input type="number" min="0" data-per="${p}" value="${cap}" /></label>
+            <div class="fr-uso">Em uso <b>${u}</b></div>
+            <div class="fr-saldo ${saldo < 0 ? 'neg' : ''}">Saldo <b>${saldo}</b></div>
+          </div>`;
+        }).join('')}
+      </div>
+      <div class="form-foot"><span id="fr-msg" class="auth-msg"></span><button id="fr-save">Salvar oferta</button></div>`;
+    document.getElementById('fr-save').addEventListener('click', async () => {
+      const msg = document.getElementById('fr-msg'); msg.className = 'auth-msg';
+      try {
+        for (const inp of body.querySelectorAll('input[data-per]'))
+          await setOferta(data, inp.dataset.per, parseInt(inp.value, 10) || 0);
+        msg.classList.add('ok'); msg.textContent = 'Oferta salva.';
+        load();
+      } catch (err) { msg.classList.add('err'); msg.textContent = 'Erro: ' + (err.message || err); }
+    });
+  };
+  document.getElementById('fr-data').addEventListener('change', load);
+  load();
 }
 
 // ── utils ────────────────────────────────────────────────────
