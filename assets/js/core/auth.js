@@ -4,7 +4,7 @@
 // institucional. O domínio é validado aqui (UX) e, de forma
 // definitiva, pelo RLS no banco (is_institucional()).
 // ============================================================
-import { sb, hasSupabase } from './sb.js';
+import { sb, hasSupabase } from './supabase.js';
 
 const DOMINIO = '@educacao.pmrp.sp.gov.br';
 export function isInstitucional(email) {

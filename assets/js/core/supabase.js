@@ -9,6 +9,9 @@ export function hasSupabase() {
   return Boolean(CONFIG.supabaseUrl && CONFIG.supabaseAnonKey);
 }
 
+// Origem atual dos dados (para o rótulo no topo).
+export function source() { return hasSupabase() ? 'supabase' : 'local'; }
+
 let _client = null;
 export function sb() {
   if (!hasSupabase()) return null;

@@ -2,9 +2,8 @@
 // FundHub — escolas.js  (módulo Cadastro de Escolas)
 // Leitura para autorizados; CRUD (criar/editar/excluir) para admin.
 // ============================================================
-import {
-  getUnidades, getPerfilAtual, criarUnidade, atualizarUnidade, excluirUnidade,
-} from './data.js';
+import { getUnidades, criarUnidade, atualizarUnidade, excluirUnidade } from '../data/escolas.js';
+import { getPerfilAtual } from '../data/perfil.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const norm = (s) => String(s ?? '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');

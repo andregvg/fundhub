@@ -3,13 +3,14 @@
 // Abas: Solicitações (lista + validação) · Nova solicitação · Catálogo.
 // A escola solicita o ônibus direto aqui; a SME (admin) valida.
 // ============================================================
+import { getAtividades, criarAtividade, atualizarAtividade, excluirAtividade } from '../data/atividades.js';
+import { getUnidades } from '../data/escolas.js';
+import { getPerfilAtual } from '../data/perfil.js';
 import {
-  getAtividades, getUnidades, getPerfilAtual,
   listSolicitacoes, criarSolicitacao, atualizarStatusSolicitacao,
   getOfertaDia, setOferta, getUsoDia, STATUS_RESERVA,
-  criarAtividade, atualizarAtividade, excluirAtividade,
-  getDiaCalendario,
-} from './data.js';
+} from '../data/solicitacoes.js';
+import { getDiaCalendario } from '../data/calendario.js';
 
 const CAP_ONIBUS = 44;          // capacidade padrão por ônibus
 const ANTECEDENCIA_MIN = 5;     // dias mínimos para a escola (admin não tem limite)

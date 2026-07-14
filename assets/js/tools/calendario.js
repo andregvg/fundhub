@@ -4,7 +4,8 @@
 // afastamento) que o SATE e os Afastamentos consultam. Admin edita
 // cada dia; demais visualizam.
 // ============================================================
-import { getCalendarioMes, upsertDiaCalendario, getPerfilAtual } from './data.js';
+import { getCalendarioMes, upsertDiaCalendario } from '../data/calendario.js';
+import { getPerfilAtual } from '../data/perfil.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const MESES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];

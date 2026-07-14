@@ -4,15 +4,14 @@
 // qualquer base path (/fundhub hoje, domínio próprio depois) sem
 // precisar de reescrita no servidor.
 // ============================================================
-import { renderEscolas } from './escolas.js';
-import { renderSate } from './sate.js';
-import { renderDashboard } from './dashboard.js';
-import { renderViagens } from './viagens.js';
-import { renderCalendario } from './calendario.js';
-import { source } from './data.js';
-import { hasSupabase } from './sb.js';
-import { getUser, onAuthChange, renderLogin, isInstitucional, signOut } from './auth.js';
-import { initNotifications, stopNotifications } from './notifications.js';
+import { source, hasSupabase } from './core/supabase.js';
+import { getUser, onAuthChange, renderLogin, isInstitucional, signOut } from './core/auth.js';
+import { initNotifications, stopNotifications } from './tools/notifications.js';
+import { renderDashboard } from './tools/dashboard.js';
+import { renderEscolas } from './tools/escolas.js';
+import { renderSate } from './tools/sate.js';
+import { renderViagens } from './tools/viagens.js';
+import { renderCalendario } from './tools/calendario.js';
 
 // Catálogo de módulos do hub (14 áreas do FundHub).
 const MODULOS = [

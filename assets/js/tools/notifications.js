@@ -4,7 +4,9 @@
 // solicitações, via Supabase Realtime. O RLS garante que cada usuário
 // só recebe eventos das linhas que pode ver.
 // ============================================================
-import { subscribeSolicitacoes, getUnidades, getAtividades } from './data.js';
+import { subscribeSolicitacoes } from '../data/solicitacoes.js';
+import { getUnidades } from '../data/escolas.js';
+import { getAtividades } from '../data/atividades.js';
 
 const STATUS = { solicitado: 'Solicitado', em_analise: 'Em análise', aguardando_transporte_adaptado: 'Aguardando adaptado', confirmado: 'Confirmado', negado: 'Negado', cancelado: 'Cancelado' };
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));

@@ -4,7 +4,7 @@
 // empresa de transporte (origem escola → destino, horários, alunos,
 // veículo, contato). Imprimível. Substitui o preenchimento manual.
 // ============================================================
-import { getViagensDoDia } from './data.js';
+import { getViagensDoDia } from '../data/solicitacoes.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const hojeISO = () => new Date().toLocaleDateString('sv-SE');

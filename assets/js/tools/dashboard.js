@@ -4,7 +4,7 @@
 // existe (escolas, atividades, extraclasse do dia); afastamentos e
 // calendário entram conforme os módulos ficam prontos.
 // ============================================================
-import { getStats, getSolicitacoesDoDia } from './data.js';
+import { getStats, getSolicitacoesDoDia } from '../data/solicitacoes.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const hojeISO = () => new Date().toLocaleDateString('sv-SE'); // yyyy-mm-dd local
