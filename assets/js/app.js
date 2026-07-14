@@ -1,5 +1,5 @@
 // ============================================================
-// SMEHub — app.js  (roteador + hub)
+// FundHub — app.js  (roteador + hub)
 // Roteamento por hash (#/rota) para funcionar no GitHub Pages sob
 // qualquer base path (/fundhub hoje, domínio próprio depois) sem
 // precisar de reescrita no servidor.
@@ -7,7 +7,7 @@
 import { renderEscolas } from './escolas.js';
 import { source } from './data.js';
 
-// Catálogo de módulos do hub (14 áreas do SMEHub).
+// Catálogo de módulos do hub (14 áreas do FundHub).
 const MODULOS = [
   { id: 'escolas',      ico: '🏫', nome: 'Escolas',                 desc: 'Cadastro das 144 unidades escolares.', rota: '#/escolas', ativo: true },
   { id: 'gestores',     ico: '👥', nome: 'Gestores & Coordenadores', desc: 'Equipe gestora, vínculos e contatos.' },
@@ -41,7 +41,7 @@ function renderHome() {
 
   app.innerHTML = `
     <section class="hero">
-      <h1>Bem-vindo ao SMEHub</h1>
+      <h1>Bem-vindo ao FundHub</h1>
       <p>Hub de aplicações gerenciais da Gerência de Ensino Fundamental. Comece pelo módulo
          <strong>Escolas</strong>; os demais entram em operação nas próximas etapas.</p>
     </section>

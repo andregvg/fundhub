@@ -1,5 +1,5 @@
 /* ============================================================
-   SMEHub — styles.css
+   FundHub — styles.css
    ============================================================ */
 :root {
   --bg: #f4f6fb;
@@ -132,6 +132,13 @@ a.tile:hover { transform: translateY(-2px); border-color: color-mix(in srgb, var
 .tag { font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 6px; background: var(--surface-2); color: var(--muted); }
 .tag.bus { color: var(--brand-2); background: color-mix(in srgb, var(--brand-2) 14%, transparent); }
 .tag.eja { color: var(--accent); background: color-mix(in srgb, var(--accent) 16%, transparent); }
+
+/* Empty state */
+.empty { grid-column: 1 / -1; text-align: center; padding: 48px 20px; color: var(--muted); }
+.empty-ico { font-size: 40px; margin-bottom: 8px; }
+.empty h3 { margin: 0 0 6px; color: var(--text); }
+.empty p { margin: 0 auto; max-width: 52ch; }
+.empty code { background: var(--surface-2); padding: 1px 6px; border-radius: 5px; font-size: 12.5px; }
 
 /* Detail drawer */
 .drawer-back { position: fixed; inset: 0; background: rgba(10,15,30,.5); z-index: 40; opacity: 0; pointer-events: none; transition: opacity .18s; }

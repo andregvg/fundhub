@@ -1,4 +1,4 @@
-# SMEHub
+# FundHub
 
 Hub de aplicações gerenciais da **Gerência de Ensino Fundamental** — Secretaria Municipal da Educação de Ribeirão Preto.
 

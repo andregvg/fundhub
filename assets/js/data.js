@@ -1,8 +1,10 @@
 // ============================================================
-// SMEHub — data.js  (camada de acesso a dados)
-// Estratégia de progressão: se CONFIG tiver Supabase, usa o banco;
-// caso contrário, cai no data/unidades.json empacotado. As telas
-// consomem sempre a mesma forma de objeto, independente da origem.
+// FundHub — data.js  (camada de acesso a dados)
+// Fonte de dados: Supabase (RLS). NENHUM dado real é versionado —
+// o repositório é público. Para desenvolvimento local, o app tenta
+// carregar data/unidades.local.json (gitignored); se não existir,
+// mostra estado vazio. As telas consomem sempre a mesma forma de
+// objeto, independente da origem.
 // ============================================================
 import { CONFIG } from './config.js';
 
@@ -55,10 +57,15 @@ export async function getUnidades() {
     return _cache;
   }
 
-  // modo local
-  const resp = await fetch('data/unidades.json', { cache: 'no-cache' });
-  const json = await resp.json();
-  _cache = json.unidades;
+  // modo dev local: arquivo gitignored, ausente em produção → estado vazio
+  try {
+    const resp = await fetch('data/unidades.local.json', { cache: 'no-cache' });
+    if (!resp.ok) { _cache = []; return _cache; }
+    const json = await resp.json();
+    _cache = json.unidades || [];
+  } catch (_) {
+    _cache = [];
+  }
   return _cache;
 }
 

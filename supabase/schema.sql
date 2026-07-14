@@ -1,5 +1,5 @@
 -- ============================================================
--- SMEHub — schema.sql  (Fase 1: Cadastros núcleo)
+-- FundHub — schema.sql  (Fase 1: Cadastros núcleo)
 -- Postgres / Supabase. Rode este arquivo antes de seed_unidades.sql.
 -- ============================================================
 -- Contexto: normaliza o CSV de "Unidades Escolares" em:

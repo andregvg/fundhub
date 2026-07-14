@@ -1,5 +1,5 @@
 // ============================================================
-// SMEHub — escolas.js  (módulo Cadastro de Escolas)
+// FundHub — escolas.js  (módulo Cadastro de Escolas)
 // ============================================================
 import { getUnidades } from './data.js';
 
@@ -32,6 +32,19 @@ export async function renderEscolas(app) {
   } catch (err) {
     document.getElementById('cards').innerHTML =
       `<p class="count">Não foi possível carregar as escolas: ${esc(err.message || err)}</p>`;
+    return;
+  }
+
+  if (!ALL.length) {
+    document.getElementById('cards').innerHTML = `
+      <div class="empty">
+        <div class="empty-ico">🗄️</div>
+        <h3>Sem dados carregados</h3>
+        <p>O FundHub lê as escolas do Supabase. Configure <code>assets/js/config.js</code>
+           com a URL e a anon key do projeto, ou adicione <code>data/unidades.local.json</code>
+           para desenvolvimento local.</p>
+      </div>`;
+    document.getElementById('count').textContent = '';
     return;
   }
 
