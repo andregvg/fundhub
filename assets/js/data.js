@@ -108,6 +108,41 @@ export async function getAtividades() {
   return _atvCache;
 }
 
+// CRUD de atividades (admin). Campos editáveis do catálogo.
+const CAMPOS_ATIVIDADE = ['chave', 'nome', 'descricao', 'publico_alvo', 'usa_onibus',
+  'gerida_sme', 'min_participantes', 'precisa_declaracao', 'lanche', 'local_nome',
+  'local_endereco', 'cor', 'ativo'];
+
+function limparAtividade(p) {
+  const out = {};
+  for (const k of CAMPOS_ATIVIDADE) if (p[k] !== undefined) out[k] = p[k];
+  return out;
+}
+
+export async function criarAtividade(payload) {
+  if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
+  const { data, error } = await sb().from('atividade_extraclasse')
+    .insert(limparAtividade(payload)).select().single();
+  if (error) throw error;
+  _atvCache = null;
+  return data;
+}
+
+export async function atualizarAtividade(id, payload) {
+  if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
+  const { error } = await sb().from('atividade_extraclasse')
+    .update(limparAtividade(payload)).eq('id', id);
+  if (error) throw error;
+  _atvCache = null;
+}
+
+export async function excluirAtividade(id) {
+  if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
+  const { error } = await sb().from('atividade_extraclasse').delete().eq('id', id);
+  if (error) throw error;
+  _atvCache = null;
+}
+
 // Solicitações de um dia (ISO yyyy-mm-dd), com nomes de atividade/unidade.
 export async function getSolicitacoesDoDia(dataISO) {
   if (!hasSupabase()) return [];
@@ -167,8 +202,8 @@ export async function atualizarStatusSolicitacao(id, status) {
 // Status que reservam frota (ocupam ônibus provisória ou definitivamente).
 export const STATUS_RESERVA = ['em_analise', 'aguardando_transporte_adaptado', 'confirmado'];
 
-// Romaneio do dia: solicitações confirmadas com dados de origem/destino.
-export async function getRomaneio(dataISO) {
+// Programação de viagens do dia: solicitações confirmadas com origem/destino.
+export async function getViagensDoDia(dataISO) {
   if (!hasSupabase()) return [];
   const { data, error } = await sb().from('solicitacao_transporte')
     .select('*, atividade:atividade_extraclasse(nome,local_nome,local_endereco,gerida_sme), unidade:unidade_escolar(nome,apelido,endereco)')

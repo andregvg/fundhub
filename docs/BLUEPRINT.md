@@ -25,7 +25,7 @@ rápida e escalável, com acompanhamento em tempo real das 144 escolas da rede.
 
 **Cadastros** — `regional`, `unidade_escolar`, `turma`, `servidor`, `vinculo` (pessoa×escola×papel×ano, temporal), `horario_trabalho`. As ~34 EMEFs (que usam extraclasse) trazem coordenadas e contagem de alunos por segmento/período (fonte: escolas do `agendamentos-fil`). `turma` vem do relatório de matrículas (aba *Consulta Matrícula*): código da turma, série, período, capacidade física, matriculados, ativos.
 **Calendário** — `dia_calendario` (letivo?, evento, bloqueios), sincronizado ao Google Calendar.
-**SATE (Transporte extraclasse)** — `atividade_extraclasse` (catálogo com regras), `oferta_onibus` (capacidade dia×período, variável no ano), `solicitacao_transporte` (o pedido da escola já é o pedido de ônibus; multi-parada Cirem; workflow de status; validações), e a **saída = romaneio diário** para a empresa de ônibus (ver `Junho.xlsx`: por dia, cada viagem com ORIGEM escola→DESTINO local, Ida/Retorno com horários, nº de alunos, tipo de veículo Ônibus/Van ADP, contato do professor). Absorve o antigo `agendamentos-fil` (a FIL vira uma atividade com frota extra).
+**SATE (Transporte extraclasse)** — `atividade_extraclasse` (catálogo com regras), `oferta_onibus` (capacidade dia×período, variável no ano), `solicitacao_transporte` (o pedido da escola já é o pedido de ônibus; multi-parada Cirem; workflow de status; validações), e a **saída = programação de viagens** do dia para a empresa de transporte (ver `Junho.xlsx`: por dia, cada viagem com ORIGEM escola→DESTINO local, Ida/Retorno com horários, nº de alunos, tipo de veículo Ônibus/Van ADP, contato do professor). Absorve o antigo `agendamentos-fil` (a FIL vira uma atividade com frota extra).
 **Afastamentos** — `afastamento` integrado a `servidor`/`vinculo`/calendário; ícones no Google Contacts.
 **Projetos & Pesquisas** — `projeto`, `anuencia` (gera carta), `manifestacao_interesse`; portal externo do proponente.
 **Operação diária** — `ocorrencia`, `ata`, `relatorio_visita`, `notificacao`, e o Dashboard do dia (extraclasse + afastamentos + calendário em tempo real).
@@ -63,7 +63,7 @@ Os sistemas em Apps Script (`agendamentos-fil`, `afastamentos-gestores` etc.) **
 
 ## 8. Insumos recebidos (para as próximas fases)
 
-- `Junho.xlsx` — romaneio de ônibus (formato de saída do SATE). ✅
+- `Junho.xlsx` — programação de viagens de ônibus (formato de saída do SATE). ✅
 - Relatório de Projetos 2025 (PDF, com imagens) — referência do relatório anual. ✅ (relatórios costumam ter imagens associadas → prever Storage no Supabase).
 - `Total de alunos - Fundamental 2026.xlsx` — matrículas/salas/capacidade por turma. ✅
 - Escolas do `agendamentos-fil` (TSV) — coordenadas + alunos por período das ~34 EMEFs. ✅

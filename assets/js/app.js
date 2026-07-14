@@ -7,7 +7,7 @@
 import { renderEscolas } from './escolas.js';
 import { renderSate } from './sate.js';
 import { renderDashboard } from './dashboard.js';
-import { renderRomaneio } from './romaneio.js';
+import { renderViagens } from './viagens.js';
 import { source } from './data.js';
 import { hasSupabase } from './sb.js';
 import { getUser, onAuthChange, renderLogin, isInstitucional, signOut } from './auth.js';
@@ -22,7 +22,7 @@ const MODULOS = [
   { id: 'horarios',     ico: '🕒', nome: 'Horários de Trabalho',     desc: 'Jornada da equipe gestora, validada por regra.' },
   { id: 'afastamentos', ico: '🌴', nome: 'Afastamentos',             desc: 'Férias, licenças e afastamentos.' },
   { id: 'sate',         ico: '🚌', nome: 'SATE · Transporte',        desc: 'Agendamento de transporte extraclasse.', rota: '#/sate', ativo: true },
-  { id: 'romaneio',     ico: '📄', nome: 'Romaneio diário',          desc: 'Viagens confirmadas para a empresa de ônibus.', rota: '#/romaneio', ativo: true },
+  { id: 'viagens',      ico: '📄', nome: 'Programação de Viagens',    desc: 'Viagens confirmadas para a empresa de transporte.', rota: '#/viagens', ativo: true },
   { id: 'projetos',     ico: '🔬', nome: 'Projetos & Pesquisas',     desc: 'Ofertas às escolas, anuências e interesse.' },
   { id: 'ocorrencias',  ico: '📞', nome: 'Ocorrências',              desc: 'Registro de atendimentos telefônicos.' },
   { id: 'atas',         ico: '📝', nome: 'Atas de Atendimento',      desc: 'Redação e impressão em papel timbrado.' },
@@ -63,7 +63,7 @@ const routes = {
   '#/dashboard': () => renderDashboard(app),
   '#/escolas': () => renderEscolas(app),
   '#/sate': () => renderSate(app),
-  '#/romaneio': () => renderRomaneio(app),
+  '#/viagens': () => renderViagens(app),
 };
 
 async function route() {
