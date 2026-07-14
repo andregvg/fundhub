@@ -44,6 +44,17 @@ Project Settings → **API** → copie a **anon public** key para
 `assets/js/config.js` (`supabaseAnonKey`). A URL já está preenchida.
 Ao publicar, o app passa a exigir login institucional e lê os dados via RLS.
 
+## Login com Google (opcional, além do magic link)
+
+Para habilitar o botão "Entrar com conta Google":
+1. **Google Cloud Console** → crie um *OAuth 2.0 Client ID* (tipo *Web application*).
+   - *Authorized redirect URI:* `https://uwkroffzjyzbjslepjnh.supabase.co/auth/v1/callback`
+2. **Supabase → Authentication → Providers → Google:** habilite e cole o *Client ID* e *Client secret*.
+3. Pronto — o botão já existe no app. O login Google não substitui o magic link; os dois convivem.
+
+> Restrição de acesso: mesmo entrando por Google, só lê quem estiver na allowlist
+> (`perfil`). O parâmetro `hd` apenas sugere ao Google a conta do domínio.
+
 ## Verificação de que está fechado
 
 - Deslogado, a aba Escolas deve aparecer **vazia/entrar em login** — nunca mostrar dados.

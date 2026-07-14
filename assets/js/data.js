@@ -60,3 +60,35 @@ export async function getUnidades() {
 function rotulaPapel(p) {
   return { gestor: 'Gestor(a)', coordenador: 'Coordenador(a)', supervisor: 'Supervisor(a)' }[p] || p;
 }
+
+// ── SATE ─────────────────────────────────────────────────────
+let _atvCache = null;
+export async function getAtividades() {
+  if (_atvCache) return _atvCache;
+  if (!hasSupabase()) { _atvCache = []; return _atvCache; }
+  const { data, error } = await sb()
+    .from('atividade_extraclasse').select('*').eq('ativo', true).order('nome');
+  if (error) throw error;
+  _atvCache = data || [];
+  return _atvCache;
+}
+
+// Solicitações de um dia (ISO yyyy-mm-dd), com nomes de atividade/unidade.
+export async function getSolicitacoesDoDia(dataISO) {
+  if (!hasSupabase()) return [];
+  const { data, error } = await sb()
+    .from('solicitacao_transporte')
+    .select('*, atividade:atividade_extraclasse(nome,cor), unidade:unidade_escolar(nome,apelido)')
+    .eq('data', dataISO)
+    .order('periodo');
+  if (error) throw error;
+  return data || [];
+}
+
+// Números para o Dashboard.
+export async function getStats() {
+  const unidades = await getUnidades().catch(() => []);
+  const stats = { escolas: unidades.length, atividades: 0 };
+  try { stats.atividades = (await getAtividades()).length; } catch (_) {}
+  return stats;
+}
