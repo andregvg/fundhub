@@ -146,6 +146,17 @@ create policy perfil_sel on perfil for select
 create policy perfil_all on perfil for all
   using (is_admin()) with check (is_admin());
 
+-- ── Privilégios de tabela ────────────────────────────────────
+-- O papel `authenticated` recebe GRANT; o RLS acima é quem filtra.
+-- `anon` fica sem privilégios → deslogado não acessa nada.
+grant usage on schema public to authenticated;
+grant select, insert, update, delete on all tables in schema public to authenticated;
+grant usage, select on all sequences in schema public to authenticated;
+alter default privileges in schema public
+  grant select, insert, update, delete on tables to authenticated;
+alter default privileges in schema public
+  grant usage, select on sequences to authenticated;
+
 -- ── View: escola com pessoas (herda RLS das tabelas base) ────
 create or replace view vw_escola_pessoas
   with (security_invoker = true) as
