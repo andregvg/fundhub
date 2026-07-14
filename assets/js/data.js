@@ -14,7 +14,7 @@ export function source() { return hasSupabase() ? 'supabase' : 'local'; }
 // Normaliza uma linha do Supabase para a mesma forma do JSON local.
 function fromDb(u, pessoasByUnidade) {
   return {
-    numero: u.numero, nome: u.nome, nome_oficial: u.nome_oficial, apelido: u.apelido,
+    id: u.id, numero: u.numero, nome: u.nome, nome_oficial: u.nome_oficial, apelido: u.apelido,
     segmento: u.segmento, endereco: u.endereco, telefones: u.telefones || [],
     email: u.email, regional: u.regional_id != null ? String(u.regional_id) : '',
     tem_transporte: u.tem_transporte, oferta: u.oferta, tem_eja: u.tem_eja,
@@ -83,6 +83,50 @@ export async function getSolicitacoesDoDia(dataISO) {
     .order('periodo');
   if (error) throw error;
   return data || [];
+}
+
+// Perfil do usuário logado (papel/allowlist). null se não logado.
+let _perfilCache;
+export async function getPerfilAtual() {
+  if (_perfilCache !== undefined) return _perfilCache;
+  if (!hasSupabase()) { _perfilCache = null; return null; }
+  const { data: { user } } = await sb().auth.getUser();
+  if (!user) { _perfilCache = null; return null; }
+  const { data } = await sb().from('perfil').select('*').eq('email', user.email).maybeSingle();
+  _perfilCache = data
+    ? { ...data, isAdmin: data.papel === 'admin_sme' }
+    : { email: user.email, papel: 'leitor', isAdmin: false };
+  return _perfilCache;
+}
+
+// Lista de solicitações (com nomes de atividade/unidade). filtros opcionais.
+export async function listSolicitacoes({ status, de, ate } = {}) {
+  if (!hasSupabase()) return [];
+  let q = sb().from('solicitacao_transporte')
+    .select('*, atividade:atividade_extraclasse(nome,cor,usa_onibus), unidade:unidade_escolar(nome,apelido)')
+    .order('data', { ascending: false });
+  if (status) q = q.eq('status', status);
+  if (de) q = q.gte('data', de);
+  if (ate) q = q.lte('data', ate);
+  const { data, error } = await q;
+  if (error) throw error;
+  return data || [];
+}
+
+export async function criarSolicitacao(payload) {
+  if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
+  const { data: { user } } = await sb().auth.getUser();
+  const row = { ...payload, criado_por: user?.email || null, status: 'solicitado' };
+  const { data, error } = await sb().from('solicitacao_transporte').insert(row).select().single();
+  if (error) throw error;
+  return data;
+}
+
+export async function atualizarStatusSolicitacao(id, status) {
+  if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
+  const { error } = await sb().from('solicitacao_transporte')
+    .update({ status, atualizado_em: new Date().toISOString() }).eq('id', id);
+  if (error) throw error;
 }
 
 // Números para o Dashboard.
