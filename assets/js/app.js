@@ -8,6 +8,7 @@ import { renderEscolas } from './escolas.js';
 import { renderSate } from './sate.js';
 import { renderDashboard } from './dashboard.js';
 import { renderViagens } from './viagens.js';
+import { renderCalendario } from './calendario.js';
 import { source } from './data.js';
 import { hasSupabase } from './sb.js';
 import { getUser, onAuthChange, renderLogin, isInstitucional, signOut } from './auth.js';
@@ -18,7 +19,7 @@ const MODULOS = [
   { id: 'dashboard',    ico: '📊', nome: 'Dashboard do dia',        desc: 'Acompanhamento em tempo real.', rota: '#/dashboard', ativo: true },
   { id: 'escolas',      ico: '🏫', nome: 'Escolas',                 desc: 'Cadastro das 144 unidades escolares.', rota: '#/escolas', ativo: true },
   { id: 'gestores',     ico: '👥', nome: 'Gestores & Coordenadores', desc: 'Equipe gestora, vínculos e contatos.' },
-  { id: 'calendario',   ico: '📅', nome: 'Calendário Escolar',       desc: 'Calendário integrado ao Google Calendar.' },
+  { id: 'calendario',   ico: '📅', nome: 'Calendário Escolar',       desc: 'Dias letivos, eventos e bloqueios de data.', rota: '#/calendario', ativo: true },
   { id: 'horarios',     ico: '🕒', nome: 'Horários de Trabalho',     desc: 'Jornada da equipe gestora, validada por regra.' },
   { id: 'afastamentos', ico: '🌴', nome: 'Afastamentos',             desc: 'Férias, licenças e afastamentos.' },
   { id: 'sate',         ico: '🚌', nome: 'SATE · Transporte',        desc: 'Agendamento de transporte extraclasse.', rota: '#/sate', ativo: true },
@@ -64,6 +65,7 @@ const routes = {
   '#/escolas': () => renderEscolas(app),
   '#/sate': () => renderSate(app),
   '#/viagens': () => renderViagens(app),
+  '#/calendario': () => renderCalendario(app),
 };
 
 async function route() {

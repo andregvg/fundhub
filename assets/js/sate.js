@@ -8,6 +8,7 @@ import {
   listSolicitacoes, criarSolicitacao, atualizarStatusSolicitacao,
   getOfertaDia, setOferta, getUsoDia, STATUS_RESERVA,
   criarAtividade, atualizarAtividade, excluirAtividade,
+  getDiaCalendario,
 } from './data.js';
 
 const CAP_ONIBUS = 44;          // capacidade padrão por ônibus
@@ -378,6 +379,16 @@ async function enviarNova(e) {
   }
   if (a?.min_participantes && qtd < a.min_participantes) {
     return fail(msg, `Esta atividade exige no mínimo ${a.min_participantes} participantes.`);
+  }
+  // Bloqueios do calendário escolar (admin pode passar por cima).
+  if (!perfil?.isAdmin) {
+    try {
+      const dia = await getDiaCalendario(data);
+      if (dia?.bloqueia_extraclasse)
+        return fail(msg, `Data bloqueada para extraclasse${dia.evento ? ` (${dia.evento})` : ''}.`);
+      if (dia && dia.letivo === false)
+        return fail(msg, `${fmtData(data)} não é dia letivo${dia.evento ? ` (${dia.evento})` : ''}.`);
+    } catch (_) { /* sem calendário carregado, segue */ }
   }
 
   const payload = {

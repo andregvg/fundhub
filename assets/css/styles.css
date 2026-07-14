@@ -290,6 +290,28 @@ input[type="color"] { height: 40px; padding: 4px; cursor: pointer; }
   body { background: #fff; }
 }
 
+/* Calendário Escolar */
+.cal-bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+.cal-titulo { font-size: 18px; font-weight: 700; min-width: 180px; text-align: center; text-transform: capitalize; }
+.cal-legenda { display: flex; gap: 14px; margin-left: auto; flex-wrap: wrap; color: var(--muted); font-size: 12px; }
+.cal-legenda span { display: flex; align-items: center; gap: 5px; }
+.lg { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+.lg-nletivo { background: var(--surface-2); border: 1px solid var(--border); }
+.lg-evento { background: color-mix(in srgb, var(--brand) 30%, transparent); }
+.lg-bloq { background: color-mix(in srgb, var(--danger) 45%, transparent); }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.cal-dow { text-align: center; font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); padding: 4px 0; }
+.cal-cell { min-height: 84px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); padding: 6px 7px; cursor: pointer; display: flex; flex-direction: column; gap: 3px; transition: border-color .12s; overflow: hidden; }
+.cal-cell:hover { border-color: color-mix(in srgb, var(--brand) 45%, var(--border)); }
+.cal-cell.vazio { border: 0; background: transparent; cursor: default; }
+.cal-cell.nletivo { background: var(--surface-2); }
+.cal-cell.hoje { outline: 2px solid var(--brand); }
+.cal-cell.bloq { background: color-mix(in srgb, var(--danger) 8%, var(--surface)); border-color: color-mix(in srgb, var(--danger) 35%, var(--border)); }
+.cal-num { font-weight: 700; font-size: 13px; }
+.cal-ev { font-size: 10.5px; color: var(--muted); line-height: 1.2; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
+.cal-marks { margin-top: auto; font-size: 12px; display: flex; gap: 3px; }
+@media (max-width: 620px) { .cal-cell { min-height: 62px; } .cal-ev { display: none; } .cal-legenda { display: none; } }
+
 /* Empty state */
 .empty { grid-column: 1 / -1; text-align: center; padding: 48px 20px; color: var(--muted); }
 .empty-ico { font-size: 40px; margin-bottom: 8px; }
