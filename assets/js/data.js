@@ -6,22 +6,10 @@
 // mostra estado vazio. As telas consomem sempre a mesma forma de
 // objeto, independente da origem.
 // ============================================================
-import { CONFIG } from './config.js';
+import { sb, hasSupabase } from './sb.js';
 
-let _client = null;
-export function hasSupabase() {
-  return Boolean(CONFIG.supabaseUrl && CONFIG.supabaseAnonKey);
-}
+export { hasSupabase };
 export function source() { return hasSupabase() ? 'supabase' : 'local'; }
-
-function client() {
-  if (!hasSupabase()) return null;
-  if (!_client) {
-    // supabase-js UMD é carregado no index.html (global `supabase`)
-    _client = window.supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabaseAnonKey);
-  }
-  return _client;
-}
 
 // Normaliza uma linha do Supabase para a mesma forma do JSON local.
 function fromDb(u, pessoasByUnidade) {
@@ -40,10 +28,10 @@ export async function getUnidades() {
   if (_cache) return _cache;
 
   if (hasSupabase()) {
-    const sb = client();
+    const cli = sb();
     const [{ data: unidades, error: e1 }, { data: vw, error: e2 }] = await Promise.all([
-      sb.from('unidade_escolar').select('*').order('nome'),
-      sb.from('vw_escola_pessoas').select('*'),
+      cli.from('unidade_escolar').select('*').order('nome'),
+      cli.from('vw_escola_pessoas').select('*'),
     ]);
     if (e1) throw e1;
     const byU = {};

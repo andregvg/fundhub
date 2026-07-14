@@ -6,6 +6,8 @@
 // ============================================================
 import { renderEscolas } from './escolas.js';
 import { source } from './data.js';
+import { hasSupabase } from './sb.js';
+import { getUser, onAuthChange, renderLogin, isInstitucional, signOut } from './auth.js';
 
 // Catálogo de módulos do hub (14 áreas do FundHub).
 const MODULOS = [
@@ -70,10 +72,65 @@ function setSourcePill() {
   const el = document.getElementById('data-source');
   const s = source();
   el.textContent = s === 'supabase' ? '● Supabase' : '● dados locais';
+  el.classList.remove('live', 'local');
   el.classList.add(s === 'supabase' ? 'live' : 'local');
 }
 
-document.getElementById('build-info').textContent = new Date().toLocaleDateString('pt-BR');
-setSourcePill();
-window.addEventListener('hashchange', route);
-route();
+// ── Controle de sessão / gate ────────────────────────────────
+function setChrome(logged, user) {
+  document.querySelector('.topnav').style.visibility = logged ? 'visible' : 'hidden';
+  const right = document.querySelector('.topbar-right');
+  const chip = right.querySelector('.user-chip');
+  if (logged && user) {
+    if (!chip) {
+      const el = document.createElement('div');
+      el.className = 'user-chip';
+      el.innerHTML = `<span class="uemail"></span><button class="logout" title="Sair">Sair</button>`;
+      el.querySelector('.logout').addEventListener('click', async () => { await signOut(); });
+      right.appendChild(el);
+    }
+    right.querySelector('.uemail').textContent = user.email;
+  } else if (chip) {
+    chip.remove();
+  }
+}
+
+function mountApp(user) {
+  setChrome(true, user);
+  window.removeEventListener('hashchange', route);
+  window.addEventListener('hashchange', route);
+  route();
+}
+
+async function boot() {
+  document.getElementById('build-info').textContent = new Date().toLocaleDateString('pt-BR');
+  setSourcePill();
+
+  // Modo dev local (sem Supabase configurado): sem gate.
+  if (!hasSupabase()) { mountApp(null); return; }
+
+  onAuthChange(async (user) => {
+    if (user && isInstitucional(user.email)) {
+      if (location.hash.includes('access_token') || location.search.includes('code=')) {
+        history.replaceState(null, '', location.pathname + '#/');
+      }
+      mountApp(user);
+    } else if (user) {
+      await signOut();
+    } else {
+      setChrome(false);
+      renderLogin(app);
+    }
+  });
+
+  const user = await getUser();
+  if (user && isInstitucional(user.email)) {
+    mountApp(user);
+  } else {
+    if (user) await signOut();
+    setChrome(false);
+    renderLogin(app);
+  }
+}
+
+boot();
