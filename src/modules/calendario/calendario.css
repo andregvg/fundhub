@@ -1,0 +1,90 @@
+/* ============================================================
+   FundHub — modules/calendario/calendario.css
+   Grade mensal. No celular a célula encolhe e o texto do evento sai:
+   sobram o número, o realce e os ícones de bloqueio — que é o que se
+   consegue ler de fato em 7 colunas numa tela estreita.
+   ============================================================ */
+
+.cal-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.cal-nav { display: flex; align-items: center; gap: 12px; }
+.cal-titulo {
+  flex: 1;
+  text-align: center;
+  font-size: 17px;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.cal-legenda {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  color: var(--muted);
+  font-size: 12px;
+}
+.cal-legenda span { display: flex; align-items: center; gap: 5px; }
+.lg { display: inline-block; width: 12px; height: 12px; border-radius: 3px; }
+.lg-nletivo { background: var(--surface-2); border: 1px solid var(--border); }
+.lg-evento { background: color-mix(in srgb, var(--brand) 30%, transparent); }
+.lg-bloq { background: color-mix(in srgb, var(--danger) 45%, transparent); }
+
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.cal-dow {
+  padding: 4px 0;
+  text-align: center;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.cal-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-height: 58px;
+  padding: 5px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--surface);
+  cursor: pointer;
+  transition: border-color .12s;
+}
+.cal-cell:hover { border-color: color-mix(in srgb, var(--brand) 45%, var(--border)); }
+.cal-cell.vazio { border: 0; background: transparent; cursor: default; }
+.cal-cell.nletivo { background: var(--surface-2); }
+.cal-cell.hoje { outline: 2px solid var(--brand); }
+.cal-cell.bloq {
+  background: color-mix(in srgb, var(--danger) 8%, var(--surface));
+  border-color: color-mix(in srgb, var(--danger) 35%, var(--border));
+}
+.cal-num { font-size: 13px; font-weight: 700; }
+
+/* O texto do evento só aparece quando há espaço para ele. */
+.cal-ev { display: none; }
+.cal-marks { display: flex; gap: 3px; margin-top: auto; font-size: 11px; }
+
+@media (min-width: 720px) {
+  .cal-bar { flex-direction: row; align-items: center; }
+  .cal-nav { flex: 0 0 auto; }
+  .cal-titulo { min-width: 180px; font-size: 18px; }
+  .cal-legenda { margin-left: auto; }
+  .cal-grid { gap: 6px; }
+  .cal-cell { min-height: 84px; padding: 6px 7px; border-radius: 10px; }
+  .cal-ev {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    color: var(--muted);
+    font-size: 10.5px;
+    line-height: 1.2;
+  }
+  .cal-marks { font-size: 12px; }
+}

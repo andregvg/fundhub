@@ -1,0 +1,66 @@
+/* ============================================================
+   FundHub — modules/sate/sate.css
+   Formulário de solicitação, catálogo e frota.
+   ============================================================ */
+
+.sate-form {
+  max-width: 720px;
+  padding: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+/* Alterna entre atividade do catálogo e atividade livre.
+   Os campos de cada modo aparecem/somem via a classe .is-livre. */
+.modo-toggle {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+.sate-form .m-livre { display: none; }
+.sate-form.is-livre .m-livre { display: flex; }
+.sate-form.is-livre .m-catalogo { display: none; }
+
+/* Catálogo */
+.atv-field { margin: 4px 0; color: var(--muted); font-size: 13px; }
+.atv-field b { color: var(--text); font-weight: 600; }
+.atv-card .tags { margin-top: 10px; }
+.atv-acoes { display: flex; gap: 6px; }
+.atv-acoes .mini-btn { padding: 4px 9px; }
+
+/* Frota: oferta × uso = saldo */
+.frota { display: flex; flex-direction: column; gap: 10px; max-width: 640px; }
+.frota-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.fr-per { grid-column: 1 / -1; font-weight: 700; }
+.fr-of { grid-column: 1 / -1; }
+.fr-of input { width: 100%; }
+.fr-uso, .fr-saldo { color: var(--muted); font-size: 13px; }
+.fr-uso b, .fr-saldo b { margin-left: 4px; color: var(--text); font-size: 16px; }
+.fr-saldo.neg b { color: var(--danger); }
+
+@media (min-width: 560px) {
+  .sate-form { padding: 20px; }
+  .modo-toggle { flex-direction: row; gap: 18px; flex-wrap: wrap; }
+}
+
+@media (min-width: 720px) {
+  .frota-row { grid-template-columns: 90px 1fr auto auto; gap: 16px; padding: 12px 16px; }
+  .fr-per { grid-column: auto; }
+  .fr-of { grid-column: auto; }
+  .fr-of input { width: 90px; }
+}

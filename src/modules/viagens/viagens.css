@@ -1,0 +1,59 @@
+/* ============================================================
+   FundHub — modules/viagens/viagens.css
+   A Programação de Viagens existe para ser IMPRESSA e enviada à
+   empresa de transporte — o @media print no fim é o entregável, não
+   um detalhe.
+   ============================================================ */
+
+.viagens {
+  padding: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.pv-cabecalho {
+  padding-bottom: 12px;
+  margin-bottom: 14px;
+  text-align: center;
+  border-bottom: 2px solid var(--border);
+}
+.pv-cabecalho h2 { margin: 0 0 4px; font-size: 17px; }
+.pv-cabecalho div { color: var(--muted); font-size: 13px; }
+
+.pv-periodo {
+  margin: 18px 0 8px;
+  padding-bottom: 4px;
+  font-size: 15px;
+  border-bottom: 1px solid var(--border);
+}
+.pv-viagem {
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  break-inside: avoid;
+}
+.pv-tit { margin-bottom: 8px; font-weight: 700; }
+.pv-grid { display: grid; grid-template-columns: 1fr; gap: 8px; font-size: 13px; }
+.pv-lbl {
+  display: block;
+  color: var(--muted);
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+@media (min-width: 560px) {
+  .viagens { padding: 20px; }
+  .pv-grid { grid-template-columns: 1fr 1fr; gap: 8px 18px; }
+  .pv-grid .pv-wide { grid-column: 1 / -1; }
+}
+
+@media print {
+  .viagens { padding: 0; border: 0; box-shadow: none; }
+  .pv-viagem { border-color: #999; }
+  .pv-grid { grid-template-columns: 1fr 1fr; gap: 8px 18px; }
+  .pv-grid .pv-wide { grid-column: 1 / -1; }
+}

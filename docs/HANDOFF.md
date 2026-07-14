@@ -14,13 +14,31 @@
 ## 2. Stack e arquitetura
 
 - **Front:** SPA estática (HTML/CSS/JS puro, sem build, roteador por hash `#/rota`), servida pelo **GitHub Pages** sob base `/fundhub` (para migrar a domínio próprio depois — futuro `fundhub.andregvg.com.br` — só reapontando DNS).
-- **Back:** **Supabase** (Postgres + Auth + RLS + Realtime + Storage + Edge Functions). Projeto `uwkroffzjyzbjslepjnh` (`https://uwkroffzjyzbjslepjnh.supabase.co`). Chave publishable já no `assets/js/core/config.js` (é pública por design).
-- **Estrutura modular** de `assets/js/`:
-  - `core/` — `config.js`, `supabase.js` (client + `hasSupabase`/`source`), `auth.js` (magic link + Google)
-  - `data/` — acesso a dados por domínio: `escolas.js`, `perfil.js`, `atividades.js`, `solicitacoes.js`, `calendario.js`, `servidores.js`, `afastamentos.js`
-  - `tools/` — as ferramentas/telas: `dashboard.js`, `escolas.js`, `sate.js`, `viagens.js`, `calendario.js`, `afastamentos.js`, `notifications.js`
-  - `app.js` — bootstrap (gate de login + roteador + registro dos módulos/tiles)
-  - Convenção de import: `tools/*` → `../data/*`; `data/*` → `../core/supabase.js`; `app.js` → `./core/*` e `./tools/*`.
+- **Back:** **Supabase** (Postgres + Auth + RLS + Realtime + Storage + Edge Functions). Projeto `uwkroffzjyzbjslepjnh` (`https://uwkroffzjyzbjslepjnh.supabase.co`). Chave publishable já no `src/core/config.js` (é pública por design).
+- **Arquitetura: fatias verticais (uma pasta por módulo) sobre um kernel.** MVC adaptado — `*.model.js` = Model, `*.view.js` = View, `core/router.js` = Controller. (PSR é PHP-FIG; não se aplica a JS.)
+
+```
+src/
+├── main.js       bootstrap: gate de login → moldura → roteador → serviços de fundo
+├── core/         KERNEL (não conhece módulo algum, só os manifestos)
+│   config.js · supabase.js · auth.js · perfil.js · registry.js · router.js
+├── shell/        MOLDURA: chrome.js (topo/nav/usuário) · home.js (tiles, gerados do registry)
+├── shared/       SEM DOMÍNIO: dom.js · format.js · ui/{drawer,toast,feedback}.js
+├── modules/      UMA PASTA POR FERRAMENTA
+│   └── <modulo>/ module.js (manifesto) · <modulo>.model.js · <modulo>.view.js · <modulo>.css
+│                 views/<aba>.js — só quando o módulo é grande (ver sate/)
+└── styles/       main.css (@imports) · tokens.css · base.css · components.css
+```
+
+- **Manifesto (`module.js`)** — `{ id, ico, nome, desc, navNome?, rota?, nav?, ativo, admin?, servico?, load() }`.
+  A view é carregada sob demanda (`load: () => import('./x.view.js')`, que exporta `render(app, ctx)`).
+  Registrar em `core/registry.js` faz o tile, a rota e o item de nav aparecerem sozinhos.
+- **Regras de import (o que impede o novelo):**
+  1. Kernel não importa módulo (só os `module.js`).
+  2. Módulo importa `shared/` e `core/` à vontade.
+  3. Módulo pode importar o **model** de outro módulo (é a API pública); **nunca a view**.
+  4. Model nunca toca no DOM; view nunca fala com o Supabase.
+- **Visual: mobile-first de verdade** — base = celular, `@media (min-width:)` acrescenta. Cortes: 560 / 720 / 900 / 1100px. Navegação vira menu ☰ abaixo de 1100px. Tokens em `styles/tokens.css` — nunca escrever cor fixa num módulo.
 
 ## 3. Segurança (REGRAS INVIOLÁVEIS — repo é público)
 
@@ -35,9 +53,9 @@
 - Deploy via GitHub Actions (`.github/workflows/pages.yml`, Pages build_type=workflow): publica `main` na raiz e `dev` em `/dev/`. `concurrency cancel-in-progress: false`.
 - **No merge**, os pushes de dev+main disparam 2 runs; se a raiz do main ficar obsoleta, re-disparar: `gh workflow run "Deploy Pages (main + dev)" --ref main`.
 - **Teste local sem login** (dev-local): rodar `python -m http.server` na raiz e, para simular admin, editar TEMPORARIAMENTE (e reverter antes do commit):
-  - `assets/js/core/config.js`: `supabaseAnonKey` → `''` (ativa modo dev-local, sem gate)
-  - `assets/js/data/perfil.js`: no ramo `if (!hasSupabase())` retornar `{ email:'dev@local', papel:'admin_sme', isAdmin:true }`
-  - Reverter ambos antes de commitar (conferir que a key voltou e que `dev@local` sumiu).
+  - `src/core/config.js`: `supabaseAnonKey` → `''` (ativa modo dev-local, sem gate)
+  - `src/core/perfil.js`: no ramo `if (!hasSupabase())` retornar `{ email:'dev@local', papel:'admin_sme', isAdmin:true }`
+  - Reverter ambos antes de commitar (conferir que a key voltou e que `dev@local` sumiu de `src/core/`).
 
 ## 5. Banco de dados — migrations (rodar no SQL Editor, em ordem)
 
@@ -55,13 +73,14 @@ Tabelas: `regional`, `servidor`, `unidade_escolar`, `vinculo`, `perfil`, `ativid
 | Módulo | Status | Observações |
 |---|---|---|
 | Login | ✅ | Magic link + botão Google (provider Google precisa ser configurado no painel). Restrito a `@educacao.pmrp.sp.gov.br` + allowlist. |
-| Dashboard do dia | ✅ | Stats (escolas/atividades/extraclasse) + painéis Extraclasse e Afastamentos do dia; painel Calendário ainda placeholder. |
+| Dashboard do dia | ✅ | Stats + painéis Extraclasse, Afastamentos **e Calendário** do dia (o placeholder saiu). Compõe os models dos outros módulos; não tem model próprio. |
 | Escolas | ✅ | Leitura + busca/filtros + detalhe com equipe gestora + **CRUD admin**. |
-| SATE (Transporte) | ✅ | Abas: Solicitações (lista+validação admin), Nova solicitação (catálogo **ou** atividade livre, transporte adaptado/cadeirante, cálculo de ônibus, validações de antecedência/mínimo/**bloqueio de data do calendário**), Frota (oferta×saldo, checagem ao confirmar), Catálogo (**CRUD de atividades**). |
-| Programação de Viagens | ✅ | Confirmadas do dia (origem→destino, horários, alunos, ônibus, contato), imprimível. (NÃO chamar de "romaneio".) |
+| SATE (Transporte) | ✅ | Abas em `sate/views/`: Solicitações (lista+validação admin), Nova (catálogo **ou** atividade livre, adaptado/cadeirante, cálculo de ônibus, validações de antecedência/mínimo/**bloqueio de data do calendário**), Frota (oferta×saldo, checagem ao confirmar), Catálogo (**CRUD de atividades**). |
+| Programação de Viagens | ✅ | Confirmadas do dia (origem→destino, horários, alunos, ônibus, contato), imprimível. (NÃO chamar de "romaneio".) Lê de `sate.model.js`; não tem model próprio. |
 | Calendário Escolar | ✅ | Grade mensal, eventos, bloqueios (extraclasse/afastamento); admin edita cada dia. |
 | Afastamentos | ✅ | Lista+filtros + CRUD admin (servidor×tipo×período×unidade). |
-| Notificações | ✅ | Realtime (sino + badge + toasts) para solicitações. |
+| Notificações | ✅ | Realtime (sino + badge + toasts) para solicitações. É um **serviço** (`servico: true`): sem rota, iniciado pelo `main.js` no login, parado no logout. |
+| **Documentação** | ✅ | **Novo.** Rota `#/docs`, **só admin**. Explica arquitetura, camadas, regras de import, segurança/RLS, banco, deploy e o passo a passo para criar um módulo. Conteúdo em `src/modules/docs/docs.content.js` (acrescentar uma seção = acrescentar um objeto no array). |
 
 ## 7. O que FALTA implementar (backlog priorizado)
 
@@ -91,4 +110,14 @@ Tabelas: `regional`, `servidor`, `unidade_escolar`, `vinculo`, `perfil`, `ativid
 
 ## 9. Sugestão de próximo passo
 
-Atacar o **bloco B (sem API)** na ordem: **Ocorrências → Atas (timbrado) → Relatórios de Visita → Usuários & Acessos**, cada um como um par `data/<x>.js` + `tools/<x>.js` + migration + tile/rota/nav, testado em dev-local e commitado na `dev`.
+Atacar o **bloco B (sem API)** na ordem: **Ocorrências → Atas (timbrado) → Relatórios de Visita → Usuários & Acessos**.
+
+As "vagas" desses módulos já existem: `src/modules/{ocorrencias,atas,visitas,usuarios,horarios,projetos}/module.js` estão criados com `ativo: false` (aparecem como tile "em breve"). **Implementar um deles = 5 passos** (a receita completa, com código, está em `#/docs` → "Como criar um novo módulo"):
+
+1. `supabase/migrations/009_<x>.sql` — tabela + RLS (`select` por `is_autorizado()`, escrita por `is_admin()`) + grants. Rodar no SQL Editor.
+2. `src/modules/<x>/<x>.model.js` — só banco, nunca DOM; toda função começa com `if (!hasSupabase())`.
+3. `src/modules/<x>/<x>.view.js` — exporta `render(app, ctx)`; usa `ctx.perfil` (já vem do roteador, **não** chamar `getPerfilAtual()` de novo).
+4. `module.js` — virar `ativo: true` e acrescentar `rota`, `nav` e `load: () => import('./<x>.view.js')`.
+5. Se tiver CSS próprio: `<x>.css` na pasta + um `@import` em `src/styles/main.css`.
+
+Testar em dev-local (inclusive **em tela estreita**), conferir o console, `git diff --cached` procurando dado real, e commitar na `dev`.

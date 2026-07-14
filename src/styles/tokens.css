@@ -1,0 +1,37 @@
+/* ============================================================
+   FundHub — tokens.css
+   Cores, sombras e raios. NENHUM módulo escreve cor fixa: tudo sai
+   daqui, para o tema escuro sair de graça.
+   ============================================================ */
+:root {
+  --bg: #f4f6fb;
+  --surface: #ffffff;
+  --surface-2: #f0f3fa;
+  --border: #e2e7f0;
+  --text: #1a2233;
+  --muted: #64708a;
+  --brand: #1d4ed8;
+  --brand-2: #0ea5a4;
+  --accent: #f59e0b;
+  --danger: #dc2626;
+  --ok: #16a34a;
+  --shadow: 0 1px 3px rgba(20, 30, 60, .08), 0 6px 20px rgba(20, 30, 60, .06);
+  --radius: 14px;
+
+  /* Alvo mínimo de toque — mobile-first não é só largura. */
+  --toque: 40px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0c1120;
+    --surface: #141b2e;
+    --surface-2: #1b2338;
+    --border: #26304a;
+    --text: #e8ecf6;
+    --muted: #93a0bd;
+    --brand: #5b8cff;
+    --brand-2: #2dd4bf;
+    --shadow: 0 1px 3px rgba(0, 0, 0, .4), 0 8px 24px rgba(0, 0, 0, .35);
+  }
+}

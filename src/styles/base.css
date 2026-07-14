@@ -1,0 +1,207 @@
+/* ============================================================
+   FundHub — base.css
+   Reset, moldura (topo, navegação, rodapé) e impressão.
+   MOBILE-FIRST: o que está fora de @media é o layout do celular.
+   As telas maiores só acrescentam, via @media (min-width: …).
+   Cortes: 560px · 720px · 1100px.
+   ============================================================ */
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+
+body {
+  font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  -webkit-text-size-adjust: 100%;
+}
+
+a { color: var(--brand); text-decoration: none; }
+:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+/* ── Topo ─────────────────────────────────────────────────── */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+
+.nav-toggle {
+  flex: 0 0 auto;
+  width: var(--toque);
+  height: var(--toque);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 17px;
+  cursor: pointer;
+}
+
+/* Na tela de login não há para onde navegar. */
+.topbar.anon .nav-toggle,
+.topbar.anon .topnav { display: none; }
+
+.brand { display: flex; align-items: center; gap: 10px; color: var(--text); min-width: 0; }
+.brand-mark { font-size: 24px; }
+.brand-text { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; }
+.brand-text strong { font-size: 18px; letter-spacing: -.02em; }
+.brand-text .hub { color: var(--brand); }
+.brand-text small { display: none; color: var(--muted); font-size: 11.5px; }
+
+/* Navegação — no celular, painel sanfonado sob o topo. */
+.topnav {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 30;
+  display: none;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+body.nav-open .topnav { display: flex; }
+
+.topnav a {
+  display: flex;
+  align-items: center;
+  min-height: var(--toque);
+  padding: 8px 14px;
+  border-radius: 10px;
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 15px;
+}
+.topnav a:hover { background: var(--surface-2); color: var(--text); }
+.topnav a.active {
+  background: color-mix(in srgb, var(--brand) 14%, transparent);
+  color: var(--brand);
+}
+
+.topbar-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+
+.pill {
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--muted);
+  border: 1px solid var(--border);
+  white-space: nowrap;
+}
+.pill.live { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 40%, var(--border)); }
+.pill.local { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 40%, var(--border)); }
+
+/* Chip do usuário */
+.user-chip { display: flex; align-items: center; gap: 8px; }
+.user-chip .uemail {
+  display: none;
+  font-size: 12.5px;
+  color: var(--muted);
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.user-chip.is-admin .uemail { color: var(--brand); font-weight: 600; }
+.user-chip .logout {
+  min-height: var(--toque);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 5px 11px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.user-chip .logout:hover {
+  border-color: color-mix(in srgb, var(--danger) 45%, var(--border));
+  color: var(--danger);
+}
+
+/* ── Corpo e rodapé ───────────────────────────────────────── */
+.app {
+  flex: 1;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 18px 14px 40px;
+}
+.loading { color: var(--muted); padding: 48px 0; text-align: center; }
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 14px;
+  color: var(--muted);
+  font-size: 12px;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.page-head { margin-bottom: 18px; }
+.page-head h1 { margin: 0 0 4px; font-size: 22px; letter-spacing: -.02em; }
+.page-head p { margin: 0; color: var(--muted); }
+.capitalizar { text-transform: capitalize; }
+
+/* ── Telas maiores ────────────────────────────────────────── */
+@media (min-width: 560px) {
+  .brand-text small { display: block; }
+  .user-chip .uemail { display: block; }
+  .page-head h1 { font-size: 24px; }
+}
+
+@media (min-width: 720px) {
+  .topbar { padding: 12px 22px; gap: 16px; }
+  .app { padding: 26px 22px 48px; }
+  .footer { padding: 14px 22px; }
+}
+
+/* A navegação só cabe inteira na horizontal a partir daqui —
+   são 8 itens. Abaixo disso, o menu ☰ continua no comando. */
+@media (min-width: 1100px) {
+  .nav-toggle { display: none; }
+  .topnav {
+    position: static;
+    display: flex;
+    flex-direction: row;
+    gap: 4px;
+    padding: 0;
+    margin-left: 4px;
+    background: none;
+    border: 0;
+    box-shadow: none;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .topnav a { min-height: 0; padding: 7px 12px; font-size: 14px; }
+  .user-chip .uemail { max-width: 200px; }
+}
+
+/* ── Impressão ────────────────────────────────────────────── */
+@media print {
+  .topbar, .footer, .no-print, #toasts, .bell-wrap { display: none !important; }
+  .app { padding: 0; max-width: none; }
+  body { background: #fff; }
+}
