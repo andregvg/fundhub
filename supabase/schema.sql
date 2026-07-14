@@ -39,6 +39,14 @@ create or replace function is_admin() returns boolean
     )
   $$;
 
+-- Allowlist de LEITURA: só lê quem está cadastrado em perfil (ativo).
+-- Não basta ter e-mail institucional — o acesso é liberado manualmente
+-- inserindo o e-mail na tabela perfil.
+create or replace function is_autorizado() returns boolean
+  language sql stable security definer set search_path = public as $$
+    select exists (select 1 from perfil where email = auth_email() and ativo)
+  $$;
+
 -- ── Regionais ────────────────────────────────────────────────
 create table if not exists regional (
   id    serial primary key,
@@ -123,7 +131,7 @@ begin
     execute format('drop policy if exists %I_ins on %I', t, t);
     execute format('drop policy if exists %I_upd on %I', t, t);
     execute format('drop policy if exists %I_del on %I', t, t);
-    execute format('create policy %I_sel on %I for select using (is_institucional())', t, t);
+    execute format('create policy %I_sel on %I for select using (is_autorizado())', t, t);
     execute format('create policy %I_ins on %I for insert with check (is_admin())', t, t);
     execute format('create policy %I_upd on %I for update using (is_admin()) with check (is_admin())', t, t);
     execute format('create policy %I_del on %I for delete using (is_admin())', t, t);

@@ -1,0 +1,53 @@
+name: Deploy Pages (main + dev)
+
+# Publica a branch main na raiz (/fundhub/) e a branch dev em /fundhub/dev/.
+# Assim há um ambiente de produção e um de testes no mesmo GitHub Pages.
+on:
+  push:
+    branches: [main, dev]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with: { ref: main, path: site-main }
+
+      - name: Checkout dev
+        uses: actions/checkout@v4
+        with: { ref: dev, path: site-dev }
+        continue-on-error: true
+
+      - name: Montar site (_site)
+        run: |
+          mkdir -p _site
+          cp -r site-main/. _site/
+          rm -rf _site/.git _site/.github
+          if [ -d site-dev ]; then
+            mkdir -p _site/dev
+            cp -r site-dev/. _site/dev/
+            rm -rf _site/dev/.git _site/dev/.github
+          fi
+          touch _site/.nojekyll
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with: { path: _site }
+
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
