@@ -482,6 +482,18 @@ input[type="checkbox"] { width: 18px; height: 18px; }
 .person .pmeta { display: flex; flex-direction: column; gap: 2px; color: var(--muted); font-size: 12.5px; }
 hr.sep { margin: 20px 0; border: 0; border-top: 1px solid var(--border); }
 
+/* ── Editor de telefones (shared/ui/phones.js) ────────────── */
+.phones { margin: 4px 0 12px; }
+.phones > .lbl { margin-bottom: 6px; color: var(--muted); font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+.phone-rows { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
+.phone-row { display: grid; grid-template-columns: 1fr; gap: 6px; padding: 9px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-2); }
+.phone-row select, .phone-row input[type="tel"], .phone-row input[type="text"] { width: 100%; }
+.phone-pri { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); }
+.phone-del { justify-self: end; width: var(--toque); height: 30px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--danger); font-size: 18px; line-height: 1; cursor: pointer; }
+.phone-del:hover { border-color: var(--danger); }
+.tel-item { white-space: nowrap; }
+.tel-item .pri { color: var(--brand); font-weight: 700; }
+
 /* ── Telas maiores ────────────────────────────────────────── */
 @media (min-width: 560px) {
   .hero { padding: 26px; }
@@ -496,4 +508,5 @@ hr.sep { margin: 20px 0; border: 0; border-top: 1px solid var(--border); }
   .form-foot { flex-direction: row; justify-content: space-between; align-items: center; }
   .search { flex: 1 1 240px; }
   .solic { flex-direction: row; justify-content: space-between; align-items: center; }
+  .phone-row { grid-template-columns: 120px 1fr 1fr auto auto; align-items: center; }
 }

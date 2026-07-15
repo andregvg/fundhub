@@ -20,6 +20,7 @@ export const TABELAS = {
   afastamento: 'Afastamentos',
   horario_bloco: 'Horários',
   ocorrencia: 'Ocorrências',
+  telefone: 'Telefones',
 };
 
 export const OPERACOES = { INSERT: 'Criação', UPDATE: 'Alteração', DELETE: 'Exclusão' };
@@ -27,7 +28,8 @@ export const OPERACOES = { INSERT: 'Criação', UPDATE: 'Alteração', DELETE: '
 // Rótulos legíveis de alguns campos que aparecem no diff.
 export const CAMPO_ROTULO = {
   nome: 'Nome', apelido: 'Apelido', nome_oficial: 'Nome oficial', email: 'E-mail',
-  telefone: 'Telefone', telefones: 'Telefones', endereco: 'Endereço', segmento: 'Segmento',
+  telefone: 'Telefone', telefones: 'Telefones', numero: 'Número', rotulo: 'Rótulo',
+  principal: 'Principal', endereco: 'Endereço', segmento: 'Segmento',
   oferta: 'Oferta', papel: 'Papel', ativo: 'Ativo', status: 'Status', data: 'Data',
   periodo: 'Período', inicio: 'Início', fim: 'Fim', tipo: 'Tipo', evento: 'Evento',
   assunto: 'Assunto', motivo: 'Motivo', relato: 'Relato', obs: 'Observação',

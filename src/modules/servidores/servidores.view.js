@@ -12,10 +12,12 @@ import {
   criarVinculo, encerrarVinculo, excluirVinculo,
 } from './servidores.model.js';
 import { getUnidades } from '../escolas/escolas.model.js';
+import { sincronizarTelefones } from '../telefones/telefones.model.js';
 import { esc, norm, falha } from '../../shared/dom.js';
 import { hojeISO, fmtData } from '../../shared/format.js';
 import { loading, emptyState, erroBox } from '../../shared/ui/feedback.js';
 import { drawerHtml, drawerHead, montarDrawer, abrirDrawer, fecharDrawer } from '../../shared/ui/drawer.js';
+import { phonesEditorHtml, montarPhonesEditor, lerPhonesEditor, telefonesTexto } from '../../shared/ui/phones.js';
 
 let perfil = null, lista = [], unidades = [];
 let filtro = { q: '', papel: '', semVinculo: false };
@@ -77,7 +79,7 @@ function combina(s) {
   if (filtro.semVinculo && vig.length) return false;
   if (filtro.q) {
     const alvo = norm([
-      s.nome, s.apelido, s.email, s.telefone,
+      s.nome, s.apelido, s.email, ...(s.telefones || []).map(t => t.numero),
       ...vig.map(v => `${v.unidade?.nome} ${v.unidade?.apelido} ${rotulaPapel(v.papel)}`),
     ].join(' '));
     if (!alvo.includes(norm(filtro.q))) return false;
@@ -141,7 +143,7 @@ function detalhe(id) {
     <div class="drawer-body">
       ${acoes}
       ${campo('E-mail', s.email ? `<a href="mailto:${esc(s.email)}">${esc(s.email)}</a>` : '')}
-      ${campo('Telefone', s.telefone ? `<a href="tel:${esc(String(s.telefone).replace(/\D/g, ''))}">${esc(s.telefone)}</a>` : '')}
+      ${campo('Telefones', (s.telefones || []).length ? telefonesTexto(s.telefones) : '')}
       ${campo('Ingresso na rede', s.inicio_rede ? esc(fmtData(s.inicio_rede)) : '')}
       <hr class="sep" />
       <div class="vinc-head">
@@ -207,7 +209,7 @@ function formServidor(s) {
         <label>Nome completo <input id="s-nome" required value="${v('nome')}" /></label>
         <label>Apelido / como é chamado(a) <input id="s-apelido" value="${v('apelido')}" /></label>
         <label>E-mail <input id="s-email" type="email" value="${v('email')}" /></label>
-        <label>Telefone <input id="s-tel" type="tel" inputmode="tel" value="${v('telefone')}" /></label>
+        ${phonesEditorHtml(s?.telefones)}
         <label>Ingresso na rede <input id="s-ingresso" type="date" value="${v('inicio_rede')}" /></label>
         <div class="form-foot">
           <span id="s-msg" class="auth-msg"></span>
@@ -217,6 +219,7 @@ function formServidor(s) {
       ${novo ? `<p class="form-hint" style="margin-top:14px">Depois de criar, abra o servidor para vinculá-lo a uma escola.</p>` : ''}
     </div>`);
 
+  montarPhonesEditor(document.getElementById('sv-form'));
   document.getElementById('sv-form').addEventListener('submit', (e) => salvarServidor(e, s));
 }
 
@@ -227,15 +230,15 @@ async function salvarServidor(e, s) {
     nome: document.getElementById('s-nome').value.trim(),
     apelido: document.getElementById('s-apelido').value.trim() || null,
     email: document.getElementById('s-email').value.trim() || null,
-    telefone: document.getElementById('s-tel').value.trim() || null,
     inicio_rede: document.getElementById('s-ingresso').value || null,
   };
   if (!payload.nome) return falha(msg, 'Informe o nome completo.');
+  const telefones = lerPhonesEditor(document.getElementById('sv-form'));
 
   const btn = document.getElementById('s-save'); btn.disabled = true; btn.textContent = 'Salvando…';
   try {
-    if (s) await atualizarServidor(s.id, payload);
-    else await criarServidor(payload);
+    const id = s ? (await atualizarServidor(s.id, payload), s.id) : (await criarServidor(payload)).id;
+    await sincronizarTelefones({ servidorId: id }, telefones);
     lista = await getServidores();
     fecharDrawer(); pintar();
   } catch (err) {

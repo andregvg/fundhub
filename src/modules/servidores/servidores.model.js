@@ -13,6 +13,8 @@
 // ============================================================
 import { sb, hasSupabase, emailAtual } from '../../core/supabase.js';
 import { slug } from '../../shared/dom.js';
+// Telefones vêm da tabela dedicada (fonte única) — model → model.
+import { getTelefonesMapas } from '../telefones/telefones.model.js';
 
 export const PAPEIS = ['gestor', 'coordenador', 'supervisor'];
 
@@ -34,13 +36,18 @@ const SEL = `*, vinculos:vinculo(
 let _cache = null;
 export function limparCacheServidores() { _cache = null; }
 
-// Lista servidores com os vínculos embutidos.
+// Lista servidores com os vínculos e os telefones embutidos.
 export async function getServidores() {
   if (_cache) return _cache;
   if (!hasSupabase()) { _cache = []; return _cache; }
-  const { data, error } = await sb().from('servidor').select(SEL).order('nome');
+  const [{ data, error }, tel] = await Promise.all([
+    sb().from('servidor').select(SEL).order('nome'),
+    getTelefonesMapas(),
+  ]);
   if (error) throw error;
-  _cache = (data || []).map(s => ({ ...s, vinculos: s.vinculos || [] }));
+  _cache = (data || []).map(s => ({
+    ...s, vinculos: s.vinculos || [], telefones: tel.porServidor[s.id] || [],
+  }));
   return _cache;
 }
 
@@ -52,7 +59,9 @@ export async function getServidoresDaUnidade(unidadeId, ano = ANO_LETIVO) {
 }
 
 // ── CRUD servidor ────────────────────────────────────────────
-const CAMPOS = ['nome', 'apelido', 'email', 'telefone', 'cpf', 'rg', 'inicio_rede'];
+// `telefone` (singular) saiu: os telefones moram na tabela `telefone`
+// e são sincronizados à parte pela view (ver telefones.model.js).
+const CAMPOS = ['nome', 'apelido', 'email', 'cpf', 'rg', 'inicio_rede'];
 
 function limpar(p) {
   const out = {};

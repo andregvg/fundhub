@@ -10,18 +10,28 @@
 import { sb, hasSupabase } from '../../core/supabase.js';
 // Quem é dono do vocabulário de papéis é o módulo Gestores — model → model.
 import { rotulaPapel } from '../servidores/servidores.model.js';
+// Telefones agora vêm da tabela dedicada (fonte única) — model → model.
+import { getTelefonesMapas } from '../telefones/telefones.model.js';
 
 // Normaliza uma linha do Supabase para a mesma forma do JSON local.
-function fromDb(u, pessoasByUnidade) {
+// `telefones` é uma lista de OBJETOS { id, tipo, numero, rotulo, principal }
+// vinda da tabela `telefone` (não mais o array de strings legado).
+function fromDb(u, pessoasByUnidade, telByUnidade) {
   return {
     id: u.id, numero: u.numero, nome: u.nome, nome_oficial: u.nome_oficial, apelido: u.apelido,
-    segmento: u.segmento, endereco: u.endereco, telefones: u.telefones || [],
+    segmento: u.segmento, endereco: u.endereco, telefones: telByUnidade[u.id] || [],
     email: u.email, regional: u.regional_id != null ? String(u.regional_id) : '',
     tem_transporte: u.tem_transporte, oferta: u.oferta, tem_eja: u.tem_eja,
     inep: u.inep, pdde: u.pdde, site_apm: u.site_apm, drive_id: u.drive_id,
     latitude: u.latitude, longitude: u.longitude,
     pessoas: pessoasByUnidade[u.id] || [],
   };
+}
+
+// Converte telefones do JSON dev-local (strings) para a forma de objetos.
+function telDevLocal(u) {
+  return (u.telefones || []).map((t, i) =>
+    typeof t === 'string' ? { numero: t, tipo: 'fixo', principal: i === 0 } : t);
 }
 
 let _cache = null;
@@ -31,9 +41,10 @@ export async function getUnidades() {
 
   if (hasSupabase()) {
     const cli = sb();
-    const [{ data: unidades, error: e1 }, { data: vw }] = await Promise.all([
+    const [{ data: unidades, error: e1 }, { data: vw }, tel] = await Promise.all([
       cli.from('unidade_escolar').select('*').order('nome'),
       cli.from('vw_escola_pessoas').select('*'),
+      getTelefonesMapas(),
     ]);
     if (e1) throw e1;
     const byU = {};
@@ -43,7 +54,7 @@ export async function getUnidades() {
         email: r.email, telefone: r.telefone,
       });
     });
-    _cache = (unidades || []).map(u => fromDb(u, byU));
+    _cache = (unidades || []).map(u => fromDb(u, byU, tel.porUnidade));
     return _cache;
   }
 
@@ -52,7 +63,7 @@ export async function getUnidades() {
     const resp = await fetch('data/unidades.local.json', { cache: 'no-cache' });
     if (!resp.ok) { _cache = []; return _cache; }
     const json = await resp.json();
-    _cache = json.unidades || [];
+    _cache = (json.unidades || []).map(u => ({ ...u, telefones: telDevLocal(u) }));
   } catch (_) {
     _cache = [];
   }
@@ -60,9 +71,11 @@ export async function getUnidades() {
 }
 
 // Campos editáveis de uma unidade (o resto é derivado/sistema).
+// Telefones NÃO entram aqui: moram na tabela `telefone` (ver
+// telefones.model.js) e são sincronizados à parte pela view.
 const CAMPOS = ['nome', 'nome_oficial', 'apelido', 'segmento', 'endereco',
-  'telefones', 'email', 'oferta', 'tem_transporte', 'tem_eja', 'inep', 'site_apm',
-  'latitude', 'longitude', 'whatsapp', 'link_prestacao_contas'];
+  'email', 'oferta', 'tem_transporte', 'tem_eja', 'inep', 'site_apm',
+  'latitude', 'longitude', 'link_prestacao_contas'];
 
 function limpar(p) {
   const out = {};

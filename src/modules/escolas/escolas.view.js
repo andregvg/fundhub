@@ -5,9 +5,11 @@
 // acesso a dados passa por escolas.model.js.
 // ============================================================
 import { getUnidades, criarUnidade, atualizarUnidade, excluirUnidade } from './escolas.model.js';
+import { sincronizarTelefones } from '../telefones/telefones.model.js';
 import { esc, norm, falha } from '../../shared/dom.js';
 import { emptyState, erroBox } from '../../shared/ui/feedback.js';
 import { drawerHtml, drawerHead, montarDrawer, abrirDrawer, fecharDrawer } from '../../shared/ui/drawer.js';
+import { phonesEditorHtml, montarPhonesEditor, lerPhonesEditor, telefonesTexto } from '../../shared/ui/phones.js';
 
 let ALL = [];
 let perfil = null;
@@ -133,8 +135,7 @@ function abrirDetalhe(key) {
   const u = porChave(key);
   if (!u) return;
 
-  const tel = (u.telefones || [])
-    .map(t => `<a href="tel:${esc(t.replace(/\D/g, ''))}">${esc(t)}</a>`).join(' · ') || '—';
+  const tel = telefonesTexto(u.telefones);
   const pessoas = (u.pessoas || []).filter(p => p.nome).map(p => `
     <div class="person">
       <div class="role">${esc(p.papel)}</div>
@@ -200,7 +201,7 @@ function abrirForm(u) {
           <datalist id="segs"><option>EMEF</option><option>EMEI</option><option>CEI</option><option>EMEPB</option><option>CONVENIADA</option></datalist>
         </label>
         <label>Endereço <input name="endereco" value="${v('endereco')}" /></label>
-        <label>Telefones (separe por “/”) <input name="telefones" value="${esc((u?.telefones || []).join(' / '))}" /></label>
+        ${phonesEditorHtml(u?.telefones)}
         <label>E-mail institucional <input name="email" type="email" value="${v('email')}" /></label>
         <label>Oferta <input name="oferta" placeholder="EF1/EF2" value="${v('oferta')}" /></label>
         <label>INEP <input name="inep" value="${v('inep')}" /></label>
@@ -216,6 +217,7 @@ function abrirForm(u) {
       </form>
     </div>`);
 
+  montarPhonesEditor(document.getElementById('esc-form'));
   document.getElementById('esc-form').addEventListener('submit', (e) => salvar(e, u));
 }
 
@@ -229,7 +231,6 @@ async function salvar(e, u) {
     nome_oficial: f.nome_oficial.value.trim() || null,
     segmento: f.segmento.value.trim() || null,
     endereco: f.endereco.value.trim() || null,
-    telefones: f.telefones.value.split('/').map(s => s.trim()).filter(Boolean),
     email: f.email.value.trim() || null,
     oferta: f.oferta.value.trim() || null,
     inep: f.inep.value.trim() || null,
@@ -238,11 +239,12 @@ async function salvar(e, u) {
     tem_eja: f.tem_eja.checked,
   };
   if (!payload.nome) return falha(msg, 'Informe o nome.');
+  const telefones = lerPhonesEditor(f);
 
   const btn = document.getElementById('ef-save'); btn.disabled = true; btn.textContent = 'Salvando…';
   try {
-    if (u) await atualizarUnidade(u.id, payload);
-    else await criarUnidade(payload);
+    const id = u ? (await atualizarUnidade(u.id, payload), u.id) : (await criarUnidade(payload)).id;
+    await sincronizarTelefones({ unidadeId: id }, telefones);
     ALL = await getUnidades();
     fecharDrawer(); pintar();
   } catch (err) {
