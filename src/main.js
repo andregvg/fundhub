@@ -7,10 +7,10 @@
 // ============================================================
 import { hasSupabase } from './core/supabase.js';
 import { getUser, onAuthChange, renderLogin, isInstitucional, signOut } from './core/auth.js';
-import { getPerfilAtual, limparPerfil } from './core/perfil.js';
+import { getPerfilAtual, limparPerfil, registrarAcesso } from './core/perfil.js';
 import { startRouter } from './core/router.js';
 import { servicos } from './core/registry.js';
-import { montarNav, marcarNav, setChrome, pilulaOrigem, carimboRodape } from './shell/chrome.js';
+import { montarNav, marcarNav, setChrome, carimboRodape } from './shell/chrome.js';
 import { limparToasts } from './shared/ui/toast.js';
 
 const app = document.getElementById('app');
@@ -19,6 +19,8 @@ const rodando = [];
 
 async function montarApp(user) {
   const perfil = await getPerfilAtual().catch(() => null);
+  // Carimba o acesso e guarda o anterior (para o menu de usuário). Uma vez só.
+  if (!montado) await registrarAcesso().catch(() => {});
   setChrome(true, user, perfil);
   if (montado) return;
   montado = true;
@@ -56,7 +58,6 @@ function pararServicos() {
 
 async function boot() {
   carimboRodape();
-  pilulaOrigem();
 
   // Modo dev-local (sem Supabase configurado): sem gate, sem dados.
   if (!hasSupabase()) { montarApp(null); return; }

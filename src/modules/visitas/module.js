@@ -1,10 +1,12 @@
-// Manifesto — Relatórios de Visita Técnica (backlog).
-// Registro das visitas às escolas pela equipe de acompanhamento.
-// Tabela `relatorio_visita`; possivelmente fotos via Storage.
+// Manifesto do módulo Relatórios de Visita Técnica.
 export default {
   id: 'visitas',
   ico: '📋',
   nome: 'Relatórios de Visita',
   desc: 'Visitas técnicas às escolas.',
-  ativo: false,
+  navNome: 'Visitas',
+  rota: '#/visitas',
+  nav: true,
+  ativo: true,
+  load: () => import('./visitas.view.js'),
 };

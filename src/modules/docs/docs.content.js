@@ -170,10 +170,10 @@ export const SECOES = [
           <tr><td>🕒 <b>Horários de Trabalho</b></td><td><code>#/horarios</code></td><td><code>horario_bloco</code></td><td class="ok">ativo · CRUD admin</td></tr>
           <tr><td>🔔 <b>Notificações</b></td><td>— (serviço)</td><td><code>solicitacao_transporte</code> (realtime)</td><td class="ok">ativo</td></tr>
           <tr><td>📞 <b>Ocorrências</b></td><td><code>#/ocorrencias</code></td><td><code>ocorrencia</code></td><td class="ok">ativo · CRUD admin</td></tr>
+          <tr><td>📝 <b>Atas de Atendimento</b></td><td><code>#/atas</code></td><td><code>ata_atendimento</code></td><td class="ok">ativo · imprime timbrado</td></tr>
+          <tr><td>📋 <b>Relatórios de Visita</b></td><td><code>#/visitas</code></td><td><code>relatorio_visita</code></td><td class="ok">ativo · CRUD admin</td></tr>
+          <tr><td>🔐 <b>Usuários &amp; Acessos</b></td><td><code>#/usuarios</code></td><td><code>perfil</code>, <code>audit_log</code></td><td class="ok">ativo · só admin</td></tr>
           <tr><td>📖 <b>Documentação</b></td><td><code>#/docs</code></td><td>—</td><td class="ok">ativo · só admin</td></tr>
-          <tr><td>📝 Atas de Atendimento</td><td>—</td><td>a definir</td><td>backlog</td></tr>
-          <tr><td>📋 Relatórios de Visita</td><td>—</td><td><code>relatorio_visita</code> (a criar)</td><td>backlog</td></tr>
-          <tr><td>🔐 Usuários &amp; Acessos</td><td>—</td><td><code>perfil</code></td><td>backlog · hoje é SQL manual</td></tr>
           <tr><td>🔬 Projetos &amp; Pesquisas</td><td>—</td><td>a definir</td><td>backlog · depende de Edge Function</td></tr>
         </tbody>
       </table>
@@ -291,6 +291,43 @@ export const SECOES = [
   },
 
   {
+    id: 'auditoria',
+    ico: '🕵️',
+    titulo: 'Auditoria e último acesso',
+    resumo: 'Como se sabe o que mudou, quem mudou e quando.',
+    html: `
+      <p>Toda alteração de cadastro é registrada automaticamente: o valor <b>antes</b>, o valor
+      <b>depois</b> e o <b>diff campo a campo</b>. Quem responde à pergunta "o que era antes e o que
+      mudou" é a aba <b>Auditoria</b> em Usuários &amp; Acessos.</p>
+
+      <h3>Por que no banco, e não na tela</h3>
+      <p>O registro é feito por um <b>trigger no Postgres</b> (<code>fn_audit</code>, migration 011),
+      não por código de tela. Isso tem duas consequências que nenhuma solução no front teria:</p>
+      <ul>
+        <li><b>É automático.</b> Nenhuma tela precisa "lembrar" de registrar. Um módulo novo entra na
+            auditoria com uma linha no array de tabelas do trigger — nada no JavaScript.</li>
+        <li><b>É à prova de bypass.</b> Quem alterar por SQL direto, por outra ferramenta, ou por um
+            bug de tela, <b>também</b> fica registrado. A auditoria não depende de ninguém se comportar.</li>
+      </ul>
+      <p>O trigger guarda a linha inteira antes e depois (em <code>jsonb</code>) e, para alterações,
+      calcula só os campos que realmente mudaram. Carimbos automáticos
+      (<code>atualizado_em</code>, <code>ultimo_acesso</code>) são ignorados para não virar ruído.</p>
+
+      <h3>Quem pode ler</h3>
+      <p>Só admin, pelo RLS. E <b>ninguém escreve</b> no <code>audit_log</code> — não há policy de
+      insert/update/delete. O único que grava ali é o próprio trigger (que roda como dono da tabela).
+      Auditoria que se apaga não é auditoria.</p>
+
+      <h3>Último acesso</h3>
+      <p>Cada login carimba <code>perfil.ultimo_acesso</code>, via a função <code>registrar_acesso()</code>
+      (a única exceção que deixa um usuário comum escrever no próprio perfil — e só nesse campo).
+      A função devolve o acesso <i>anterior</i>, que é o que aparece no menu de usuário
+      ("Último acesso: …"). Todo horário exibido no FundHub passa por <code>fmtDataHora</code>, que
+      formata no fuso <b>America/Sao_Paulo</b> — o relógio bate com o de quem está usando,
+      não importa onde o banco esteja.</p>`,
+  },
+
+  {
     id: 'banco',
     ico: '🗄️',
     titulo: 'Banco de dados',
@@ -309,7 +346,10 @@ export const SECOES = [
  → 007_calendario.sql            dia_calendario
  → 008_afastamentos.sql          afastamento
  → 009_horarios.sql              horario_bloco
- → 010_ocorrencias.sql           ocorrencia</pre>
+ → 010_ocorrencias.sql           ocorrencia
+ → 011_auditoria.sql             audit_log + trigger + ultimo_acesso
+ → 012_visitas.sql               relatorio_visita
+ → 013_atas.sql                  ata_atendimento</pre>
 
       <h3>Tabelas</h3>
       <table class="doc-tabela">
@@ -327,6 +367,9 @@ export const SECOES = [
           <tr><td><code>dia_calendario</code></td><td>Dia letivo, evento, tipo e os <b>bloqueios</b> que o SATE respeita.</td></tr>
           <tr><td><code>afastamento</code></td><td>Servidor × tipo × período × unidade. <code>fim</code> nulo = em aberto.</td></tr>
           <tr><td><code>ocorrencia</code></td><td>Atendimentos telefônicos da recepção. A escola é <b>opcional</b> — nem toda ligação é sobre uma unidade.</td></tr>
+          <tr><td><code>relatorio_visita</code></td><td>Visitas técnicas às escolas: pauta, constatações, encaminhamentos e prazo.</td></tr>
+          <tr><td><code>ata_atendimento</code></td><td>Atas com numeração sequencial por ano (trigger) e impressão em papel timbrado.</td></tr>
+          <tr><td><code>audit_log</code></td><td><b>A auditoria.</b> Preenchida pelo trigger <code>fn_audit</code> — cada alteração com o antes, o depois e o diff. Só admin lê; ninguém escreve direto.</td></tr>
         </tbody>
       </table>
 

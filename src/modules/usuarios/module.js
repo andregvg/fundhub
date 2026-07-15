@@ -1,11 +1,14 @@
-// Manifesto — Usuários & Acessos (backlog, admin).
-// Tela para gerir a tabela `perfil`: adicionar/remover e-mails da
-// allowlist e definir o papel. Hoje isso é feito por SQL manual.
+// Manifesto do módulo Usuários & Acessos (admin).
+// Gestão da allowlist (perfil) + o visualizador de auditoria.
 export default {
   id: 'usuarios',
   ico: '🔐',
   nome: 'Usuários & Acessos',
-  desc: 'Gestão de perfis e permissões.',
-  ativo: false,
+  desc: 'Gestão de perfis, permissões e auditoria.',
+  navNome: 'Usuários',
+  rota: '#/usuarios',
+  nav: true,
+  ativo: true,
   admin: true,
+  load: () => import('./usuarios.view.js'),
 };

@@ -30,7 +30,7 @@ export async function render(app, ctx = {}) {
       </label>
       <button id="oc-novo" class="btn-primary" hidden>+ Nova ocorrência</button>
     </div>
-    <div class="toolbar oc-filtros">
+    <div class="toolbar subfiltros">
       <label class="search compacta">De <input id="oc-de" type="date" value="${filtro.de}" /></label>
       <label class="search compacta">Até <input id="oc-ate" type="date" value="${filtro.ate}" /></label>
       <label class="search compacta">🏫 <select id="oc-uni"><option value="">Todas as escolas</option></select></label>
@@ -122,7 +122,7 @@ function item(o) {
         <span class="tag ${STATUS_TAG[o.status] || ''}">${esc(STATUS[o.status] || o.status)}</span>
       </div>
       <div class="di-meta">${esc(quando)}${escola ? ' · 🏫 ' + esc(escola) : ''}${o.solicitante ? ' · ' + esc(o.solicitante) : ''} · ${esc(CANAIS[o.canal] || o.canal)}</div>
-      ${o.relato ? `<div class="di-meta oc-relato">${esc(o.relato)}</div>` : ''}
+      ${o.relato ? `<div class="di-meta texto-resumo">${esc(o.relato)}</div>` : ''}
     </div>
   </div>`;
 }
@@ -154,7 +154,7 @@ function detalhe(id) {
       ${campo('Solicitante', esc(o.solicitante))}
       ${campo('Contato de retorno', contato)}
       ${campo('Encaminhado para', esc(o.encaminhado_para))}
-      ${o.relato ? `<hr class="sep" /><div class="field"><div class="lbl">Relato</div><div class="val oc-relato-full">${esc(o.relato)}</div></div>` : ''}
+      ${o.relato ? `<hr class="sep" /><div class="field"><div class="lbl">Relato</div><div class="val texto-completo">${esc(o.relato)}</div></div>` : ''}
       ${campo('Registrado por', esc(o.criado_por))}
     </div>`);
 

@@ -35,3 +35,17 @@ export const isUuid = (s) => /^[0-9a-f]{8}-[0-9a-f]{4}-/i.test(String(s));
 
 export const horaAgora = () =>
   new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+// Timestamp (ISO/UTC do banco) → 'dd/mm/aaaa, hh:mm' no fuso de São Paulo.
+// Todo carimbo de data-hora exibido ao usuário passa por aqui, para o
+// horário bater com o relógio local independentemente de onde o banco está.
+const TZ = 'America/Sao_Paulo';
+export function fmtDataHora(ts) {
+  if (!ts) return '—';
+  const d = new Date(ts);
+  if (isNaN(d)) return '—';
+  return d.toLocaleString('pt-BR', {
+    timeZone: TZ, day: '2-digit', month: '2-digit', year: 'numeric',
+    hour: '2-digit', minute: '2-digit',
+  });
+}

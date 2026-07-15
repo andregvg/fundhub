@@ -59,16 +59,16 @@ src/
 
 ## 5. Banco de dados — migrations (rodar no SQL Editor, em ordem)
 
-`supabase/schema.sql` → `002_leitura_allowlist.sql` → `003_grants.sql` → `004_sate.sql` → `005_solicitacao_extra.sql` → `006_realtime.sql` → `007_calendario.sql` → `008_afastamentos.sql` → `009_horarios.sql` → `010_ocorrencias.sql`
+`supabase/schema.sql` → `002_leitura_allowlist.sql` → `003_grants.sql` → `004_sate.sql` → `005_solicitacao_extra.sql` → `006_realtime.sql` → `007_calendario.sql` → `008_afastamentos.sql` → `009_horarios.sql` → `010_ocorrencias.sql` → `011_auditoria.sql` → `012_visitas.sql` → `013_atas.sql`
 
-> ⚠️ **`009_horarios.sql` e `010_ocorrencias.sql` ainda NÃO foram rodadas no Supabase.** Rodar no SQL Editor antes de usar os módulos Horários (cria `horario_bloco`) e Ocorrências (cria `ocorrencia`). `servidor` e `vinculo` já existiam desde o `schema.sql` — Gestores funciona sem migration nova.
+> ⚠️ **Rodadas confirmadas até a 010.** Faltam rodar no SQL Editor, em ordem: **`011_auditoria.sql`** (audit_log + trigger de auditoria + `perfil.ultimo_acesso` + `registrar_acesso()`), **`012_visitas.sql`** (relatorio_visita) e **`013_atas.sql`** (ata_atendimento). Sem a 011, o menu de usuário não mostra o último acesso e a aba Auditoria fica vazia; sem 012/013, Visitas e Atas dão erro de tabela. A ordem importa: 012 e 013 religam o trigger `fn_audit` da 011.
 
 Seeds (gitignored, em `_private/` — rodar após as migrations correspondentes):
 `seed_unidades.sql`, `seed_atividades.sql`, `seed_calendario.sql`.
 
 > Gerador dos seeds: script Python que lê os TSV/xlsx originais (em Downloads) e escreve em `_private/`. Ver histórico da conversa. NUNCA commitar `_private/`.
 
-Tabelas: `regional`, `servidor`, `unidade_escolar`, `vinculo`, `perfil`, `atividade_extraclasse`, `oferta_onibus`, `solicitacao_transporte`, `dia_calendario`, `afastamento`, `horario_bloco`, `ocorrencia`; view `vw_escola_pessoas`; funções `auth_email()`, `is_institucional()`, `is_autorizado()`, `is_admin()`.
+Tabelas: `regional`, `servidor`, `unidade_escolar`, `vinculo`, `perfil` (agora com `ultimo_acesso`), `atividade_extraclasse`, `oferta_onibus`, `solicitacao_transporte`, `dia_calendario`, `afastamento`, `horario_bloco`, `ocorrencia`, `relatorio_visita`, `ata_atendimento`, `audit_log`; view `vw_escola_pessoas`; funções `auth_email()`, `is_institucional()`, `is_autorizado()`, `is_admin()`, `fn_audit()` (trigger de auditoria), `registrar_acesso()`, `fn_ata_numero()`.
 
 ## 6. O que JÁ está implementado
 
@@ -85,6 +85,10 @@ Tabelas: `regional`, `servidor`, `unidade_escolar`, `vinculo`, `perfil`, `ativid
 | **Gestores & Coordenadores** | ✅ | **Novo.** Rota `#/gestores`. CRUD de `servidor` + CRUD de `vinculo` (servidor × escola × papel × ano). Busca (inclusive por nome de escola), filtros por papel e “sem vínculo”. Encerrar vínculo (preserva histórico) ≠ excluir. Sem migration nova — usa o `schema.sql`. |
 | **Horários de Trabalho** | ✅ | **Novo.** Rota `#/horarios`. Escolhe-se a escola → cobertura 7h–18h20 com lacunas + jornada semanal de cada servidor vinculado, em barras. Regras em `horarios.model.js`: ≤8h/dia e sem sobreposição são **erro** (bloqueiam); >6h contínuas e lacuna de cobertura são **aviso**. **Requer a migration `009_horarios.sql`.** |
 | **Ocorrências** | ✅ | **Novo.** Rota `#/ocorrencias`. CRUD dos atendimentos telefônicos da recepção, ligados (opcionalmente) a uma escola. Filtros por período (padrão: últimos 30 dias), escola e status; busca livre. Campo "encaminhado para" aparece só quando status = encaminhada. **Requer a migration `010_ocorrencias.sql`.** |
+| **Relatórios de Visita** | ✅ | **Novo.** Rota `#/visitas`. CRUD das visitas técnicas (escola, tipo, pauta, constatações, encaminhamentos, prazo, status). Marca "prazo vencido". **Requer `012_visitas.sql`.** |
+| **Atas de Atendimento** | ✅ | **Novo.** Rota `#/atas`. Redação + **impressão em papel timbrado** (folha montada em `atas.view.js`, isolada por `@media print`). Numeração sequencial por ano (trigger no banco). **Requer `013_atas.sql`.** |
+| **Usuários & Acessos** | ✅ | **Novo.** Rota `#/usuarios`, **só admin**. Duas abas: allowlist (CRUD de `perfil` + último acesso de cada um) e **Auditoria** (visualizador do `audit_log`, com o diff de-para). Substitui o SQL manual. **Requer `011_auditoria.sql`.** |
+| **Menu de usuário + auditoria** | ✅ | **Novo.** O topo direito virou um dropdown (ícone de usuário) com e-mail, papel, **último acesso (fuso America/Sao_Paulo)**, origem dos dados e Sair. Toda alteração de cadastro é auditada por trigger no banco (antes/depois/diff), à prova de bypass. **Requer `011_auditoria.sql`.** |
 | **Documentação** | ✅ | **Novo.** Rota `#/docs`, **só admin**. Explica arquitetura, camadas, regras de import, segurança/RLS, banco, deploy e o passo a passo para criar um módulo. Conteúdo em `src/modules/docs/docs.content.js` (acrescentar uma seção = acrescentar um objeto no array). |
 
 ## 7. O que FALTA implementar (backlog priorizado)
@@ -93,17 +97,17 @@ Tabelas: `regional`, `servidor`, `unidade_escolar`, `vinculo`, `perfil`, `ativid
 1. **Cálculo de rota e horário sugerido** — usando lat/long da escola e do destino, estimar tempo de trajeto, sugerir embarque/retorno e permanência (inspirado no `Geo.js` do `agendamentos-fil`, sem alterá-lo). **Requer escolha de API:** Google Maps Platform (precisa API key, tem custo) OU OpenRouteService/Nominatim (grátis, key gratuita). Também exige popular `latitude`/`longitude` das escolas (há coords no TSV do agendamentos-fil para ~34 EMEFs).
 
 ### B. Não depende de API (podem ser feitos já)
-2. ~~**Ocorrências**~~ — ✅ **feito** (ver §6). Rodar `010_ocorrencias.sql`.
-3. **Atas de Atendimento** — redigir e compilar atas (gestores/coordenadores/servidores/munícipes), com **impressão em papel timbrado** (CSS de impressão + template).
-4. **Relatórios de Visita Técnica** — registro das visitas às escolas pela equipe de acompanhamento (tabela `relatorio_visita`; CRUD; possivelmente fotos via Storage).
-5. **Usuários & Acessos** — tela admin para gerir a tabela `perfil` (adicionar/remover e-mails da allowlist, definir papel). Hoje isso é feito por SQL manual.
-6. ~~**Gestores & Coordenadores** e **Horários de trabalho**~~ — ✅ **feitos** (ver §6).
-7. **Notificações de afastamentos** — estender o Realtime/toasts para a tabela `afastamento` (hoje só solicitações).
+2. ~~**Ocorrências**~~ — ✅ **feito** (`010`).
+3. ~~**Atas de Atendimento**~~ — ✅ **feito** (`013`), com impressão em papel timbrado.
+4. ~~**Relatórios de Visita Técnica**~~ — ✅ **feito** (`012`). *Fotos via Storage* ainda não — fica para uma próxima (exige bucket + policies de Storage).
+5. ~~**Usuários & Acessos**~~ — ✅ **feito** (`011`), com auditoria e último acesso.
+6. ~~**Gestores & Coordenadores** e **Horários de trabalho**~~ — ✅ **feitos** (`009`).
+7. **Notificações de afastamentos** — estender o Realtime/toasts para a tabela `afastamento` (hoje só solicitações). O serviço já é genérico o bastante para receber uma segunda assinatura.
 8. **Relatórios/Exportações** — relatório anual de projetos, exportações (CSV/PDF).
 9. **Migrar a equipe gestora de Escolas para Gestores** — a tela de Escolas ainda lê as pessoas pela view `vw_escola_pessoas` (só leitura). Agora que os vínculos têm CRUD próprio, avaliar se o detalhe da escola deve linkar para o servidor em `#/gestores` em vez de repetir os dados.
 
 ### C. Depende de infra (Edge Function)
-9. **Camada do professor (sem login) por token** — link com token para o professor preencher os dados da turma de uma solicitação, sem acessar o resto do sistema. Requer **Edge Function** (service role) validando o token + página pública fora do gate de login. Desenhar com cuidado (é o único ponto de acesso anônimo controlado).
+10. **Camada do professor (sem login) por token** — link com token para o professor preencher os dados da turma de uma solicitação, sem acessar o resto do sistema. Requer **Edge Function** (service role) validando o token + página pública fora do gate de login. Desenhar com cuidado (é o único ponto de acesso anônimo controlado).
 10. **Sync com Google Calendar** — sincronizar `dia_calendario`/eventos com as agendas do Google (OAuth + API). 
 11. **Projetos & Pesquisas** — portal externo do proponente (envio + acompanhamento por token), carta de anuência gerada, manifestação de interesse das escolas. (Grande; parte externa depende de Edge Function/token.)
 

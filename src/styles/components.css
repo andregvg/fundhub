@@ -93,6 +93,20 @@ a.tile:hover {
 .count { color: var(--muted); font-size: 13px; }
 
 .filters { display: flex; gap: 6px; flex-wrap: wrap; }
+
+/* Segunda barra de filtros (período/escola/status), usada por módulos de
+   lista como Ocorrências, Visitas e Auditoria. */
+.subfiltros { margin-top: -6px; }
+.subfiltros .search.compacta { flex: 1 1 auto; }
+.subfiltros .search.compacta select { min-width: 0; }
+@media (min-width: 560px) {
+  .subfiltros .search.compacta { flex: 0 0 auto; }
+  .subfiltros select { min-width: 160px; }
+}
+
+/* Texto longo: uma linha no card (reticências), inteiro na gaveta. */
+.texto-resumo { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+.texto-completo { white-space: pre-wrap; }
 .chip {
   min-height: 34px;
   padding: 7px 12px;

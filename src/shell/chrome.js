@@ -1,17 +1,29 @@
 // ============================================================
 // FundHub — shell/chrome.js  (moldura do app: topo, navegação, rodapé)
 // A barra de navegação é montada a partir do registro de módulos e
-// depende do perfil (itens `admin` só aparecem para admin).
-// Em telas pequenas ela vira um menu sanfonado (botão ☰).
+// depende do perfil (itens `admin` só aparecem para admin). Em telas
+// pequenas ela vira um menu sanfonado (botão ☰).
+//
+// O canto superior direito tem só duas coisas: o sino (inserido pelo
+// serviço de notificações) e o MENU DE USUÁRIO — um dropdown que reúne
+// e-mail, papel, último acesso, origem dos dados e o botão Sair.
 // ============================================================
 import { modulosNav } from '../core/registry.js';
 import { source } from '../core/supabase.js';
 import { signOut } from '../core/auth.js';
-import { limparPerfil } from '../core/perfil.js';
+import { limparPerfil, ultimoAcessoAnterior } from '../core/perfil.js';
 import { esc } from '../shared/dom.js';
+import { fmtDataHora } from '../shared/format.js';
 
 const topnav = () => document.getElementById('topnav');
 const toggle = () => document.getElementById('nav-toggle');
+
+const PAPEL_ROTULO = { admin_sme: 'Administrador', transporte: 'Transporte', leitor: 'Leitor' };
+
+// Ícone de usuário (Feather "user").
+const USER_SVG = `<svg viewBox="0 0 24 24" width="20" height="20" fill="none"
+  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
 
 // ── Navegação ────────────────────────────────────────────────
 export function montarNav(perfil) {
@@ -24,7 +36,6 @@ export function montarNav(perfil) {
     const aberto = document.body.classList.toggle('nav-open');
     toggle().setAttribute('aria-expanded', String(aberto));
   });
-  // Toque fora do menu fecha (só relevante no mobile).
   document.addEventListener('click', (e) => {
     if (!document.body.classList.contains('nav-open')) return;
     if (e.target.closest('.topnav') || e.target.closest('#nav-toggle')) return;
@@ -37,7 +48,6 @@ function fecharMenu() {
   toggle()?.setAttribute('aria-expanded', 'false');
 }
 
-// Destaca o item da rota atual.
 export function marcarNav(hash) {
   document.querySelectorAll('.topnav a').forEach(a => {
     const href = a.getAttribute('href');
@@ -45,36 +55,66 @@ export function marcarNav(hash) {
   });
 }
 
-// ── Topo direito: origem dos dados e usuário ─────────────────
-export function pilulaOrigem() {
-  const el = document.getElementById('data-source');
-  const s = source();
-  el.textContent = s === 'supabase' ? '● Supabase' : '● dados locais';
-  el.classList.remove('live', 'local');
-  el.classList.add(s === 'supabase' ? 'live' : 'local');
-}
-
+// ── Menu de usuário ──────────────────────────────────────────
 export function setChrome(logado, user, perfil) {
   document.querySelector('.topbar').classList.toggle('anon', !logado);
   const right = document.querySelector('.topbar-right');
-  let chip = right.querySelector('.user-chip');
+  let menu = right.querySelector('.user-menu');
 
-  if (!logado) { chip?.remove(); fecharMenu(); return; }
-  if (!user) return; // dev-local: sem sessão, sem chip
+  if (!logado) { menu?.remove(); fecharMenu(); return; }
 
-  if (!chip) {
-    chip = document.createElement('div');
-    chip.className = 'user-chip';
-    chip.innerHTML = `<span class="uemail"></span><button class="logout" type="button" title="Sair">Sair</button>`;
-    chip.querySelector('.logout').addEventListener('click', async () => {
+  const email = user?.email || perfil?.email || '';
+  const papel = PAPEL_ROTULO[perfil?.papel] || 'Leitor';
+  const acessoAnterior = ultimoAcessoAnterior();
+  const s = source();
+
+  if (!menu) {
+    menu = document.createElement('div');
+    menu.className = 'user-menu';
+    menu.innerHTML = `
+      <button class="user-btn" id="user-btn" type="button" aria-label="Menu do usuário"
+              aria-haspopup="true" aria-expanded="false">${USER_SVG}</button>
+      <div class="user-panel" id="user-panel" hidden>
+        <div class="um-head">
+          <span class="um-avatar">${USER_SVG}</span>
+          <div class="um-id">
+            <b class="um-email"></b>
+            <span class="um-papel badge"></span>
+          </div>
+        </div>
+        <div class="um-linha"><span class="um-lbl">Último acesso</span><span class="um-acesso"></span></div>
+        <div class="um-linha"><span class="um-lbl">Dados</span><span class="um-origem pill"></span></div>
+        <button class="um-sair" type="button">Sair</button>
+      </div>`;
+    right.appendChild(menu);
+
+    const btn = menu.querySelector('#user-btn');
+    const panel = menu.querySelector('#user-panel');
+    btn.addEventListener('click', () => {
+      const abrir = panel.hidden;
+      panel.hidden = !abrir;
+      btn.setAttribute('aria-expanded', String(abrir));
+    });
+    document.addEventListener('click', (e) => {
+      if (!menu.contains(e.target)) { panel.hidden = true; btn.setAttribute('aria-expanded', 'false'); }
+    });
+    menu.querySelector('.um-sair').addEventListener('click', async () => {
       limparPerfil();
       await signOut();
     });
-    right.appendChild(chip);
   }
-  chip.querySelector('.uemail').textContent = user.email;
-  chip.querySelector('.uemail').title = perfil?.isAdmin ? 'Administrador SME' : (perfil?.papel || '');
-  chip.classList.toggle('is-admin', Boolean(perfil?.isAdmin));
+
+  menu.querySelector('.um-email').textContent = email;
+  menu.querySelector('.um-email').title = email;
+  const bp = menu.querySelector('.um-papel');
+  bp.textContent = papel;
+  bp.classList.toggle('admin', Boolean(perfil?.isAdmin));
+  menu.querySelector('.um-acesso').textContent = acessoAnterior ? fmtDataHora(acessoAnterior) : 'primeiro acesso';
+  const org = menu.querySelector('.um-origem');
+  org.textContent = s === 'supabase' ? '● Supabase' : '● dados locais';
+  org.classList.toggle('live', s === 'supabase');
+  org.classList.toggle('local', s !== 'supabase');
+  menu.querySelector('.user-btn').classList.toggle('is-admin', Boolean(perfil?.isAdmin));
 }
 
 export function carimboRodape() {

@@ -1,0 +1,51 @@
+/* ============================================================
+   FundHub — modules/atas/atas.css
+   A folha timbrada. Fica escondida na tela (a lista é o que se vê) e
+   só aparece na impressão — por isso o módulo existe. Ao imprimir uma
+   ata, o body ganha .imprimindo-ata e só a folha fica visível.
+   ============================================================ */
+
+.at-item { cursor: pointer; }
+.at-item:hover { border-color: color-mix(in srgb, var(--brand) 45%, var(--border)); }
+
+/* Escondida na tela. */
+.ata-folha { display: none; }
+
+.ata-timbre {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #000;
+  margin-bottom: 20px;
+}
+.ata-brasao { font-size: 42px; }
+.ata-orgao { display: flex; flex-direction: column; line-height: 1.3; }
+.ata-orgao strong { font-size: 15px; }
+.ata-orgao span { font-size: 12.5px; }
+
+.ata-titulo { text-align: center; font-size: 16px; margin: 18px 0; text-transform: uppercase; letter-spacing: .02em; }
+.ata-abertura { text-align: justify; line-height: 1.7; margin-bottom: 16px; }
+.ata-bloco { margin-bottom: 14px; }
+.ata-bloco h3 { font-size: 13px; text-transform: uppercase; letter-spacing: .04em; margin: 0 0 4px; }
+.ata-bloco p { text-align: justify; line-height: 1.7; margin: 0; }
+
+.ata-assinaturas { display: flex; justify-content: space-around; gap: 40px; margin-top: 60px; }
+.ata-assina { flex: 1; text-align: center; font-size: 13px; }
+.ata-assina span { display: block; border-top: 1px solid #000; margin-bottom: 4px; }
+.ata-rodape { margin-top: 40px; text-align: right; }
+
+/* ── Impressão ────────────────────────────────────────────── */
+@media print {
+  /* Imprimindo uma ata: dentro do #app, só a folha aparece (a lista, as
+     barras e a gaveta somem). Topo/rodapé/toasts já saem pela regra
+     global de impressão em base.css. */
+  body.imprimindo-ata #app > *:not(.ata-folha) { display: none !important; }
+  body.imprimindo-ata .ata-folha {
+    display: block;
+    max-width: 100%;
+    color: #000;
+    font-family: "Times New Roman", Georgia, serif;
+    font-size: 12pt;
+  }
+}
