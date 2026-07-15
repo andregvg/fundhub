@@ -172,6 +172,9 @@ function abrirDetalhe(key) {
       <hr class="sep" />
       <div class="field"><div class="lbl">Equipe gestora</div></div>
       <div class="people">${pessoas}</div>
+      <p class="form-hint" style="margin-top:10px">
+        <a href="#/gestores">Gerir servidores e vínculos em Gestores &amp; Coordenadores →</a>
+      </p>
     </div>`);
 
   if (perfil?.isAdmin) {

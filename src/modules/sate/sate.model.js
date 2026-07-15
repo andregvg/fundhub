@@ -6,6 +6,7 @@
 // domínio, não da tela, e outros módulos leem daqui.
 // ============================================================
 import { sb, hasSupabase, emailAtual } from '../../core/supabase.js';
+import { subscribeTabela } from '../../shared/realtime.js';
 
 export const CAP_ONIBUS = 44;         // lugares por ônibus
 export const ANTECEDENCIA_MIN = 5;    // dias mínimos p/ a escola (admin não tem limite)
@@ -103,11 +104,6 @@ export async function getUsoDia(dataISO) {
 
 // ── Realtime ─────────────────────────────────────────────────
 // Assina mudanças em solicitacao_transporte. Devolve o unsubscribe.
-// O RLS garante que cada usuário só recebe eventos das linhas que pode ver.
 export function subscribeSolicitacoes(handler) {
-  if (!hasSupabase()) return () => {};
-  const ch = sb().channel('solic-rt')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'solicitacao_transporte' }, handler)
-    .subscribe();
-  return () => { try { sb().removeChannel(ch); } catch (_) {} };
+  return subscribeTabela('solicitacao_transporte', handler, 'solic-rt');
 }

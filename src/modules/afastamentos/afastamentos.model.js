@@ -3,6 +3,7 @@
 // Afastamentos de servidores (servidor × tipo × período × unidade).
 // ============================================================
 import { sb, hasSupabase, emailAtual } from '../../core/supabase.js';
+import { subscribeTabela } from '../../shared/realtime.js';
 
 export const TIPOS_AFASTAMENTO = [
   'Férias', 'Licença Saúde (LTS)', 'Licença Maternidade',
@@ -45,4 +46,9 @@ export async function excluirAfastamento(id) {
   if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
   const { error } = await sb().from('afastamento').delete().eq('id', id);
   if (error) throw error;
+}
+
+// Realtime: notifica novos afastamentos e mudanças. Requer a migration 014.
+export function subscribeAfastamentos(handler) {
+  return subscribeTabela('afastamento', handler, 'afast-rt');
 }

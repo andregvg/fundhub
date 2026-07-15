@@ -9,6 +9,7 @@ import { getAtividades } from '../sate/atividades.model.js';
 import { getSolicitacoesDoDia, STATUS, PERIODOS } from '../sate/sate.model.js';
 import { getAfastamentos } from '../afastamentos/afastamentos.model.js';
 import { getDiaCalendario } from '../calendario/calendario.model.js';
+import { getOcorrencias, CANAIS, STATUS as STATUS_OCOR, STATUS_TAG as TAG_OCOR } from '../ocorrencias/ocorrencias.model.js';
 import { esc } from '../../shared/dom.js';
 import { hojeISO, fmtExtenso, fmtData } from '../../shared/format.js';
 import { loading, emptyState } from '../../shared/ui/feedback.js';
@@ -35,14 +36,41 @@ export async function render(app) {
         <h2>📅 Calendário hoje</h2>
         <div id="p-calendario">${loading()}</div>
       </section>
+      <section class="panel">
+        <h2>📞 Ocorrências de hoje</h2>
+        <div id="p-ocorrencias">${loading()}</div>
+      </section>
     </div>`;
 
-  // Cada painel carrega e falha por conta própria: um erro no calendário
+  // Cada painel carrega e falha por conta própria: um erro num painel
   // não pode derrubar o resto do dashboard.
   painelStats();
   painelExtraclasse(hoje);
   painelAfastamentos(hoje);
   painelCalendario(hoje);
+  painelOcorrencias(hoje);
+}
+
+async function painelOcorrencias(hoje) {
+  const box = document.getElementById('p-ocorrencias');
+  let lista;
+  try { lista = await getOcorrencias({ de: hoje, ate: hoje }); }
+  catch (err) { box.innerHTML = emptyState('⚠️', 'Não foi possível carregar', esc(err.message || err)); return; }
+
+  if (!lista.length) {
+    box.innerHTML = emptyState('—', 'Sem registros', 'Nenhum atendimento registrado hoje.');
+    return;
+  }
+  box.innerHTML = lista.map(o => {
+    const escola = o.unidade?.apelido || o.unidade?.nome;
+    return `<div class="dash-item">
+      <div class="di-top">
+        <b>${esc(o.assunto)}</b>
+        <span class="tag ${TAG_OCOR[o.status] || ''}">${esc(STATUS_OCOR[o.status] || o.status)}</span>
+      </div>
+      <div class="di-meta">${o.hora ? esc(o.hora.slice(0, 5)) + ' · ' : ''}${esc(CANAIS[o.canal] || o.canal)}${escola ? ' · ' + esc(escola) : ''}</div>
+    </div>`;
+  }).join('');
 }
 
 const statTile = (ico, num, label, extra = '') => `

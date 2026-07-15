@@ -5,6 +5,7 @@
 // é sobre uma escola específica.
 // ============================================================
 import { sb, hasSupabase, emailAtual } from '../../core/supabase.js';
+import { subscribeTabela } from '../../shared/realtime.js';
 
 export const CANAIS = {
   telefone: 'Telefone', presencial: 'Presencial', whatsapp: 'WhatsApp',
@@ -67,4 +68,9 @@ export async function excluirOcorrencia(id) {
   if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
   const { error } = await sb().from('ocorrencia').delete().eq('id', id);
   if (error) throw error;
+}
+
+// Realtime: notifica novas ocorrências e mudanças. Requer a migration 014.
+export function subscribeOcorrencias(handler) {
+  return subscribeTabela('ocorrencia', handler, 'ocor-rt');
 }

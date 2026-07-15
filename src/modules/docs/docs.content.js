@@ -173,10 +173,12 @@ export const SECOES = [
           <tr><td>📝 <b>Atas de Atendimento</b></td><td><code>#/atas</code></td><td><code>ata_atendimento</code></td><td class="ok">ativo · imprime timbrado</td></tr>
           <tr><td>📋 <b>Relatórios de Visita</b></td><td><code>#/visitas</code></td><td><code>relatorio_visita</code></td><td class="ok">ativo · CRUD admin</td></tr>
           <tr><td>🔐 <b>Usuários &amp; Acessos</b></td><td><code>#/usuarios</code></td><td><code>perfil</code>, <code>audit_log</code></td><td class="ok">ativo · só admin</td></tr>
+          <tr><td>🔬 <b>Projetos &amp; Pesquisas</b></td><td><code>#/projetos</code></td><td><code>projeto</code>, <code>projeto_interesse</code></td><td class="ok">ativo (interno) · portal externo por token é backlog</td></tr>
           <tr><td>📖 <b>Documentação</b></td><td><code>#/docs</code></td><td>—</td><td class="ok">ativo · só admin</td></tr>
-          <tr><td>🔬 Projetos &amp; Pesquisas</td><td>—</td><td>a definir</td><td>backlog · depende de Edge Function</td></tr>
         </tbody>
       </table>
+      <p><b>Todos os 15 módulos estão ativos.</b> O que resta é aprofundamento (parte externa de
+      Projetos por token, fotos nas Visitas, exportações) — está no backlog do HANDOFF.</p>
 
       <h3>As dependências que importam</h3>
       <ul>
@@ -191,7 +193,11 @@ export const SECOES = [
             dos <code>vinculo</code>s é o módulo Gestores. Horários só enxerga quem tem <b>vínculo ativo
             no ano</b> com aquela escola; Afastamentos escolhe o servidor da mesma lista. Sem vínculo,
             a pessoa não aparece em lugar nenhum — é o efeito desejado.</li>
-        <li><b>SATE → Notificações.</b> O serviço assina o Realtime da tabela de solicitações.</li>
+        <li><b>SATE, Afastamentos e Ocorrências → Notificações.</b> O serviço assina o Realtime das
+            três tabelas (via <code>shared/realtime.js</code>) e traduz cada evento num aviso — sino
+            e toast. Acrescentar uma quarta fonte é assinar a tabela + escrever um descritor.</li>
+        <li><b>Escolas ↔ Gestores.</b> O detalhe da escola mostra a equipe (leitura, via
+            <code>vw_escola_pessoas</code>) e linka para Gestores, onde os vínculos têm CRUD.</li>
       </ul>`,
   },
 
@@ -349,7 +355,9 @@ export const SECOES = [
  → 010_ocorrencias.sql           ocorrencia
  → 011_auditoria.sql             audit_log + trigger + ultimo_acesso
  → 012_visitas.sql               relatorio_visita
- → 013_atas.sql                  ata_atendimento</pre>
+ → 013_atas.sql                  ata_atendimento
+ → 014_realtime_extra.sql        realtime p/ afastamento e ocorrencia
+ → 015_projetos.sql              projeto + projeto_interesse</pre>
 
       <h3>Tabelas</h3>
       <table class="doc-tabela">
@@ -370,6 +378,7 @@ export const SECOES = [
           <tr><td><code>relatorio_visita</code></td><td>Visitas técnicas às escolas: pauta, constatações, encaminhamentos e prazo.</td></tr>
           <tr><td><code>ata_atendimento</code></td><td>Atas com numeração sequencial por ano (trigger) e impressão em papel timbrado.</td></tr>
           <tr><td><code>audit_log</code></td><td><b>A auditoria.</b> Preenchida pelo trigger <code>fn_audit</code> — cada alteração com o antes, o depois e o diff. Só admin lê; ninguém escreve direto.</td></tr>
+          <tr><td><code>projeto</code>, <code>projeto_interesse</code></td><td>Projetos/pesquisas ofertados às escolas e a manifestação de interesse de cada unidade.</td></tr>
         </tbody>
       </table>
 

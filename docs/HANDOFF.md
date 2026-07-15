@@ -59,9 +59,9 @@ src/
 
 ## 5. Banco de dados — migrations (rodar no SQL Editor, em ordem)
 
-`supabase/schema.sql` → `002_leitura_allowlist.sql` → `003_grants.sql` → `004_sate.sql` → `005_solicitacao_extra.sql` → `006_realtime.sql` → `007_calendario.sql` → `008_afastamentos.sql` → `009_horarios.sql` → `010_ocorrencias.sql` → `011_auditoria.sql` → `012_visitas.sql` → `013_atas.sql`
+`… 011_auditoria.sql` → `012_visitas.sql` → `013_atas.sql` → `014_realtime_extra.sql` → `015_projetos.sql`
 
-> ⚠️ **Rodadas confirmadas até a 010.** Faltam rodar no SQL Editor, em ordem: **`011_auditoria.sql`** (audit_log + trigger de auditoria + `perfil.ultimo_acesso` + `registrar_acesso()`), **`012_visitas.sql`** (relatorio_visita) e **`013_atas.sql`** (ata_atendimento). Sem a 011, o menu de usuário não mostra o último acesso e a aba Auditoria fica vazia; sem 012/013, Visitas e Atas dão erro de tabela. A ordem importa: 012 e 013 religam o trigger `fn_audit` da 011.
+> ⚠️ **Rodadas confirmadas até a 013.** Faltam rodar no SQL Editor, em ordem: **`014_realtime_extra.sql`** (adiciona `afastamento` e `ocorrencia` à publicação realtime — sem ela, o sino só avisa de solicitações do SATE) e **`015_projetos.sql`** (cria `projeto` + `projeto_interesse` — sem ela, o módulo Projetos dá erro de tabela). As duas dependem de migrations já rodadas (011 para o trigger de auditoria que a 015 religa).
 
 Seeds (gitignored, em `_private/` — rodar após as migrations correspondentes):
 `seed_unidades.sql`, `seed_atividades.sql`, `seed_calendario.sql`.
@@ -89,7 +89,9 @@ Tabelas: `regional`, `servidor`, `unidade_escolar`, `vinculo`, `perfil` (agora c
 | **Atas de Atendimento** | ✅ | **Novo.** Rota `#/atas`. Redação + **impressão em papel timbrado** (folha montada em `atas.view.js`, isolada por `@media print`). Numeração sequencial por ano (trigger no banco). **Requer `013_atas.sql`.** |
 | **Usuários & Acessos** | ✅ | **Novo.** Rota `#/usuarios`, **só admin**. Duas abas: allowlist (CRUD de `perfil` + último acesso de cada um) e **Auditoria** (visualizador do `audit_log`, com o diff de-para). Substitui o SQL manual. **Requer `011_auditoria.sql`.** |
 | **Menu de usuário + auditoria** | ✅ | **Novo.** O topo direito virou um dropdown (ícone de usuário) com e-mail, papel, **último acesso (fuso America/Sao_Paulo)**, origem dos dados e Sair. Toda alteração de cadastro é auditada por trigger no banco (antes/depois/diff), à prova de bypass. **Requer `011_auditoria.sql`.** |
-| **Documentação** | ✅ | **Novo.** Rota `#/docs`, **só admin**. Explica arquitetura, camadas, regras de import, segurança/RLS, banco, deploy e o passo a passo para criar um módulo. Conteúdo em `src/modules/docs/docs.content.js` (acrescentar uma seção = acrescentar um objeto no array). |
+| **Projetos & Pesquisas** | ✅ | **Novo.** Rota `#/projetos`. CRUD dos projetos/pesquisas ofertados às escolas + manifestação de interesse de cada unidade (na gaveta do projeto). **Requer `015_projetos.sql`.** A parte EXTERNA (proponente envia por token, sem login) segue no backlog C — depende de Edge Function. |
+| **Notificações (estendidas)** | ✅ | **Atualizado.** O sino/toasts agora cobrem 3 tabelas: solicitações (SATE), **afastamentos** e **ocorrências**, via `shared/realtime.js`. **Requer `014_realtime_extra.sql`.** |
+| **Documentação** | ✅ | **Novo.** Rota `#/docs`, **só admin**. Explica arquitetura, camadas, regras de import, segurança/RLS, banco, auditoria, deploy e o passo a passo para criar um módulo. Conteúdo em `src/modules/docs/docs.content.js`. |
 
 ## 7. O que FALTA implementar (backlog priorizado)
 
@@ -102,14 +104,15 @@ Tabelas: `regional`, `servidor`, `unidade_escolar`, `vinculo`, `perfil` (agora c
 4. ~~**Relatórios de Visita Técnica**~~ — ✅ **feito** (`012`). *Fotos via Storage* ainda não — fica para uma próxima (exige bucket + policies de Storage).
 5. ~~**Usuários & Acessos**~~ — ✅ **feito** (`011`), com auditoria e último acesso.
 6. ~~**Gestores & Coordenadores** e **Horários de trabalho**~~ — ✅ **feitos** (`009`).
-7. **Notificações de afastamentos** — estender o Realtime/toasts para a tabela `afastamento` (hoje só solicitações). O serviço já é genérico o bastante para receber uma segunda assinatura.
+7. ~~**Notificações de afastamentos**~~ — ✅ **feito** (`014`), junto com ocorrências.
 8. **Relatórios/Exportações** — relatório anual de projetos, exportações (CSV/PDF).
-9. **Migrar a equipe gestora de Escolas para Gestores** — a tela de Escolas ainda lê as pessoas pela view `vw_escola_pessoas` (só leitura). Agora que os vínculos têm CRUD próprio, avaliar se o detalhe da escola deve linkar para o servidor em `#/gestores` em vez de repetir os dados.
+9. **Migrar a equipe gestora de Escolas para Gestores** — a tela de Escolas já linka para `#/gestores`; falta decidir se para de repetir os dados da view `vw_escola_pessoas` e passa a só apontar. Baixa prioridade.
+10. **Fotos nos Relatórios de Visita** — anexos via Supabase Storage (exige bucket + policies).
 
 ### C. Depende de infra (Edge Function)
-10. **Camada do professor (sem login) por token** — link com token para o professor preencher os dados da turma de uma solicitação, sem acessar o resto do sistema. Requer **Edge Function** (service role) validando o token + página pública fora do gate de login. Desenhar com cuidado (é o único ponto de acesso anônimo controlado).
-10. **Sync com Google Calendar** — sincronizar `dia_calendario`/eventos com as agendas do Google (OAuth + API). 
-11. **Projetos & Pesquisas** — portal externo do proponente (envio + acompanhamento por token), carta de anuência gerada, manifestação de interesse das escolas. (Grande; parte externa depende de Edge Function/token.)
+11. **Camada do professor (sem login) por token** — link com token para o professor preencher os dados da turma de uma solicitação, sem acessar o resto do sistema. Requer **Edge Function** (service role) validando o token + página pública fora do gate de login. Desenhar com cuidado (é o único ponto de acesso anônimo controlado).
+12. **Sync com Google Calendar** — sincronizar `dia_calendario`/eventos com as agendas do Google (OAuth + API).
+13. **Projetos & Pesquisas — portal externo** — a parte INTERNA já está feita (`015`). Falta o portal do proponente (envio + acompanhamento por token) e a carta de anuência gerada. Depende de Edge Function/token, como a camada do professor.
 
 ## 8. Restrições e contexto
 
