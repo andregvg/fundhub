@@ -21,6 +21,7 @@ export const TABELAS = {
   horario_bloco: 'Horários',
   ocorrencia: 'Ocorrências',
   telefone: 'Telefones',
+  local: 'Locais',
 };
 
 export const OPERACOES = { INSERT: 'Criação', UPDATE: 'Alteração', DELETE: 'Exclusão' };
@@ -39,6 +40,8 @@ export const CAMPO_ROTULO = {
   letivo: 'Dia letivo', bloqueia_extraclasse: 'Bloqueia extraclasse',
   bloqueia_afastamento: 'Bloqueia afastamento', dia_semana: 'Dia da semana',
   unidade_id: 'Escola', servidor_id: 'Servidor', usa_onibus: 'Usa ônibus',
+  local_id: 'Local', desembarque: 'Desembarque', destino_nome: 'Destino',
+  destino_endereco: 'Endereço do destino', latitude: 'Latitude', longitude: 'Longitude',
   encaminhamentos: 'Encaminhamentos', constatacoes: 'Constatações', pauta: 'Pauta',
   deliberacoes: 'Deliberações', participantes: 'Participantes', prazo: 'Prazo',
 };

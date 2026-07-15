@@ -6,18 +6,21 @@
 // ============================================================
 import { getAtividades } from './atividades.model.js';
 import { getUnidades } from '../escolas/escolas.model.js';
+import { getLocais } from '../locais/locais.model.js';
 import { loading } from '../../shared/ui/feedback.js';
 
 import * as abaSolicitacoes from './views/solicitacoes.js';
 import * as abaNova from './views/nova.js';
 import * as abaFrota from './views/frota.js';
 import * as abaCatalogo from './views/catalogo.js';
+import * as abaLocais from './views/locais.js';
 
 const ABAS = {
   solicitacoes: { rotulo: 'Solicitações', view: abaSolicitacoes },
   nova:         { rotulo: 'Nova solicitação', view: abaNova },
   frota:        { rotulo: 'Frota', view: abaFrota, admin: true },
   catalogo:     { rotulo: 'Catálogo', view: abaCatalogo },
+  locais:       { rotulo: 'Locais', view: abaLocais, admin: true },
 };
 
 let aba = 'solicitacoes';
@@ -32,17 +35,19 @@ export async function render(app, { perfil } = {}) {
     <div class="tabbar" id="sate-abas" role="tablist"></div>
     <div id="sate-body">${loading()}</div>`;
 
-  const [atividades, unidades] = await Promise.all([
+  const [atividades, unidades, locais] = await Promise.all([
     getAtividades().catch(() => []),
     getUnidades().catch(() => []),
+    getLocais().catch(() => []),
   ]);
 
   // Contexto entregue a cada aba: dados compartilhados + navegação entre abas.
   ctx = {
-    perfil, atividades, unidades,
+    perfil, atividades, unidades, locais,
     box: () => document.getElementById('sate-body'),
     irPara: (nova) => { aba = nova; pintarAbas(); renderAba(); },
     recarregarAtividades: async () => { ctx.atividades = await getAtividades(); },
+    recarregarLocais: async () => { ctx.locais = await getLocais(); },
   };
 
   const barra = document.getElementById('sate-abas');

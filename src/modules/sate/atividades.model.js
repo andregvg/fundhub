@@ -19,8 +19,8 @@ export async function getAtividades() {
 }
 
 const CAMPOS = ['chave', 'nome', 'descricao', 'publico_alvo', 'usa_onibus',
-  'gerida_sme', 'min_participantes', 'precisa_declaracao', 'lanche', 'local_nome',
-  'local_endereco', 'cor', 'ativo'];
+  'gerida_sme', 'min_participantes', 'precisa_declaracao', 'lanche', 'local_id',
+  'local_nome', 'local_endereco', 'cor', 'ativo'];
 
 function limpar(p) {
   const out = {};

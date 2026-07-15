@@ -59,6 +59,9 @@ function abrirForm(a) {
   const novo = !a;
   const v = (k) => esc(a?.[k] ?? '');
   const chk = (k, padrao) => ((a ? a[k] : padrao) ? 'checked' : '');
+  const optsLocais = (ctx.locais || [])
+    .map(l => `<option value="${l.id}" ${a?.local_id === l.id ? 'selected' : ''}>${esc(l.nome)}${l.ativo ? '' : ' (inativo)'}</option>`)
+    .join('');
 
   ctx.box().innerHTML = `
     <button class="mini-btn" id="atv-voltar" type="button">← Voltar ao catálogo</button>
@@ -69,8 +72,13 @@ function abrirForm(a) {
         <label class="col-2">Público-alvo <input id="a-pub" value="${v('publico_alvo')}" /></label>
         <label>Lanche <input id="a-lanche" value="${v('lanche')}" /></label>
         <label>Mín. participantes <input id="a-min" type="number" inputmode="numeric" min="0" value="${v('min_participantes')}" /></label>
-        <label>Local (nome) <input id="a-local" value="${v('local_nome')}" /></label>
-        <label>Local (endereço) <input id="a-endereco" value="${v('local_endereco')}" /></label>
+        <label class="col-2">Local (destino)
+          <select id="a-local-id">
+            <option value="">— sem local —</option>
+            ${optsLocais}
+          </select>
+          <small class="form-hint">Cadastre e edite destinos na aba <b>Locais</b>.</small>
+        </label>
         <label>Cor <input id="a-cor" type="color" value="${a?.cor || '#1d4ed8'}" /></label>
         <div class="esc-row col-2">
           <label class="inline"><input type="checkbox" id="a-onibus" ${chk('usa_onibus', true)} /> Usa ônibus</label>
@@ -97,14 +105,18 @@ async function salvar(e, a) {
   if (!nome) return falha(msg, 'Informe o nome da atividade.');
   const min = parseInt(val('a-min'), 10);
 
+  // Local escolhido do catálogo: grava local_id + snapshot de nome/endereço
+  // (mantém local_nome/local_endereco legados coerentes p/ Viagens).
+  const local = (ctx.locais || []).find(l => l.id === val('a-local-id'));
   const payload = {
     nome,
     descricao: val('a-desc') || null,
     publico_alvo: val('a-pub') || null,
     lanche: val('a-lanche') || null,
     min_participantes: isNaN(min) ? null : min,
-    local_nome: val('a-local') || null,
-    local_endereco: val('a-endereco') || null,
+    local_id: local ? local.id : null,
+    local_nome: local ? local.nome : null,
+    local_endereco: local ? (local.endereco || null) : null,
     cor: document.getElementById('a-cor').value,
     usa_onibus: checked('a-onibus'),
     gerida_sme: checked('a-sme'),

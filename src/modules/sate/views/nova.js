@@ -23,6 +23,8 @@ export function render(contexto) {
   const optsAtiv = atividades.map(a => `<option value="${a.id}">${esc(a.nome)}</option>`).join('');
   const optsEsc = [...unidades].sort((a, b) => a.nome.localeCompare(b.nome, 'pt'))
     .map(u => `<option value="${u.id || u.numero}">${esc(u.apelido || u.nome)}</option>`).join('');
+  const optsLocais = (ctx.locais || []).filter(l => l.ativo)
+    .map(l => `<option value="${l.id}">${esc(l.nome)}</option>`).join('');
 
   ctx.box().innerHTML = `
     <form id="nova-form" class="sate-form">
@@ -35,6 +37,11 @@ export function render(contexto) {
           <select id="f-ativ"><option value="">Selecione…</option>${optsAtiv}</select></label>
         <label class="m-livre col-2">Nome da atividade / evento
           <input id="f-ativ-livre" type="text" placeholder="Ex.: Visita ao Teatro Pedro II" /></label>
+        <label class="m-livre col-2">Destino
+          <select id="f-local">
+            <option value="">— outro destino (digitar abaixo) —</option>
+            ${optsLocais}
+          </select></label>
         <label class="m-livre">Destino (local)
           <input id="f-dest-nome" type="text" placeholder="Ex.: Teatro Pedro II" /></label>
         <label class="m-livre">Endereço do destino
@@ -77,6 +84,18 @@ export function render(contexto) {
     r.addEventListener('change', () => { modo = r.value; aplicarModo(); dica(); }));
   aplicarModo();
 
+  // Ao escolher um local do catálogo, os campos de texto do destino somem
+  // (o local já traz nome/endereço). "Outro destino" reabre os campos.
+  const localSel = document.getElementById('f-local');
+  const toggleDestinoLivre = () => {
+    const usaCatalogo = !!localSel.value;
+    ['f-dest-nome', 'f-dest-end'].forEach(id => {
+      document.getElementById(id).closest('label').style.display = usaCatalogo ? 'none' : '';
+    });
+  };
+  localSel.addEventListener('change', toggleDestinoLivre);
+  toggleDestinoLivre();
+
   document.getElementById('f-ativ').addEventListener('change', dica);
   document.getElementById('f-alunos').addEventListener('input', dica);
   form.addEventListener('submit', enviar);
@@ -109,13 +128,23 @@ async function enviar(e) {
   const cadeira = parseInt(document.getElementById('f-cadeira').value, 10) || 0;
 
   let atividade = null, atividadeLivre = null, usaOnibus = true;
+  // Destino: id do catálogo de locais (quando escolhido) + snapshot de
+  // nome/endereço para a Programação de Viagens não depender de join.
+  let localId = null, destinoNome = null, destinoEnd = null;
   if (modo === 'catalogo') {
     atividade = atividades.find(x => x.id === document.getElementById('f-ativ').value);
     if (!atividade) return falha(msg, 'Selecione uma atividade do catálogo (ou use “Outra atividade”).');
     usaOnibus = atividade.usa_onibus;
+    localId = atividade.local_id || null;   // a atividade já carrega o destino
   } else {
     atividadeLivre = val('f-ativ-livre');
     if (!atividadeLivre) return falha(msg, 'Informe o nome da atividade organizada pela escola.');
+    const local = (ctx.locais || []).find(l => l.id === document.getElementById('f-local').value);
+    if (local) {
+      localId = local.id; destinoNome = local.nome; destinoEnd = local.endereco || null;
+    } else {
+      destinoNome = val('f-dest-nome') || null; destinoEnd = val('f-dest-end') || null;
+    }
   }
 
   if (!escId || !data || !periodo || !qtd) {
@@ -151,8 +180,9 @@ async function enviar(e) {
     qtd_cadeirante: cadeira,
     qtd_onibus: usaOnibus ? onibusPara(qtd) : 0,
     turmas: val('f-turmas') || null,
-    destino_nome: val('f-dest-nome') || null,
-    destino_endereco: val('f-dest-end') || null,
+    local_id: localId,
+    destino_nome: destinoNome,
+    destino_endereco: destinoEnd,
     horario_embarque: val('f-emb') || null,
     horario_retorno: val('f-ret') || null,
     contato_professor: val('f-contato') || null,
