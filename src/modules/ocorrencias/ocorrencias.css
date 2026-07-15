@@ -1,0 +1,27 @@
+/* ============================================================
+   FundHub — modules/ocorrencias/ocorrencias.css
+   Lista de ocorrências e a segunda barra de filtros.
+   ============================================================ */
+
+/* A barra de filtros (período/escola/status) quebra em várias linhas
+   no celular; a partir de 560px acompanha a busca na horizontal. */
+.oc-filtros { margin-top: -6px; }
+.oc-filtros .search.compacta { flex: 1 1 auto; }
+.oc-filtros .search.compacta select { min-width: 0; }
+
+.oc-item { cursor: pointer; align-items: flex-start; }
+.oc-item:hover { border-color: color-mix(in srgb, var(--brand) 45%, var(--border)); }
+
+/* O relato no card fica em uma linha só; o texto inteiro está na gaveta. */
+.oc-relato {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+.oc-relato-full { white-space: pre-wrap; }
+
+@media (min-width: 560px) {
+  .oc-filtros .search.compacta { flex: 0 0 auto; }
+  .oc-filtros #oc-uni { min-width: 180px; }
+}

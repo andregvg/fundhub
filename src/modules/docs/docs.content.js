@@ -169,8 +169,8 @@ export const SECOES = [
           <tr><td>👥 <b>Gestores &amp; Coordenadores</b></td><td><code>#/gestores</code></td><td><code>servidor</code>, <code>vinculo</code></td><td class="ok">ativo · CRUD admin</td></tr>
           <tr><td>🕒 <b>Horários de Trabalho</b></td><td><code>#/horarios</code></td><td><code>horario_bloco</code></td><td class="ok">ativo · CRUD admin</td></tr>
           <tr><td>🔔 <b>Notificações</b></td><td>— (serviço)</td><td><code>solicitacao_transporte</code> (realtime)</td><td class="ok">ativo</td></tr>
+          <tr><td>📞 <b>Ocorrências</b></td><td><code>#/ocorrencias</code></td><td><code>ocorrencia</code></td><td class="ok">ativo · CRUD admin</td></tr>
           <tr><td>📖 <b>Documentação</b></td><td><code>#/docs</code></td><td>—</td><td class="ok">ativo · só admin</td></tr>
-          <tr><td>📞 Ocorrências</td><td>—</td><td><code>ocorrencia</code> (a criar)</td><td>backlog · próximo da fila</td></tr>
           <tr><td>📝 Atas de Atendimento</td><td>—</td><td>a definir</td><td>backlog</td></tr>
           <tr><td>📋 Relatórios de Visita</td><td>—</td><td><code>relatorio_visita</code> (a criar)</td><td>backlog</td></tr>
           <tr><td>🔐 Usuários &amp; Acessos</td><td>—</td><td><code>perfil</code></td><td>backlog · hoje é SQL manual</td></tr>
@@ -308,7 +308,8 @@ export const SECOES = [
  → 006_realtime.sql              publicação realtime das solicitações
  → 007_calendario.sql            dia_calendario
  → 008_afastamentos.sql          afastamento
- → 009_horarios.sql              horario_bloco</pre>
+ → 009_horarios.sql              horario_bloco
+ → 010_ocorrencias.sql           ocorrencia</pre>
 
       <h3>Tabelas</h3>
       <table class="doc-tabela">
@@ -325,6 +326,7 @@ export const SECOES = [
           <tr><td><code>oferta_onibus</code></td><td>Quantos ônibus existem por dia e período. Confrontada com o uso ao confirmar.</td></tr>
           <tr><td><code>dia_calendario</code></td><td>Dia letivo, evento, tipo e os <b>bloqueios</b> que o SATE respeita.</td></tr>
           <tr><td><code>afastamento</code></td><td>Servidor × tipo × período × unidade. <code>fim</code> nulo = em aberto.</td></tr>
+          <tr><td><code>ocorrencia</code></td><td>Atendimentos telefônicos da recepção. A escola é <b>opcional</b> — nem toda ligação é sobre uma unidade.</td></tr>
         </tbody>
       </table>
 

@@ -1,10 +1,13 @@
-// Manifesto — Ocorrências (backlog, próximo da fila).
-// Registro dos atendimentos telefônicos das recepcionistas, ligado à
-// escola. Tabela `ocorrencia`; CRUD; filtros por escola/data.
+// Manifesto do módulo Ocorrências.
+// Registro dos atendimentos telefônicos das recepcionistas, ligado à escola.
 export default {
   id: 'ocorrencias',
   ico: '📞',
   nome: 'Ocorrências',
   desc: 'Registro de atendimentos telefônicos.',
-  ativo: false,
+  navNome: 'Ocorrências',
+  rota: '#/ocorrencias',
+  nav: true,
+  ativo: true,
+  load: () => import('./ocorrencias.view.js'),
 };

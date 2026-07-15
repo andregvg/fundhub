@@ -59,16 +59,16 @@ src/
 
 ## 5. Banco de dados — migrations (rodar no SQL Editor, em ordem)
 
-`supabase/schema.sql` → `002_leitura_allowlist.sql` → `003_grants.sql` → `004_sate.sql` → `005_solicitacao_extra.sql` → `006_realtime.sql` → `007_calendario.sql` → `008_afastamentos.sql` → `009_horarios.sql`
+`supabase/schema.sql` → `002_leitura_allowlist.sql` → `003_grants.sql` → `004_sate.sql` → `005_solicitacao_extra.sql` → `006_realtime.sql` → `007_calendario.sql` → `008_afastamentos.sql` → `009_horarios.sql` → `010_ocorrencias.sql`
 
-> ⚠️ **`009_horarios.sql` ainda NÃO foi rodada no Supabase.** Rodar no SQL Editor antes de usar o módulo Horários (cria `horario_bloco`). `servidor` e `vinculo` já existiam desde o `schema.sql` — Gestores funciona sem migration nova.
+> ⚠️ **`009_horarios.sql` e `010_ocorrencias.sql` ainda NÃO foram rodadas no Supabase.** Rodar no SQL Editor antes de usar os módulos Horários (cria `horario_bloco`) e Ocorrências (cria `ocorrencia`). `servidor` e `vinculo` já existiam desde o `schema.sql` — Gestores funciona sem migration nova.
 
 Seeds (gitignored, em `_private/` — rodar após as migrations correspondentes):
 `seed_unidades.sql`, `seed_atividades.sql`, `seed_calendario.sql`.
 
 > Gerador dos seeds: script Python que lê os TSV/xlsx originais (em Downloads) e escreve em `_private/`. Ver histórico da conversa. NUNCA commitar `_private/`.
 
-Tabelas: `regional`, `servidor`, `unidade_escolar`, `vinculo`, `perfil`, `atividade_extraclasse`, `oferta_onibus`, `solicitacao_transporte`, `dia_calendario`, `afastamento`, `horario_bloco`; view `vw_escola_pessoas`; funções `auth_email()`, `is_institucional()`, `is_autorizado()`, `is_admin()`.
+Tabelas: `regional`, `servidor`, `unidade_escolar`, `vinculo`, `perfil`, `atividade_extraclasse`, `oferta_onibus`, `solicitacao_transporte`, `dia_calendario`, `afastamento`, `horario_bloco`, `ocorrencia`; view `vw_escola_pessoas`; funções `auth_email()`, `is_institucional()`, `is_autorizado()`, `is_admin()`.
 
 ## 6. O que JÁ está implementado
 
@@ -84,6 +84,7 @@ Tabelas: `regional`, `servidor`, `unidade_escolar`, `vinculo`, `perfil`, `ativid
 | Notificações | ✅ | Realtime (sino + badge + toasts) para solicitações. É um **serviço** (`servico: true`): sem rota, iniciado pelo `main.js` no login, parado no logout. |
 | **Gestores & Coordenadores** | ✅ | **Novo.** Rota `#/gestores`. CRUD de `servidor` + CRUD de `vinculo` (servidor × escola × papel × ano). Busca (inclusive por nome de escola), filtros por papel e “sem vínculo”. Encerrar vínculo (preserva histórico) ≠ excluir. Sem migration nova — usa o `schema.sql`. |
 | **Horários de Trabalho** | ✅ | **Novo.** Rota `#/horarios`. Escolhe-se a escola → cobertura 7h–18h20 com lacunas + jornada semanal de cada servidor vinculado, em barras. Regras em `horarios.model.js`: ≤8h/dia e sem sobreposição são **erro** (bloqueiam); >6h contínuas e lacuna de cobertura são **aviso**. **Requer a migration `009_horarios.sql`.** |
+| **Ocorrências** | ✅ | **Novo.** Rota `#/ocorrencias`. CRUD dos atendimentos telefônicos da recepção, ligados (opcionalmente) a uma escola. Filtros por período (padrão: últimos 30 dias), escola e status; busca livre. Campo "encaminhado para" aparece só quando status = encaminhada. **Requer a migration `010_ocorrencias.sql`.** |
 | **Documentação** | ✅ | **Novo.** Rota `#/docs`, **só admin**. Explica arquitetura, camadas, regras de import, segurança/RLS, banco, deploy e o passo a passo para criar um módulo. Conteúdo em `src/modules/docs/docs.content.js` (acrescentar uma seção = acrescentar um objeto no array). |
 
 ## 7. O que FALTA implementar (backlog priorizado)
@@ -92,7 +93,7 @@ Tabelas: `regional`, `servidor`, `unidade_escolar`, `vinculo`, `perfil`, `ativid
 1. **Cálculo de rota e horário sugerido** — usando lat/long da escola e do destino, estimar tempo de trajeto, sugerir embarque/retorno e permanência (inspirado no `Geo.js` do `agendamentos-fil`, sem alterá-lo). **Requer escolha de API:** Google Maps Platform (precisa API key, tem custo) OU OpenRouteService/Nominatim (grátis, key gratuita). Também exige popular `latitude`/`longitude` das escolas (há coords no TSV do agendamentos-fil para ~34 EMEFs).
 
 ### B. Não depende de API (podem ser feitos já)
-2. **Ocorrências** — registro de atendimentos telefônicos das recepcionistas, ligado à escola (tabela `ocorrencia`; CRUD; filtros por escola/data).
+2. ~~**Ocorrências**~~ — ✅ **feito** (ver §6). Rodar `010_ocorrencias.sql`.
 3. **Atas de Atendimento** — redigir e compilar atas (gestores/coordenadores/servidores/munícipes), com **impressão em papel timbrado** (CSS de impressão + template).
 4. **Relatórios de Visita Técnica** — registro das visitas às escolas pela equipe de acompanhamento (tabela `relatorio_visita`; CRUD; possivelmente fotos via Storage).
 5. **Usuários & Acessos** — tela admin para gerir a tabela `perfil` (adicionar/remover e-mails da allowlist, definir papel). Hoje isso é feito por SQL manual.
