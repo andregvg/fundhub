@@ -8,10 +8,8 @@
 // tenta data/unidades.local.json (gitignored); senão, estado vazio.
 // ============================================================
 import { sb, hasSupabase } from '../../core/supabase.js';
-
-function rotulaPapel(p) {
-  return { gestor: 'Gestor(a)', coordenador: 'Coordenador(a)', supervisor: 'Supervisor(a)' }[p] || p;
-}
+// Quem é dono do vocabulário de papéis é o módulo Gestores — model → model.
+import { rotulaPapel } from '../servidores/servidores.model.js';
 
 // Normaliza uma linha do Supabase para a mesma forma do JSON local.
 function fromDb(u, pessoasByUnidade) {

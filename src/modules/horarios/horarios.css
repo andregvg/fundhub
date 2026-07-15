@@ -1,0 +1,148 @@
+/* ============================================================
+   FundHub — modules/horarios/horarios.css
+   A barra de horário. A pista representa sempre a janela 7h00–18h20,
+   e cada bloco é posicionado em % dentro dela — por isso a barra
+   funciona igual no celular e no desktop, sem rolagem horizontal.
+
+   No celular a linha empilha (dia / barra / total); a partir de 720px
+   vira uma linha só, com o dia à esquerda e o total à direita.
+   ============================================================ */
+
+.hb-painel { margin-bottom: 16px; }
+.hb-painel h2 { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.hb-sub { color: var(--muted); font-size: 12.5px; font-weight: 400; }
+
+.hb-alerta { margin: 0 0 12px; color: var(--danger); font-size: 13px; font-weight: 600; }
+.hb-tudo-ok { margin: 0 0 12px; color: var(--ok); font-size: 13px; font-weight: 600; }
+
+.hb-grade { display: flex; flex-direction: column; gap: 10px; }
+
+.hb-linha {
+  display: grid;
+  grid-template-columns: 42px 1fr;
+  grid-template-areas:
+    "dia  track"
+    ".    info"
+    "alt  alt";
+  gap: 6px 10px;
+  align-items: center;
+}
+.hb-linha.tem-erro { padding-left: 6px; border-left: 3px solid var(--danger); }
+
+.hb-dia {
+  grid-area: dia;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.hb-info {
+  grid-area: info;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+.hb-alertas { grid-area: alt; display: flex; flex-direction: column; gap: 3px; }
+
+/* ── A pista ──────────────────────────────────────────────── */
+.hb-track {
+  grid-area: track;
+  position: relative;
+  height: 30px;
+  border-radius: 8px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+/* Marcas de hora cheia ao fundo. */
+.hb-marca { position: absolute; top: 0; bottom: 0; }
+.hb-marca i {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--border);
+}
+.hb-marca em {
+  position: absolute;
+  bottom: 1px;
+  left: 2px;
+  color: var(--muted);
+  font-size: 8px;
+  font-style: normal;
+  opacity: .7;
+}
+
+.hb-bloco {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 0 4px;
+  border: 0;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--brand) 78%, transparent);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.hb-bloco.editavel { cursor: pointer; }
+.hb-bloco.editavel:hover { background: var(--brand); }
+.hb-bloco span { overflow: hidden; text-overflow: ellipsis; }
+
+/* Na barra de cobertura os blocos são só presença, sem rótulo. */
+.hb-bloco.cobertura {
+  background: color-mix(in srgb, var(--ok) 55%, transparent);
+  pointer-events: none;
+}
+
+.hb-vazio { color: var(--muted); font-size: 11.5px; }
+.hb-track .hb-vazio {
+  position: absolute;
+  top: 50%;
+  left: 8px;
+  transform: translateY(-50%);
+}
+
+/* ── Rótulos e problemas ──────────────────────────────────── */
+.hb-ok { color: var(--ok); font-weight: 600; }
+.hb-falha { color: var(--danger); font-weight: 600; }
+
+.hb-prob { font-size: 12px; line-height: 1.35; }
+.hb-prob.erro { color: var(--danger); }
+.hb-prob.aviso { color: var(--accent); }
+
+.hb-add {
+  width: 26px;
+  height: 26px;
+  flex: 0 0 auto;
+  border: 1px dashed var(--border);
+  border-radius: 7px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+}
+.hb-add:hover { border-color: var(--brand); border-style: solid; color: var(--brand); }
+
+@media (min-width: 720px) {
+  .hb-linha {
+    grid-template-columns: 42px 1fr 130px;
+    grid-template-areas:
+      "dia track info"
+      "alt alt   alt";
+  }
+  .hb-info { justify-content: flex-end; }
+  .hb-track { height: 34px; }
+  .hb-bloco { font-size: 11px; }
+  .hb-marca em { font-size: 9px; }
+}

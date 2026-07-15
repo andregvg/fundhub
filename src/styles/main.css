@@ -11,6 +11,8 @@
 
 /* Estilos por módulo — convivem com os componentes, não os substituem. */
 @import url('../modules/calendario/calendario.css');
+@import url('../modules/servidores/servidores.css');
+@import url('../modules/horarios/horarios.css');
 @import url('../modules/sate/sate.css');
 @import url('../modules/viagens/viagens.css');
 @import url('../modules/notificacoes/notificacoes.css');

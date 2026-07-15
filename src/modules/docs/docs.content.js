@@ -166,14 +166,14 @@ export const SECOES = [
           <tr><td>🌴 <b>Afastamentos</b></td><td><code>#/afastamentos</code></td><td><code>afastamento</code></td><td class="ok">ativo · CRUD admin</td></tr>
           <tr><td>🚌 <b>SATE · Transporte</b></td><td><code>#/sate</code></td><td><code>solicitacao_transporte</code>, <code>atividade_extraclasse</code>, <code>oferta_onibus</code></td><td class="ok">ativo · 4 abas</td></tr>
           <tr><td>📄 <b>Programação de Viagens</b></td><td><code>#/viagens</code></td><td>— (lê do SATE)</td><td class="ok">ativo · imprimível</td></tr>
+          <tr><td>👥 <b>Gestores &amp; Coordenadores</b></td><td><code>#/gestores</code></td><td><code>servidor</code>, <code>vinculo</code></td><td class="ok">ativo · CRUD admin</td></tr>
+          <tr><td>🕒 <b>Horários de Trabalho</b></td><td><code>#/horarios</code></td><td><code>horario_bloco</code></td><td class="ok">ativo · CRUD admin</td></tr>
           <tr><td>🔔 <b>Notificações</b></td><td>— (serviço)</td><td><code>solicitacao_transporte</code> (realtime)</td><td class="ok">ativo</td></tr>
           <tr><td>📖 <b>Documentação</b></td><td><code>#/docs</code></td><td>—</td><td class="ok">ativo · só admin</td></tr>
-          <tr><td>👥 Gestores &amp; Coordenadores</td><td>—</td><td><code>servidor</code>, <code>vinculo</code></td><td>backlog · só o model existe</td></tr>
           <tr><td>📞 Ocorrências</td><td>—</td><td><code>ocorrencia</code> (a criar)</td><td>backlog · próximo da fila</td></tr>
           <tr><td>📝 Atas de Atendimento</td><td>—</td><td>a definir</td><td>backlog</td></tr>
           <tr><td>📋 Relatórios de Visita</td><td>—</td><td><code>relatorio_visita</code> (a criar)</td><td>backlog</td></tr>
           <tr><td>🔐 Usuários &amp; Acessos</td><td>—</td><td><code>perfil</code></td><td>backlog · hoje é SQL manual</td></tr>
-          <tr><td>🕒 Horários de Trabalho</td><td>—</td><td>a definir</td><td>backlog</td></tr>
           <tr><td>🔬 Projetos &amp; Pesquisas</td><td>—</td><td>a definir</td><td>backlog · depende de Edge Function</td></tr>
         </tbody>
       </table>
@@ -187,8 +187,51 @@ export const SECOES = [
             solicitações <i>confirmadas</i> de um dia, no formato que a empresa de transporte recebe.</li>
         <li><b>Escolas → todo mundo.</b> É o cadastro de base. Quase todo módulo importa
             <code>escolas.model.js</code>.</li>
+        <li><b>Gestores → Horários e Afastamentos.</b> Quem é dono das pessoas (<code>servidor</code>) e
+            dos <code>vinculo</code>s é o módulo Gestores. Horários só enxerga quem tem <b>vínculo ativo
+            no ano</b> com aquela escola; Afastamentos escolhe o servidor da mesma lista. Sem vínculo,
+            a pessoa não aparece em lugar nenhum — é o efeito desejado.</li>
         <li><b>SATE → Notificações.</b> O serviço assina o Realtime da tabela de solicitações.</li>
       </ul>`,
+  },
+
+  {
+    id: 'jornada',
+    ico: '🕒',
+    titulo: 'Regras da jornada',
+    resumo: 'Como Horários valida a semana e a cobertura da escola.',
+    html: `
+      <p>A jornada de um servidor num dia é um <b>conjunto de blocos</b>, e não um par
+      entrada/saída. Essa escolha não é um detalhe técnico: é o que permite exigir que quem
+      cumpre 8 horas tenha um intervalo — com um par único de entrada e saída, a regra das
+      6h contínuas seria impossível de representar.</p>
+
+      <h3>O que é validado (em <code>horarios.model.js</code>)</h3>
+      <table class="doc-tabela">
+        <thead><tr><th>Regra</th><th>Nível</th><th>Comportamento</th></tr></thead>
+        <tbody>
+          <tr><td>Blocos sobrepostos no mesmo dia</td><td><b>Erro</b></td>
+              <td>Bloqueia o salvamento. A pessoa não pode estar em dois lugares.</td></tr>
+          <tr><td>Mais de <b>8h no dia</b></td><td><b>Erro</b></td>
+              <td>Bloqueia o salvamento.</td></tr>
+          <tr><td>Mais de <b>6h contínuas</b></td><td>Aviso</td>
+              <td>Deixa salvar, mas sinaliza na tela. Blocos <b>encostados</b> (um termina onde o outro começa) contam como um trecho contínuo só — 7h–12h + 12h–14h são 7h seguidas, não 5h + 2h.</td></tr>
+          <tr><td>Cobertura <b>7h00–18h20</b></td><td>Aviso</td>
+              <td>Calculada por escola, não por pessoa: é a <i>união</i> dos blocos de todos os servidores no dia. O que sobra vira lacuna, em vermelho.</td></tr>
+        </tbody>
+      </table>
+
+      <div class="doc-nota">
+        <b>Erro barra, aviso não.</b> Sobreposição e excesso de carga são impossíveis e por isso
+        impedem o salvamento. Já 6h contínuas e lacuna de cobertura são situações que existem na
+        vida real e que a SME às vezes precisa aceitar conscientemente — a tela mostra, mas não
+        impede. É a mesma filosofia do SATE, onde o admin pode confirmar uma viagem mesmo sem
+        saldo de frota.
+      </div>
+
+      <h3>Quem aparece na tela</h3>
+      <p>Horários só lista quem tem <b>vínculo ativo, naquela escola, naquele ano</b>. Servidor sem
+      vínculo não aparece — cadastre o vínculo primeiro, em Gestores &amp; Coordenadores.</p>`,
   },
 
   {
@@ -264,7 +307,8 @@ export const SECOES = [
  → 005_solicitacao_extra.sql     campos extras da solicitação
  → 006_realtime.sql              publicação realtime das solicitações
  → 007_calendario.sql            dia_calendario
- → 008_afastamentos.sql          afastamento</pre>
+ → 008_afastamentos.sql          afastamento
+ → 009_horarios.sql              horario_bloco</pre>
 
       <h3>Tabelas</h3>
       <table class="doc-tabela">
@@ -272,8 +316,9 @@ export const SECOES = [
         <tbody>
           <tr><td><code>unidade_escolar</code></td><td>As 144 escolas: nome, endereço, segmento, oferta, transporte, EJA, INEP.</td></tr>
           <tr><td><code>regional</code></td><td>As regionais da rede.</td></tr>
-          <tr><td><code>servidor</code></td><td>Gestores, coordenadores e supervisores.</td></tr>
-          <tr><td><code>vinculo</code></td><td>Liga servidor × unidade × papel. A view <code>vw_escola_pessoas</code> achata isso para a tela de Escolas.</td></tr>
+          <tr><td><code>servidor</code></td><td>Gestores, coordenadores e supervisores. A <code>chave</code> é única — a tela a deriva do nome e desempata com sufixo.</td></tr>
+          <tr><td><code>vinculo</code></td><td>Liga servidor × unidade × papel × <b>ano</b>. É temporal: encerrar um vínculo (<code>ativo=false</code> + <code>fim</code>) preserva o histórico; excluir apaga. A view <code>vw_escola_pessoas</code> achata isso para a tela de Escolas.</td></tr>
+          <tr><td><code>horario_bloco</code></td><td>A jornada. Um dia é um <b>conjunto de blocos</b>, não um par entrada/saída — é o que permite exigir intervalo em quem cumpre 8h.</td></tr>
           <tr><td><code>perfil</code></td><td><b>A allowlist.</b> E-mail + papel (<code>admin_sme</code> ou leitor). Hoje só se edita por SQL.</td></tr>
           <tr><td><code>atividade_extraclasse</code></td><td>O catálogo do SATE. A Feira do Livro é <i>uma linha aqui</i>, não um sistema à parte.</td></tr>
           <tr><td><code>solicitacao_transporte</code></td><td>O pedido da escola: atividade, data, período, alunos, ônibus, status.</td></tr>

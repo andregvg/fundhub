@@ -1,11 +1,14 @@
 // Manifesto do módulo Gestores & Coordenadores.
-// Ainda sem tela: hoje só existe o repositório (servidores.model.js),
-// consumido por Afastamentos e Escolas. A tela dedicada — vínculos,
-// contatos e horários de trabalho — está no backlog.
+// Dono das entidades `servidor` e `vinculo` — Escolas, Afastamentos e
+// Horários leem daqui (servidores.model.js é a API pública).
 export default {
   id: 'servidores',
   ico: '👥',
   nome: 'Gestores & Coordenadores',
   desc: 'Equipe gestora, vínculos e contatos.',
-  ativo: false,
+  navNome: 'Gestores',
+  rota: '#/gestores',
+  nav: true,
+  ativo: true,
+  load: () => import('./servidores.view.js'),
 };

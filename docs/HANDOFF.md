@@ -59,14 +59,16 @@ src/
 
 ## 5. Banco de dados — migrations (rodar no SQL Editor, em ordem)
 
-`supabase/schema.sql` → `002_leitura_allowlist.sql` → `003_grants.sql` → `004_sate.sql` → `005_solicitacao_extra.sql` → `006_realtime.sql` → `007_calendario.sql` → `008_afastamentos.sql`
+`supabase/schema.sql` → `002_leitura_allowlist.sql` → `003_grants.sql` → `004_sate.sql` → `005_solicitacao_extra.sql` → `006_realtime.sql` → `007_calendario.sql` → `008_afastamentos.sql` → `009_horarios.sql`
+
+> ⚠️ **`009_horarios.sql` ainda NÃO foi rodada no Supabase.** Rodar no SQL Editor antes de usar o módulo Horários (cria `horario_bloco`). `servidor` e `vinculo` já existiam desde o `schema.sql` — Gestores funciona sem migration nova.
 
 Seeds (gitignored, em `_private/` — rodar após as migrations correspondentes):
 `seed_unidades.sql`, `seed_atividades.sql`, `seed_calendario.sql`.
 
 > Gerador dos seeds: script Python que lê os TSV/xlsx originais (em Downloads) e escreve em `_private/`. Ver histórico da conversa. NUNCA commitar `_private/`.
 
-Tabelas: `regional`, `servidor`, `unidade_escolar`, `vinculo`, `perfil`, `atividade_extraclasse`, `oferta_onibus`, `solicitacao_transporte`, `dia_calendario`, `afastamento`; view `vw_escola_pessoas`; funções `auth_email()`, `is_institucional()`, `is_autorizado()`, `is_admin()`.
+Tabelas: `regional`, `servidor`, `unidade_escolar`, `vinculo`, `perfil`, `atividade_extraclasse`, `oferta_onibus`, `solicitacao_transporte`, `dia_calendario`, `afastamento`, `horario_bloco`; view `vw_escola_pessoas`; funções `auth_email()`, `is_institucional()`, `is_autorizado()`, `is_admin()`.
 
 ## 6. O que JÁ está implementado
 
@@ -80,6 +82,8 @@ Tabelas: `regional`, `servidor`, `unidade_escolar`, `vinculo`, `perfil`, `ativid
 | Calendário Escolar | ✅ | Grade mensal, eventos, bloqueios (extraclasse/afastamento); admin edita cada dia. |
 | Afastamentos | ✅ | Lista+filtros + CRUD admin (servidor×tipo×período×unidade). |
 | Notificações | ✅ | Realtime (sino + badge + toasts) para solicitações. É um **serviço** (`servico: true`): sem rota, iniciado pelo `main.js` no login, parado no logout. |
+| **Gestores & Coordenadores** | ✅ | **Novo.** Rota `#/gestores`. CRUD de `servidor` + CRUD de `vinculo` (servidor × escola × papel × ano). Busca (inclusive por nome de escola), filtros por papel e “sem vínculo”. Encerrar vínculo (preserva histórico) ≠ excluir. Sem migration nova — usa o `schema.sql`. |
+| **Horários de Trabalho** | ✅ | **Novo.** Rota `#/horarios`. Escolhe-se a escola → cobertura 7h–18h20 com lacunas + jornada semanal de cada servidor vinculado, em barras. Regras em `horarios.model.js`: ≤8h/dia e sem sobreposição são **erro** (bloqueiam); >6h contínuas e lacuna de cobertura são **aviso**. **Requer a migration `009_horarios.sql`.** |
 | **Documentação** | ✅ | **Novo.** Rota `#/docs`, **só admin**. Explica arquitetura, camadas, regras de import, segurança/RLS, banco, deploy e o passo a passo para criar um módulo. Conteúdo em `src/modules/docs/docs.content.js` (acrescentar uma seção = acrescentar um objeto no array). |
 
 ## 7. O que FALTA implementar (backlog priorizado)
@@ -92,9 +96,10 @@ Tabelas: `regional`, `servidor`, `unidade_escolar`, `vinculo`, `perfil`, `ativid
 3. **Atas de Atendimento** — redigir e compilar atas (gestores/coordenadores/servidores/munícipes), com **impressão em papel timbrado** (CSS de impressão + template).
 4. **Relatórios de Visita Técnica** — registro das visitas às escolas pela equipe de acompanhamento (tabela `relatorio_visita`; CRUD; possivelmente fotos via Storage).
 5. **Usuários & Acessos** — tela admin para gerir a tabela `perfil` (adicionar/remover e-mails da allowlist, definir papel). Hoje isso é feito por SQL manual.
-6. **Gestores & Coordenadores** — hoje aparecem embutidos em Escolas; falta uma tela dedicada de servidores/vínculos e o módulo de **Horários de trabalho** (jornada semanal com validação: ≤8h/dia, ≤6h contínuas, cobertura 7h–18h20; barra gráfica de horário).
+6. ~~**Gestores & Coordenadores** e **Horários de trabalho**~~ — ✅ **feitos** (ver §6).
 7. **Notificações de afastamentos** — estender o Realtime/toasts para a tabela `afastamento` (hoje só solicitações).
 8. **Relatórios/Exportações** — relatório anual de projetos, exportações (CSV/PDF).
+9. **Migrar a equipe gestora de Escolas para Gestores** — a tela de Escolas ainda lê as pessoas pela view `vw_escola_pessoas` (só leitura). Agora que os vínculos têm CRUD próprio, avaliar se o detalhe da escola deve linkar para o servidor em `#/gestores` em vez de repetir os dados.
 
 ### C. Depende de infra (Edge Function)
 9. **Camada do professor (sem login) por token** — link com token para o professor preencher os dados da turma de uma solicitação, sem acessar o resto do sistema. Requer **Edge Function** (service role) validando o token + página pública fora do gate de login. Desenhar com cuidado (é o único ponto de acesso anônimo controlado).

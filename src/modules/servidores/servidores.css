@@ -1,0 +1,23 @@
+/* ============================================================
+   FundHub — modules/servidores/servidores.css
+   Só o que a lista de vínculos dentro da gaveta precisa a mais do
+   que os componentes já dão.
+   ============================================================ */
+
+.vinc-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.vinc-acoes { display: flex; gap: 6px; margin-top: 6px; }
+
+/* Vínculo encerrado ou de ano anterior: fica, mas apagado. */
+.person.inativo { opacity: .6; }
+.person.inativo .role { color: var(--muted); }
+
+/* Vários papéis no mesmo card não podem empurrar o nome. */
+.card .card-top .seg + .seg { margin-left: 4px; }
