@@ -1,0 +1,35 @@
+/* ============================================================
+   FundHub — modules/afastamentos/afastamentos.css
+   Visão Calendário (chips por dia) e ajustes da lista. Reusa a grade
+   do Calendário (.cal-grid/.cal-cell) e a tabbar do SATE.
+   ============================================================ */
+
+.filtro-sep { flex: 1 1 8px; }
+
+/* Grade de afastamentos: a célula em si não é clicável (só os chips). */
+.af-cal .cal-cell { cursor: default; min-height: 74px; }
+.af-cal .cal-cell:hover { border-color: var(--border); }
+
+.af-chips { display: flex; flex-direction: column; gap: 3px; margin-top: 2px; overflow: hidden; }
+.af-chip {
+  max-width: 100%;
+  padding: 1px 6px;
+  border-radius: 999px;
+  color: #fff;
+  font-size: 10.5px;
+  line-height: 1.5;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+.af-chip:hover { filter: brightness(1.08); }
+.af-mais { color: var(--muted); font-size: 10.5px; font-weight: 700; }
+
+/* Item de lista cancelado fica apagado. */
+.solic.inativo { opacity: .55; }
+
+@media (min-width: 720px) {
+  .af-cal .cal-cell { min-height: 96px; }
+  .af-chip { font-size: 11px; }
+}

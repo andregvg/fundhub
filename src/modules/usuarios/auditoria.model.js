@@ -44,6 +44,7 @@ export const CAMPO_ROTULO = {
   destino_endereco: 'Endereço do destino', latitude: 'Latitude', longitude: 'Longitude',
   encaminhamentos: 'Encaminhamentos', constatacoes: 'Constatações', pauta: 'Pauta',
   deliberacoes: 'Deliberações', participantes: 'Participantes', prazo: 'Prazo',
+  processo: 'Processo', desembarque: 'Desembarque',
 };
 export const rotulaCampo = (k) => CAMPO_ROTULO[k] || k;
 
