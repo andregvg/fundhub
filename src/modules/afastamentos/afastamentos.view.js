@@ -214,7 +214,7 @@ function pintarCalendario(ativos) {
     const chips = doDia.slice(0, 4).map(a => {
       const cor = CORES_AFASTAMENTO[a.tipo] || 'var(--brand)';
       const nome = a.servidor?.apelido || a.servidor?.nome || '—';
-      return `<span class="af-chip" style="background:${esc(cor)}" data-id="${a.id}"
+      return `<span class="af-chip${perfil?.isAdmin ? ' clicavel' : ''}" style="background:${esc(cor)}" data-id="${a.id}"
         title="${esc(a.tipo)} — ${esc(a.servidor?.nome || '')}">${esc(nome)}</span>`;
     }).join('');
     const mais = doDia.length > 4 ? `<span class="af-mais">+${doDia.length - 4}</span>` : '';
@@ -225,6 +225,8 @@ function pintarCalendario(ativos) {
   }
 
   box.innerHTML = `<div class="cal-grid af-cal">${cells}</div>`;
+  // Só admin edita: para os demais o chip é apenas informativo.
+  if (!perfil?.isAdmin) return;
   box.querySelectorAll('.af-chip[data-id]').forEach(c =>
     c.addEventListener('click', () => {
       const a = lista.find(x => x.id === c.dataset.id);

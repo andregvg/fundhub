@@ -33,12 +33,27 @@ export function diasAfastamento(a) {
 //   vigentesEm: 'yyyy-mm-dd' — só os vigentes na data.
 //   status: 'ativo' | 'cancelado' — filtra por status; ausente = só ativos
 //           (os cancelados ficam escondidos por padrão).
+// Postgres 42703 = coluna inexistente (migration 018 ainda não rodada).
+const SEM_COLUNA = '42703';
+const exigeMigration018 = () =>
+  new Error('Este recurso exige a migration 018 (status/processo). Rode-a no SQL Editor.');
+
 export async function getAfastamentos({ vigentesEm, status } = {}) {
   if (!hasSupabase()) return [];
-  let q = sb().from('afastamento').select(SEL).order('inicio', { ascending: false });
-  q = status ? q.eq('status', status) : q.neq('status', 'cancelado');
-  if (vigentesEm) q = q.lte('inicio', vigentesEm).or(`fim.is.null,fim.gte.${vigentesEm}`);
-  const { data, error } = await q;
+  const montar = (comStatus) => {
+    let q = sb().from('afastamento').select(SEL).order('inicio', { ascending: false });
+    if (comStatus) q = status ? q.eq('status', status) : q.neq('status', 'cancelado');
+    if (vigentesEm) q = q.lte('inicio', vigentesEm).or(`fim.is.null,fim.gte.${vigentesEm}`);
+    return q;
+  };
+  let { data, error } = await montar(true);
+  // Sem a 018 o módulo continua listando (só não conhece cancelados),
+  // em vez de quebrar a tela inteira.
+  if (error?.code === SEM_COLUNA) {
+    console.warn('Coluna afastamento.status ausente — rode a migration 018.');
+    if (status === 'cancelado') return [];
+    ({ data, error } = await montar(false));
+  }
   if (error) throw error;
   return data || [];
 }
@@ -52,6 +67,7 @@ async function checarDuplicata({ servidor_id, inicio, processo }, ignorarId = nu
     .eq('servidor_id', servidor_id).eq('inicio', inicio).neq('status', 'cancelado');
   if (ignorarId) q1 = q1.neq('id', ignorarId);
   const { data: d1, error: e1 } = await q1;
+  if (e1?.code === SEM_COLUNA) return;   // sem a 018 não há como checar; segue
   if (e1) throw e1;
   if (d1?.length) throw new Error('Já existe um afastamento ativo para este servidor com esta data de início.');
 
@@ -70,6 +86,7 @@ export async function criarAfastamento(payload) {
   await checarDuplicata(payload);
   const row = { ...payload, status: 'ativo', criado_por: await emailAtual() };
   const { data, error } = await sb().from('afastamento').insert(row).select().single();
+  if (error?.code === SEM_COLUNA) throw exigeMigration018();
   if (error) throw error;
   return data;
 }
@@ -78,6 +95,7 @@ export async function atualizarAfastamento(id, payload) {
   if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
   await checarDuplicata(payload, id);
   const { error } = await sb().from('afastamento').update(payload).eq('id', id);
+  if (error?.code === SEM_COLUNA) throw exigeMigration018();
   if (error) throw error;
 }
 
@@ -85,6 +103,7 @@ export async function atualizarAfastamento(id, payload) {
 export async function cancelarAfastamento(id) {
   if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
   const { error } = await sb().from('afastamento').update({ status: 'cancelado' }).eq('id', id);
+  if (error?.code === SEM_COLUNA) throw exigeMigration018();
   if (error) throw error;
 }
 
@@ -93,6 +112,7 @@ export async function reativarAfastamento(a) {
   if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
   await checarDuplicata(a, a.id);
   const { error } = await sb().from('afastamento').update({ status: 'ativo' }).eq('id', a.id);
+  if (error?.code === SEM_COLUNA) throw exigeMigration018();
   if (error) throw error;
 }
 

@@ -21,9 +21,11 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  cursor: pointer;
+  cursor: default;
 }
-.af-chip:hover { filter: brightness(1.08); }
+/* Só admin edita — para os demais o chip é informativo. */
+.af-chip.clicavel { cursor: pointer; }
+.af-chip.clicavel:hover { filter: brightness(1.08); }
 .af-mais { color: var(--muted); font-size: 10.5px; font-weight: 700; }
 
 /* Item de lista cancelado fica apagado. */
