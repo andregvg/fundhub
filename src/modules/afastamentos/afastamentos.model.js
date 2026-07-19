@@ -5,19 +5,42 @@
 import { sb, hasSupabase, emailAtual } from '../../core/supabase.js';
 import { subscribeTabela } from '../../shared/realtime.js';
 
+// Vocabulário de tipos. É um SUPERCONJUNTO que cobre também os tipos da
+// planilha do Drive (Abonada, LTS, TRE, Férias, Outros) — sem "Falta
+// Abonada" e "TRE" o sync perderia registros. Ver MAPA_TIPOS_PLANILHA.
 export const TIPOS_AFASTAMENTO = [
-  'Férias', 'Licença Saúde (LTS)', 'Licença Maternidade',
-  'Licença Prêmio', 'Atestado', 'Afastamento SME', 'Outro',
+  'Férias', 'Falta Abonada', 'Licença Saúde (LTS)', 'Licença Maternidade',
+  'Licença Prêmio', 'Atestado', 'TRE (Justiça Eleitoral)', 'Afastamento SME', 'Outro',
 ];
 
-// Cor por tipo — usada na barra lateral do item e nos painéis.
+// Cor por tipo — usada na barra lateral do item e nos chips do calendário.
 export const CORES_AFASTAMENTO = {
-  'Férias': '#0ea5a4', 'Licença Saúde (LTS)': '#dc2626', 'Licença Maternidade': '#db2777',
-  'Licença Prêmio': '#f59e0b', 'Atestado': '#ea580c', 'Afastamento SME': '#2563eb', 'Outro': '#64708a',
+  'Férias': '#0ea5a4', 'Falta Abonada': '#0ea5e9', 'Licença Saúde (LTS)': '#dc2626',
+  'Licença Maternidade': '#db2777', 'Licença Prêmio': '#f59e0b', 'Atestado': '#ea580c',
+  'TRE (Justiça Eleitoral)': '#f97316', 'Afastamento SME': '#2563eb', 'Outro': '#64708a',
 };
 
-// Ciclo de vida: ativo (vale) | cancelado (soft-delete, preserva histórico).
-export const STATUS_AFASTAMENTO = { ativo: 'Ativo', cancelado: 'Cancelado' };
+// Como os tipos da aba "Lançamentos" chegam aqui.
+export const MAPA_TIPOS_PLANILHA = {
+  'abonada': 'Falta Abonada', 'falta abonada': 'Falta Abonada',
+  'lts': 'Licença Saúde (LTS)', 'licenca saude': 'Licença Saúde (LTS)',
+  'tre': 'TRE (Justiça Eleitoral)',
+  'ferias': 'Férias', 'férias': 'Férias',
+  'outros': 'Outro', 'outro': 'Outro',
+};
+
+// Origem do registro. `planilha`/`formulario` vêm do sync; `manual` é daqui.
+export const ORIGEM_AFASTAMENTO = {
+  manual: 'Manual', formulario: 'Formulário', planilha: 'Planilha',
+};
+
+// Ciclo de vida (mesma semântica da planilha):
+//   ativo      — vale.
+//   importado  — veio da planilha/formulário e aguarda confirmação da SME.
+//   cancelado  — soft-delete; preserva histórico (é o 'excluido' da planilha).
+export const STATUS_AFASTAMENTO = {
+  ativo: 'Ativo', importado: 'Importado', cancelado: 'Cancelado',
+};
 
 const SEL = '*, servidor:servidor(nome,apelido), unidade:unidade_escolar(nome,apelido)';
 
@@ -114,6 +137,33 @@ export async function reativarAfastamento(a) {
   const { error } = await sb().from('afastamento').update({ status: 'ativo' }).eq('id', a.id);
   if (error?.code === SEM_COLUNA) throw exigeMigration018();
   if (error) throw error;
+}
+
+// Confirma um afastamento que veio da planilha/formulário (importado → ativo).
+export async function confirmarAfastamento(id) {
+  if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
+  const { error } = await sb().from('afastamento')
+    .update({ status: 'ativo', atualizado_em: new Date().toISOString(), atualizado_por: await emailAtual() })
+    .eq('id', id);
+  if (error?.code === SEM_COLUNA) throw exigeMigration018();
+  if (error) throw error;
+}
+
+// ── Sincronização com a planilha do Drive ────────────────────
+// Espelha a aba "Lançamentos". IDEMPOTENTE: `chave_externa` (a mesma
+// identidade que o Apps Script usa — tipo|nome|inicio|criado_em) faz a
+// reimportação ATUALIZAR a linha, nunca duplicar. Rodar de novo o mesmo
+// recorte da planilha é seguro.
+export async function sincronizarPlanilha(rows) {
+  if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
+  if (!rows.length) return 0;
+  const { error } = await sb().from('afastamento')
+    .upsert(rows, { onConflict: 'chave_externa' });
+  if (error?.code === SEM_COLUNA) {
+    throw new Error('Este recurso exige a migration 020 (sincronização). Rode-a no SQL Editor.');
+  }
+  if (error) throw error;
+  return rows.length;
 }
 
 // Exclusão definitiva (apaga de vez) — só faz sentido para limpar cancelados.

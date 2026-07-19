@@ -59,17 +59,20 @@ src/
   - Reverter ambos antes de commitar (conferir que a key voltou e que `dev@local` sumiu de `src/core/`).
 - ⚠️ **Armadilha do teste local:** a navegação por hash (`#/x`) **não recarrega os módulos ES** — o browser mantém o `.model.js` que já estava em memória. Depois de editar um model já carregado, dê **`location.reload()`** (F5) antes de testar, senão aparece um enganoso *"does not provide an export named …"* que não existe no código.
 - **Módulo novo que depende de migration:** faça a leitura **degradar** em vez de quebrar a tela (tabela ausente = Postgres `42P01`; coluna ausente = `42703`). Ver `telefones.model.js`, `locais.model.js` e `afastamentos.model.js` — assim o módulo continua de pé entre o deploy e o momento em que a migration roda.
+- **Versão e changelog:** a versão fica em `src/core/config.js` (`CONFIG.versao`) e aparece no rodapé. **Ao fechar uma entrega:** subir a versão lá **e** registrar em `CHANGELOG.md` (MINOR = módulo novo ou mudança de modelo; PATCH = correção). O changelog é escrito para **quem usa o sistema**, não para quem programa — sem jargão, sem nome de arquivo.
+- **`upsert` em lote:** o PostgREST exige **as mesmas chaves em todos os objetos** do array (chave `undefined` some no JSON e quebra o lote). E `onConflict` **não infere índice único parcial** — use índice único simples (NULLs já são distintos no Postgres). Ver `020_afastamento_sync.sql`.
 
 ## 5. Banco de dados — migrations (rodar no SQL Editor, em ordem)
 
-`… 011_auditoria.sql` → `012_visitas.sql` → `013_atas.sql` → `014_realtime_extra.sql` → `015_projetos.sql` → **`016_telefone.sql`** → **`017_local.sql`** → **`018_afastamento_extra.sql`** → **`019_auditoria_completa.sql`**
+`… 011_auditoria.sql` → `012_visitas.sql` → `013_atas.sql` → `014_realtime_extra.sql` → `015_projetos.sql` → **`016_telefone.sql`** → **`017_local.sql`** → **`018_afastamento_extra.sql`** → **`019_auditoria_completa.sql`** → **`020_afastamento_sync.sql`**
 
 > ✅ **Rodadas confirmadas até a 015.**
-> ⚠️ **Faltam rodar, em ordem: `016` → `017` → `018` → `019`.** Todas são idempotentes; a 016 e a 017 fazem o **backfill** sozinhas.
+> ⚠️ **Faltam rodar, em ordem: `016` → `017` → `018` → `019` → `020`.** Todas são idempotentes; a 016 e a 017 fazem o **backfill** sozinhas.
 > - **016** cria `telefone` e migra os telefones legados; sem ela, Escolas/Gestores carregam mas **sem telefones** (degradam de propósito).
 > - **017** cria `local` e vincula os destinos; sem ela, o SATE funciona mas a aba Locais fica vazia.
 > - **018** dá `status`/`processo` aos afastamentos; sem ela, o módulo lista normalmente mas **não conhece cancelados** e as escritas avisam "exige a migration 018".
 > - **019** é rede de segurança: religa o trigger de auditoria em todas as tabelas auditáveis (idempotente).
+> - **020** dá `origem`/`chave_externa`/`atualizado_*` aos afastamentos — é o que torna a **sincronização com a planilha idempotente**; sem ela o botão "Sincronizar planilha" avisa que falta.
 
 Seeds (gitignored, em `_private/` — rodar após as migrations correspondentes):
 `seed_unidades.sql`, `seed_atividades.sql`, `seed_calendario.sql`.
@@ -83,6 +86,12 @@ Tabelas: `regional`, `servidor`, `unidade_escolar`, `vinculo`, `perfil` (com `ul
 
 - **Telefones em tabela dedicada** (`telefone`), não em campo/array por entidade: escolas já eram multi (`text[]`), mas servidores tinham **um** telefone — e gestores/coordenadores/supervisores *são* servidores. A tabela usa **duas FKs nullable** (`servidor_id` | `unidade_id`) + CHECK de "exatamente um dono": preserva integridade referencial real e cascade, que um par polimórfico `(tipo,id)` perderia. Como a RLS do FundHub é uniforme (ler = `is_autorizado`, escrever = `is_admin`), a tabela compartilhada **não** complica a RLS. Colunas legadas (`unidade_escolar.telefones/whatsapp`, `servidor.telefone`) estão **deprecadas** — backfilladas uma vez e usadas só como fallback de leitura na view. Drop numa migration futura.
 - **Endereços: catálogo só para DESTINOS** (`local`), não uma tabela genérica de endereços. O endereço da **escola é atributo 1:1 intrínseco** — extrair só somaria join sem ganho. Já os destinos são entidade **compartilhada e geocodável**: antes o mesmo lugar era redigitado em cada atividade/solicitação e não dava para geocodar uma vez. É o padrão do `Locais.js` do `agendamentos-fil` e a **fundação do cálculo de rota/tempo** (backlog A).
+- **Afastamentos: a planilha do Drive ainda é o sistema de lançamento.** A aba **"Lançamentos"** (do Apps Script `afastamentos-gestores`, que importa periodicamente as respostas do formulário dos gestores) segue sendo onde se lança. O FundHub **espelha** aquela aba:
+  - `chave_externa` = `tipo|nome_completo|data_inicio|criado_em` — **a mesma identidade que o Apps Script usa**. Com índice UNIQUE, o `upsert` é idempotente: re-sincronizar **atualiza**, nunca duplica.
+  - O vocabulário de `tipo` do FundHub foi ampliado para ser **superconjunto** do da planilha (entraram *Falta Abonada* e *TRE*) — sem isso o sync perderia registros. Mapa em `MAPA_TIPOS_PLANILHA`.
+  - `status` da planilha → daqui: `ativo`→`ativo`, `importado`→`importado` (aguarda confirmação da SME), `excluido`→`cancelado`.
+  - Gestor é casado por **nome normalizado** contra `servidor`; quem não estiver cadastrado é **ignorado e listado** no relatório (preserva integridade — nada de afastamento órfão).
+  - **Por que colar e não buscar da planilha:** buscar exigiria publicá-la na web (expondo dado pessoal, o que a regra de segurança proíbe) ou uma Edge Function com service account. Colar mantém o dado no caminho autenticado. Sync automático: backlog C.
 
 ## 6. O que JÁ está implementado
 
@@ -96,7 +105,7 @@ Tabelas: `regional`, `servidor`, `unidade_escolar`, `vinculo`, `perfil` (com `ul
 | **Locais (destinos)** | ✅ | **Novo.** Catálogo de destinos (nome, endereço, **ponto de desembarque**, lat/long, maps). Vive como **aba admin dentro do SATE** (não virou rota — a nav já é longa e destino é assunto de transporte). Nova/Catálogo do SATE usam o seletor. **Requer `017`.** |
 | Programação de Viagens | ✅ | Confirmadas do dia (origem→destino, horários, alunos, ônibus, contato), imprimível. (NÃO chamar de "romaneio".) Lê de `sate.model.js`; não tem model próprio. |
 | **Calendário Escolar** | ✅ **finalizado** | Grade mensal, eventos, bloqueios; admin edita cada dia. **Novo:** edição por **INTERVALO** ("aplicar até" — recesso/feriados/semana de provas de uma vez) e **IMPORTAÇÃO** colando TSV/CSV com cabeçalho (`data`, `letivo`, `tipo`, `evento`, `bloqueia_extraclasse`/`afastamento`, `obs`; datas em `aaaa-mm-dd` ou `dd/mm/aaaa`). Sem migration nova. |
-| **Afastamentos** | ✅ **finalizado** | Lista+filtros + CRUD admin. **Novo (do Apps Script `afastamentos-gestores`):** **soft-delete** (`status` ativo\|cancelado — cancelar ≠ excluir; reativar/excluir-definitivo na visão Cancelados), campo **`processo`**, **detecção de duplicata** (servidor+início; processo), **nº de dias**, busca, e **VISÃO CALENDÁRIO** mensal com chips por dia (cor por tipo; só admin edita pelo chip). Integra com o Calendário: **avisa** ao gravar em dia marcado "não conceder afastamentos". **Requer `018`.** |
+| **Afastamentos** | ✅ **finalizado** | Lista+filtros + CRUD admin. **Ciclo de vida** `ativo\|importado\|cancelado` (cancelar ≠ excluir; reativar/excluir-definitivo na visão Cancelados; **confirmar** na visão Importados), campo **`processo`**, **detecção de duplicata** (servidor+início; processo), **nº de dias**, busca. **VISÃO CALENDÁRIO** mensal com chips por dia (cor por tipo; listrado = aguardando confirmação; só admin edita pelo chip) que **sobrepõe o evento do calendário escolar**, o dia não letivo e o veto 🚫. **SINCRONIZAÇÃO com a planilha do Drive** (botão "⭱ Sincronizar planilha", admin): cola-se a aba "Lançamentos" e o upsert é idempotente. Também **avisa** ao gravar em dia "não conceder afastamentos". **Requer `018` + `020`.** |
 | Notificações | ✅ | Realtime (sino + badge + toasts) para solicitações. É um **serviço** (`servico: true`): sem rota, iniciado pelo `main.js` no login, parado no logout. |
 | **Gestores & Coordenadores** | ✅ | **Novo.** Rota `#/gestores`. CRUD de `servidor` + CRUD de `vinculo` (servidor × escola × papel × ano). Busca (inclusive por nome de escola), filtros por papel e “sem vínculo”. Encerrar vínculo (preserva histórico) ≠ excluir. Sem migration nova — usa o `schema.sql`. |
 | **Horários de Trabalho** | ✅ | **Novo.** Rota `#/horarios`. Escolhe-se a escola → cobertura 7h–18h20 com lacunas + jornada semanal de cada servidor vinculado, em barras. Regras em `horarios.model.js`: ≤8h/dia e sem sobreposição são **erro** (bloqueiam); >6h contínuas e lacuna de cobertura são **aviso**. **Requer a migration `009_horarios.sql`.** |
@@ -134,7 +143,7 @@ Tabelas: `regional`, `servidor`, `unidade_escolar`, `vinculo`, `perfil` (com `ul
 
 ### C. Depende de infra (Edge Function / integração)
 15. **Camada do professor (sem login) por token** — link com token para o professor preencher os dados da turma de uma solicitação, sem acessar o resto do sistema. Requer **Edge Function** (service role) validando o token + página pública fora do gate de login. Desenhar com cuidado (é o único ponto de acesso anônimo controlado).
-16. **Importação de afastamentos por Google Forms** — no Apps Script, os gestores lançam o afastamento por formulário e o sistema importa, deduplicando por carimbo de tempo + e-mail, casando o gestor por nome normalizado e marcando o registro como `importado` (que o admin confirma). No FundHub isso exige o formulário + uma Edge Function (ou rotina agendada) para ler as respostas. O ciclo de vida (`status`) já está pronto na `018` — bastaria acrescentar o estado `importado`.
+16. **Sincronização AUTOMÁTICA da planilha de afastamentos** — hoje o sync é **manual e já funciona** (colar a aba "Lançamentos"; idempotente pela `chave_externa`, migration `020`). Para rodar sozinho seria preciso uma **Edge Function** com service account do Google lendo a planilha periodicamente — a mesma `chave_externa` e o mesmo mapeamento seriam reaproveitados, então é só trocar a origem do texto. Alternativa descartada: publicar a planilha na web (expõe dado pessoal). ⚠️ Enquanto o lançamento oficial for na planilha, **sincronizar antes de usar os dados de afastamento para decisão**.
 17. **Sync com Google Calendar** — sincronizar `dia_calendario`/eventos com as agendas do Google (OAuth + API). *Obs.: a importação por colar TSV/CSV já cobre o caso mais urgente.*
 18. **Projetos & Pesquisas — portal externo** — a parte INTERNA já está feita (`015`). Falta o portal do proponente (envio + acompanhamento por token) e a carta de anuência gerada. Depende de Edge Function/token, como a camada do professor.
 
@@ -147,23 +156,21 @@ Tabelas: `regional`, `servidor`, `unidade_escolar`, `vinculo`, `perfil` (com `ul
 
 ## 9. Onde paramos e próximo passo
 
-**Estado em 15/07/2026** — branch `dev` (tudo pushado; produção `main` ainda **sem** estas entregas):
-
-| Commit | O que entrou |
-|---|---|
-| `00d60bd` | Telefones — tabela `telefone` + editor multi-telefone (migration **016**) |
-| `bd86ec3` | Locais — catálogo de destinos + seletor no SATE (migration **017**) |
-| `72d46f2` | Afastamentos e Calendário **finalizados** (migration **018**) |
-| `8a7e454` | Correções: gate de admin nos chips do calendário + resiliência à 018 |
+**Versão `0.9.0`** — branch `dev` (tudo pushado; produção `main` ainda **sem** estas entregas). Histórico legível em [`CHANGELOG.md`](../CHANGELOG.md).
 
 **Próximo passo, em ordem:**
 
-1. **Rodar `016` → `017` → `018` → `019`** no SQL Editor (nenhuma foi rodada ainda).
-2. **Validar na dev logado**: telefones em Escolas/Gestores; aba Locais no SATE; Afastamentos (visão Calendário, cancelar/reativar, processo, duplicata); Calendário (aplicar-até, importar).
+1. **Rodar `016` → `017` → `018` → `019` → `020`** no SQL Editor (nenhuma foi rodada ainda).
+2. **Validar na dev logado**:
+   - telefones em Escolas/Gestores; aba Locais no SATE;
+   - Afastamentos: visão Calendário (com evento do calendário escolar), cancelar/reativar/confirmar, processo, duplicata, e a **sincronização com a planilha**;
+   - Calendário: aplicar-até e importar.
 3. **Merge `dev → main`** para publicar.
-4. Só então escolher o próximo item do backlog. Lembrar que **o SATE está pausado** (item 0) e que a **validação de duração por tipo** (item 10) está travada esperando o André informar as regras.
+4. **Foco declarado das próximas sessões: Projetos e SATE.** Lembrar que o SATE está **pausado** (item 0 do backlog) — retomar só com o aval do André, e conferir com ele qual é o "sentido ideal" antes de mexer, já que a pausa foi justamente por divergência de rumo.
 
-> O que **não** dá para testar em dev-local (exige banco): duplicata, soft-delete/reativar, chips com dados reais, o `upsert` do intervalo e da importação, e o aviso de "não conceder afastamentos".
+> **Não dá para testar em dev-local** (exige banco): duplicata, soft-delete/reativar/confirmar, chips com dados reais, o `upsert` do intervalo/importação/sincronização e o aviso de "não conceder afastamentos". Em dev-local dá para validar parsing, layout e navegação — foi o que se fez.
+
+> **Travado esperando o André:** as **durações válidas por tipo** de afastamento (item 10) — sem elas a validação não sai do lugar.
 
 ### Receita: criar um módulo novo
 

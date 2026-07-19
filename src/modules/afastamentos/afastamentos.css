@@ -6,6 +6,13 @@
 
 .filtro-sep { flex: 1 1 8px; }
 
+/* Amostra listrada da legenda (mesmo padrão do chip pendente). */
+.lg-pend {
+  background: var(--muted);
+  background-image: repeating-linear-gradient(45deg,
+    rgba(255, 255, 255, .5) 0 3px, transparent 3px 6px);
+}
+
 /* Grade de afastamentos: a célula em si não é clicável (só os chips). */
 .af-cal .cal-cell { cursor: default; min-height: 74px; }
 .af-cal .cal-cell:hover { border-color: var(--border); }
@@ -28,8 +35,20 @@
 .af-chip.clicavel:hover { filter: brightness(1.08); }
 .af-mais { color: var(--muted); font-size: 10.5px; font-weight: 700; }
 
+/* Chip ainda não confirmado (veio da planilha/formulário): listrado. */
+.af-chip.pendente {
+  background-image: repeating-linear-gradient(45deg,
+    rgba(255, 255, 255, .35) 0 3px, transparent 3px 6px);
+}
+/* Marcador de "não conceder afastamentos" vindo do calendário escolar. */
+.af-veto { font-size: 10px; }
+
 /* Item de lista cancelado fica apagado. */
 .solic.inativo { opacity: .55; }
+
+/* Relatório da sincronização com a planilha. */
+.af-faltantes { margin: 6px 0 0; padding-left: 18px; font-size: 13px; }
+.af-faltantes li { margin-bottom: 2px; }
 
 @media (min-width: 720px) {
   .af-cal .cal-cell { min-height: 96px; }

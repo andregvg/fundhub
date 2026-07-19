@@ -9,6 +9,7 @@
 // e-mail, papel, último acesso, origem dos dados e o botão Sair.
 // ============================================================
 import { modulosNav } from '../core/registry.js';
+import { CONFIG } from '../core/config.js';
 import { source } from '../core/supabase.js';
 import { signOut } from '../core/auth.js';
 import { limparPerfil, ultimoAcessoAnterior } from '../core/perfil.js';
@@ -118,5 +119,6 @@ export function setChrome(logado, user, perfil) {
 }
 
 export function carimboRodape() {
-  document.getElementById('build-info').textContent = new Date().toLocaleDateString('pt-BR');
+  document.getElementById('build-info').textContent =
+    `v${CONFIG.versao} · ${new Date().toLocaleDateString('pt-BR')}`;
 }
