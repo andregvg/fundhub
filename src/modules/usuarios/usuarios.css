@@ -45,3 +45,21 @@
   color: color-mix(in srgb, var(--ok) 90%, var(--text));
   font-weight: 600;
 }
+
+/* ── Permissões por módulo (formulário de acesso) ─────────────
+   Recolhido por padrão: o caminho normal é escolher o papel certo,
+   e a exceção individual deve custar um clique a mais de propósito. */
+.perm-summary { cursor: pointer; color: var(--brand); font-size: 13px; font-weight: 600; }
+.perm-lista { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+.perm-linha {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 5px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-btn);
+  background: var(--surface-2);
+}
+.perm-nome { font-size: 13px; font-weight: 500; text-transform: none; letter-spacing: 0; }
+.perm-sel { flex: 0 0 auto; max-width: 210px; }
