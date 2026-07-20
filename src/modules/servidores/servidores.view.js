@@ -1,13 +1,15 @@
 // ============================================================
 // FundHub — modules/servidores/servidores.view.js
-// Gestores & Coordenadores: cadastro das pessoas e dos seus vínculos
-// com as escolas. Leitura para autorizados; CRUD para admin.
+// Servidores: cadastro das pessoas e dos seus vínculos com as
+// escolas. Cobre também quem é lotado na SEDE (equipe de
+// acompanhamento, agentes administrativos), que não tem vínculo com
+// unidade mas tem afastamento a controlar.
 //
 // A gaveta é o centro do módulo: abre a pessoa e, dentro dela, os
 // vínculos — que é onde a escola de fato entra na história.
 // ============================================================
 import {
-  PAPEIS, ANO_LETIVO, rotulaPapel,
+  PAPEIS, ANO_LETIVO, LOTACOES, CARGOS_SEDE, rotulaPapel, rotulaLotacao,
   getServidores, criarServidor, atualizarServidor, excluirServidor,
   criarVinculo, encerrarVinculo, excluirVinculo,
 } from './servidores.model.js';
@@ -18,28 +20,37 @@ import { hojeISO, fmtData } from '../../shared/format.js';
 import { loading, emptyState, erroBox } from '../../shared/ui/feedback.js';
 import { drawerHtml, drawerHead, montarDrawer, abrirDrawer, fecharDrawer } from '../../shared/ui/drawer.js';
 import { phonesEditorHtml, montarPhonesEditor, lerPhonesEditor, telefonesTexto } from '../../shared/ui/phones.js';
+import { criarFiltroSegmento, indexarUnidades } from '../../shared/ui/filtro-segmento.js';
+import { podeEscrever } from '../../core/permissoes.js';
 
-let perfil = null, lista = [], unidades = [];
-let filtro = { q: '', papel: '', semVinculo: false };
+let perfil = null, lista = [], unidades = [], idxUnidades = {};
+let seg = null, podeEditar = false;
+let filtro = { q: '', papel: '', lotacao: '', semVinculo: false };
 
 export async function render(app, ctx = {}) {
   perfil = ctx.perfil || null;
+  podeEditar = podeEscrever('servidores');
 
   app.innerHTML = `
     <div class="page-head">
-      <h1>Gestores &amp; Coordenadores</h1>
-      <p>Cadastro da equipe gestora e dos vínculos com as escolas — ano letivo ${ANO_LETIVO}.</p>
+      <h1>Servidores</h1>
+      <p>Cadastro funcional, lotações e vínculos com as escolas — ano letivo ${ANO_LETIVO}.</p>
     </div>
     <div class="toolbar">
       <label class="search">🔎
-        <input id="sv-q" type="search" placeholder="Buscar por nome, apelido, e-mail ou escola…" autocomplete="off" />
+        <input id="sv-q" type="search" placeholder="Buscar por nome, apelido, e-mail, cargo ou escola…" autocomplete="off" />
       </label>
-      <div class="filters" id="sv-filtros">
-        ${PAPEIS.map(p => `<button class="chip" data-papel="${p}">${esc(rotulaPapel(p))}</button>`).join('')}
-        <button class="chip" data-flag="sem">⚠️ Sem vínculo</button>
-      </div>
       <span class="count" id="sv-count"></span>
       <button id="sv-novo" class="btn-primary" hidden>+ Novo servidor</button>
+    </div>
+    <div id="sv-seg" class="toolbar-linha"></div>
+    <div class="toolbar-linha">
+      <div class="filters" id="sv-filtros">
+        ${PAPEIS.map(p => `<button class="chip" data-papel="${p}">${esc(rotulaPapel(p))}</button>`).join('')}
+        <span class="fseg-sep" aria-hidden="true"></span>
+        ${LOTACOES.map(([v, r]) => `<button class="chip" data-lotacao="${v}">${esc(r)}</button>`).join('')}
+        <button class="chip" data-flag="sem">⚠️ Sem vínculo</button>
+      </div>
     </div>
     <div class="cards" id="sv-cards">${loading()}</div>
     ${drawerHtml()}`;
@@ -48,20 +59,27 @@ export async function render(app, ctx = {}) {
 
   try {
     [lista, unidades] = await Promise.all([getServidores(), getUnidades().catch(() => [])]);
+    idxUnidades = indexarUnidades(unidades);
   } catch (err) {
     document.getElementById('sv-cards').innerHTML = erroBox(err);
     return;
   }
 
+  // O segmento de um servidor é o das escolas em que ele atua.
+  seg = criarFiltroSegmento(document.getElementById('sv-seg'), {
+    perfil, onChange: pintar, chaveMemoria: 'fundhub:seg:servidores',
+  });
+
   document.getElementById('sv-q').addEventListener('input', e => { filtro.q = e.target.value; pintar(); });
   document.getElementById('sv-filtros').addEventListener('click', e => {
     const b = e.target.closest('.chip'); if (!b) return;
     if (b.dataset.papel != null) filtro.papel = filtro.papel === b.dataset.papel ? '' : b.dataset.papel;
+    if (b.dataset.lotacao != null) filtro.lotacao = filtro.lotacao === b.dataset.lotacao ? '' : b.dataset.lotacao;
     if (b.dataset.flag === 'sem') filtro.semVinculo = !filtro.semVinculo;
     pintar();
   });
 
-  if (perfil?.isAdmin) {
+  if (podeEditar) {
     const novo = document.getElementById('sv-novo');
     novo.hidden = false;
     novo.addEventListener('click', () => formServidor(null));
@@ -76,10 +94,21 @@ const vinculosVigentes = (s) => s.vinculos.filter(v => v.ativo && v.ano === ANO_
 function combina(s) {
   const vig = vinculosVigentes(s);
   if (filtro.papel && !vig.some(v => v.papel === filtro.papel)) return false;
+  if (filtro.lotacao && (s.lotacao || 'escola') !== filtro.lotacao) return false;
   if (filtro.semVinculo && vig.length) return false;
+
+  // Recorte por segmento: entra quem atua em ALGUMA escola do
+  // segmento. Quem é da sede não tem escola — e por isso continua
+  // visível, senão o filtro esconderia justamente a equipe da SME.
+  if (seg && seg.selecionados().length && (s.lotacao || 'escola') !== 'sede') {
+    const bate = vig.some(v => seg.combina(idxUnidades[v.unidade_id]));
+    if (!bate) return false;
+  }
+
   if (filtro.q) {
     const alvo = norm([
-      s.nome, s.apelido, s.email, ...(s.telefones || []).map(t => t.numero),
+      s.nome, s.apelido, s.email, s.cargo, s.codigo_funcional,
+      ...(s.telefones || []).map(t => t.numero),
       ...vig.map(v => `${v.unidade?.nome} ${v.unidade?.apelido} ${rotulaPapel(v.papel)}`),
     ].join(' '));
     if (!alvo.includes(norm(filtro.q))) return false;
@@ -90,6 +119,7 @@ function combina(s) {
 function pintar() {
   document.querySelectorAll('#sv-filtros .chip').forEach(b => {
     const on = (b.dataset.papel != null && b.dataset.papel === filtro.papel)
+      || (b.dataset.lotacao != null && b.dataset.lotacao === filtro.lotacao)
       || (b.dataset.flag === 'sem' && filtro.semVinculo);
     b.classList.toggle('on', on);
   });
@@ -110,19 +140,28 @@ function pintar() {
 }
 
 function card(s) {
+  const daSede = (s.lotacao || 'escola') === 'sede';
   const vig = vinculosVigentes(s);
   const papeis = [...new Set(vig.map(v => v.papel))]
     .map(p => `<span class="seg">${esc(rotulaPapel(p))}</span>`).join('');
-  const escolas = vig.length
-    ? vig.map(v => `<span class="tag">${esc(v.unidade?.apelido || v.unidade?.nome || '—')}</span>`).join('')
-    : `<span class="tag eja">⚠️ Sem vínculo em ${ANO_LETIVO}</span>`;
+
+  // Quem é da sede não tem vínculo com escola: mostrar "sem vínculo"
+  // seria um falso alerta. O que identifica essa pessoa é o cargo.
+  const lugares = daSede
+    ? `<span class="tag">🏛 ${esc(s.cargo || 'Sede da SME')}</span>`
+    : vig.length
+      ? vig.map(v => `<span class="tag">${esc(v.unidade?.apelido || v.unidade?.nome || '—')}</span>`).join('')
+      : `<span class="tag eja">⚠️ Sem vínculo em ${ANO_LETIVO}</span>`;
+
+  // Nome completo em caixa alta (como nos sistemas oficiais); o
+  // apelido logo abaixo, em caixa normal — não precisa de destaque.
   return `<article class="card" data-id="${esc(s.id)}" tabindex="0">
     <div class="card-top">
-      <h3>${esc(s.apelido || s.nome)}</h3>
+      <h3 class="nome-oficial">${esc(s.nome)}</h3>
       ${papeis}
     </div>
-    ${s.apelido ? `<div class="addr">${esc(s.nome)}</div>` : ''}
-    <div class="tags">${escolas}</div>
+    ${s.apelido ? `<div class="apelido">${esc(s.apelido)}</div>` : ''}
+    <div class="tags">${lugares}</div>
   </article>`;
 }
 
@@ -132,28 +171,32 @@ function detalhe(id) {
   if (!s) return;
 
   const campo = (l, v) => v ? `<div class="field"><div class="lbl">${l}</div><div class="val">${v}</div></div>` : '';
-  const acoes = perfil?.isAdmin ? `
+  const acoes = podeEditar ? `
     <div class="drawer-acoes">
       <button class="mini-btn" id="sv-edit">✎ Editar</button>
       <button class="mini-btn no" id="sv-del">🗑 Excluir</button>
     </div>` : '';
 
   abrirDrawer(`
-    ${drawerHead(esc(s.nome), esc(s.apelido || ''))}
+    ${drawerHead(`<span class="nome-oficial">${esc(s.nome)}</span>`, esc(s.apelido || ''))}
     <div class="drawer-body">
       ${acoes}
+      ${campo('Lotação', esc(rotulaLotacao(s.lotacao)) + (s.cargo ? ` · ${esc(s.cargo)}` : ''))}
       ${campo('E-mail', s.email ? `<a href="mailto:${esc(s.email)}">${esc(s.email)}</a>` : '')}
       ${campo('Telefones', (s.telefones || []).length ? telefonesTexto(s.telefones) : '')}
+      ${campo('Código funcional', esc(s.codigo_funcional || ''))}
+      ${campo('CPF', esc(s.cpf || ''))}
+      ${campo('RG', esc(s.rg || ''))}
       ${campo('Ingresso na rede', s.inicio_rede ? esc(fmtData(s.inicio_rede)) : '')}
       <hr class="sep" />
       <div class="vinc-head">
         <div class="field" style="margin:0"><div class="lbl">Vínculos com escolas</div></div>
-        ${perfil?.isAdmin ? `<button class="mini-btn" id="sv-vinc">+ Vincular a uma escola</button>` : ''}
+        ${podeEditar ? `<button class="mini-btn" id="sv-vinc">+ Vincular a uma escola</button>` : ''}
       </div>
       <div class="people" id="sv-vinculos">${listaVinculos(s)}</div>
     </div>`);
 
-  if (!perfil?.isAdmin) return;
+  if (!podeEditar) return;
   document.getElementById('sv-edit').addEventListener('click', () => formServidor(s));
   document.getElementById('sv-del').addEventListener('click', () => removerServidor(s));
   document.getElementById('sv-vinc').addEventListener('click', () => formVinculo(s));
@@ -173,7 +216,7 @@ function listaVinculos(s) {
       v.ingresso ? `desde ${fmtData(v.ingresso)}` : '',
       v.fim ? `até ${fmtData(v.fim)}` : '',
     ].filter(Boolean).join(' · ');
-    const acoes = perfil?.isAdmin ? `
+    const acoes = podeEditar ? `
       <div class="vinc-acoes">
         ${v.ativo ? `<button class="mini-btn" data-encerrar="${v.id}">Encerrar</button>` : ''}
         <button class="mini-btn no" data-del-vinc="${v.id}" aria-label="Excluir vínculo">🗑</button>
@@ -202,18 +245,54 @@ function formServidor(s) {
   const novo = !s;
   const v = (k) => esc(s?.[k] ?? '');
 
+  const lot = s?.lotacao || 'escola';
+
   abrirDrawer(`
-    ${drawerHead(novo ? 'Novo servidor' : 'Editar servidor')}
+    ${drawerHead(novo ? 'Novo servidor' : 'Editar servidor', novo ? '' : esc(s.nome))}
     <div class="drawer-body">
       <form id="sv-form" class="esc-form">
-        <label>Nome completo <input id="s-nome" required value="${v('nome')}" /></label>
-        <label>Apelido / como é chamado(a) <input id="s-apelido" value="${v('apelido')}" /></label>
-        <label>E-mail <input id="s-email" type="email" value="${v('email')}" /></label>
-        ${phonesEditorHtml(s?.telefones)}
-        <label>Ingresso na rede <input id="s-ingresso" type="date" value="${v('inicio_rede')}" /></label>
+
+        <fieldset class="form-grupo">
+          <legend>Identificação</legend>
+          <div class="campos">
+            <label>Nome completo <input id="s-nome" required value="${v('nome')}" /></label>
+            <label>Apelido / como é chamado(a) <input id="s-apelido" value="${v('apelido')}" /></label>
+          </div>
+        </fieldset>
+
+        <fieldset class="form-grupo">
+          <legend>Dados funcionais</legend>
+          <div class="campos duas">
+            <label>Código funcional <input id="s-codigo" inputmode="numeric" value="${v('codigo_funcional')}" /></label>
+            <label>Ingresso na rede <input id="s-ingresso" type="date" value="${v('inicio_rede')}" /></label>
+            <label>Lotação <select id="s-lotacao">
+              ${LOTACOES.map(([val, r]) => `<option value="${val}" ${lot === val ? 'selected' : ''}>${esc(r)}</option>`).join('')}
+            </select></label>
+            <label>Cargo / função <input id="s-cargo" list="cargos" value="${v('cargo')}" />
+              <datalist id="cargos">${CARGOS_SEDE.map(c => `<option>${esc(c)}</option>`).join('')}</datalist>
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset class="form-grupo">
+          <legend>Documentos</legend>
+          <div class="campos duas">
+            <label>CPF <input id="s-cpf" inputmode="numeric" placeholder="000.000.000-00" value="${v('cpf')}" /></label>
+            <label>RG <input id="s-rg" value="${v('rg')}" /></label>
+          </div>
+        </fieldset>
+
+        <fieldset class="form-grupo">
+          <legend>Contato</legend>
+          <div class="campos">
+            <label>E-mail <input id="s-email" type="email" value="${v('email')}" /></label>
+            ${phonesEditorHtml(s?.telefones)}
+          </div>
+        </fieldset>
+
         <div class="form-foot">
           <span id="s-msg" class="auth-msg"></span>
-          <button type="submit" id="s-save">${novo ? 'Criar' : 'Salvar'}</button>
+          <button type="submit" id="s-save" class="btn-primary">${novo ? 'Criar' : 'Salvar'}</button>
         </div>
       </form>
       ${novo ? `<p class="form-hint" style="margin-top:14px">Depois de criar, abra o servidor para vinculá-lo a uma escola.</p>` : ''}
@@ -226,10 +305,18 @@ function formServidor(s) {
 async function salvarServidor(e, s) {
   e.preventDefault();
   const msg = document.getElementById('s-msg'); msg.className = 'auth-msg';
+  const val = (id) => document.getElementById(id).value.trim();
   const payload = {
-    nome: document.getElementById('s-nome').value.trim(),
-    apelido: document.getElementById('s-apelido').value.trim() || null,
-    email: document.getElementById('s-email').value.trim() || null,
+    // Nome em caixa alta na origem: os cards e a gaveta exibem assim,
+    // e gravar normalizado evita a lista misturar "Maria" e "MARIA".
+    nome: val('s-nome').toUpperCase(),
+    apelido: val('s-apelido') || null,
+    email: val('s-email') || null,
+    codigo_funcional: val('s-codigo') || null,
+    cargo: val('s-cargo') || null,
+    lotacao: document.getElementById('s-lotacao').value,
+    cpf: val('s-cpf') || null,
+    rg: val('s-rg') || null,
     inicio_rede: document.getElementById('s-ingresso').value || null,
   };
   if (!payload.nome) return falha(msg, 'Informe o nome completo.');
@@ -265,7 +352,7 @@ async function removerServidor(s) {
 // ── Formulário: vínculo ──────────────────────────────────────
 function formVinculo(s) {
   const opts = [...unidades].sort((a, b) => a.nome.localeCompare(b.nome, 'pt'))
-    .map(u => `<option value="${esc(u.id)}">${esc(u.apelido || u.nome)}</option>`).join('');
+    .map(u => `<option value="${esc(u.id)}">${esc(u.nome)}</option>`).join('');
 
   abrirDrawer(`
     ${drawerHead('Vincular a uma escola', esc(s.nome))}

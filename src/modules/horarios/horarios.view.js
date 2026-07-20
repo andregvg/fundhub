@@ -18,9 +18,22 @@ import { getUnidades } from '../escolas/escolas.model.js';
 import { esc, falha } from '../../shared/dom.js';
 import { loading, emptyState, erroBox } from '../../shared/ui/feedback.js';
 import { drawerHtml, drawerHead, montarDrawer, abrirDrawer, fecharDrawer } from '../../shared/ui/drawer.js';
+import { criarFiltroSegmento } from '../../shared/ui/filtro-segmento.js';
 
 let perfil = null, unidades = [], servidores = [], blocos = [];
-let unidadeId = '', ano = ANO_LETIVO;
+let unidadeId = '', ano = ANO_LETIVO, seg = null;
+
+// O seletor de escola respeita o segmento: quem cuida da Educação
+// Infantil não precisa rolar por 90 EMEFs para achar o seu CEI.
+function pintarSeletorEscolas() {
+  const sel = document.getElementById('h-uni');
+  sel.innerHTML = `<option value="">Selecione a escola…</option>` +
+    [...unidades].filter(u => !seg || seg.combina(u))
+      .sort((a, b) => a.nome.localeCompare(b.nome, 'pt'))
+      .map(u => `<option value="${esc(u.id || u.numero)}">${esc(u.nome)}</option>`).join('');
+  if (unidadeId && !sel.querySelector(`option[value="${CSS.escape(unidadeId)}"]`)) unidadeId = '';
+  sel.value = unidadeId;
+}
 
 export async function render(app, ctx = {}) {
   perfil = ctx.perfil || null;
@@ -41,6 +54,7 @@ export async function render(app, ctx = {}) {
       </label>
       <span class="count" id="h-count"></span>
     </div>
+    <div id="h-seg" class="toolbar-linha"></div>
     <div id="h-body"></div>
     ${drawerHtml()}`;
 
@@ -49,9 +63,11 @@ export async function render(app, ctx = {}) {
   try { unidades = await getUnidades(); }
   catch (err) { document.getElementById('h-body').innerHTML = erroBox(err); return; }
 
-  document.getElementById('h-uni').innerHTML = `<option value="">Selecione a escola…</option>` +
-    [...unidades].sort((a, b) => a.nome.localeCompare(b.nome, 'pt'))
-      .map(u => `<option value="${esc(u.id || u.numero)}">${esc(u.apelido || u.nome)}</option>`).join('');
+  seg = criarFiltroSegmento(document.getElementById('h-seg'), {
+    perfil, chaveMemoria: 'fundhub:seg:horarios',
+    onChange: () => { pintarSeletorEscolas(); if (!unidadeId) limparCorpo(); },
+  });
+  pintarSeletorEscolas();
 
   document.getElementById('h-uni').addEventListener('change', e => { unidadeId = e.target.value; carregar(); });
   document.getElementById('h-ano').addEventListener('change', e => {
@@ -59,8 +75,15 @@ export async function render(app, ctx = {}) {
     if (v > 2000) { ano = v; carregar(); }
   });
 
+  limparCorpo();
+}
+
+// Estado inicial (e o que sobra quando o filtro de segmento tira a
+// escola que estava selecionada).
+function limparCorpo() {
   document.getElementById('h-body').innerHTML = emptyState('🕒', 'Escolha uma escola',
     'Selecione a unidade acima para ver e editar a jornada da equipe gestora.');
+  document.getElementById('h-count').textContent = '';
 }
 
 async function carregar() {
@@ -84,7 +107,7 @@ async function carregar() {
   if (!servidores.length) {
     body.innerHTML = emptyState('👥', 'Nenhum servidor vinculado',
       `Esta escola não tem ninguém vinculado em ${ano}. Cadastre os vínculos em
-       <a href="#/gestores">Gestores &amp; Coordenadores</a>.`);
+       <a href="#/servidores">Servidores</a>.`);
     return;
   }
 

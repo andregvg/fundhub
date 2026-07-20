@@ -9,8 +9,10 @@ export default {
   desc: 'Como o FundHub funciona por dentro.',
   navNome: 'Docs',
   rota: '#/docs',
+  grupo: 'ajuda',
   nav: true,
   ativo: true,
-  admin: true,
+  // Segue restrita: nenhum papel recebe 'docs' no preset da 021, então
+  // só is_admin() enxerga. Mesma regra de antes, outro mecanismo.
   load: () => import('./docs.view.js'),
 };

@@ -16,6 +16,9 @@ import { slug } from '../../shared/dom.js';
 // Telefones vêm da tabela dedicada (fonte única) — model → model.
 import { getTelefonesMapas } from '../telefones/telefones.model.js';
 
+// Papéis de VÍNCULO com uma escola. Quem trabalha na sede não tem
+// vínculo (o `vinculo` exige unidade_id): a função dessa gente vive
+// em servidor.cargo + servidor.lotacao.
 export const PAPEIS = ['gestor', 'coordenador', 'supervisor'];
 
 export const ROTULO_PAPEL = {
@@ -24,6 +27,26 @@ export const ROTULO_PAPEL = {
   supervisor: 'Supervisor(a)',
 };
 export const rotulaPapel = (p) => ROTULO_PAPEL[p] || p;
+
+// Onde a pessoa está lotada. 'sede' cobre a equipe de acompanhamento
+// e os agentes administrativos da SME — que também têm afastamentos
+// a controlar, e é por isso que este módulo deixou de ser "Gestores".
+export const LOTACOES = [
+  ['escola', 'Escola'],
+  ['sede',   'Sede da SME'],
+];
+export const rotulaLotacao = (l) => LOTACOES.find(([v]) => v === l)?.[1] || 'Escola';
+
+// Sugestões de cargo para quem é da sede — datalist, não enum: a
+// lista real muda com o organograma e não vale uma migration.
+export const CARGOS_SEDE = [
+  'Equipe de Acompanhamento',
+  'Agente Administrativo',
+  'Assistente de Direção',
+  'Supervisor(a) de Ensino',
+  'Chefe de Seção',
+  'Diretor(a) de Departamento',
+];
 
 // Ano letivo corrente — os vínculos e horários são por ano.
 export const ANO_LETIVO = new Date().getFullYear();
@@ -61,7 +84,8 @@ export async function getServidoresDaUnidade(unidadeId, ano = ANO_LETIVO) {
 // ── CRUD servidor ────────────────────────────────────────────
 // `telefone` (singular) saiu: os telefones moram na tabela `telefone`
 // e são sincronizados à parte pela view (ver telefones.model.js).
-const CAMPOS = ['nome', 'apelido', 'email', 'cpf', 'rg', 'inicio_rede'];
+const CAMPOS = ['nome', 'apelido', 'email', 'cpf', 'rg', 'inicio_rede',
+  'codigo_funcional', 'cargo', 'lotacao'];
 
 function limpar(p) {
   const out = {};
