@@ -1,9 +1,13 @@
 /* ============================================================
    FundHub — base.css
-   Reset, moldura (topo, navegação, rodapé) e impressão.
+   Reset, moldura (topo, menu lateral, rodapé) e impressão.
    MOBILE-FIRST: o que está fora de @media é o layout do celular.
    As telas maiores só acrescentam, via @media (min-width: …).
    Cortes: 560px · 720px · 1100px.
+
+   O menu é LATERAL. Até 1100px ele é uma gaveta sobreposta (com
+   fundo escurecido); a partir daí vira uma coluna fixa que empurra
+   o conteúdo. O mesmo botão ☰ comanda os dois casos.
    ============================================================ */
 
 * { box-sizing: border-box; }
@@ -26,81 +30,109 @@ a { color: var(--brand); text-decoration: none; }
 .topbar {
   position: sticky;
   top: 0;
-  z-index: 20;
+  z-index: 40;
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 14px;
+  padding: 8px 14px;
   background: var(--surface);
   border-bottom: 1px solid var(--border);
-  box-shadow: var(--shadow);
 }
 
 .nav-toggle {
   flex: 0 0 auto;
-  width: var(--toque);
-  height: var(--toque);
+  width: 34px;
+  height: 34px;
   display: flex;
   align-items: center;
   justify-content: center;
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--radius-btn);
   background: var(--surface-2);
   color: var(--text);
-  font-size: 17px;
+  font-size: 15px;
   cursor: pointer;
 }
+.nav-toggle:hover { background: var(--surface-3); }
 
-/* Na tela de login não há para onde navegar. */
-.topbar.anon .nav-toggle,
-.topbar.anon .topnav { display: none; }
+/* Na tela de login (e no acesso pendente) não há para onde navegar. */
+.topbar.anon .nav-toggle { display: none; }
+body.sem-menu .sidebar,
+body.sem-menu .sidebar-back { display: none; }
 
 .brand { display: flex; align-items: center; gap: 10px; color: var(--text); min-width: 0; }
-.brand-mark { font-size: 24px; }
+.brand-mark { font-size: 22px; }
 .brand-text { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; }
-.brand-text strong { font-size: 18px; letter-spacing: -.02em; }
+.brand-text strong { font-size: 17px; letter-spacing: -.02em; }
 .brand-text .hub { color: var(--brand); }
 .brand-text small { display: none; color: var(--muted); font-size: 11.5px; }
 
-/* Navegação — no celular, painel sanfonado sob o topo. */
-.topnav {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  z-index: 30;
-  display: none;
-  flex-direction: column;
-  gap: 2px;
-  padding: 8px;
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  box-shadow: var(--shadow);
-}
-body.nav-open .topnav { display: flex; }
+.topbar-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
 
-.topnav a {
+/* ── Layout: menu lateral + conteúdo ──────────────────────── */
+.layout { flex: 1; display: flex; min-height: 0; }
+.conteudo { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 60;
+  width: 250px;
+  max-width: 84vw;
+  padding: 12px 10px 28px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  transform: translateX(-100%);
+  transition: transform .18s ease;
+}
+body.menu-aberto .sidebar { transform: translateX(0); }
+
+.sidebar-back {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(10, 15, 30, .45);
+}
+
+.nav-grupo { margin-bottom: 14px; }
+.nav-tit {
+  padding: 6px 10px 4px;
+  color: var(--muted);
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+
+.sidebar a {
   display: flex;
   align-items: center;
-  min-height: var(--toque);
-  padding: 8px 14px;
-  border-radius: 10px;
-  color: var(--muted);
-  font-weight: 600;
-  font-size: 15px;
+  gap: 9px;
+  min-height: 36px;
+  padding: 6px 10px;
+  margin-bottom: 1px;
+  border-radius: var(--radius-btn);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 500;
 }
-.topnav a:hover { background: var(--surface-2); color: var(--text); }
-.topnav a.active {
-  background: color-mix(in srgb, var(--brand) 14%, transparent);
+.sidebar a:hover { background: var(--surface-2); }
+.sidebar a.active {
+  background: color-mix(in srgb, var(--brand) 12%, transparent);
   color: var(--brand);
+  font-weight: 600;
 }
-
-.topbar-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+.nav-ico { flex: 0 0 auto; width: 20px; text-align: center; font-size: 15px; }
+.nav-txt { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 .pill {
   font-size: 11.5px;
-  font-weight: 700;
-  padding: 5px 10px;
+  font-weight: 600;
+  padding: 4px 9px;
   border-radius: 999px;
   background: var(--surface-2);
   color: var(--muted);
@@ -116,10 +148,10 @@ body.nav-open .topnav { display: flex; }
   display: flex;
   align-items: center;
   justify-content: center;
-  width: var(--toque);
-  height: var(--toque);
+  width: 34px;
+  height: 34px;
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--radius-btn);
   background: var(--surface-2);
   color: var(--text);
   cursor: pointer;
@@ -130,8 +162,8 @@ body.nav-open .topnav { display: flex; }
 .user-panel {
   position: absolute;
   right: 0;
-  top: calc(var(--toque) + 6px);
-  z-index: 60;
+  top: 40px;
+  z-index: 70;
   width: min(280px, calc(100vw - 24px));
   padding: 12px;
   background: var(--surface);
@@ -161,25 +193,30 @@ body.nav-open .topnav { display: flex; }
 .um-lbl { color: var(--muted); }
 .um-acesso { font-weight: 600; text-align: right; }
 
+.um-link,
 .um-sair {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 100%;
-  min-height: var(--toque);
-  margin-top: 10px;
+  min-height: 32px;
+  margin-top: 8px;
   border: 1px solid var(--border);
-  border-radius: 9px;
+  border-radius: var(--radius-btn);
   background: var(--surface-2);
   color: var(--text);
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
 }
+.um-link:hover { border-color: color-mix(in srgb, var(--brand) 45%, var(--border)); color: var(--brand); }
 .um-sair:hover { border-color: color-mix(in srgb, var(--danger) 45%, var(--border)); color: var(--danger); }
 
 /* ── Corpo e rodapé ───────────────────────────────────────── */
 .app {
   flex: 1;
   width: 100%;
-  max-width: 1200px;
+  max-width: 1240px;
   margin: 0 auto;
   padding: 18px 14px 40px;
 }
@@ -202,43 +239,56 @@ body.nav-open .topnav { display: flex; }
 .page-head p { margin: 0; color: var(--muted); }
 .capitalizar { text-transform: capitalize; }
 
+/* Título de seção (página Módulos, agrupamentos de formulário). */
+.secao-tit {
+  margin: 22px 0 10px;
+  color: var(--muted);
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+.secao-tit:first-of-type { margin-top: 4px; }
+
 /* ── Telas maiores ────────────────────────────────────────── */
 @media (min-width: 560px) {
   .brand-text small { display: block; }
-  .user-chip .uemail { display: block; }
   .page-head h1 { font-size: 24px; }
 }
 
 @media (min-width: 720px) {
-  .topbar { padding: 12px 22px; gap: 16px; }
-  .app { padding: 26px 22px 48px; }
+  .topbar { padding: 10px 20px; gap: 16px; }
+  .app { padding: 24px 22px 48px; }
   .footer { padding: 14px 22px; }
 }
 
-/* A navegação só cabe inteira na horizontal a partir daqui —
-   são 8 itens. Abaixo disso, o menu ☰ continua no comando. */
+/* A partir daqui o menu deixa de ser gaveta: vira coluna fixa e o
+   conteúdo se desloca para o lado. O fundo escurecido não aparece. */
 @media (min-width: 1100px) {
-  .nav-toggle { display: none; }
-  .topnav {
-    position: static;
-    display: flex;
-    flex-direction: row;
-    gap: 4px;
-    padding: 0;
-    margin-left: 4px;
-    background: none;
-    border: 0;
-    box-shadow: none;
-    overflow-x: auto;
-    scrollbar-width: none;
+  .sidebar {
+    position: sticky;
+    top: 49px;                       /* altura do topo */
+    height: calc(100dvh - 49px);
+    z-index: 10;
+    flex: 0 0 250px;
+    transform: none;
+    margin-left: -250px;
+    transition: margin-left .18s ease;
   }
-  .topnav a { min-height: 0; padding: 7px 12px; font-size: 14px; }
-  .user-chip .uemail { max-width: 200px; }
+  body.menu-aberto .sidebar { margin-left: 0; }
+  .sidebar-back { display: none; }
+}
+
+/* Em telas de toque, alvos menores que 40px são um problema real —
+   o visual compacto do desktop não vale a pena aqui. */
+@media (pointer: coarse) {
+  .sidebar a { min-height: var(--toque); }
+  .nav-toggle, .user-btn { width: var(--toque); height: var(--toque); }
 }
 
 /* ── Impressão ────────────────────────────────────────────── */
 @media print {
-  .topbar, .footer, .no-print, #toasts, .bell-wrap { display: none !important; }
+  .topbar, .footer, .sidebar, .sidebar-back, .no-print, #toasts, .bell-wrap { display: none !important; }
   .app { padding: 0; max-width: none; }
   body { background: #fff; }
 }
