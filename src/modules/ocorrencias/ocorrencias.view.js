@@ -12,9 +12,28 @@ import { esc, norm, val, falha } from '../../shared/dom.js';
 import { hojeISO, fmtData, addDias } from '../../shared/format.js';
 import { loading, emptyState, erroBox } from '../../shared/ui/feedback.js';
 import { drawerHtml, drawerHead, montarDrawer, abrirDrawer, fecharDrawer } from '../../shared/ui/drawer.js';
+import { criarFiltroSegmento, indexarUnidades } from '../../shared/ui/filtro-segmento.js';
 
-let perfil = null, unidades = [], lista = [];
+let perfil = null, unidades = [], lista = [], idxUnidades = {};
+let seg = null;
 let filtro = { de: addDias(hojeISO(), -30), ate: hojeISO(), unidadeId: '', status: '', q: '' };
+
+// Escolas do segmento selecionado — alimenta o seletor e o recorte da lista.
+const unidadesDoSegmento = () =>
+  [...unidades].filter(u => !seg || seg.combina(u)).sort((a, b) => a.nome.localeCompare(b.nome, 'pt'));
+
+function pintarSeletorEscolas() {
+  const sel = document.getElementById('oc-uni');
+  sel.innerHTML = `<option value="">Todas as escolas</option>` +
+    unidadesDoSegmento()
+      .map(u => `<option value="${esc(u.id || u.numero)}">${esc(u.nome)}</option>`).join('');
+  // A escola escolhida pode ter saído do recorte: reseta em vez de
+  // manter um filtro invisível que "some" com os resultados.
+  if (filtro.unidadeId && !sel.querySelector(`option[value="${CSS.escape(filtro.unidadeId)}"]`)) {
+    filtro.unidadeId = '';
+  }
+  sel.value = filtro.unidadeId;
+}
 
 export async function render(app, ctx = {}) {
   perfil = ctx.perfil || null;
@@ -30,6 +49,7 @@ export async function render(app, ctx = {}) {
       </label>
       <button id="oc-novo" class="btn-primary" hidden>+ Nova ocorrência</button>
     </div>
+    <div id="oc-seg" class="toolbar-linha"></div>
     <div class="toolbar subfiltros">
       <label class="search compacta">De <input id="oc-de" type="date" value="${filtro.de}" /></label>
       <label class="search compacta">Até <input id="oc-ate" type="date" value="${filtro.ate}" /></label>
@@ -48,9 +68,12 @@ export async function render(app, ctx = {}) {
   try { unidades = await getUnidades(); }
   catch (err) { document.getElementById('oc-lista').innerHTML = erroBox(err); return; }
 
-  document.getElementById('oc-uni').innerHTML = `<option value="">Todas as escolas</option>` +
-    [...unidades].sort((a, b) => a.nome.localeCompare(b.nome, 'pt'))
-      .map(u => `<option value="${esc(u.id || u.numero)}">${esc(u.apelido || u.nome)}</option>`).join('');
+  idxUnidades = indexarUnidades(unidades);
+  seg = criarFiltroSegmento(document.getElementById('oc-seg'), {
+    perfil, chaveMemoria: 'fundhub:seg:ocorrencias',
+    onChange: () => { pintarSeletorEscolas(); carregar(); },
+  });
+  pintarSeletorEscolas();
 
   document.getElementById('oc-q').addEventListener('input', e => { filtro.q = e.target.value; pintar(); });
   document.getElementById('oc-de').addEventListener('change', e => { filtro.de = e.target.value; carregar(); });
@@ -87,6 +110,11 @@ async function carregar() {
 }
 
 function combina(o) {
+  // Recorte por segmento. Ocorrência sem escola vinculada continua
+  // aparecendo: o registro existe e sumir dele seria pior do que
+  // mostrá-lo fora do recorte.
+  if (seg && seg.selecionados().length && o.unidade_id
+      && !seg.combina(idxUnidades[o.unidade_id])) return false;
   if (!filtro.q) return true;
   const alvo = norm([
     o.assunto, o.relato, o.solicitante, o.solicitante_contato,

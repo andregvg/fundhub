@@ -12,9 +12,28 @@ import { esc, norm, val, falha } from '../../shared/dom.js';
 import { hojeISO, fmtData, addDias } from '../../shared/format.js';
 import { loading, emptyState, erroBox } from '../../shared/ui/feedback.js';
 import { drawerHtml, drawerHead, montarDrawer, abrirDrawer, fecharDrawer } from '../../shared/ui/drawer.js';
+import { criarFiltroSegmento, indexarUnidades } from '../../shared/ui/filtro-segmento.js';
 
-let perfil = null, unidades = [], lista = [];
+let perfil = null, unidades = [], lista = [], idxUnidades = {};
+let seg = null;
 let filtro = { de: addDias(hojeISO(), -90), ate: hojeISO(), unidadeId: '', status: '', q: '' };
+
+// Escolas do segmento selecionado — alimenta o seletor e o recorte da lista.
+const unidadesDoSegmento = () =>
+  [...unidades].filter(u => !seg || seg.combina(u)).sort((a, b) => a.nome.localeCompare(b.nome, 'pt'));
+
+function pintarSeletorEscolas() {
+  const sel = document.getElementById('vi-uni');
+  sel.innerHTML = `<option value="">Todas as escolas</option>` +
+    unidadesDoSegmento()
+      .map(u => `<option value="${esc(u.id || u.numero)}">${esc(u.nome)}</option>`).join('');
+  // A escola escolhida pode ter saído do recorte: reseta em vez de
+  // manter um filtro invisível que "some" com os resultados.
+  if (filtro.unidadeId && !sel.querySelector(`option[value="${CSS.escape(filtro.unidadeId)}"]`)) {
+    filtro.unidadeId = '';
+  }
+  sel.value = filtro.unidadeId;
+}
 
 export async function render(app, ctx = {}) {
   perfil = ctx.perfil || null;
@@ -30,6 +49,7 @@ export async function render(app, ctx = {}) {
       </label>
       <button id="vi-novo" class="btn-primary" hidden>+ Novo relatório</button>
     </div>
+    <div id="vi-seg" class="toolbar-linha"></div>
     <div class="toolbar subfiltros">
       <label class="search compacta">De <input id="vi-de" type="date" value="${filtro.de}" /></label>
       <label class="search compacta">Até <input id="vi-ate" type="date" value="${filtro.ate}" /></label>
@@ -48,9 +68,12 @@ export async function render(app, ctx = {}) {
   try { unidades = await getUnidades(); }
   catch (err) { document.getElementById('vi-lista').innerHTML = erroBox(err); return; }
 
-  document.getElementById('vi-uni').innerHTML = `<option value="">Todas as escolas</option>` +
-    [...unidades].sort((a, b) => a.nome.localeCompare(b.nome, 'pt'))
-      .map(u => `<option value="${esc(u.id || u.numero)}">${esc(u.apelido || u.nome)}</option>`).join('');
+  idxUnidades = indexarUnidades(unidades);
+  seg = criarFiltroSegmento(document.getElementById('vi-seg'), {
+    perfil, chaveMemoria: 'fundhub:seg:visitas',
+    onChange: () => { pintarSeletorEscolas(); carregar(); },
+  });
+  pintarSeletorEscolas();
 
   document.getElementById('vi-q').addEventListener('input', e => { filtro.q = e.target.value; pintar(); });
   document.getElementById('vi-de').addEventListener('change', e => { filtro.de = e.target.value; carregar(); });
@@ -86,6 +109,9 @@ async function carregar() {
 }
 
 function combina(v) {
+  // Recorte por segmento: a visita entra se a escola dela pertence ao
+  // segmento marcado. Sem segmento marcado, tudo passa.
+  if (seg && seg.selecionados().length && !seg.combina(idxUnidades[v.unidade_id])) return false;
   if (!filtro.q) return true;
   return norm([v.unidade?.nome, v.unidade?.apelido, v.responsavel, v.pauta, v.constatacoes, v.encaminhamentos].join(' '))
     .includes(norm(filtro.q));

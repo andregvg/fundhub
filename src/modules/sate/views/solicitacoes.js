@@ -10,17 +10,20 @@ import {
 import { esc } from '../../../shared/dom.js';
 import { fmtData } from '../../../shared/format.js';
 import { loading, emptyState, erroBox } from '../../../shared/ui/feedback.js';
+import { criarFiltroSegmento, indexarUnidades } from '../../../shared/ui/filtro-segmento.js';
 
 const FILTROS = ['', 'solicitado', 'em_analise', 'confirmado', 'negado'];
 
 let filtroStatus = '';
 let lista = [];
 let ctx = null;
+let seg = null, idxUnidades = {};
 
 export async function render(contexto) {
   ctx = contexto;
   const box = ctx.box();
   box.innerHTML = `
+    <div id="st-seg" class="toolbar-linha"></div>
     <div class="filters" id="st-filtros">
       ${FILTROS.map(s => `<button class="chip ${s === filtroStatus ? 'on' : ''}" data-st="${s}">${s ? STATUS[s] : 'Todas'}</button>`).join('')}
     </div>
@@ -33,14 +36,37 @@ export async function render(contexto) {
   });
 
   const el = document.getElementById('st-lista');
+  // As unidades já vêm da casca do SATE (sate.view.js) — não vale uma
+  // segunda ida ao banco só para saber o segmento de cada escola.
+  idxUnidades = indexarUnidades(ctx.unidades || []);
   try { lista = await listSolicitacoes(filtroStatus ? { status: filtroStatus } : {}); }
   catch (err) { el.innerHTML = erroBox(err); return; }
+
+  // `render` remonta a aba inteira a cada troca de filtro, então o
+  // componente é recriado — a memória de sessão preserva a escolha.
+  seg = criarFiltroSegmento(document.getElementById('st-seg'), {
+    perfil: ctx.perfil, chaveMemoria: 'fundhub:seg:sate', onChange: pintar,
+  });
+
+  pintar();
+}
+
+function noSegmento(s) {
+  if (!seg || !seg.selecionados().length) return true;
+  return !s.unidade_id || seg.combina(idxUnidades[s.unidade_id]);
+}
+
+function pintar() {
+  const el = document.getElementById('st-lista');
+  if (!el) return;
+  const vis = lista.filter(noSegmento);
 
   if (!lista.length) {
     el.innerHTML = emptyState('📭', 'Nenhuma solicitação', 'Crie uma na aba “Nova solicitação”.');
     return;
   }
-  el.innerHTML = lista.map(item).join('');
+  el.innerHTML = vis.map(item).join('')
+    || emptyState('🔎', 'Nenhuma solicitação neste segmento', 'Ajuste o filtro de segmento acima.');
   el.querySelectorAll('[data-acao]').forEach(b =>
     b.addEventListener('click', () => mudarStatus(b.dataset.id, b.dataset.acao)));
 }

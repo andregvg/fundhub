@@ -17,8 +17,10 @@ import { esc, norm, falha, ok } from '../../shared/dom.js';
 import { MESES, DOW, hojeISO, fmtData } from '../../shared/format.js';
 import { loading, emptyState, erroBox } from '../../shared/ui/feedback.js';
 import { drawerHtml, drawerHead, montarDrawer, abrirDrawer, fecharDrawer } from '../../shared/ui/drawer.js';
+import { criarFiltroSegmento, indexarUnidades } from '../../shared/ui/filtro-segmento.js';
 
 let perfil = null, servidores = [], unidades = [], lista = [];
+let seg = null, idxUnidades = {};
 let diasCal = {};                                // dia_calendario do mês visível
 let modo = 'lista';                              // 'lista' | 'calendario'
 // visao: vigentes | todos | importados | cancelados
@@ -46,6 +48,7 @@ export async function render(app, ctx = {}) {
       <button id="af-sync" class="mini-btn" hidden>⭱ Sincronizar planilha</button>
       <button id="af-novo" class="btn-primary" hidden>+ Novo afastamento</button>
     </div>
+    <div id="af-seg" class="toolbar-linha"></div>
     <div class="filters" id="af-filtros"></div>
     <div id="af-body">${loading()}</div>
     ${drawerHtml()}`;
@@ -56,6 +59,11 @@ export async function render(app, ctx = {}) {
     getServidores().catch(() => []),
     getUnidades().catch(() => []),
   ]);
+
+  idxUnidades = indexarUnidades(unidades);
+  seg = criarFiltroSegmento(document.getElementById('af-seg'), {
+    perfil, onChange: pintar, chaveMemoria: 'fundhub:seg:afastamentos',
+  });
 
   document.getElementById('af-modo').addEventListener('click', e => {
     const b = e.target.closest('.tab'); if (!b) return;
@@ -168,6 +176,11 @@ async function carregar() {
 
 function combinaBusca(a) {
   if (filtro.tipo && a.tipo !== filtro.tipo) return false;
+  // Recorte por segmento, pela escola do afastamento. Quem não tem
+  // escola (servidor da sede) permanece visível — é justamente a
+  // equipe da SME, que não deve sumir por causa de um filtro de rede.
+  if (seg && seg.selecionados().length && a.unidade_id
+      && !seg.combina(idxUnidades[a.unidade_id])) return false;
   if (!filtro.q) return true;
   return norm([a.servidor?.nome, a.servidor?.apelido, a.unidade?.nome, a.unidade?.apelido, a.processo]
     .join(' ')).includes(norm(filtro.q));
@@ -441,7 +454,7 @@ function abrirSync() {
         criado_por, atualizado_por</code>.
         A sincronização é <b>idempotente</b> — colar o mesmo trecho de novo
         <b>atualiza</b> os registros, nunca duplica.
-        Gestores que não estiverem cadastrados em <a href="#/gestores">Gestores</a>
+        Gestores que não estiverem cadastrados em <a href="#/servidores">Servidores</a>
         são <b>ignorados e listados</b> no fim.
       </p>
       <form id="sync-form" class="esc-form">
@@ -555,7 +568,7 @@ function relatorioSync(n, invalidas, semServidor) {
       <div class="field">
         <div class="lbl">Gestores não cadastrados (ignorados)</div>
         <div class="val">
-          <p class="form-hint">Cadastre em <a href="#/gestores">Gestores &amp; Coordenadores</a> e sincronize de novo — os registros entram sem duplicar.</p>
+          <p class="form-hint">Cadastre em <a href="#/servidores">Servidores</a> e sincronize de novo — os registros entram sem duplicar.</p>
           <ul class="af-faltantes">${faltantes.map(f => `<li>${esc(f)}</li>`).join('')}</ul>
         </div>
       </div>` : ''}`;

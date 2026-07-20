@@ -13,9 +13,11 @@ import { esc, norm, val, checked, falha } from '../../shared/dom.js';
 import { fmtData } from '../../shared/format.js';
 import { loading, emptyState, erroBox } from '../../shared/ui/feedback.js';
 import { drawerHtml, drawerHead, montarDrawer, abrirDrawer, fecharDrawer } from '../../shared/ui/drawer.js';
+import { criarFiltroSegmento } from '../../shared/ui/filtro-segmento.js';
 
 let perfil = null, unidades = [], lista = [];
 let filtro = { status: '', tipo: '', q: '' };
+let seg = null;
 
 export async function render(app, ctx = {}) {
   perfil = ctx.perfil || null;
@@ -42,6 +44,7 @@ export async function render(app, ctx = {}) {
       </select></label>
       <span class="count" id="pj-count"></span>
     </div>
+    <div id="pj-seg" class="toolbar-linha"></div>
     <div class="cards" id="pj-cards">${loading()}</div>
     ${drawerHtml()}`;
 
@@ -49,6 +52,10 @@ export async function render(app, ctx = {}) {
 
   try { unidades = await getUnidades().catch(() => []); }
   catch (_) { unidades = []; }
+
+  seg = criarFiltroSegmento(document.getElementById('pj-seg'), {
+    perfil, onChange: pintar, chaveMemoria: 'fundhub:seg:projetos',
+  });
 
   document.getElementById('pj-q').addEventListener('input', e => { filtro.q = e.target.value; pintar(); });
   document.getElementById('pj-status').addEventListener('change', e => { filtro.status = e.target.value; carregar(); });
@@ -174,8 +181,14 @@ async function pintarInteresses(p) {
 
 function formInteresse(p) {
   // O par (projeto, escola) é unique no banco — não precisa filtrar aqui.
-  const opts = [...unidades].sort((a, b) => a.nome.localeCompare(b.nome, 'pt'))
-    .map(u => `<option value="${esc(u.id || u.numero)}">${esc(u.apelido || u.nome)}</option>`).join('');
+  //
+  // O recorte por segmento entra no SELETOR, não na lista de projetos:
+  // um projeto sem interesse registrado ainda não tem escola, e filtrá-lo
+  // por segmento o faria desaparecer justamente de quem deveria ofertá-lo.
+  const opts = [...unidades]
+    .filter(u => !seg || seg.combina(u))
+    .sort((a, b) => a.nome.localeCompare(b.nome, 'pt'))
+    .map(u => `<option value="${esc(u.id || u.numero)}">${esc(u.nome)}</option>`).join('');
 
   abrirDrawer(`
     ${drawerHead('Registrar interesse', esc(p.titulo))}
