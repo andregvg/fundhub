@@ -54,6 +54,8 @@ a.tile:hover {
 }
 .badge.ativo { background: color-mix(in srgb, var(--ok) 18%, transparent); color: var(--ok); }
 .badge.breve { background: var(--surface-2); color: var(--muted); }
+/* Nível de acesso no tile (Próprios / Leitura), quando não é escrita. */
+.badge.nivel { background: var(--surface-3); color: var(--muted); }
 .badge.admin {
   right: auto;
   left: 12px;
@@ -67,8 +69,11 @@ a.tile:hover {
   gap: 10px;
   align-items: center;
   flex-wrap: wrap;
-  margin-bottom: 16px;
+  margin-bottom: 10px;
 }
+/* Linhas extras de filtro abaixo da busca (segmento, flags). */
+.toolbar-linha { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+.toolbar-linha:last-of-type { margin-bottom: 16px; }
 .search {
   flex: 1 1 100%;
   display: flex;
@@ -108,52 +113,95 @@ a.tile:hover {
 .texto-resumo { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
 .texto-completo { white-space: pre-wrap; }
 .chip {
-  min-height: 34px;
-  padding: 7px 12px;
+  min-height: var(--controle);
+  padding: 4px 11px;
   border-radius: 999px;
   border: 1px solid var(--border);
   background: var(--surface);
   color: var(--muted);
   font-size: 12.5px;
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
 }
+.chip:hover { background: var(--surface-2); border-color: var(--border-forte); }
 .chip.on {
-  background: color-mix(in srgb, var(--brand) 14%, transparent);
+  background: color-mix(in srgb, var(--brand) 12%, transparent);
   color: var(--brand);
   border-color: color-mix(in srgb, var(--brand) 40%, var(--border));
+  font-weight: 600;
 }
 
-/* ── Botões ───────────────────────────────────────────────── */
-.btn-primary {
-  min-height: var(--toque);
-  padding: 9px 15px;
-  border: 0;
-  border-radius: 10px;
+/* Meus dados: conta e acesso lado a lado quando há espaço. */
+.md-grid { display: grid; gap: 14px; grid-template-columns: 1fr; }
+@media (min-width: 900px) { .md-grid { grid-template-columns: 1fr 1fr; } }
+
+/* Filtro por segmento: atalhos à esquerda, segmentos-base à direita,
+   separados por um traço fino para a diferença ficar óbvia. */
+.fseg { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.fseg .atalho { font-weight: 600; }
+.fseg-sep { width: 1px; height: 20px; background: var(--border); margin: 0 2px; }
+.fseg .limpar { color: var(--muted); border-style: dashed; }
+
+/* ── Botões ───────────────────────────────────────────────────
+   Padrão discreto, no espírito do GitHub: altura de 32px, borda de
+   1px, raio de 6px e peso 500. A hierarquia se faz pela COR de
+   fundo (só o primário é preenchido), não pelo tamanho — botão
+   grande demais rouba a atenção do conteúdo, que é o que importa
+   numa tela de cadastro.
+
+   `.btn-secundario` é o botão neutro; `.mini-btn` é a variante
+   menor usada dentro de gavetas e listas. */
+.btn-primary,
+.btn-secundario,
+.mini-btn,
+.form-foot button[type="submit"] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: var(--controle);
+  padding: 5px 12px;
+  border-radius: var(--radius-btn);
+  font-size: 13.5px;
+  font-weight: 500;
+  line-height: 20px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color .12s, border-color .12s;
+}
+
+.btn-primary,
+.form-foot button[type="submit"] {
+  border: 1px solid transparent;
   background: var(--brand);
   color: #fff;
-  font-weight: 700;
-  font-size: 14px;
-  white-space: nowrap;
-  cursor: pointer;
+  box-shadow: var(--shadow-btn);
 }
-.btn-primary:hover { filter: brightness(1.06); }
+.btn-primary:hover,
+.form-foot button[type="submit"]:hover { filter: brightness(1.08); }
+.btn-primary:disabled,
+.form-foot button[type="submit"]:disabled { opacity: .6; cursor: default; filter: none; }
 
+.btn-secundario,
 .mini-btn {
-  min-height: 34px;
-  padding: 6px 11px;
   border: 1px solid var(--border);
-  border-radius: 8px;
   background: var(--surface-2);
   color: var(--text);
-  font-size: 12.5px;
-  font-weight: 600;
-  white-space: nowrap;
-  cursor: pointer;
+  box-shadow: var(--shadow-btn);
 }
-.mini-btn:hover { border-color: color-mix(in srgb, var(--brand) 45%, var(--border)); }
+.btn-secundario:hover,
+.mini-btn:hover { background: var(--surface-3); border-color: var(--border-forte); }
+
+.mini-btn { min-height: 28px; padding: 3px 10px; font-size: 12.5px; }
 .mini-btn.ok:hover { border-color: var(--ok); color: var(--ok); }
 .mini-btn.no:hover { border-color: var(--danger); color: var(--danger); }
+
+/* Toque: o compacto do desktop não vale numa tela de celular. */
+@media (pointer: coarse) {
+  .btn-primary, .btn-secundario, .chip,
+  .form-foot button[type="submit"] { min-height: var(--toque); padding-inline: 14px; }
+  .mini-btn { min-height: 34px; }
+}
 
 /* ── Cards ────────────────────────────────────────────────── */
 .cards { display: grid; gap: 12px; grid-template-columns: 1fr; }
@@ -178,6 +226,12 @@ a.tile:hover {
   color: var(--brand);
   background: color-mix(in srgb, var(--brand) 12%, transparent);
 }
+/* Nomes de escola e de servidor vão em caixa alta — é como constam
+   nos sistemas oficiais (SAE, folha) e como são conferidos. O
+   apelido, logo abaixo, fica em caixa normal de propósito: serve
+   justamente para dar o contraponto legível. */
+.card h3.nome-oficial { text-transform: uppercase; font-size: 14.5px; letter-spacing: .01em; }
+.card .apelido { margin-top: 3px; color: var(--muted); font-size: 12.5px; }
 .card .addr { margin: 8px 0 10px; color: var(--muted); font-size: 13px; }
 .card .tags { display: flex; gap: 6px; flex-wrap: wrap; }
 
@@ -282,9 +336,9 @@ a.tile:hover {
 .form-grid input, .form-grid select, .form-grid textarea,
 .esc-form input, .esc-form select, .esc-form textarea,
 .fr-of input {
-  padding: 10px 12px;
+  padding: 7px 10px;
   border: 1px solid var(--border);
-  border-radius: 9px;
+  border-radius: var(--radius-btn);
   background: var(--surface-2);
   color: var(--text);
   font-size: 16px;   /* idem: 16px evita o zoom do iOS */
@@ -388,6 +442,14 @@ input[type="checkbox"] { width: 18px; height: 18px; }
   color: var(--danger);
   font-size: 13px;
 }
+/* Variante neutra: "acesso pendente" não é erro do usuário. */
+.auth-alert.info {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  line-height: 1.6;
+}
+.auth-card .btn-secundario { width: 100%; margin-top: 16px; }
 .btn-google {
   width: 100%;
   min-height: 46px;
@@ -422,7 +484,7 @@ input[type="checkbox"] { width: 18px; height: 18px; }
 .drawer-back {
   position: fixed;
   inset: 0;
-  z-index: 40;
+  z-index: 75;
   background: rgba(10, 15, 30, .5);
   opacity: 0;
   pointer-events: none;
@@ -434,9 +496,12 @@ input[type="checkbox"] { width: 18px; height: 18px; }
   position: fixed;
   top: 0;
   right: 0;
-  z-index: 50;
+  z-index: 80;
   height: 100dvh;              /* dvh: descontar a barra do navegador móvel */
-  width: min(480px, 100%);
+  /* 480px era estreito demais no desktop: a linha de telefone tem
+     tipo + número + rótulo + principal + remover e ficava espremida,
+     e formulários longos viravam uma rolagem sem fim. */
+  width: min(560px, 100%);
   overflow-y: auto;
   background: var(--surface);
   border-left: 1px solid var(--border);
@@ -457,6 +522,7 @@ input[type="checkbox"] { width: 18px; height: 18px; }
   border-bottom: 1px solid var(--border);
 }
 .drawer-head h2 { margin: 0 0 2px; font-size: 18px; letter-spacing: -.01em; }
+.drawer-head h2 .nome-oficial { text-transform: uppercase; font-size: 16.5px; }
 .drawer-head small { color: var(--muted); }
 .drawer-close {
   flex: 0 0 auto;
@@ -470,6 +536,22 @@ input[type="checkbox"] { width: 18px; height: 18px; }
   cursor: pointer;
 }
 .drawer-body { padding: 18px 18px 40px; }
+
+/* ── Agrupamentos semânticos de formulário ────────────────────
+   Só visual: quebram um formulário longo (a edição de escola tem
+   16 campos) em blocos que se leem de relance. Não mudam o payload
+   nem a validação. */
+.form-grupo { border: 0; margin: 0 0 20px; padding: 0; }
+.form-grupo > legend {
+  padding: 0 0 8px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+.form-grupo + .form-grupo { border-top: 1px solid var(--border); padding-top: 16px; }
+.form-grupo .campos { display: flex; flex-direction: column; gap: 13px; }
 
 .field { margin-bottom: 14px; }
 .field .lbl { margin-bottom: 3px; color: var(--muted); font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
@@ -508,5 +590,21 @@ hr.sep { margin: 20px 0; border: 0; border-top: 1px solid var(--border); }
   .form-foot { flex-direction: row; justify-content: space-between; align-items: center; }
   .search { flex: 1 1 240px; }
   .solic { flex-direction: row; justify-content: space-between; align-items: center; }
-  .phone-row { grid-template-columns: 120px 1fr 1fr auto auto; align-items: center; }
+  /* Tipo · número · rótulo · principal · remover, tudo numa linha.
+     O número recebe uma largura mínima própria porque um celular
+     formatado — (16) 99999-9999 — tem 15 caracteres e era o campo
+     que quebrava primeiro. */
+  .phone-row {
+    grid-template-columns: 104px minmax(148px, 1fr) minmax(120px, 1fr) auto auto;
+    align-items: center;
+    gap: 8px;
+  }
+}
+
+/* Em telas largas a gaveta ganha mais espaço: os formulários de
+   escola e de servidor são longos e cheios de campos curtos. */
+@media (min-width: 1280px) {
+  .drawer { width: min(680px, 100%); }
+  .form-grupo .campos.duas { display: grid; grid-template-columns: 1fr 1fr; gap: 13px 18px; }
+  .form-grupo .campos.duas .col-2 { grid-column: 1 / -1; }
 }

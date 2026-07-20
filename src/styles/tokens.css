@@ -2,22 +2,33 @@
    FundHub — tokens.css
    Cores, sombras e raios. NENHUM módulo escreve cor fixa: tudo sai
    daqui, para o tema escuro sair de graça.
+
+   Sobre os botões: o padrão é o do GitHub — discreto, compacto,
+   borda sutil e raio pequeno. Antes eram grandes e arredondados
+   (pensados no toque); o alvo de 40px do celular continua garantido
+   por @media (pointer: coarse), sem impor o tamanho ao desktop.
    ============================================================ */
 :root {
   --bg: #f4f6fb;
   --surface: #ffffff;
-  --surface-2: #f0f3fa;
-  --border: #e2e7f0;
-  --text: #1a2233;
-  --muted: #64708a;
+  --surface-2: #f6f8fa;
+  --surface-3: #eef1f5;
+  --border: #d8dee4;
+  --border-forte: #afb8c1;
+  --text: #1f2328;
+  --muted: #656d76;
   --brand: #1d4ed8;
   --brand-2: #0ea5a4;
   --accent: #f59e0b;
-  --danger: #dc2626;
-  --ok: #16a34a;
+  --danger: #cf222e;
+  --ok: #1a7f37;
   --shadow: 0 1px 3px rgba(20, 30, 60, .08), 0 6px 20px rgba(20, 30, 60, .06);
-  --radius: 14px;
+  --shadow-btn: 0 1px 0 rgba(31, 35, 40, .04);
+  --radius: 12px;
+  --radius-btn: 6px;
 
+  /* Altura padrão de controle (botões, inputs) no desktop. */
+  --controle: 32px;
   /* Alvo mínimo de toque — mobile-first não é só largura. */
   --toque: 40px;
 }
@@ -27,11 +38,16 @@
     --bg: #0c1120;
     --surface: #141b2e;
     --surface-2: #1b2338;
-    --border: #26304a;
+    --surface-3: #232c45;
+    --border: #30363d;
+    --border-forte: #4b5563;
     --text: #e8ecf6;
     --muted: #93a0bd;
     --brand: #5b8cff;
     --brand-2: #2dd4bf;
+    --danger: #f85149;
+    --ok: #3fb950;
     --shadow: 0 1px 3px rgba(0, 0, 0, .4), 0 8px 24px rgba(0, 0, 0, .35);
+    --shadow-btn: 0 1px 0 rgba(0, 0, 0, .2);
   }
 }
