@@ -6,6 +6,7 @@ export default {
   desc: 'Acompanhamento em tempo real.',
   navNome: 'Dashboard',
   rota: '#/dashboard',
+  grupo: 'principal',   // é a tela inicial: fica acima das seções
   nav: true,
   ativo: true,
   load: () => import('./dashboard.view.js'),

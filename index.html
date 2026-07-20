@@ -12,7 +12,8 @@
 </head>
 <body>
   <header class="topbar anon">
-    <button class="nav-toggle" id="nav-toggle" type="button" aria-label="Menu" aria-expanded="false" aria-controls="topnav">☰</button>
+    <button class="nav-toggle" id="nav-toggle" type="button" aria-label="Menu"
+            aria-expanded="false" aria-controls="sidebar">☰</button>
 
     <a class="brand" href="#/">
       <span class="brand-mark" aria-hidden="true">🏫</span>
@@ -22,19 +23,25 @@
       </span>
     </a>
 
-    <!-- Montada por shell/chrome.js a partir do registro de módulos. -->
-    <nav class="topnav" id="topnav" aria-label="Navegação principal"></nav>
-
     <!-- Sino (serviço de notificações) e menu de usuário são inseridos aqui. -->
     <div class="topbar-right"></div>
   </header>
 
-  <main id="app" class="app"><div class="loading">Carregando…</div></main>
+  <!-- Menu lateral: montado por shell/chrome.js a partir do registro de
+       módulos, agrupado por seção e filtrado pelas permissões. -->
+  <div class="layout">
+    <nav class="sidebar" id="sidebar" aria-label="Navegação principal"></nav>
+    <div class="sidebar-back" id="sidebar-back" hidden></div>
 
-  <footer class="footer">
-    <span>FundHub · Gerência de Ensino Fundamental · SME Ribeirão Preto</span>
-    <span id="build-info"></span>
-  </footer>
+    <div class="conteudo">
+      <main id="app" class="app"><div class="loading">Carregando…</div></main>
+
+      <footer class="footer">
+        <span>FundHub · Gerência de Ensino Fundamental · SME Ribeirão Preto</span>
+        <span id="build-info"></span>
+      </footer>
+    </div>
+  </div>
 
   <script type="module" src="src/main.js"></script>
 </body>
