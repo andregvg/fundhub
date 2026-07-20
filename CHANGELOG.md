@@ -9,6 +9,66 @@ versionamento **MINOR** = módulo novo ou mudança de modelo de dados, **PATCH**
 
 ---
 
+## [0.10.0] — 2026-07-19
+
+Onda de **autorização e navegação**. O hub deixa de distinguir apenas
+"admin / não-admin" e passa a ter permissões por módulo, com o mesmo mapa
+valendo na interface **e** no banco.
+Requer a migration **021** (no SQL Editor, depois da 020).
+
+### Adicionado
+- **Permissões por módulo** — mapa `módulo → nível` com quatro níveis:
+  `oculto`, `proprios`, `leitura`, `escrita`. O nível vem do **papel**
+  (preset em `papel_permissao`) e admite **exceção por pessoa**
+  (`perfil.permissoes`). Papéis novos: Equipe SME, Transporte,
+  Gestor(a) escolar — além de Administrador e Leitor. Um gestor escolar
+  não vê Afastamentos nem no menu nem pela API. *(migration 021)*
+- **Segmentos de atuação** — `perfil.segmentos`, com os básicos
+  EMEF, EJA, CEI, EMEI e Conveniadas e os atalhos **Ensino Fundamental**
+  (EMEF+EJA), **Educação Infantil** (CEI+EMEI+Conveniadas) e **Todas**.
+  O filtro de segmento já abre **pré-preenchido** com a atuação da pessoa
+  em Escolas, Servidores, Afastamentos, Visitas, Ocorrências, Horários,
+  Projetos e SATE. É conveniência, não restrição: dá para ampliar na tela.
+- **Menu lateral** agrupado (Módulos · Minha conta · Administração ·
+  Documentação), com botão ☰ e **memória** do estado aberto/fechado.
+  Os links do topo saíram — não cabiam mais.
+- **Meus dados** (`#/meus-dados`) — a pessoa edita o próprio nome de
+  exibição e, se o acesso estiver ligado a um cadastro de servidor,
+  os próprios contatos e telefones. Sem senha: o acesso continua por
+  link mágico ou conta Google.
+- **Todos os Módulos** (`#/modulos`) — a antiga home de tiles. A tela
+  inicial passou a ser a **Dashboard**.
+- **Vínculo `perfil` ↔ `servidor`** — um acesso aponta para o cadastro
+  funcional, evitando dado duplicado de quem é servidor e usuário.
+- **Tela de acesso pendente** — quem autentica com e-mail institucional
+  mas não está na allowlist agora recebe uma explicação, em vez de entrar
+  num app de listas vazias bloqueadas em silêncio pelo RLS.
+- **Máscara de telefone** com DDD, distinguindo fixo (8 dígitos) de
+  celular (9), com DDD 16 assumido para quem digita só o número local.
+
+### Alterado
+- **Gestores & Coordenadores → Servidores** (`#/gestores` → `#/servidores`,
+  com redirecionamento). O cadastro nunca foi só de gestão: agora cobre
+  lotação na **sede** (equipe de acompanhamento, agentes administrativos),
+  via `servidor.lotacao` e `servidor.cargo`. *(migration 021)*
+- **Cards de Escolas e Servidores** exibem o **nome completo em caixa
+  alta**, com o apelido abaixo — antes mostravam só o apelido.
+- **Formulários** de escola e de servidor ganharam agrupamentos
+  semânticos, e a gaveta ficou mais larga no desktop (560px, 680px em
+  telas grandes) — os telefones não cabiam.
+- **Servidores** ganhou RG, CPF e **código funcional** no formulário.
+- **Botões** redesenhados no padrão discreto do GitHub: 32px de altura,
+  borda de 1px, raio de 6px. O alvo de 40px do toque continua garantido
+  por `@media (pointer: coarse)`.
+
+### Corrigido
+- O aviso "e-mail fora do domínio institucional" existia em `auth.js`
+  mas **nunca era exibido** — `renderLogin` era chamado sem a flag.
+- Telefones cadastrados sem DDD (`3626-1805`) eram exibidos como
+  `(36) 2618-05`: a exibição passou a normalizar antes de formatar.
+
+---
+
 ## [0.9.0] — 2026-07-15
 
 Onda de **integridade de dados** e fechamento dos módulos de rotina.
