@@ -1,12 +1,13 @@
 // ============================================================
 // FundHub — servidores/views/lista.js  (busca, filtros e cards)
 // ============================================================
-import { ANO_LETIVO, rotulaPapel } from '../servidores.model.js';
+import { vinculosAbertos, cargoDe } from '../servidores.model.js';
+import { rotulaCargo } from '../vinculos.model.js';
 import { esc, norm } from '../../../shared/dom.js';
 import { emptyState } from '../../../shared/ui/feedback.js';
 
-// Vínculos ativos do ano corrente — é o que a tela mostra por padrão.
-const vinculosVigentes = (s) => s.vinculos.filter(v => v.ativo && v.ano === ANO_LETIVO);
+// Vínculos abertos — é o que a tela mostra por padrão.
+const vinculosVigentes = vinculosAbertos;
 
 function combina(s, ctx) {
   const { filtro, seg, idxUnidades } = ctx;
@@ -25,9 +26,9 @@ function combina(s, ctx) {
 
   if (filtro.q) {
     const alvo = norm([
-      s.nome, s.apelido, s.email, s.cargo, s.codigo_funcional,
+      s.nome, s.apelido, s.email, cargoDe(s), s.codigo_funcional,
       ...(s.telefones || []).map(t => t.numero),
-      ...vig.map(v => `${v.unidade?.nome} ${v.unidade?.apelido} ${rotulaPapel(v.papel)}`),
+      ...vig.map(v => `${v.unidade?.nome} ${v.unidade?.apelido} ${rotulaCargo(v.papel)}`),
     ].join(' '));
     if (!alvo.includes(norm(filtro.q))) return false;
   }
@@ -54,15 +55,15 @@ function card(s) {
   const daSede = (s.lotacao || 'escola') === 'sede';
   const vig = vinculosVigentes(s);
   const papeis = [...new Set(vig.map(v => v.papel))]
-    .map(p => `<span class="seg">${esc(rotulaPapel(p))}</span>`).join('');
+    .map(p => `<span class="seg">${esc(rotulaCargo(p))}</span>`).join('');
 
   // Quem é da sede não tem vínculo com escola: mostrar "sem vínculo"
   // seria um falso alerta. O que identifica essa pessoa é o cargo.
   const lugares = daSede
-    ? `<span class="tag">🏛 ${esc(s.cargo || 'Sede da SME')}</span>`
+    ? `<span class="tag">🏛 ${esc(cargoDe(s) || 'Sede da SME')}</span>`
     : vig.length
       ? vig.map(v => `<span class="tag">${esc(v.unidade?.apelido || v.unidade?.nome || '—')}</span>`).join('')
-      : `<span class="tag eja">⚠️ Sem vínculo em ${ANO_LETIVO}</span>`;
+      : `<span class="tag eja">⚠️ Sem vínculo</span>`;
 
   // Nome completo em caixa alta (como nos sistemas oficiais); o
   // apelido logo abaixo, em caixa normal — não precisa de destaque.

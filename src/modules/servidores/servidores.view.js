@@ -9,9 +9,8 @@
 // os vínculos) e os formulários vivem em views/ — é lá que a escola de
 // fato entra na história da pessoa.
 // ============================================================
-import { PAPEIS, LOTACOES, ANO_LETIVO, rotulaPapel, getServidores } from './servidores.model.js';
+import { getServidores } from './servidores.model.js';
 import { getUnidades } from '../escolas/escolas.model.js';
-import { esc } from '../../shared/dom.js';
 import { loading, erroBox } from '../../shared/ui/feedback.js';
 import { drawerHtml, montarDrawer } from '../../shared/ui/drawer.js';
 import { criarFiltroSegmento, indexarUnidades } from '../../shared/ui/filtro-segmento.js';
@@ -31,7 +30,7 @@ export async function render(app, ctx = {}) {
   app.innerHTML = `
     <div class="page-head">
       <h1>Servidores</h1>
-      <p>Cadastro funcional, lotações e vínculos com as escolas — ano letivo ${ANO_LETIVO}.</p>
+      <p>Cadastro funcional, lotações e vínculos com as escolas.</p>
     </div>
     <div class="toolbar">
       <label class="search">🔎
@@ -43,9 +42,6 @@ export async function render(app, ctx = {}) {
     <div id="sv-seg" class="toolbar-linha"></div>
     <div class="toolbar-linha">
       <div class="filters" id="sv-filtros">
-        ${PAPEIS.map(p => `<button class="chip" data-papel="${p}">${esc(rotulaPapel(p))}</button>`).join('')}
-        <span class="fseg-sep" aria-hidden="true"></span>
-        ${LOTACOES.map(([v, r]) => `<button class="chip" data-lotacao="${v}">${esc(r)}</button>`).join('')}
         <button class="chip" data-flag="sem">⚠️ Sem vínculo</button>
       </div>
     </div>

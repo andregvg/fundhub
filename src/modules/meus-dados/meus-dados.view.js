@@ -17,7 +17,8 @@
 // link mágico ou conta Google.
 // ============================================================
 import { getMeuPerfil, salvarMeuNome } from '../usuarios/usuarios.model.js';
-import { atualizarServidor, rotulaLotacao, rotulaPapel, ANO_LETIVO } from '../servidores/servidores.model.js';
+import { atualizarServidor, lotacaoDe, cargoDe, vinculosAbertos } from '../servidores/servidores.model.js';
+import { rotulaCargo } from '../servidores/vinculos.model.js';
 import { sincronizarTelefones, getTelefonesMapas } from '../telefones/telefones.model.js';
 import { recarregarPerfil } from '../../core/perfil.js';
 import { mapaAtual, rotulaNivel, OCULTO } from '../../core/permissoes.js';
@@ -129,7 +130,7 @@ function blocoSemServidor() {
 
 function blocoServidor() {
   const s = servidor;
-  const vinculos = (s.vinculos || []).filter(v => v.ativo && v.ano === ANO_LETIVO);
+  const vinculos = vinculosAbertos(s);
   return `
     <section class="panel" style="margin-top:16px">
       <h2 class="secao-tit">Cadastro funcional</h2>
@@ -140,8 +141,8 @@ function blocoServidor() {
           <div class="campos duas">
             <label>Nome completo <input value="${esc(s.nome || '')}" readonly /></label>
             <label>Código funcional <input value="${esc(s.codigo_funcional || '')}" readonly /></label>
-            <label>Lotação <input value="${esc(rotulaLotacao(s.lotacao))}" readonly /></label>
-            <label>Cargo / função <input value="${esc(s.cargo || '')}" readonly /></label>
+            <label>Lotação <input value="${esc(lotacaoDe(s))}" readonly /></label>
+            <label>Cargo / função <input value="${esc(cargoDe(s))}" readonly /></label>
             <label>Ingresso na rede <input value="${esc(s.inicio_rede ? fmtData(s.inicio_rede) : '')}" readonly /></label>
           </div>
           <small class="form-hint">Nome, documentos e lotação constam da folha —
@@ -161,9 +162,9 @@ function blocoServidor() {
 
         ${vinculos.length ? `
         <fieldset class="form-grupo">
-          <legend>Lotações vigentes em ${ANO_LETIVO}</legend>
+          <legend>Lotações vigentes</legend>
           <div class="tags">
-            ${vinculos.map(v => `<span class="tag">${esc(v.unidade?.nome || '—')} · ${esc(rotulaPapel(v.papel))}</span>`).join('')}
+            ${vinculos.map(v => `<span class="tag">${esc(v.unidade?.nome || '—')} · ${esc(rotulaCargo(v.papel))}</span>`).join('')}
           </div>
         </fieldset>` : ''}
 

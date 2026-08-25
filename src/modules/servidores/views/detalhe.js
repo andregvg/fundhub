@@ -3,7 +3,9 @@
 // A gaveta é o centro do módulo: abre a pessoa e, dentro dela, os
 // vínculos com escolas — que é onde a escola de fato entra na história.
 // ============================================================
-import { PAPEIS, ANO_LETIVO, rotulaPapel, rotulaLotacao, criarVinculo, encerrarVinculo, excluirVinculo } from '../servidores.model.js';
+import { lotacaoDe, cargoDe } from '../servidores.model.js';
+import { rotulaCargo, criarVinculo, atualizarVinculo, excluirVinculo } from '../vinculos.model.js';
+import { getLocais } from '../../escolas/escolas.model.js';
 import { esc, falha } from '../../../shared/dom.js';
 import { hojeISO, fmtData } from '../../../shared/format.js';
 import { drawerHead, abrirDrawer } from '../../../shared/ui/drawer.js';
@@ -11,8 +13,10 @@ import { telefonesTexto } from '../../../shared/ui/phones.js';
 import { confirmar } from '../../../shared/ui/confirmar.js';
 import { toast } from '../../../shared/ui/toast.js';
 
-// `ctx`: { lista, unidades, podeEditar, recarregar, abrirFormServidor, removerServidor }
-// — ver servidores.view.js § ctxAtual().
+// `ctx`: { lista, podeEditar, recarregar, abrirFormServidor, removerServidor }
+// — ver servidores.view.js § ctxAtual(). Os locais do formulário de
+// vínculo vêm de getLocais() (escolas.model.js), não de ctx.unidades
+// (que aqui é só escola — ver escolas.model.js § getUnidades).
 export function detalhe(id, ctx) {
   const s = ctx.lista.find(x => x.id === id);
   if (!s) return;
@@ -28,7 +32,7 @@ export function detalhe(id, ctx) {
     ${drawerHead(`<span class="nome-oficial">${esc(s.nome)}</span>`, esc(s.apelido || ''))}
     <div class="drawer-body">
       ${acoes}
-      ${campo('Lotação', esc(rotulaLotacao(s.lotacao)) + (s.cargo ? ` · ${esc(s.cargo)}` : ''))}
+      ${campo('Lotação', esc(lotacaoDe(s)) + (cargoDe(s) ? ` · ${esc(cargoDe(s))}` : ''))}
       ${campo('E-mail', s.email ? `<a href="mailto:${esc(s.email)}">${esc(s.email)}</a>` : '')}
       ${campo('Telefones', (s.telefones || []).length ? telefonesTexto(s.telefones) : '')}
       ${campo('Código funcional', esc(s.codigo_funcional || ''))}
@@ -53,23 +57,23 @@ export function detalhe(id, ctx) {
 function listaVinculos(s, podeEditar) {
   if (!s.vinculos.length) return '<p class="count">Nenhum vínculo cadastrado.</p>';
 
-  // Vigentes primeiro; o histórico fica abaixo, apagado.
+  // Vigentes primeiro (sem fim); o histórico fica abaixo, apagado.
   const ordenados = [...s.vinculos].sort((a, b) =>
-    (b.ativo - a.ativo) || (b.ano - a.ano) || String(a.papel).localeCompare(b.papel));
+    (Number(!b.fim) - Number(!a.fim)) || String(a.papel).localeCompare(b.papel));
 
   return ordenados.map(v => {
-    const encerrado = !v.ativo || v.ano !== ANO_LETIVO;
+    const encerrado = !!v.fim;
     const periodo = [
       v.ingresso ? `desde ${fmtData(v.ingresso)}` : '',
       v.fim ? `até ${fmtData(v.fim)}` : '',
     ].filter(Boolean).join(' · ');
     const acoes = podeEditar ? `
       <div class="vinc-acoes">
-        ${v.ativo ? `<button class="mini-btn" data-encerrar="${v.id}">Encerrar</button>` : ''}
+        ${!v.fim ? `<button class="mini-btn" data-encerrar="${v.id}">Encerrar</button>` : ''}
         <button class="mini-btn no" data-del-vinc="${v.id}" aria-label="Excluir vínculo">🗑</button>
       </div>` : '';
     return `<div class="person ${encerrado ? 'inativo' : ''}">
-      <div class="role">${esc(rotulaPapel(v.papel))} · ${esc(v.ano)}${v.ativo ? '' : ' · encerrado'}</div>
+      <div class="role">${esc(rotulaCargo(v.papel))}${v.fim ? ' · encerrado' : ''}</div>
       <div class="pname">${esc(v.unidade?.nome || '—')}</div>
       <div class="pmeta">
         ${periodo ? `<span>${esc(periodo)}</span>` : ''}
@@ -88,22 +92,21 @@ function ligarAcoesVinculo(s, ctx) {
 }
 
 // ── Formulário: vínculo ──────────────────────────────────────
-function formVinculo(s, ctx) {
-  const opts = [...ctx.unidades].sort((a, b) => a.nome.localeCompare(b.nome, 'pt'))
-    .map(u => `<option value="${esc(u.id)}">${esc(u.nome)}</option>`).join('');
+// `getLocais()` traz escolas + a sede da SME — quem vincula um
+// servidor à sede precisa dela na lista, não só das 144 escolas
+// (ver escolas.model.js § getLocais).
+async function formVinculo(s, ctx) {
+  const locais = await getLocais();
+  const opts = locais
+    .map(u => `<option value="${esc(u.id)}">${u.tipo === 'sede' ? '🏛 ' : ''}${esc(u.nome)}</option>`).join('');
 
   abrirDrawer(`
     ${drawerHead('Vincular a uma escola', esc(s.nome))}
     <div class="drawer-body">
       <form id="vc-form" class="esc-form">
-        <label>Escola <select id="v-uni" required><option value="">Selecione…</option>${opts}</select></label>
-        <label>Papel <select id="v-papel" required>
-          ${PAPEIS.map(p => `<option value="${p}">${esc(rotulaPapel(p))}</option>`).join('')}
-        </select></label>
-        <div class="esc-row">
-          <label>Ano letivo <input id="v-ano" type="number" inputmode="numeric" value="${ANO_LETIVO}" required /></label>
-          <label>Data de ingresso <input id="v-ingresso" type="date" /></label>
-        </div>
+        <label>Local <select id="v-uni" required><option value="">Selecione…</option>${opts}</select></label>
+        <label>Cargo / função <input id="v-papel" required placeholder="Ex.: Diretor(a), Coordenador(a)" /></label>
+        <label>Data de ingresso <input id="v-ingresso" type="date" /></label>
         <div class="form-foot">
           <span id="v-msg" class="auth-msg"></span>
           <button type="submit" id="v-save">Vincular</button>
@@ -118,9 +121,7 @@ async function salvarVinculo(e, s, ctx) {
   e.preventDefault();
   const msg = document.getElementById('v-msg'); msg.className = 'auth-msg';
   const unidade_id = document.getElementById('v-uni').value;
-  const ano = parseInt(document.getElementById('v-ano').value, 10);
-  if (!unidade_id) return falha(msg, 'Selecione a escola.');
-  if (!(ano > 2000)) return falha(msg, 'Informe um ano letivo válido.');
+  if (!unidade_id) return falha(msg, 'Selecione o local.');
 
   const btn = document.getElementById('v-save'); btn.disabled = true; btn.textContent = 'Vinculando…';
   try {
@@ -128,7 +129,6 @@ async function salvarVinculo(e, s, ctx) {
       servidor_id: s.id,
       unidade_id,
       papel: document.getElementById('v-papel').value,
-      ano,
       ingresso: document.getElementById('v-ingresso').value || null,
     });
     const novoCtx = await ctx.recarregar();
@@ -139,14 +139,22 @@ async function salvarVinculo(e, s, ctx) {
   }
 }
 
+// Não existe mais `encerrarVinculo` — o vínculo não tem coluna `ativo`
+// própria, então encerrar é um atualizarVinculo comum que só muda o
+// `fim`. Precisa reenviar unidade_id/papel/ingresso porque a função
+// substitui o registro inteiro.
 async function encerrar(s, vinculoId, ctx) {
+  const v = s.vinculos.find(x => x.id === vinculoId);
+  if (!v) return;
   const fim = prompt('Data de encerramento do vínculo (AAAA-MM-DD):', hojeISO());
   if (!fim) return;
   if (!/^\d{4}-\d{2}-\d{2}$/.test(fim)) {
     return toast({ titulo: 'Data inválida', texto: 'Use o formato AAAA-MM-DD.', tipo: 'no' });
   }
   try {
-    await encerrarVinculo(vinculoId, fim);
+    await atualizarVinculo(vinculoId, {
+      unidade_id: v.unidade_id, papel: v.papel, ingresso: v.ingresso, fim,
+    });
     const novoCtx = await ctx.recarregar();
     detalhe(s.id, novoCtx);
   } catch (err) {

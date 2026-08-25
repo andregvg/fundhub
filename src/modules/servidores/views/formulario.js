@@ -1,7 +1,7 @@
 // ============================================================
 // FundHub — servidores/views/formulario.js  (criar, editar, excluir)
 // ============================================================
-import { LOTACOES, CARGOS_SEDE, criarServidor, atualizarServidor, excluirServidor } from '../servidores.model.js';
+import { criarServidor, atualizarServidor, excluirServidor } from '../servidores.model.js';
 import { sincronizarTelefones } from '../../telefones/telefones.model.js';
 import { esc, falha } from '../../../shared/dom.js';
 import { drawerHead, abrirDrawer, fecharDrawer } from '../../../shared/ui/drawer.js';
@@ -13,8 +13,6 @@ import { toast } from '../../../shared/ui/toast.js';
 export function formServidor(s, ctx) {
   const novo = !s;
   const v = (k) => esc(s?.[k] ?? '');
-
-  const lot = s?.lotacao || 'escola';
 
   abrirDrawer(`
     ${drawerHead(novo ? 'Novo servidor' : 'Editar servidor', novo ? '' : esc(s.nome))}
@@ -34,13 +32,9 @@ export function formServidor(s, ctx) {
           <div class="campos duas">
             <label>Código funcional <input id="s-codigo" inputmode="numeric" value="${v('codigo_funcional')}" /></label>
             <label>Ingresso na rede <input id="s-ingresso" type="date" value="${v('inicio_rede')}" /></label>
-            <label>Lotação <select id="s-lotacao">
-              ${LOTACOES.map(([val, r]) => `<option value="${val}" ${lot === val ? 'selected' : ''}>${esc(r)}</option>`).join('')}
-            </select></label>
-            <label>Cargo / função <input id="s-cargo" list="cargos" value="${v('cargo')}" />
-              <datalist id="cargos">${CARGOS_SEDE.map(c => `<option>${esc(c)}</option>`).join('')}</datalist>
-            </label>
           </div>
+          <p class="form-hint">Cargo e lotação são definidos pelo vínculo com uma escola ou com a
+             sede — ${novo ? 'vincule depois de criar o cadastro' : 'veja "Vínculos com escolas" no detalhe'}.</p>
         </fieldset>
 
         <fieldset class="form-grupo">
@@ -82,8 +76,6 @@ async function salvarServidor(e, s, ctx) {
     apelido: val('s-apelido') || null,
     email: val('s-email') || null,
     codigo_funcional: val('s-codigo') || null,
-    cargo: val('s-cargo') || null,
-    lotacao: document.getElementById('s-lotacao').value,
     cpf: val('s-cpf') || null,
     rg: val('s-rg') || null,
     inicio_rede: document.getElementById('s-ingresso').value || null,

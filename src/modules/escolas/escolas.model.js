@@ -9,8 +9,6 @@
 // ============================================================
 import { sb, hasSupabase } from '../../core/supabase.js';
 import { agoraISO } from '../../shared/format.js';
-// Quem é dono do vocabulário de papéis é o módulo Gestores — model → model.
-import { rotulaPapel } from '../servidores/servidores.model.js';
 // Telefones agora vêm da tabela dedicada (fonte única) — model → model.
 import { getTelefonesMapas } from '../telefones/telefones.model.js';
 
@@ -42,16 +40,24 @@ export async function getUnidades() {
 
   if (hasSupabase()) {
     const cli = sb();
-    const [{ data: unidades, error: e1 }, { data: vw }, tel] = await Promise.all([
-      cli.from('unidade_escolar').select('*').order('nome'),
+    let [{ data: unidades, error: e1 }, { data: vw }, tel] = await Promise.all([
+      cli.from('unidade_escolar').select('*').eq('tipo', 'escola').order('nome'),
       cli.from('vw_escola_pessoas').select('*'),
       getTelefonesMapas(),
     ]);
-    if (e1) throw e1;
+    // Migration 023 ainda não rodou: sem a coluna `tipo`, é tudo escola.
+    if (e1 && e1.code === '42703') {
+      const retry = await cli.from('unidade_escolar').select('*').order('nome');
+      if (retry.error) throw retry.error;
+      unidades = retry.data;
+    } else if (e1) {
+      throw e1;
+    }
     const byU = {};
     (vw || []).forEach(r => {
+      // vw_escola_pessoas já devolve o cargo legível (migration 023 § 3b/4).
       (byU[r.unidade_id] ||= []).push({
-        papel: rotulaPapel(r.papel), nome: r.pessoa_nome, apelido: r.apelido,
+        papel: r.papel, nome: r.pessoa_nome, apelido: r.apelido,
         email: r.email, telefone: r.telefone,
       });
     });
@@ -69,6 +75,29 @@ export async function getUnidades() {
     _cache = [];
   }
   return _cache;
+}
+
+// LOCAIS de lotação = escolas + a sede da SME. Só o formulário de
+// vínculo e o seletor de Horários usam isto; a lista de Escolas
+// continua sendo só escola (getUnidades). A sede vem primeiro porque
+// procurá-la no meio de 144 nomes seria absurdo.
+let _locais = null;
+
+export async function getLocais() {
+  if (_locais) return _locais;
+  if (!hasSupabase()) { _locais = []; return _locais; }
+  const { data, error } = await sb().from('unidade_escolar')
+    .select('id, nome, tipo').order('nome');
+  // Migration 023 ainda não rodou: sem a coluna `tipo`, é tudo escola.
+  if (error && error.code === '42703') {
+    const { data: d2 } = await sb().from('unidade_escolar').select('id, nome').order('nome');
+    _locais = (d2 || []).map(u => ({ ...u, tipo: 'escola' }));
+    return _locais;
+  }
+  if (error) throw error;
+  _locais = [...(data || [])].sort((a, b) =>
+    (a.tipo === 'sede' ? -1 : b.tipo === 'sede' ? 1 : 0) || a.nome.localeCompare(b.nome, 'pt'));
+  return _locais;
 }
 
 // Campos editáveis de uma unidade (o resto é derivado/sistema).
@@ -89,7 +118,7 @@ export async function criarUnidade(payload) {
   const { data, error } = await sb().from('unidade_escolar')
     .insert(limpar(payload)).select().single();
   if (error) throw error;
-  _cache = null;
+  _cache = null; _locais = null;
   return data;
 }
 
@@ -98,12 +127,12 @@ export async function atualizarUnidade(id, payload) {
   const patch = { ...limpar(payload), atualizado_em: agoraISO() };
   const { error } = await sb().from('unidade_escolar').update(patch).eq('id', id);
   if (error) throw error;
-  _cache = null;
+  _cache = null; _locais = null;
 }
 
 export async function excluirUnidade(id) {
   if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
   const { error } = await sb().from('unidade_escolar').delete().eq('id', id);
   if (error) throw error;
-  _cache = null;
+  _cache = null; _locais = null;
 }

@@ -13,7 +13,8 @@ import {
   validarDia, totalDoDia, lacunasCobertura, posicaoNaBarra, marcasDaBarra,
   paraHora, duracao,
 } from './horarios.model.js';
-import { getServidoresDaUnidade, ANO_LETIVO, rotulaPapel } from '../servidores/servidores.model.js';
+import { getServidoresDaUnidade } from '../servidores/servidores.model.js';
+import { rotulaCargo } from '../servidores/vinculos.model.js';
 import { getUnidades } from '../escolas/escolas.model.js';
 import { esc, falha } from '../../shared/dom.js';
 import { loading, emptyState, erroBox } from '../../shared/ui/feedback.js';
@@ -23,7 +24,7 @@ import { confirmar } from '../../shared/ui/confirmar.js';
 import { toast } from '../../shared/ui/toast.js';
 
 let perfil = null, unidades = [], servidores = [], blocos = [];
-let unidadeId = '', ano = ANO_LETIVO, seg = null;
+let unidadeId = '', ano = new Date().getFullYear(), seg = null;
 
 // O seletor de escola respeita o segmento: quem cuida da Educação
 // Infantil não precisa rolar por 90 EMEFs para achar o seu CEI.
@@ -99,7 +100,7 @@ async function carregar() {
 
   try {
     [servidores, blocos] = await Promise.all([
-      getServidoresDaUnidade(unidadeId, ano),
+      getServidoresDaUnidade(unidadeId),
       getBlocos(unidadeId, ano),
     ]);
   } catch (err) { body.innerHTML = erroBox(err); return; }
@@ -161,14 +162,14 @@ function painelCobertura() {
 
 // ── Semana de um servidor ────────────────────────────────────
 function cartaoServidor(s) {
-  const vinc = s.vinculos.find(v => v.unidade_id === unidadeId && v.ano === ano && v.ativo);
+  const vinc = s.vinculos.find(v => v.unidade_id === unidadeId && !v.fim);
   const semana = DIAS.map(d => linhaDia(s, d)).join('');
   const totalSemana = DIAS.reduce((acc, d) => acc + totalDoDia(blocosDe(s.id, d.n)), 0);
 
   return `<section class="panel hb-painel">
     <h2>
       ${esc(s.apelido || s.nome)}
-      <small class="hb-sub">${esc(rotulaPapel(vinc?.papel || ''))} · ${duracao(totalSemana)} na semana</small>
+      <small class="hb-sub">${esc(rotulaCargo(vinc?.papel || ''))} · ${duracao(totalSemana)} na semana</small>
     </h2>
     <div class="hb-grade">${semana}</div>
   </section>`;
