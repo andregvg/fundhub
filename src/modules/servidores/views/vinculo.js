@@ -107,9 +107,10 @@ async function salvar(e, s, vinculo, ctx, voltar) {
     if (vinculo) await atualizarVinculo(vinculo.id, { unidade_id, papel, ingresso, fim });
     else await criarVinculo({ servidor_id: s.id, unidade_id, papel, ingresso, fim });
     const novoCtx = await ctx.recarregar();
-    // Volta para a gaveta de baixo já com o dado novo — é para isso
-    // que a pilha guarda uma função, e não o HTML anterior.
-    if (voltar) voltar(); else novoCtx.abrirDetalhe(s.id);
+    // Volta para a gaveta de baixo já com o dado novo: passamos o ctx
+    // recarregado para quem chamou reconstruir a tela a partir dele,
+    // em vez de reabrir com o `s`/`ctx` de antes da edição.
+    if (voltar) voltar(novoCtx); else novoCtx.abrirDetalhe(s.id);
   } catch (err) {
     falha(msg, err.message || String(err));
     btn.disabled = false; btn.textContent = vinculo ? 'Salvar' : 'Vincular';

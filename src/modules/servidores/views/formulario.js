@@ -99,7 +99,11 @@ export function formServidor(s, ctx, { voltar = null } = {}) {
     const c = await ctx.recarregar();
     const atual = c.lista.find(x => x.id === s.id);
     const aberto = vinculosAbertos(atual)[0] || null;
-    formVinculo(atual, aberto, c, { voltar: () => formServidor(atual, c) });
+    formVinculo(atual, aberto, c, { voltar: (freshCtx) => {
+      const ctx2 = freshCtx || c;
+      const s2 = ctx2.lista.find(x => x.id === atual.id) || atual;
+      formServidor(s2, ctx2);
+    } });
   }));
 
   form.addEventListener('submit', (e) => salvarServidor(e, s, ctx));
