@@ -159,7 +159,7 @@ export function telefonesTexto(lista = []) {
   return (lista || [])
     .map(t => {
       // normalizar, não formatar: boa parte da base foi cadastrada sem
-      // DDD ("3333-3333"), e formatar direto leria o "36" como DDD.
+      // DDD ("3333-3333"), e formatar direto leria o "33" como DDD.
       const fmt = normalizarTelefone(t.numero) || t.numero;
       const num = `<a href="tel:${esc(String(t.numero).replace(/\D/g, ''))}">${esc(fmt)}</a>`;
       const rot = t.rotulo ? ` <small>(${esc(t.rotulo)})</small>` : '';
