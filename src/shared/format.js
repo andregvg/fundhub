@@ -54,3 +54,48 @@ export function fmtDataHora(ts) {
     hour: '2-digit', minute: '2-digit',
   });
 }
+
+// Idade em anos a partir de uma data civil. Aritmética de calendário
+// direto na string: nada de Date, para não repetir o bug do fuso.
+export function fmtIdade(iso) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(iso || ''))) return '';
+  const [a, m, d] = iso.split('-').map(Number);
+  const [ha, hm, hd] = hojeISO().split('-').map(Number);
+  let anos = ha - a;
+  if (hm < m || (hm === m && hd < d)) anos--;
+  if (anos < 0 || anos > 130) return '';
+  return anos === 1 ? '1 ano' : `${anos} anos`;
+}
+
+// ── Máscaras de documento ────────────────────────────────────
+// Formatação progressiva: mascaram o que já foi digitado e não
+// reclamam do que falta. Quem valida "de verdade" é noPadrao*(),
+// e o resultado dela é AVISO, não erro (R15) — RG de outro estado
+// tem outro formato e a SME precisa cadastrar essa pessoa.
+
+// '11111111111' → '111.111.111-11'
+export function mascaraCPF(v) {
+  const d = String(v ?? '').replace(/\D/g, '').slice(0, 11);
+  if (d.length <= 3) return d;
+  if (d.length <= 6) return `${d.slice(0, 3)}.${d.slice(3)}`;
+  if (d.length <= 9) return `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6)}`;
+  return `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6, 9)}-${d.slice(9)}`;
+}
+
+// '123456789' → '12.345.678-9'. O dígito verificador do RG paulista
+// pode ser X, então o último caractere aceita letra.
+export function mascaraRG(v) {
+  const bruto = String(v ?? '').toUpperCase().replace(/[^0-9X]/g, '').slice(0, 9);
+  const num = bruto.replace(/X/g, '').slice(0, 8);
+  const dv = bruto.length > 8 ? bruto.slice(8, 9) : '';
+  let out = num;
+  if (num.length > 2) out = `${num.slice(0, 2)}.${num.slice(2)}`;
+  if (num.length > 5) out = `${num.slice(0, 2)}.${num.slice(2, 5)}.${num.slice(5)}`;
+  return dv ? `${out}-${dv}` : out;
+}
+
+export const noPadraoCPF = (v) =>
+  !String(v ?? '').trim() || /^\d{3}\.\d{3}\.\d{3}-\d{2}$/.test(String(v).trim());
+
+export const noPadraoRG = (v) =>
+  !String(v ?? '').trim() || /^\d{2}\.\d{3}\.\d{3}-[0-9X]$/.test(String(v).trim().toUpperCase());
