@@ -546,6 +546,24 @@ input[type="checkbox"] { width: 18px; height: 18px; }
   font-size: 18px;
   cursor: pointer;
 }
+/* Gaveta aberta sobre outra: o ← desempilha (ver shared/ui/drawer.js). */
+.drawer-voltar {
+  flex: 0 0 auto;
+  width: var(--controle);
+  height: var(--controle);
+  margin-right: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-btn);
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+.drawer-voltar:hover { background: var(--surface-3); }
+@media (pointer: coarse) {
+  .drawer-voltar { width: var(--toque); height: var(--toque); }
+}
 .drawer-body { padding: 18px 18px 40px; }
 
 /* ── Diálogo de confirmação (shared/ui/confirmar.js) ─────────
