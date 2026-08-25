@@ -308,6 +308,13 @@ o caso raro de falso positivo — sempre acompanhada do motivo.
 
 ### 6.1 Trabalho gerado, não incluído neste spec
 
+> **Status (25/08/2026): fechado.** Todos os itens abaixo foram tratados na
+> rodada de implementação do mesmo dia — commits `b9a5c3f` (cores/data),
+> `a1a5ac5` (docs), `50a7bf0` (agoraISO), `f43a1b4` (confirmar.js), `baddb06`
+> (decisão R14), `c57bd21` (split afastamentos), `95c9239` (split servidores).
+> O script termina com **0 bloqueantes, 0 avisos**. Mantido como registro
+> histórico do que a primeira execução encontrou.
+
 As regras tornam explícitas dívidas que já existiam. Cada item abaixo é uma
 tarefa separada, a ser priorizada depois:
 
@@ -334,9 +341,13 @@ literal é defensável), e os 2 arquivos acima do limite de linhas.
 5. Atualizar `modules/docs/docs.content.js` (17 módulos, 4 níveis de permissão).
 6. Atualizar `docs/BLUEPRINT.md` §4 com os papéis reais da migration 021.
 7. ~~Remover `PAPEL_ROTULO.gestor_escolar` de `shell/chrome.js`~~ — não se aplica, ver §2.2 item 3.
-8. Dividir `afastamentos.view.js` (575 linhas) em `views/` por superfície:
-   lista, calendário, formulário e sincronização.
-9. Avaliar `servidores.view.js` (429 linhas) pelo mesmo critério.
+8. ~~Dividir `afastamentos.view.js`~~ (575 → 214 linhas + 4 arquivos em
+   `views/`) — feito (25/08/2026), verificado no browser em dev-local.
+9. ~~Avaliar `servidores.view.js`~~ — dividido (436 → 120 linhas + 3 arquivos
+   em `views/`, agrupados por coesão real, não 4 abas forçadas) — feito
+   (25/08/2026), verificado com dado sintético em dev-local. Um bug pego
+   na própria revisão (`listaVinculos` usava `ANO_LETIVO` em vez de
+   `podeEditar`) foi corrigido antes do commit.
 10. ~~Acrescentar `agoraISO()`~~ — feito na rodada de implementação (25/08/2026).
 11. ~~Implementar `shared/ui/confirmar.js`~~ — feito na rodada de implementação (25/08/2026).
 12. ~~Implementar a paleta `--mod-*`~~ — **decisão do André (25/08/2026): não implementar

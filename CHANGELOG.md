@@ -9,6 +9,21 @@ versionamento **MINOR** = módulo novo ou mudança de modelo de dados, **PATCH**
 
 ---
 
+## [0.10.1] — 2026-08-25
+
+Ajustes internos de manutenção — sem módulo novo.
+
+### Alterado
+- Os avisos de confirmação (excluir, cancelar, etc.) e os avisos de erro
+  agora aparecem no mesmo visual do resto do sistema, em vez do alerta
+  padrão do navegador.
+
+### Corrigido
+- Um telefone de exemplo real havia ficado num comentário do código;
+  removido (trocado por número fictício).
+- Pequenos ajustes de cor e de rodapé para manter a consistência entre
+  tema claro e escuro.
+
 ## [0.10.0] — 2026-07-19
 
 Onda de **autorização e navegação**. O hub deixa de distinguir apenas
