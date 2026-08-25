@@ -59,6 +59,9 @@ function abrirForm(a) {
   const novo = !a;
   const v = (k) => esc(a?.[k] ?? '');
   const chk = (k, padrao) => ((a ? a[k] : padrao) ? 'checked' : '');
+  // input[type=color] exige hex literal no `value` — não aceita var(). Lê o
+  // token computado (respeita o tema atual) em vez de fixar a cor clara.
+  const corPadrao = getComputedStyle(document.documentElement).getPropertyValue('--brand').trim();
   const optsLocais = (ctx.locais || [])
     .map(l => `<option value="${l.id}" ${a?.local_id === l.id ? 'selected' : ''}>${esc(l.nome)}${l.ativo ? '' : ' (inativo)'}</option>`)
     .join('');
@@ -79,7 +82,7 @@ function abrirForm(a) {
           </select>
           <small class="form-hint">Cadastre e edite destinos na aba <b>Locais</b>.</small>
         </label>
-        <label>Cor <input id="a-cor" type="color" value="${a?.cor || '#1d4ed8'}" /></label>
+        <label>Cor <input id="a-cor" type="color" value="${a?.cor || corPadrao}" /></label>
         <div class="esc-row col-2">
           <label class="inline"><input type="checkbox" id="a-onibus" ${chk('usa_onibus', true)} /> Usa ônibus</label>
           <label class="inline"><input type="checkbox" id="a-sme" ${chk('gerida_sme', true)} /> Gerida pela SME</label>

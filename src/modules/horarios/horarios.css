@@ -89,7 +89,7 @@
   border: 0;
   border-radius: 6px;
   background: color-mix(in srgb, var(--brand) 78%, transparent);
-  color: #fff;
+  color: var(--on-cor);
   font-size: 10px;
   font-weight: 600;
   white-space: nowrap;

@@ -19,7 +19,7 @@ import { source } from '../core/supabase.js';
 import { signOut } from '../core/auth.js';
 import { limparPerfil, ultimoAcessoAnterior } from '../core/perfil.js';
 import { esc } from '../shared/dom.js';
-import { fmtDataHora } from '../shared/format.js';
+import { fmtDataHora, fmtData, hojeISO } from '../shared/format.js';
 
 const CHAVE_MENU = 'fundhub:menu-aberto';
 const consultaDesktop = () => window.matchMedia('(min-width: 1100px)');
@@ -29,11 +29,11 @@ const sidebar = () => document.getElementById('sidebar');
 const fundo   = () => document.getElementById('sidebar-back');
 const toggle  = () => document.getElementById('nav-toggle');
 
+// Papéis reais (migration 021_permissoes_segmentos.sql).
 const PAPEL_ROTULO = {
   admin_sme: 'Administrador',
   equipe_sme: 'Equipe SME',
   transporte: 'Transporte',
-  gestor_escolar: 'Gestor(a) escolar',
   leitor: 'Leitor',
 };
 
@@ -174,5 +174,5 @@ export function setChrome(logado, user, perfil) {
 
 export function carimboRodape() {
   document.getElementById('build-info').textContent =
-    `v${CONFIG.versao} · ${new Date().toLocaleDateString('pt-BR')}`;
+    `v${CONFIG.versao} · ${fmtData(hojeISO())}`;
 }

@@ -14,10 +14,13 @@ export const TIPOS_AFASTAMENTO = [
 ];
 
 // Cor por tipo — usada na barra lateral do item e nos chips do calendário.
+// Valores em styles/tokens.css (--af-*): nenhuma cor fixa em módulo.
 export const CORES_AFASTAMENTO = {
-  'Férias': '#0ea5a4', 'Falta Abonada': '#0ea5e9', 'Licença Saúde (LTS)': '#dc2626',
-  'Licença Maternidade': '#db2777', 'Licença Prêmio': '#f59e0b', 'Atestado': '#ea580c',
-  'TRE (Justiça Eleitoral)': '#f97316', 'Afastamento SME': '#2563eb', 'Outro': '#64708a',
+  'Férias': 'var(--af-ferias)', 'Falta Abonada': 'var(--af-abonada)',
+  'Licença Saúde (LTS)': 'var(--af-lts)', 'Licença Maternidade': 'var(--af-maternidade)',
+  'Licença Prêmio': 'var(--af-premio)', 'Atestado': 'var(--af-atestado)',
+  'TRE (Justiça Eleitoral)': 'var(--af-tre)', 'Afastamento SME': 'var(--af-sme)',
+  'Outro': 'var(--af-outro)',
 };
 
 // Como os tipos da aba "Lançamentos" chegam aqui.

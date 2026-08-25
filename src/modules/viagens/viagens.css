@@ -52,8 +52,9 @@
 }
 
 @media print {
+  /* Cinza fixo é exceção deliberada à R9: impresso não segue o tema da tela. */
   .viagens { padding: 0; border: 0; box-shadow: none; }
-  .pv-viagem { border-color: #999; }
+  .pv-viagem { border-color: #999; } /* fundhub:ok-7 papel impresso */
   .pv-grid { grid-template-columns: 1fr 1fr; gap: 8px 18px; }
   .pv-grid .pv-wide { grid-column: 1 / -1; }
 }

@@ -3,6 +3,10 @@
    A folha timbrada. Fica escondida na tela (a lista é o que se vê) e
    só aparece na impressão — por isso o módulo existe. Ao imprimir uma
    ata, o body ganha .imprimindo-ata e só a folha fica visível.
+
+   As cores de tinta preta abaixo são exceção deliberada à R9: papel
+   impresso não segue o tema da tela — sempre tinta escura sobre papel
+   claro, mesmo se a pessoa estiver no modo escuro ao clicar em imprimir.
    ============================================================ */
 
 .at-item { cursor: pointer; }
@@ -16,7 +20,7 @@
   align-items: center;
   gap: 14px;
   padding-bottom: 12px;
-  border-bottom: 2px solid #000;
+  border-bottom: 2px solid #000; /* fundhub:ok-7 papel impresso, ver comentario do topo */
   margin-bottom: 20px;
 }
 .ata-brasao { font-size: 42px; }
@@ -32,7 +36,7 @@
 
 .ata-assinaturas { display: flex; justify-content: space-around; gap: 40px; margin-top: 60px; }
 .ata-assina { flex: 1; text-align: center; font-size: 13px; }
-.ata-assina span { display: block; border-top: 1px solid #000; margin-bottom: 4px; }
+.ata-assina span { display: block; border-top: 1px solid #000; margin-bottom: 4px; } /* fundhub:ok-7 papel impresso */
 .ata-rodape { margin-top: 40px; text-align: right; }
 
 /* ── Impressão ────────────────────────────────────────────── */
@@ -44,7 +48,7 @@
   body.imprimindo-ata .ata-folha {
     display: block;
     max-width: 100%;
-    color: #000;
+    color: #000; /* fundhub:ok-7 papel impresso, ver comentario do topo */
     font-family: "Times New Roman", Georgia, serif;
     font-size: 12pt;
   }

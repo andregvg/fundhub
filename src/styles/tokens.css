@@ -31,6 +31,23 @@
   --controle: 32px;
   /* Alvo mínimo de toque — mobile-first não é só largura. */
   --toque: 40px;
+
+  /* Cor por tipo de afastamento (CORES_AFASTAMENTO, afastamentos.model.js) —
+     usada na barra lateral do item e nos chips do calendário. */
+  --af-ferias: #0ea5a4;
+  --af-abonada: #0ea5e9;
+  --af-lts: #dc2626;
+  --af-maternidade: #db2777;
+  --af-premio: #f59e0b;
+  --af-atestado: #ea580c;
+  --af-tre: #f97316;
+  --af-sme: #2563eb;
+  --af-outro: #64708a;
+
+  /* Texto sobre um fundo colorido arbitrário (chip, badge) — branco
+     funciona nos dois temas porque o fundo já é a cor saturada, não a
+     superfície da página. */
+  --on-cor: #fff;
 }
 
 @media (prefers-color-scheme: dark) {

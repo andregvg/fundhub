@@ -265,7 +265,7 @@ def check_cores():
         if f.endswith('.content.js'):
             continue                       # arquivo de conteudo, nao de estilo
         for i, linha in enumerate(linhas_de(f), 1):
-            if linha.lstrip().startswith(('*', '//')):
+            if linha.lstrip().startswith(('*', '//', '/*')):
                 continue                   # comentario
             m = RE_COR.search(linha)
             if m and not suprimido(linha, 7):

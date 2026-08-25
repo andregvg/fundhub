@@ -27,7 +27,7 @@
   padding: 0 4px;
   border-radius: 999px;
   background: var(--danger);
-  color: #fff;
+  color: var(--on-cor);
   font-size: 10.5px;
   font-weight: 800;
 }
