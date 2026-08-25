@@ -95,9 +95,10 @@ export async function render(app, ctx = {}) {
 function pintarOfertas() {
   const ofertas = [...new Set(ALL.map(u => u.oferta).filter(Boolean))]
     .sort((a, b) => a.localeCompare(b, 'pt'));
-  document.getElementById('f-oferta').innerHTML =
-    `<option value="">Todas</option>` +
+  const sel = document.getElementById('f-oferta');
+  sel.innerHTML = `<option value="">Todas</option>` +
     ofertas.map(o => `<option value="${esc(o)}">${esc(o)}</option>`).join('');
+  sel.value = filtro.oferta;
 }
 
 function combina(u) {

@@ -64,7 +64,7 @@ export async function getBlocos(unidadeId) {
 export async function getBlocosDoServidor(servidorId) {
   if (!hasSupabase() || !servidorId) return [];
   const { data, error } = await sb().from('horario_bloco')
-    .select(`${SEL}, unidade:unidade_escolar(id, nome, apelido, tipo)`)
+    .select(`${SEL}, unidade:unidade_escolar(id, nome, apelido)`)
     .eq('servidor_id', servidorId)
     .order('unidade_id').order('dia_semana').order('inicio');
   if (error) throw error;

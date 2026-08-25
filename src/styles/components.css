@@ -158,6 +158,7 @@ a.tile:hover {
    componente JS (R12). O estado real é o do checkbox — teclado,
    rótulo e leitor de tela funcionam de graça. */
 .switch {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 9px;

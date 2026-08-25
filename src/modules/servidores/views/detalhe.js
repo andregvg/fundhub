@@ -67,8 +67,8 @@ export function detalhe(id, ctx) {
   if (ctx.podeEditar) {
     document.getElementById('sv-edit').addEventListener('click', () => ctx.abrirFormServidor(s));
     document.getElementById('sv-del').addEventListener('click', () => ctx.removerServidor(s));
-    document.querySelector('[data-vinc-edit]')?.addEventListener('click', () =>
-      formVinculo(s, vinculosAbertos(s)[0] || null, ctx, { voltar: (freshCtx) => detalhe(s.id, freshCtx || ctx) }));
+    document.querySelectorAll('[data-vinc-edit]').forEach(b => b.addEventListener('click', () =>
+      formVinculo(s, vinculosAbertos(s)[0] || null, ctx, { voltar: (freshCtx) => detalhe(s.id, freshCtx || ctx) })));
     document.getElementById('sv-vinc').addEventListener('click', () =>
       formVinculo(s, null, ctx, { voltar: (freshCtx) => detalhe(s.id, freshCtx || ctx) }));
     const box = document.getElementById('sv-vinculos');
