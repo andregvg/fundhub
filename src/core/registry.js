@@ -76,8 +76,13 @@ export function servicos() {
   return MODULOS.filter(m => m.servico && m.ativo && podeVer(chavePerm(m)));
 }
 
+// Só o caminho identifica o módulo: `#/servidores?unidade=…` é a mesma
+// rota de `#/servidores`. A query é filtro de abertura, não endereço.
+export const caminhoDaRota = (hash) => String(hash || '').split('?')[0];
+
 export function moduloPorRota(hash) {
-  return MODULOS.find(m => m.rota && m.rota === hash) || null;
+  const caminho = caminhoDaRota(hash);
+  return MODULOS.find(m => m.rota && m.rota === caminho) || null;
 }
 
 // Rotas que mudaram de endereço. Manter o de-para aqui evita link

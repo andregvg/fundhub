@@ -10,7 +10,7 @@
 // A rota raiz é a DASHBOARD. A antiga home de tiles virou o módulo
 // "Módulos" em #/modulos, alcançável pelo menu lateral.
 // ============================================================
-import { moduloPorRota, chavePerm, REDIRECIONAMENTOS } from './registry.js';
+import { moduloPorRota, caminhoDaRota, chavePerm, REDIRECIONAMENTOS } from './registry.js';
 import { getPerfilAtual } from './perfil.js';
 import { nivel, OCULTO } from './permissoes.js';
 import { loading, emptyState } from '../shared/ui/feedback.js';
@@ -30,17 +30,22 @@ export function startRouter(el, { onRoute } = {}) {
 
 export async function route() {
   let hash = location.hash || '#/';
+  const caminho = caminhoDaRota(hash);
 
   // Endereços antigos (#/gestores → #/servidores) continuam valendo.
-  if (REDIRECIONAMENTOS[hash]) {
-    location.replace(REDIRECIONAMENTOS[hash]);
+  if (REDIRECIONAMENTOS[caminho]) {
+    location.replace(REDIRECIONAMENTOS[caminho] + hash.slice(caminho.length));
     return;
   }
   // A raiz é a dashboard — sem trocar a URL, para "#/" continuar
   // sendo um endereço curto e válido que qualquer um pode digitar.
-  if (hash === '#/' || hash === '#') hash = ROTA_INICIAL;
+  if (caminho === '#/' || caminho === '#') hash = ROTA_INICIAL;
 
   outlet.innerHTML = loading();
+
+  // `?unidade=…`, `?servidor=…`: filtro com que a tela abre. Fica na
+  // URL para o link poder ser copiado e continuar significando o mesmo.
+  const params = new URLSearchParams(hash.split('?')[1] || '');
 
   const perfil = await getPerfilAtual().catch(() => null);
   const mod = moduloPorRota(hash);
@@ -56,7 +61,7 @@ export async function route() {
         'Você não tem permissão para este módulo. Se precisa de acesso, fale com a Gerência de Ensino Fundamental.');
     } else {
       const view = await mod.load();   // import() dinâmico: só agora a view é baixada
-      await view.render(outlet, { perfil, nivel: nivel(chavePerm(mod)) });
+      await view.render(outlet, { perfil, nivel: nivel(chavePerm(mod)), params });
     }
   } catch (err) {
     outlet.innerHTML = emptyState('⚠️', 'Não foi possível abrir este módulo', String(err?.message || err));

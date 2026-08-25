@@ -13,7 +13,7 @@
 // serviço de notificações) e o MENU DE USUÁRIO — um dropdown que reúne
 // e-mail, papel, último acesso, origem dos dados e o botão Sair.
 // ============================================================
-import { navPorGrupo } from '../core/registry.js';
+import { navPorGrupo, caminhoDaRota } from '../core/registry.js';
 import { CONFIG } from '../core/config.js';
 import { source } from '../core/supabase.js';
 import { signOut } from '../core/auth.js';
@@ -102,8 +102,9 @@ function fecharMenu({ lembrar = true } = {}) {
 }
 
 export function marcarNav(hash) {
+  const caminho = caminhoDaRota(hash);
   // "#/" é a dashboard: o item certo a destacar é o dela.
-  const alvo = (hash === '#/' || hash === '#') ? '#/dashboard' : hash;
+  const alvo = (caminho === '#/' || caminho === '#') ? '#/dashboard' : caminho;
   document.querySelectorAll('.sidebar a').forEach(a =>
     a.classList.toggle('active', a.dataset.rota === alvo));
 }
