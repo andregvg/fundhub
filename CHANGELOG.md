@@ -9,6 +9,41 @@ versionamento **MINOR** = módulo novo ou mudança de modelo de dados, **PATCH**
 
 ---
 
+## [0.11.0] — 2026-08-25
+
+Rodada de **cadastro de pessoas**: onde alguém trabalha, com que cargo e
+desde quando passa a ser uma informação só, no lugar certo.
+
+### Adicionado
+- Data de nascimento no cadastro do servidor, com a idade ao lado.
+- É possível vincular alguém à **SME**, e não só a uma escola — com data
+  de início e de término, como qualquer outra designação.
+- Os vínculos agora podem ser **editados**, não só criados e encerrados.
+- Horários de Trabalho ganhou a visão **Por servidor**: dá para achar a
+  pessoa e montar a jornada dela sem passar pela escola. Na ficha de cada
+  servidor há um atalho direto para lá.
+- Na ficha de uma escola, "Gerir em Servidores" já abre a lista mostrando
+  só a equipe daquela unidade.
+
+### Alterado
+- O **cargo/função** deixou de ser digitado no cadastro da pessoa: ele vem
+  da designação. A lista de opções se monta sozinha com os cargos em uso —
+  um cargo novo entra quando alguém o usa pela primeira vez e some quando
+  ninguém mais o ocupa.
+- A **lotação** passou a mostrar o nome do lugar (a escola ou a SME), em
+  vez de apenas "Escola" ou "Sede".
+- Um vínculo é considerado **em aberto** enquanto não tiver data de
+  término. Não é mais preciso informar ano letivo em lugar nenhum.
+- Os formulários de servidor e de escola foram reorganizados: rótulos
+  sempre acima do campo, campos agrupados por assunto e um campo sozinho
+  na linha ocupa a largura toda.
+- CPF e RG agora são formatados enquanto você digita.
+- Os filtros de Servidores e de Escolas trocaram os botões por listas e
+  chaves liga/desliga.
+- A ficha da escola foi reorganizada em blocos, com a equipe em destaque.
+- Ao editar um vínculo a partir do cadastro do servidor, a janela abre por
+  cima da anterior — e o Esc volta para ela, em vez de fechar tudo.
+
 ## [0.10.2] — 2026-08-25
 
 ### Corrigido
