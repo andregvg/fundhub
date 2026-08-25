@@ -8,3 +8,6 @@ _private/
 data/*.json
 !data/exemplo.json
 supabase/seed_*.sql
+
+# Worktrees isolados (superpowers:using-git-worktrees)
+.worktrees/
