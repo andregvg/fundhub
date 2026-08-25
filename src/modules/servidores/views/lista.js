@@ -1,41 +1,42 @@
 // ============================================================
 // FundHub — servidores/views/lista.js  (busca, filtros e cards)
 // ============================================================
-import { vinculosAbertos, cargoDe } from '../servidores.model.js';
+import { vinculosAbertos, lotacaoDe } from '../servidores.model.js';
 import { rotulaCargo } from '../vinculos.model.js';
 import { esc, norm } from '../../../shared/dom.js';
 import { emptyState } from '../../../shared/ui/feedback.js';
 
-// Vínculos abertos — é o que a tela mostra por padrão.
-const vinculosVigentes = vinculosAbertos;
-
 function combina(s, ctx) {
-  const { filtro, seg, idxUnidades } = ctx;
-  const vig = vinculosVigentes(s);
-  if (filtro.papel && !vig.some(v => v.papel === filtro.papel)) return false;
-  if (filtro.lotacao && (s.lotacao || 'escola') !== filtro.lotacao) return false;
-  if (filtro.semVinculo && vig.length) return false;
+  const { filtro, seg, idxUnidades, filtroUnidade } = ctx;
+  const abertos = vinculosAbertos(s);
+
+  // Recorte vindo da URL (?unidade=…): só quem está nesta unidade.
+  if (filtroUnidade && !abertos.some(v => v.unidade_id === filtroUnidade)) return false;
+
+  if (filtro.cargo && !abertos.some(v => rotulaCargo(v.papel) === filtro.cargo)) return false;
+  if (filtro.local && !abertos.some(v => v.unidade_id === filtro.local)) return false;
+  if (filtro.semVinculo && abertos.length) return false;
 
   // Recorte por segmento: entra quem atua em ALGUMA escola do
-  // segmento. Quem é da sede não tem escola — e por isso continua
-  // visível, senão o filtro esconderia justamente a equipe da SME.
-  if (seg && seg.selecionados().length && (s.lotacao || 'escola') !== 'sede') {
-    const bate = vig.some(v => seg.combina(idxUnidades[v.unidade_id]));
-    if (!bate) return false;
+  // segmento. A sede não tem segmento — e por isso continua visível,
+  // senão o filtro esconderia justamente a equipe da SME.
+  if (seg && seg.selecionados().length) {
+    const soSede = abertos.length && abertos.every(v => v.unidade?.tipo === 'sede');
+    if (!soSede && !abertos.some(v => seg.combina(idxUnidades[v.unidade_id]))) return false;
   }
 
   if (filtro.q) {
     const alvo = norm([
-      s.nome, s.apelido, s.email, cargoDe(s), s.codigo_funcional,
+      s.nome, s.apelido, s.email, s.codigo_funcional, lotacaoDe(s),
       ...(s.telefones || []).map(t => t.numero),
-      ...vig.map(v => `${v.unidade?.nome} ${v.unidade?.apelido} ${rotulaCargo(v.papel)}`),
+      ...abertos.map(v => `${v.unidade?.nome} ${v.unidade?.apelido} ${rotulaCargo(v.papel)}`),
     ].join(' '));
     if (!alvo.includes(norm(filtro.q))) return false;
   }
   return true;
 }
 
-// `ctx`: { perfil, filtro, seg, idxUnidades, abrirDetalhe } — ver servidores.view.js § ctxAtual().
+// `ctx`: { perfil, filtro, seg, idxUnidades, filtroUnidade, abrirDetalhe } — ver servidores.view.js § ctxAtual().
 export function pintarLista(box, lista, ctx) {
   const vis = lista.filter(s => combina(s, ctx)).sort((a, b) => a.nome.localeCompare(b.nome, 'pt'));
   document.getElementById('sv-count').textContent = `${vis.length} de ${lista.length} servidores`;
@@ -52,25 +53,21 @@ export function pintarLista(box, lista, ctx) {
 }
 
 function card(s) {
-  const daSede = (s.lotacao || 'escola') === 'sede';
-  const vig = vinculosVigentes(s);
-  const papeis = [...new Set(vig.map(v => v.papel))]
-    .map(p => `<span class="seg">${esc(rotulaCargo(p))}</span>`).join('');
+  const abertos = vinculosAbertos(s);
+  const cargos = [...new Set(abertos.map(v => rotulaCargo(v.papel)).filter(Boolean))]
+    .map(c => `<span class="seg">${esc(c)}</span>`).join('');
 
-  // Quem é da sede não tem vínculo com escola: mostrar "sem vínculo"
-  // seria um falso alerta. O que identifica essa pessoa é o cargo.
-  const lugares = daSede
-    ? `<span class="tag">🏛 ${esc(cargoDe(s) || 'Sede da SME')}</span>`
-    : vig.length
-      ? vig.map(v => `<span class="tag">${esc(v.unidade?.apelido || v.unidade?.nome || '—')}</span>`).join('')
-      : `<span class="tag eja">⚠️ Sem vínculo</span>`;
+  const lugares = abertos.length
+    ? abertos.map(v => `<span class="tag">${v.unidade?.tipo === 'sede' ? '🏛 ' : ''}${
+        esc(v.unidade?.apelido || v.unidade?.nome || '—')}</span>`).join('')
+    : `<span class="tag eja">⚠️ Sem vínculo</span>`;
 
   // Nome completo em caixa alta (como nos sistemas oficiais); o
   // apelido logo abaixo, em caixa normal — não precisa de destaque.
   return `<article class="card" data-id="${esc(s.id)}" tabindex="0">
     <div class="card-top">
       <h3 class="nome-oficial">${esc(s.nome)}</h3>
-      ${papeis}
+      ${cargos}
     </div>
     ${s.apelido ? `<div class="apelido">${esc(s.apelido)}</div>` : ''}
     <div class="tags">${lugares}</div>

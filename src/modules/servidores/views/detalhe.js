@@ -3,38 +3,55 @@
 // A gaveta é o centro do módulo: abre a pessoa e, dentro dela, os
 // vínculos com escolas — que é onde a escola de fato entra na história.
 // ============================================================
-import { lotacaoDe, cargoDe } from '../servidores.model.js';
-import { rotulaCargo, criarVinculo, atualizarVinculo, excluirVinculo } from '../vinculos.model.js';
-import { getLocais } from '../../escolas/escolas.model.js';
-import { esc, falha } from '../../../shared/dom.js';
-import { hojeISO, fmtData } from '../../../shared/format.js';
+import { vinculosAbertos, cargoDe, lotacaoDe } from '../servidores.model.js';
+import { rotulaCargo } from '../vinculos.model.js';
+import { esc } from '../../../shared/dom.js';
+import { fmtData, fmtIdade } from '../../../shared/format.js';
 import { drawerHead, abrirDrawer } from '../../../shared/ui/drawer.js';
 import { telefonesTexto } from '../../../shared/ui/phones.js';
-import { confirmar } from '../../../shared/ui/confirmar.js';
-import { toast } from '../../../shared/ui/toast.js';
+import { formVinculo, removerVinculo } from './vinculo.js';
 
-// `ctx`: { lista, podeEditar, recarregar, abrirFormServidor, removerServidor }
+// `ctx`: { lista, podeEditar, cargos, locais, recarregar, abrirFormServidor, removerServidor }
 // — ver servidores.view.js § ctxAtual(). Os locais do formulário de
-// vínculo vêm de getLocais() (escolas.model.js), não de ctx.unidades
-// (que aqui é só escola — ver escolas.model.js § getUnidades).
+// vínculo vêm de ctx.locais (getLocais() de escolas.model.js), não de
+// ctx.unidades (que aqui é só escola — ver escolas.model.js § getUnidades).
 export function detalhe(id, ctx) {
   const s = ctx.lista.find(x => x.id === id);
   if (!s) return;
 
   const campo = (l, v) => v ? `<div class="field"><div class="lbl">${l}</div><div class="val">${v}</div></div>` : '';
+  const campoAcao = (rotulo, valor, aria) => `
+    <div class="field">
+      <div class="lbl">${rotulo}</div>
+      <div class="val campo-derivado">
+        ${valor ? esc(valor) : '<span class="vazio">Sem vínculo</span>'}
+        ${ctx.podeEditar
+          ? `<button type="button" class="mini-btn" data-vinc-edit="1"
+               aria-label="${aria}">${valor ? '✎' : '+'}</button>`
+          : ''}
+      </div>
+    </div>`;
   const acoes = ctx.podeEditar ? `
     <div class="drawer-acoes">
       <button class="mini-btn" id="sv-edit">✎ Editar</button>
+      <a class="mini-btn" href="#/horarios?servidor=${esc(s.id)}">🕒 Horário de trabalho</a>
       <button class="mini-btn no" id="sv-del">🗑 Excluir</button>
-    </div>` : '';
+    </div>` : `
+    <div class="drawer-acoes">
+      <a class="mini-btn" href="#/horarios?servidor=${esc(s.id)}">🕒 Horário de trabalho</a>
+    </div>`;
 
   abrirDrawer(`
     ${drawerHead(`<span class="nome-oficial">${esc(s.nome)}</span>`, esc(s.apelido || ''))}
     <div class="drawer-body">
       ${acoes}
-      ${campo('Lotação', esc(lotacaoDe(s)) + (cargoDe(s) ? ` · ${esc(cargoDe(s))}` : ''))}
+      ${campoAcao('Cargo / função', cargoDe(s), 'Editar o vínculo')}
+      ${campoAcao('Lotação', lotacaoDe(s), 'Editar o vínculo')}
       ${campo('E-mail', s.email ? `<a href="mailto:${esc(s.email)}">${esc(s.email)}</a>` : '')}
       ${campo('Telefones', (s.telefones || []).length ? telefonesTexto(s.telefones) : '')}
+      ${campo('Nascimento', s.nascimento
+        ? `${esc(fmtData(s.nascimento))}${fmtIdade(s.nascimento) ? ` · ${esc(fmtIdade(s.nascimento))}` : ''}`
+        : '')}
       ${campo('Código funcional', esc(s.codigo_funcional || ''))}
       ${campo('CPF', esc(s.cpf || ''))}
       ${campo('RG', esc(s.rg || ''))}
@@ -42,135 +59,54 @@ export function detalhe(id, ctx) {
       <hr class="sep" />
       <div class="vinc-head">
         <div class="field" style="margin:0"><div class="lbl">Vínculos com escolas</div></div>
-        ${ctx.podeEditar ? `<button class="mini-btn" id="sv-vinc">+ Vincular a uma escola</button>` : ''}
+        ${ctx.podeEditar ? `<button class="mini-btn" id="sv-vinc">+ Novo vínculo</button>` : ''}
       </div>
       <div class="people" id="sv-vinculos">${listaVinculos(s, ctx.podeEditar)}</div>
     </div>`);
 
-  if (!ctx.podeEditar) return;
-  document.getElementById('sv-edit').addEventListener('click', () => ctx.abrirFormServidor(s));
-  document.getElementById('sv-del').addEventListener('click', () => ctx.removerServidor(s));
-  document.getElementById('sv-vinc').addEventListener('click', () => formVinculo(s, ctx));
-  ligarAcoesVinculo(s, ctx);
+  if (ctx.podeEditar) {
+    document.getElementById('sv-edit').addEventListener('click', () => ctx.abrirFormServidor(s));
+    document.getElementById('sv-del').addEventListener('click', () => ctx.removerServidor(s));
+    document.querySelector('[data-vinc-edit]')?.addEventListener('click', () =>
+      formVinculo(s, vinculosAbertos(s)[0] || null, ctx, { voltar: () => detalhe(s.id, ctx) }));
+    document.getElementById('sv-vinc').addEventListener('click', () =>
+      formVinculo(s, null, ctx, { voltar: () => detalhe(s.id, ctx) }));
+    const box = document.getElementById('sv-vinculos');
+    box.querySelectorAll('[data-edit-vinc]').forEach(b => b.addEventListener('click', () => {
+      const v = s.vinculos.find(x => x.id === b.dataset.editVinc);
+      formVinculo(s, v, ctx, { voltar: () => detalhe(s.id, ctx) });
+    }));
+    box.querySelectorAll('[data-del-vinc]').forEach(b =>
+      b.addEventListener('click', () => removerVinculo(s, b.dataset.delVinc, ctx)));
+  }
 }
 
 function listaVinculos(s, podeEditar) {
   if (!s.vinculos.length) return '<p class="count">Nenhum vínculo cadastrado.</p>';
 
-  // Vigentes primeiro (sem fim); o histórico fica abaixo, apagado.
+  // Abertos primeiro; o histórico fica abaixo, apagado.
   const ordenados = [...s.vinculos].sort((a, b) =>
-    (Number(!b.fim) - Number(!a.fim)) || String(a.papel).localeCompare(b.papel));
+    (Number(Boolean(a.fim)) - Number(Boolean(b.fim)))
+    || String(b.ingresso || '').localeCompare(String(a.ingresso || '')));
 
   return ordenados.map(v => {
-    const encerrado = !!v.fim;
+    const encerrado = Boolean(v.fim);
     const periodo = [
       v.ingresso ? `desde ${fmtData(v.ingresso)}` : '',
       v.fim ? `até ${fmtData(v.fim)}` : '',
     ].filter(Boolean).join(' · ');
     const acoes = podeEditar ? `
       <div class="vinc-acoes">
-        ${!v.fim ? `<button class="mini-btn" data-encerrar="${v.id}">Encerrar</button>` : ''}
-        <button class="mini-btn no" data-del-vinc="${v.id}" aria-label="Excluir vínculo">🗑</button>
+        <button class="mini-btn" data-edit-vinc="${esc(v.id)}" aria-label="Editar vínculo">✎</button>
+        <button class="mini-btn no" data-del-vinc="${esc(v.id)}" aria-label="Excluir vínculo">🗑</button>
       </div>` : '';
     return `<div class="person ${encerrado ? 'inativo' : ''}">
-      <div class="role">${esc(rotulaCargo(v.papel))}${v.fim ? ' · encerrado' : ''}</div>
-      <div class="pname">${esc(v.unidade?.nome || '—')}</div>
+      <div class="role">${esc(rotulaCargo(v.papel))}${encerrado ? ' · encerrado' : ''}</div>
+      <div class="pname">${v.unidade?.tipo === 'sede' ? '🏛 ' : ''}${esc(v.unidade?.nome || '—')}</div>
       <div class="pmeta">
         ${periodo ? `<span>${esc(periodo)}</span>` : ''}
         ${acoes}
       </div>
     </div>`;
   }).join('');
-}
-
-function ligarAcoesVinculo(s, ctx) {
-  const box = document.getElementById('sv-vinculos');
-  box.querySelectorAll('[data-encerrar]').forEach(b =>
-    b.addEventListener('click', () => encerrar(s, b.dataset.encerrar, ctx)));
-  box.querySelectorAll('[data-del-vinc]').forEach(b =>
-    b.addEventListener('click', () => removerVinculo(s, b.dataset.delVinc, ctx)));
-}
-
-// ── Formulário: vínculo ──────────────────────────────────────
-// `getLocais()` traz escolas + a sede da SME — quem vincula um
-// servidor à sede precisa dela na lista, não só das 144 escolas
-// (ver escolas.model.js § getLocais).
-async function formVinculo(s, ctx) {
-  const locais = await getLocais();
-  const opts = locais
-    .map(u => `<option value="${esc(u.id)}">${u.tipo === 'sede' ? '🏛 ' : ''}${esc(u.nome)}</option>`).join('');
-
-  abrirDrawer(`
-    ${drawerHead('Vincular a uma escola', esc(s.nome))}
-    <div class="drawer-body">
-      <form id="vc-form" class="esc-form">
-        <label>Local <select id="v-uni" required><option value="">Selecione…</option>${opts}</select></label>
-        <label>Cargo / função <input id="v-papel" required placeholder="Ex.: Diretor(a), Coordenador(a)" /></label>
-        <label>Data de ingresso <input id="v-ingresso" type="date" /></label>
-        <div class="form-foot">
-          <span id="v-msg" class="auth-msg"></span>
-          <button type="submit" id="v-save">Vincular</button>
-        </div>
-      </form>
-    </div>`);
-
-  document.getElementById('vc-form').addEventListener('submit', (e) => salvarVinculo(e, s, ctx));
-}
-
-async function salvarVinculo(e, s, ctx) {
-  e.preventDefault();
-  const msg = document.getElementById('v-msg'); msg.className = 'auth-msg';
-  const unidade_id = document.getElementById('v-uni').value;
-  if (!unidade_id) return falha(msg, 'Selecione o local.');
-
-  const btn = document.getElementById('v-save'); btn.disabled = true; btn.textContent = 'Vinculando…';
-  try {
-    await criarVinculo({
-      servidor_id: s.id,
-      unidade_id,
-      papel: document.getElementById('v-papel').value,
-      ingresso: document.getElementById('v-ingresso').value || null,
-    });
-    const novoCtx = await ctx.recarregar();
-    detalhe(s.id, novoCtx);   // volta ao detalhe, já com o vínculo novo
-  } catch (err) {
-    falha(msg, err.message || String(err));
-    btn.disabled = false; btn.textContent = 'Vincular';
-  }
-}
-
-// Não existe mais `encerrarVinculo` — o vínculo não tem coluna `ativo`
-// própria, então encerrar é um atualizarVinculo comum que só muda o
-// `fim`. Precisa reenviar unidade_id/papel/ingresso porque a função
-// substitui o registro inteiro.
-async function encerrar(s, vinculoId, ctx) {
-  const v = s.vinculos.find(x => x.id === vinculoId);
-  if (!v) return;
-  const fim = prompt('Data de encerramento do vínculo (AAAA-MM-DD):', hojeISO());
-  if (!fim) return;
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(fim)) {
-    return toast({ titulo: 'Data inválida', texto: 'Use o formato AAAA-MM-DD.', tipo: 'no' });
-  }
-  try {
-    await atualizarVinculo(vinculoId, {
-      unidade_id: v.unidade_id, papel: v.papel, ingresso: v.ingresso, fim,
-    });
-    const novoCtx = await ctx.recarregar();
-    detalhe(s.id, novoCtx);
-  } catch (err) {
-    toast({ titulo: 'Não foi possível encerrar', texto: err.message || String(err), tipo: 'no' });
-  }
-}
-
-async function removerVinculo(s, vinculoId, ctx) {
-  const ok = await confirmar('Excluir este vínculo?',
-    { detalhe: 'Para preservar o histórico, prefira "Encerrar".', textoOk: 'Excluir', perigo: true });
-  if (!ok) return;
-  try {
-    await excluirVinculo(vinculoId);
-    const novoCtx = await ctx.recarregar();
-    detalhe(s.id, novoCtx);
-  } catch (err) {
-    toast({ titulo: 'Não foi possível excluir', texto: err.message || String(err), tipo: 'no' });
-  }
 }

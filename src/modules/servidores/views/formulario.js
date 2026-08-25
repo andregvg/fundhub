@@ -1,18 +1,36 @@
 // ============================================================
 // FundHub — servidores/views/formulario.js  (criar, editar, excluir)
 // ============================================================
-import { criarServidor, atualizarServidor, excluirServidor } from '../servidores.model.js';
+import { criarServidor, atualizarServidor, excluirServidor, cargoDe, lotacaoDe, vinculosAbertos } from '../servidores.model.js';
 import { sincronizarTelefones } from '../../telefones/telefones.model.js';
 import { esc, falha } from '../../../shared/dom.js';
+import { mascaraCPF, mascaraRG, noPadraoCPF, noPadraoRG } from '../../../shared/format.js';
 import { drawerHead, abrirDrawer, fecharDrawer } from '../../../shared/ui/drawer.js';
 import { phonesEditorHtml, montarPhonesEditor, lerPhonesEditor } from '../../../shared/ui/phones.js';
 import { confirmar } from '../../../shared/ui/confirmar.js';
 import { toast } from '../../../shared/ui/toast.js';
+import { formVinculo } from './vinculo.js';
 
 // `ctx`: { recarregar } — ver servidores.view.js § ctxAtual().
-export function formServidor(s, ctx) {
+export function formServidor(s, ctx, { voltar = null } = {}) {
   const novo = !s;
   const v = (k) => esc(s?.[k] ?? '');
+  const cargo = s ? cargoDe(s) : '';
+  const lotacao = s ? lotacaoDe(s) : '';
+
+  // Cargo e lotação continuam à vista — são o que identifica a pessoa
+  // — mas não são editáveis aqui: eles vêm do vínculo, que é o único
+  // dono desse dado. O ✎ abre a gaveta do vínculo POR CIMA desta.
+  const derivado = (rotulo, valor, acao) => `
+    <label>${rotulo}
+      <span class="campo-derivado">
+        ${valor ? esc(valor) : '<span class="vazio">Sem vínculo</span>'}
+        ${ctx.podeEditar && !novo
+          ? `<button type="button" class="mini-btn" data-vinc="${acao}"
+               aria-label="${valor ? 'Editar' : 'Criar'} vínculo">${valor ? '✎' : '+'}</button>`
+          : ''}
+      </span>
+    </label>`;
 
   abrirDrawer(`
     ${drawerHead(novo ? 'Novo servidor' : 'Editar servidor', novo ? '' : esc(s.nome))}
@@ -21,35 +39,36 @@ export function formServidor(s, ctx) {
 
         <fieldset class="form-grupo">
           <legend>Identificação</legend>
-          <div class="campos">
-            <label>Nome completo <input id="s-nome" required value="${v('nome')}" /></label>
+          <div class="campos auto">
+            <label class="col-full">Nome completo <input id="s-nome" required value="${v('nome')}" /></label>
             <label>Apelido / como é chamado(a) <input id="s-apelido" value="${v('apelido')}" /></label>
+            <label>Data de nascimento <input id="s-nascimento" type="date" value="${v('nascimento')}" /></label>
           </div>
-        </fieldset>
-
-        <fieldset class="form-grupo">
-          <legend>Dados funcionais</legend>
-          <div class="campos duas">
-            <label>Código funcional <input id="s-codigo" inputmode="numeric" value="${v('codigo_funcional')}" /></label>
-            <label>Ingresso na rede <input id="s-ingresso" type="date" value="${v('inicio_rede')}" /></label>
-          </div>
-          <p class="form-hint">Cargo e lotação são definidos pelo vínculo com uma escola ou com a
-             sede — ${novo ? 'vincule depois de criar o cadastro' : 'veja "Vínculos com escolas" no detalhe'}.</p>
         </fieldset>
 
         <fieldset class="form-grupo">
           <legend>Documentos</legend>
-          <div class="campos duas">
+          <div class="campos auto">
             <label>CPF <input id="s-cpf" inputmode="numeric" placeholder="000.000.000-00" value="${v('cpf')}" /></label>
-            <label>RG <input id="s-rg" value="${v('rg')}" /></label>
+            <label>RG <input id="s-rg" inputmode="text" placeholder="00.000.000-0" value="${v('rg')}" /></label>
+            <label>Código funcional <input id="s-codigo" inputmode="numeric" value="${v('codigo_funcional')}" /></label>
+          </div>
+        </fieldset>
+
+        <fieldset class="form-grupo">
+          <legend>Rede</legend>
+          <div class="campos auto">
+            <label>Ingresso na rede <input id="s-ingresso" type="date" value="${v('inicio_rede')}" /></label>
+            ${derivado('Cargo / função', cargo, 'cargo')}
+            ${derivado('Lotação', lotacao, 'lotacao')}
           </div>
         </fieldset>
 
         <fieldset class="form-grupo">
           <legend>Contato</legend>
-          <div class="campos">
-            <label>E-mail <input id="s-email" type="email" value="${v('email')}" /></label>
-            ${phonesEditorHtml(s?.telefones)}
+          <div class="campos auto">
+            <label class="col-full">E-mail <input id="s-email" type="email" value="${v('email')}" /></label>
+            <div class="col-full">${phonesEditorHtml(s?.telefones)}</div>
           </div>
         </fieldset>
 
@@ -58,11 +77,32 @@ export function formServidor(s, ctx) {
           <button type="submit" id="s-save" class="btn-primary">${novo ? 'Criar' : 'Salvar'}</button>
         </div>
       </form>
-      ${novo ? `<p class="form-hint" style="margin-top:14px">Depois de criar, abra o servidor para vinculá-lo a uma escola.</p>` : ''}
-    </div>`);
+      ${novo ? `<p class="form-hint" style="margin-top:14px">Depois de criar, abra o servidor para vinculá-lo a uma escola ou à SME.</p>` : ''}
+    </div>`, { voltar });
 
-  montarPhonesEditor(document.getElementById('sv-form'));
-  document.getElementById('sv-form').addEventListener('submit', (e) => salvarServidor(e, s, ctx));
+  const form = document.getElementById('sv-form');
+  montarPhonesEditor(form);
+
+  // Máscara enquanto digita. O caso comum é digitar do começo ao fim;
+  // reformatar o valor inteiro mantém o cursor no lugar certo aí.
+  const mascarar = (id, fn) => {
+    const el = document.getElementById(id);
+    el.addEventListener('input', () => { el.value = fn(el.value); });
+    el.value = fn(el.value);
+  };
+  mascarar('s-cpf', mascaraCPF);
+  mascarar('s-rg', mascaraRG);
+
+  // O ✎ de cargo/lotação abre o vínculo sobre esta gaveta; ao fechar,
+  // volta para cá com o servidor recarregado.
+  form.querySelectorAll('[data-vinc]').forEach(b => b.addEventListener('click', async () => {
+    const c = await ctx.recarregar();
+    const atual = c.lista.find(x => x.id === s.id);
+    const aberto = vinculosAbertos(atual)[0] || null;
+    formVinculo(atual, aberto, c, { voltar: () => formServidor(atual, c) });
+  }));
+
+  form.addEventListener('submit', (e) => salvarServidor(e, s, ctx));
 }
 
 async function salvarServidor(e, s, ctx) {
@@ -78,9 +118,22 @@ async function salvarServidor(e, s, ctx) {
     codigo_funcional: val('s-codigo') || null,
     cpf: val('s-cpf') || null,
     rg: val('s-rg') || null,
+    nascimento: document.getElementById('s-nascimento').value || null,
     inicio_rede: document.getElementById('s-ingresso').value || null,
   };
   if (!payload.nome) return falha(msg, 'Informe o nome completo.');
+
+  // Documento fora do padrão é AVISO, não erro: RG de outro estado tem
+  // outro formato e a pessoa precisa ser cadastrada assim mesmo (R15).
+  const fora = [
+    noPadraoCPF(payload.cpf) ? '' : 'CPF',
+    noPadraoRG(payload.rg) ? '' : 'RG',
+  ].filter(Boolean);
+  if (fora.length) {
+    toast({ titulo: `${fora.join(' e ')} fora do padrão`,
+            texto: 'Salvo assim mesmo — confira se está correto.', tipo: 'ok' });
+  }
+
   const telefones = lerPhonesEditor(document.getElementById('sv-form'));
 
   const btn = document.getElementById('s-save'); btn.disabled = true; btn.textContent = 'Salvando…';

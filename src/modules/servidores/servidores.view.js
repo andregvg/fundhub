@@ -10,7 +10,9 @@
 // fato entra na história da pessoa.
 // ============================================================
 import { getServidores } from './servidores.model.js';
-import { getUnidades } from '../escolas/escolas.model.js';
+import { getUnidades, getLocais } from '../escolas/escolas.model.js';
+import { getCargos } from './vinculos.model.js';
+import { esc } from '../../shared/dom.js';
 import { loading, erroBox } from '../../shared/ui/feedback.js';
 import { drawerHtml, montarDrawer } from '../../shared/ui/drawer.js';
 import { criarFiltroSegmento, indexarUnidades } from '../../shared/ui/filtro-segmento.js';
@@ -20,12 +22,14 @@ import { detalhe } from './views/detalhe.js';
 import { formServidor, removerServidor } from './views/formulario.js';
 
 let perfil = null, lista = [], unidades = [], idxUnidades = {};
+let cargos = [], locais = [], filtroUnidade = '';
 let seg = null, podeEditar = false;
-let filtro = { q: '', papel: '', lotacao: '', semVinculo: false };
+let filtro = { q: '', cargo: '', local: '', semVinculo: false };
 
 export async function render(app, ctx = {}) {
   perfil = ctx.perfil || null;
   podeEditar = podeEscrever('servidores');
+  filtroUnidade = ctx.params?.get('unidade') || '';
 
   app.innerHTML = `
     <div class="page-head">
@@ -41,8 +45,18 @@ export async function render(app, ctx = {}) {
     </div>
     <div id="sv-seg" class="toolbar-linha"></div>
     <div class="toolbar-linha">
-      <div class="filters" id="sv-filtros">
-        <button class="chip" data-flag="sem">⚠️ Sem vínculo</button>
+      <div class="filtros-linha" id="sv-filtros">
+        <label class="filtro-campo">Cargo / função
+          <select id="f-cargo"><option value="">Todos</option></select>
+        </label>
+        <label class="filtro-campo">Lotação
+          <select id="f-local"><option value="">Todas</option></select>
+        </label>
+        <label class="switch">
+          <input type="checkbox" id="f-sem" /><span class="switch-trilho" aria-hidden="true"></span>
+          Sem vínculo
+        </label>
+        <span id="sv-chip-uni"></span>
       </div>
     </div>
     <div class="cards" id="sv-cards">${loading()}</div>
@@ -51,12 +65,20 @@ export async function render(app, ctx = {}) {
   montarDrawer();
 
   try {
-    [lista, unidades] = await Promise.all([getServidores(), getUnidades().catch(() => [])]);
+    [lista, unidades, locais, cargos] = await Promise.all([
+      getServidores(),
+      getUnidades().catch(() => []),
+      getLocais().catch(() => []),
+      getCargos().catch(() => []),
+    ]);
     idxUnidades = indexarUnidades(unidades);
   } catch (err) {
     document.getElementById('sv-cards').innerHTML = erroBox(err);
     return;
   }
+
+  pintarOpcoes();
+  pintarChipUnidade();
 
   // O segmento de um servidor é o das escolas em que ele atua.
   seg = criarFiltroSegmento(document.getElementById('sv-seg'), {
@@ -64,13 +86,9 @@ export async function render(app, ctx = {}) {
   });
 
   document.getElementById('sv-q').addEventListener('input', e => { filtro.q = e.target.value; pintar(); });
-  document.getElementById('sv-filtros').addEventListener('click', e => {
-    const b = e.target.closest('.chip'); if (!b) return;
-    if (b.dataset.papel != null) filtro.papel = filtro.papel === b.dataset.papel ? '' : b.dataset.papel;
-    if (b.dataset.lotacao != null) filtro.lotacao = filtro.lotacao === b.dataset.lotacao ? '' : b.dataset.lotacao;
-    if (b.dataset.flag === 'sem') filtro.semVinculo = !filtro.semVinculo;
-    pintar();
-  });
+  document.getElementById('f-cargo').addEventListener('change', e => { filtro.cargo = e.target.value; pintar(); });
+  document.getElementById('f-local').addEventListener('change', e => { filtro.local = e.target.value; pintar(); });
+  document.getElementById('f-sem').addEventListener('change', e => { filtro.semVinculo = e.target.checked; pintar(); });
 
   if (podeEditar) {
     const novo = document.getElementById('sv-novo');
@@ -81,12 +99,35 @@ export async function render(app, ctx = {}) {
   pintar();
 }
 
+function pintarOpcoes() {
+  document.getElementById('f-cargo').innerHTML =
+    `<option value="">Todos</option>` +
+    cargos.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('');
+  document.getElementById('f-local').innerHTML =
+    `<option value="">Todas</option>` +
+    locais.map(l => `<option value="${esc(l.id)}">${esc(l.nome)}</option>`).join('');
+}
+
+// Veio de "Gerir servidores e vínculos" na ficha de uma escola: a
+// lista abre já restrita à equipe dela, e o chip deixa desfazer.
+function pintarChipUnidade() {
+  const box = document.getElementById('sv-chip-uni');
+  if (!filtroUnidade) { box.innerHTML = ''; return; }
+  const nome = locais.find(l => l.id === filtroUnidade)?.nome || 'esta unidade';
+  box.innerHTML = `<span class="chip-filtro">Equipe de ${esc(nome)}
+    <button type="button" id="sv-limpa-uni" aria-label="Remover o filtro de unidade">×</button></span>`;
+  document.getElementById('sv-limpa-uni').addEventListener('click', () => {
+    filtroUnidade = ''; pintarChipUnidade(); pintar();
+  });
+}
+
 // Estado corrente entregue às views/ (lista, detalhe, formulário) —
 // reconstruído a cada chamada, é leitura barata. unidades só é
 // carregado uma vez em render() e não muda.
 function ctxAtual() {
   return {
     perfil, lista, unidades, idxUnidades, podeEditar, filtro, seg,
+    cargos, locais, filtroUnidade,
     recarregar,
     abrirDetalhe: (id) => detalhe(id, ctxAtual()),
     abrirFormServidor: (s) => formServidor(s, ctxAtual()),
@@ -94,23 +135,18 @@ function ctxAtual() {
   };
 }
 
-// Recarrega a lista do banco, repinta e devolve o ctx já atualizado —
-// quem chamou (ex.: depois de excluir um vínculo) usa o retorno para
-// reabrir o detalhe sem trabalhar com dado velho.
+// Recarrega a lista e o catálogo de cargos do banco, repinta e
+// devolve o ctx já atualizado — quem chamou (ex.: depois de salvar um
+// vínculo) usa o retorno para reabrir o detalhe sem trabalhar com dado
+// velho.
 async function recarregar() {
-  lista = await getServidores();
+  [lista, cargos] = await Promise.all([getServidores(), getCargos().catch(() => [])]);
+  pintarOpcoes();
   pintar();
   return ctxAtual();
 }
 
 function pintar() {
-  document.querySelectorAll('#sv-filtros .chip').forEach(b => {
-    const on = (b.dataset.papel != null && b.dataset.papel === filtro.papel)
-      || (b.dataset.lotacao != null && b.dataset.lotacao === filtro.lotacao)
-      || (b.dataset.flag === 'sem' && filtro.semVinculo);
-    b.classList.toggle('on', on);
-  });
-
   const box = document.getElementById('sv-cards');
   pintarLista(box, lista, ctxAtual());
 }
