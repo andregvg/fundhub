@@ -327,7 +327,8 @@ a.tile:hover {
 .card:hover { transform: translateY(-2px); border-color: color-mix(in srgb, var(--brand) 45%, var(--border)); }
 .card .card-top { display: flex; justify-content: space-between; align-items: start; gap: 8px; }
 .card h3 { margin: 0; font-size: 15.5px; line-height: 1.25; }
-.card .seg {
+/* .seg é vocabulário compartilhado — card E gaveta de detalhe usam. */
+.seg {
   white-space: nowrap;
   padding: 3px 8px;
   border-radius: 6px;
@@ -343,7 +344,8 @@ a.tile:hover {
 .card h3.nome-oficial { text-transform: uppercase; font-size: 14.5px; letter-spacing: .01em; }
 .card .apelido { margin-top: 3px; color: var(--muted); font-size: 12.5px; }
 .card .addr { margin: 8px 0 10px; color: var(--muted); font-size: 13px; }
-.card .tags { display: flex; gap: 6px; flex-wrap: wrap; }
+/* .tags idem — a linha de chips do cabeçalho da gaveta usa a mesma. */
+.tags { display: flex; gap: 6px; flex-wrap: wrap; }
 
 .tag {
   padding: 3px 8px;
