@@ -33,8 +33,16 @@ rápida e escalável, com acompanhamento em tempo real das 144 escolas da rede.
 
 ## 4. Perfis de acesso
 
-`admin_sme`, `transporte`, `gestor_escola`, `coordenador`, `supervisor`, e externos sem login
-(`professor` e `proponente`, via token). Herança/refino dos perfis já usados no `agendamentos-fil`
+Implementado na migration `021_permissoes_segmentos.sql` (tabela `papel`), substituindo a lista
+originalmente prevista neste documento: `admin_sme`, `equipe_sme`, `transporte`, `gestor_escolar`,
+`leitor` — mais os externos sem login (`professor` e `proponente`, via token, ainda no backlog).
+
+Cada papel tem um mapa **módulo → nível** (`oculto` / `proprios` / `leitura` / `escrita`), consultado
+tanto pelo front (`core/permissoes.js`) quanto pelo RLS — é a mesma fonte. Ver
+`.claude/rules/seguranca.md` para os quatro níveis e `021_permissoes_segmentos.sql` para o preset de
+cada papel.
+
+Herança/refino dos perfis já usados no `agendamentos-fil`
 (`admin_sme / escola / professor / fil / transporte`).
 
 ## 5. Roteiro por fases

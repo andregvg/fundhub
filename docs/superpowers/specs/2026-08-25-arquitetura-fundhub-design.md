@@ -44,7 +44,7 @@ convenção.
 |---|---|---|
 | 1 | `modules/docs/docs.content.js` diz "15 módulos"; o registry tem 17. Descreve o modelo admin/leitor binário, substituído por 4 níveis na migration 021. | Documentação interna do app desinforma quem a lê. |
 | 2 | `docs/BLUEPRINT.md` §4 lista perfis (`gestor_escola`, `coordenador`, `supervisor`) que nunca existiram; a 021 usa `admin_sme`, `equipe_sme`, `transporte`, `leitor`. | Idem. |
-| 3 | `shell/chrome.js` tem `PAPEL_ROTULO.gestor_escolar`, papel inexistente. | Código morto. |
+| 3 | ~~`shell/chrome.js` tem `PAPEL_ROTULO.gestor_escolar`, papel inexistente.~~ **Correção (rodada de implementação, 25/08/2026): é papel real** — a migration 021 o define (`ordem: 40`) com permissões próprias (`proprios` em dashboard/escolas/servidores/horarios/sate, `leitura` em calendario/projetos/notificacoes). Eu havia concluído o contrário a partir de um grep que buscava a string sem o sufixo `-r`. Removido e restaurado no mesmo dia — ver commit da rodada de implementação. | Falso positivo já corrigido; registrado aqui para não reaparecer como "achado novo" numa revisão futura. |
 | 4 | `afastamentos.view.js` com 575 linhas e 4 responsabilidades de UI (lista, calendário, formulário, sincronização). | É estruturalmente o mesmo caso que motivou `sate/views/`, mas não foi dividido. |
 | 5 | Não existe identidade visual por módulo; só `--brand` global. | Hub monocromático. |
 | 6 | `confirm()`/`alert()` nativos em ações destrutivas. | Única quebra visível do design system. |
@@ -333,7 +333,7 @@ literal é defensável), e os 2 arquivos acima do limite de linhas.
 
 5. Atualizar `modules/docs/docs.content.js` (17 módulos, 4 níveis de permissão).
 6. Atualizar `docs/BLUEPRINT.md` §4 com os papéis reais da migration 021.
-7. Remover `PAPEL_ROTULO.gestor_escolar` de `shell/chrome.js` (papel inexistente).
+7. ~~Remover `PAPEL_ROTULO.gestor_escolar` de `shell/chrome.js`~~ — não se aplica, ver §2.2 item 3.
 8. Dividir `afastamentos.view.js` (575 linhas) em `views/` por superfície:
    lista, calendário, formulário e sincronização.
 9. Avaliar `servidores.view.js` (429 linhas) pelo mesmo critério.

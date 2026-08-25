@@ -29,11 +29,12 @@ const sidebar = () => document.getElementById('sidebar');
 const fundo   = () => document.getElementById('sidebar-back');
 const toggle  = () => document.getElementById('nav-toggle');
 
-// Papéis reais (migration 021_permissoes_segmentos.sql).
+// Papéis reais (migration 021_permissoes_segmentos.sql, tabela `papel`).
 const PAPEL_ROTULO = {
   admin_sme: 'Administrador',
   equipe_sme: 'Equipe SME',
   transporte: 'Transporte',
+  gestor_escolar: 'Gestor(a) escolar',
   leitor: 'Leitor',
 };
 

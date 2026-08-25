@@ -109,16 +109,19 @@ export const SECOES = [
 │   │   ├── config.js         URL e chave pública do Supabase, domínio institucional
 │   │   ├── supabase.js       cliente único
 │   │   ├── auth.js           magic link, Google, tela de login
-│   │   ├── perfil.js         papel do usuário (isAdmin) — camada de autorização
+│   │   ├── perfil.js         perfil, papel e unidades — camada de autorização
+│   │   ├── permissoes.js     mapa módulo → nível (oculto/próprios/leitura/escrita)
+│   │   ├── segmentos.js      vocabulário de segmentos de ensino, compartilhado
 │   │   ├── registry.js       registro dos módulos (fonte única de tiles/nav/rotas)
-│   │   └── router.js         roteador por hash + guarda de admin + carga sob demanda
+│   │   └── router.js         roteador por hash + checa o nível + carga sob demanda
 │   ├── shell/              ← MOLDURA
-│   │   ├── chrome.js         topo, navegação (com menu mobile), chip do usuário
-│   │   └── home.js           os tiles do hub, gerados do registry
+│   │   ├── chrome.js         topo, menu lateral, menu de usuário
+│   │   └── pendente.js       tela de quem autenticou mas não está na allowlist
 │   ├── shared/             ← COMPARTILHADO (sem domínio)
 │   │   ├── dom.js            esc(), norm(), slug(), val()…
-│   │   ├── format.js         datas em pt-BR, hojeISO(), addDias()…
-│   │   └── ui/               drawer.js · toast.js · feedback.js
+│   │   ├── format.js         datas em pt-BR, hojeISO(), fmtDataHora()…
+│   │   ├── realtime.js       assinatura de mudanças via Supabase Realtime
+│   │   └── ui/               drawer.js · toast.js · feedback.js · phones.js · filtro-segmento.js
 │   ├── modules/            ← UMA PASTA POR FERRAMENTA
 │   │   └── &lt;modulo&gt;/
 │   │       ├── module.js         manifesto (id, ícone, rota, permissão)
@@ -161,6 +164,7 @@ export const SECOES = [
         <thead><tr><th>Módulo</th><th>Rota</th><th>Tabelas</th><th>Situação</th></tr></thead>
         <tbody>
           <tr><td>📊 <b>Dashboard do dia</b></td><td><code>#/dashboard</code></td><td>— (compõe os outros)</td><td class="ok">ativo</td></tr>
+          <tr><td>🧩 <b>Módulos</b></td><td><code>#/modulos</code></td><td>— (lê o registry)</td><td class="ok">ativo · os tiles do hub</td></tr>
           <tr><td>🏫 <b>Escolas</b></td><td><code>#/escolas</code></td><td><code>unidade_escolar</code>, <code>vw_escola_pessoas</code></td><td class="ok">ativo · CRUD admin</td></tr>
           <tr><td>📅 <b>Calendário Escolar</b></td><td><code>#/calendario</code></td><td><code>dia_calendario</code></td><td class="ok">ativo · admin edita</td></tr>
           <tr><td>🌴 <b>Afastamentos</b></td><td><code>#/afastamentos</code></td><td><code>afastamento</code></td><td class="ok">ativo · CRUD admin</td></tr>
@@ -174,10 +178,11 @@ export const SECOES = [
           <tr><td>📋 <b>Relatórios de Visita</b></td><td><code>#/visitas</code></td><td><code>relatorio_visita</code></td><td class="ok">ativo · CRUD admin</td></tr>
           <tr><td>🔐 <b>Usuários &amp; Acessos</b></td><td><code>#/usuarios</code></td><td><code>perfil</code>, <code>audit_log</code></td><td class="ok">ativo · só admin</td></tr>
           <tr><td>🔬 <b>Projetos &amp; Pesquisas</b></td><td><code>#/projetos</code></td><td><code>projeto</code>, <code>projeto_interesse</code></td><td class="ok">ativo (interno) · portal externo por token é backlog</td></tr>
+          <tr><td>👤 <b>Meus dados</b></td><td><code>#/meus-dados</code></td><td><code>servidor</code>, <code>telefone</code></td><td class="ok">ativo · cada um edita o próprio cadastro</td></tr>
           <tr><td>📖 <b>Documentação</b></td><td><code>#/docs</code></td><td>—</td><td class="ok">ativo · só admin</td></tr>
         </tbody>
       </table>
-      <p><b>Todos os 15 módulos estão ativos.</b> O que resta é aprofundamento (parte externa de
+      <p><b>Todos os 17 módulos estão ativos.</b> O que resta é aprofundamento (parte externa de
       Projetos por token, fotos nas Visitas, exportações) — está no backlog do HANDOFF.</p>
 
       <h3>As dependências que importam</h3>
@@ -269,8 +274,10 @@ export const SECOES = [
             (<code>is_institucional()</code>).</li>
         <li><b>Allowlist.</b> Ter e-mail institucional não basta: o e-mail precisa estar na tabela
             <code>perfil</code>. É o que a função <code>is_autorizado()</code> confere.</li>
-        <li><b>Papel.</b> <code>perfil.papel = 'admin_sme'</code> libera escrita
-            (<code>is_admin()</code>). Todos os demais só leem.</li>
+        <li><b>Nível por módulo.</b> Cada papel tem um mapa <i>módulo → nível</i>
+            (<code>meu_mapa_permissoes</code>, migration 021): <code>oculto</code> · <code>proprios</code>
+            · <code>leitura</code> · <code>escrita</code>. É a mesma fonte que o RLS consulta —
+            <code>admin_sme</code> tem escrita em tudo; os demais papéis variam módulo a módulo.</li>
       </ol>
       <p>O padrão de toda tabela é <b>default-deny</b>: nada é legível até uma policy dizer o
       contrário. Quem está deslogado (<code>anon</code>) <b>não acessa absolutamente nada</b> — e isso
@@ -278,10 +285,15 @@ export const SECOES = [
 
       <h3>Onde a permissão é checada no front</h3>
       <ul>
-        <li><code>core/perfil.js</code> devolve <code>{ papel, isAdmin }</code> e é a fonte única.</li>
-        <li>O <b>roteador</b> barra rotas de módulos marcados <code>admin: true</code> no manifesto.</li>
-        <li>A <b>home</b> esconde os tiles de módulos <code>admin</code> de quem não é admin.</li>
-        <li>Cada <b>view</b> recebe <code>ctx.perfil</code> e esconde os botões de escrita.</li>
+        <li><code>core/perfil.js</code> carrega o perfil e o mapa de permissões no login; é a
+            fonte única.</li>
+        <li><code>core/permissoes.js</code> guarda o mapa e expõe <code>nivel()</code>,
+            <code>podeVer()</code> e <code>podeEscrever()</code> por módulo.</li>
+        <li>O <b>roteador</b> barra a rota de todo módulo cujo nível seja <code>oculto</code>.</li>
+        <li><code>registry.js</code> filtra os tiles e os itens de menu do mesmo jeito — módulo
+            <code>oculto</code> some de tudo, não só da rota.</li>
+        <li>Cada <b>view</b> recebe <code>ctx.perfil</code> e <code>ctx.nivel</code>, e esconde os
+            controles de escrita conforme o nível.</li>
       </ul>
       <div class="doc-nota">
         Nada disso é segurança de verdade — é <b>conforto</b>: esconder um botão não impede ninguém
