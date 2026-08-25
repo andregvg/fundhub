@@ -1,25 +1,23 @@
 // ============================================================
 // FundHub — modules/escolas/escolas.view.js
-// Tela do módulo Escolas: busca, filtros, detalhe em gaveta e CRUD
-// (admin). É o "V+C" do MVC — renderiza e trata eventos, mas todo
-// acesso a dados passa por escolas.model.js.
+// Tela do módulo Escolas: busca, filtros e a lista de cards. A gaveta
+// de detalhe e os formulários (criar/editar/excluir) vivem em views/ —
+// é lá que a ficha e o CRUD de fato acontecem.
 // ============================================================
-import { getUnidades, criarUnidade, atualizarUnidade, excluirUnidade } from './escolas.model.js';
-import { sincronizarTelefones } from '../telefones/telefones.model.js';
-import { esc, norm, falha } from '../../shared/dom.js';
+import { getUnidades } from './escolas.model.js';
+import { esc, norm } from '../../shared/dom.js';
 import { emptyState, erroBox } from '../../shared/ui/feedback.js';
-import { drawerHtml, drawerHead, montarDrawer, abrirDrawer, fecharDrawer } from '../../shared/ui/drawer.js';
-import { phonesEditorHtml, montarPhonesEditor, lerPhonesEditor, telefonesTexto } from '../../shared/ui/phones.js';
+import { drawerHtml, montarDrawer } from '../../shared/ui/drawer.js';
 import { criarFiltroSegmento } from '../../shared/ui/filtro-segmento.js';
 import { podeEscrever } from '../../core/permissoes.js';
-import { confirmar } from '../../shared/ui/confirmar.js';
-import { toast } from '../../shared/ui/toast.js';
+import { detalhe } from './views/detalhe.js';
+import { abrirForm, removerEscola } from './views/formulario.js';
 
 let ALL = [];
 let perfil = null;
 let seg = null;                 // filtro de segmento (pré-preenchido pelo perfil)
 let podeEditar = false;
-let filtro = { q: '', transporte: false, eja: false };
+let filtro = { q: '', oferta: '', transporte: false, eja: false };
 
 export async function render(app, ctx = {}) {
   perfil = ctx.perfil || null;
@@ -38,7 +36,21 @@ export async function render(app, ctx = {}) {
       <button id="nova-escola" class="btn-primary" hidden>+ Nova escola</button>
     </div>
     <div id="seg-filtro" class="toolbar-linha"></div>
-    <div class="toolbar-linha"><div class="filters" id="filters"></div></div>
+    <div class="toolbar-linha">
+      <div class="filtros-linha" id="filters">
+        <label class="filtro-campo">Oferta
+          <select id="f-oferta"><option value="">Todas</option></select>
+        </label>
+        <label class="switch">
+          <input type="checkbox" id="f-transporte" /><span class="switch-trilho" aria-hidden="true"></span>
+          🚌 Transporte
+        </label>
+        <label class="switch">
+          <input type="checkbox" id="f-eja" /><span class="switch-trilho" aria-hidden="true"></span>
+          🌙 EJA
+        </label>
+      </div>
+    </div>
     <div class="cards" id="cards"></div>
     ${drawerHtml()}`;
 
@@ -58,43 +70,39 @@ export async function render(app, ctx = {}) {
     document.getElementById('count').textContent = '';
   }
 
+  pintarOfertas();
+
   // Segmento vem do perfil já marcado; os demais filtros são avulsos.
   seg = criarFiltroSegmento(document.getElementById('seg-filtro'), {
     perfil, onChange: pintar, chaveMemoria: 'fundhub:seg:escolas',
   });
 
-  document.getElementById('filters').innerHTML = [
-    `<button class="chip" data-flag="transporte">🚌 Transporte</button>`,
-    `<button class="chip" data-flag="eja">🌙 EJA</button>`,
-  ].join('');
-
   document.getElementById('q').addEventListener('input', e => { filtro.q = e.target.value; pintar(); });
-  document.getElementById('filters').addEventListener('click', e => {
-    const b = e.target.closest('.chip'); if (!b) return;
-    if (b.dataset.flag === 'transporte') filtro.transporte = !filtro.transporte;
-    if (b.dataset.flag === 'eja') filtro.eja = !filtro.eja;
-    sincronizarChips(); pintar();
-  });
+  document.getElementById('f-oferta').addEventListener('change', e => { filtro.oferta = e.target.value; pintar(); });
+  document.getElementById('f-transporte').addEventListener('change', e => { filtro.transporte = e.target.checked; pintar(); });
+  document.getElementById('f-eja').addEventListener('change', e => { filtro.eja = e.target.checked; pintar(); });
 
   if (podeEditar) {
     const nova = document.getElementById('nova-escola');
     nova.hidden = false;
-    nova.addEventListener('click', () => abrirForm(null));
+    nova.addEventListener('click', () => abrirForm(null, ctxAtual()));
   }
 
   pintar();
 }
 
-function sincronizarChips() {
-  document.querySelectorAll('#filters .chip').forEach(b => {
-    const on = (b.dataset.flag === 'transporte' && filtro.transporte)
-      || (b.dataset.flag === 'eja' && filtro.eja);
-    b.classList.toggle('on', on);
-  });
+// As ofertas são as que existem na base — nada fixo no código.
+function pintarOfertas() {
+  const ofertas = [...new Set(ALL.map(u => u.oferta).filter(Boolean))]
+    .sort((a, b) => a.localeCompare(b, 'pt'));
+  document.getElementById('f-oferta').innerHTML =
+    `<option value="">Todas</option>` +
+    ofertas.map(o => `<option value="${esc(o)}">${esc(o)}</option>`).join('');
 }
 
 function combina(u) {
   if (seg && !seg.combina(u)) return false;
+  if (filtro.oferta && u.oferta !== filtro.oferta) return false;
   if (filtro.transporte && !u.tem_transporte) return false;
   if (filtro.eja && !u.tem_eja) return false;
   if (filtro.q) {
@@ -115,7 +123,10 @@ function pintar() {
       || emptyState('🔎', 'Nenhuma escola encontrada', 'Ajuste a busca ou os filtros.');
   }
   cards.querySelectorAll('.card').forEach(c =>
-    c.addEventListener('click', () => abrirDetalhe(c.dataset.id)));
+    c.addEventListener('click', () => {
+      const u = porChave(c.dataset.id);
+      if (u) detalhe(u, ctxAtual());
+    }));
 }
 
 function cardHtml(u) {
@@ -143,173 +154,23 @@ function porChave(key) {
     || ALL.find(x => String(x.numero) === String(key));
 }
 
-// ── Detalhe ──────────────────────────────────────────────────
-function abrirDetalhe(key) {
-  const u = porChave(key);
-  if (!u) return;
-
-  const tel = telefonesTexto(u.telefones);
-  const pessoas = (u.pessoas || []).filter(p => p.nome).map(p => `
-    <div class="person">
-      <div class="role">${esc(p.papel)}</div>
-      <div class="pname">${esc(p.nome)}${p.apelido ? ` · ${esc(p.apelido)}` : ''}</div>
-      <div class="pmeta">
-        ${p.email ? `<span>✉ <a href="mailto:${esc(p.email)}">${esc(p.email)}</a></span>` : ''}
-        ${p.telefone ? `<span>📱 ${esc(p.telefone)}</span>` : ''}
-      </div>
-    </div>`).join('') || '<p class="count">Sem pessoas cadastradas.</p>';
-
-  const campo = (l, v) => v ? `<div class="field"><div class="lbl">${l}</div><div class="val">${v}</div></div>` : '';
-  const maps = u.endereco
-    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(u.endereco + ', Ribeirão Preto, SP')}`
-    : '';
-  const acoes = podeEditar ? `
-    <div class="drawer-acoes">
-      <button class="mini-btn" id="edit-esc">✎ Editar</button>
-      <button class="mini-btn no" id="del-esc">🗑 Excluir</button>
-    </div>` : '';
-
-  abrirDrawer(`
-    ${drawerHead(esc(u.nome), esc(u.nome_oficial || ''))}
-    <div class="drawer-body">
-      ${acoes}
-      ${campo('Segmento', esc(u.segmento))}
-      ${campo('Endereço', esc(u.endereco) + (maps ? ` · <a href="${maps}" target="_blank" rel="noopener">ver no mapa</a>` : ''))}
-      ${campo('Telefones', tel)}
-      ${campo('E-mail institucional', u.email ? `<a href="mailto:${esc(u.email)}">${esc(u.email)}</a>` : '')}
-      ${campo('Regional', esc(u.regional))}
-      ${campo('Oferta', esc(u.oferta))}
-      ${campo('Transporte de alunos', u.tem_transporte ? 'Sim' : 'Não')}
-      ${campo('EJA', u.tem_eja ? 'Sim' : 'Não')}
-      ${campo('INEP', esc(u.inep))}
-      ${u.site_apm ? campo('Site APM', `<a href="${esc(u.site_apm)}" target="_blank" rel="noopener">abrir</a>`) : ''}
-      <hr class="sep" />
-      <div class="field"><div class="lbl">Equipe gestora</div></div>
-      <div class="people">${pessoas}</div>
-      <p class="form-hint" style="margin-top:10px">
-        <a href="#/servidores">Gerir servidores e vínculos em Servidores →</a>
-      </p>
-    </div>`);
-
-  if (podeEditar) {
-    document.getElementById('edit-esc').addEventListener('click', () => abrirForm(u));
-    document.getElementById('del-esc').addEventListener('click', () => remover(u));
-  }
+// Recarrega a lista do banco (o model já invalidou o cache ao salvar
+// ou excluir), repinta e devolve o ctx já atualizado — quem chamou
+// (ex.: depois de salvar) usa o retorno para reabrir o detalhe sem
+// trabalhar com dado velho.
+async function recarregar() {
+  ALL = await getUnidades();
+  pintarOfertas();
+  pintar();
+  return ctxAtual();
 }
 
-// ── Formulário (criar/editar) ────────────────────────────────
-function abrirForm(u) {
-  const novo = !u;
-  const v = (k) => esc(u?.[k] ?? '');
-  const chk = (k) => (u?.[k] ? 'checked' : '');
-
-  // Os campos são muitos (16). Agrupá-los em blocos com título é só
-  // visual — o payload continua o mesmo — mas transforma uma parede
-  // de inputs numa ficha que se lê de relance.
-  abrirDrawer(`
-    ${drawerHead(novo ? 'Nova escola' : 'Editar escola', novo ? '' : esc(u.nome))}
-    <div class="drawer-body">
-      <form id="esc-form" class="esc-form">
-
-        <fieldset class="form-grupo">
-          <legend>Identificação</legend>
-          <div class="campos">
-            <label>Nome <input name="nome" required value="${v('nome')}" />
-              <small class="form-hint">Como aparece nos cards e nas listas.</small></label>
-            <label>Apelido <input name="apelido" value="${v('apelido')}" />
-              <small class="form-hint">Forma curta de uso interno (ex.: “Alcina”).</small></label>
-            <label>Nome oficial / SAE <input name="nome_oficial" value="${v('nome_oficial')}" />
-              <small class="form-hint">Como consta no SAE — use para conferir relatórios.</small></label>
-          </div>
-        </fieldset>
-
-        <fieldset class="form-grupo">
-          <legend>Segmento e oferta</legend>
-          <div class="campos duas">
-            <label>Segmento <input name="segmento" list="segs" value="${v('segmento')}" />
-              <datalist id="segs"><option>EMEF</option><option>EMEI</option><option>CEI</option><option>EMEPB</option><option>CONVENIADA</option></datalist>
-            </label>
-            <label>Oferta <input name="oferta" placeholder="EF1/EF2" value="${v('oferta')}" /></label>
-            <label class="inline col-2"><input type="checkbox" name="tem_transporte" ${chk('tem_transporte')} /> Transporte de alunos</label>
-            <label class="inline col-2"><input type="checkbox" name="tem_eja" ${chk('tem_eja')} /> Atende EJA</label>
-          </div>
-        </fieldset>
-
-        <fieldset class="form-grupo">
-          <legend>Localização</legend>
-          <div class="campos">
-            <label>Endereço <input name="endereco" value="${v('endereco')}" /></label>
-          </div>
-        </fieldset>
-
-        <fieldset class="form-grupo">
-          <legend>Contato</legend>
-          <div class="campos">
-            <label>E-mail institucional <input name="email" type="email" value="${v('email')}" /></label>
-            ${phonesEditorHtml(u?.telefones)}
-          </div>
-        </fieldset>
-
-        <fieldset class="form-grupo">
-          <legend>Cadastros e links</legend>
-          <div class="campos duas">
-            <label>INEP <input name="inep" value="${v('inep')}" /></label>
-            <label>Site APM <input name="site_apm" class="col-2" value="${v('site_apm')}" /></label>
-          </div>
-        </fieldset>
-
-        <div class="form-foot">
-          <span id="ef-msg" class="auth-msg"></span>
-          <button type="submit" id="ef-save" class="btn-primary">${novo ? 'Criar' : 'Salvar'}</button>
-        </div>
-      </form>
-    </div>`);
-
-  montarPhonesEditor(document.getElementById('esc-form'));
-  document.getElementById('esc-form').addEventListener('submit', (e) => salvar(e, u));
-}
-
-async function salvar(e, u) {
-  e.preventDefault();
-  const f = e.target;
-  const msg = document.getElementById('ef-msg'); msg.className = 'auth-msg';
-  const payload = {
-    nome: f.nome.value.trim(),
-    apelido: f.apelido.value.trim() || null,
-    nome_oficial: f.nome_oficial.value.trim() || null,
-    segmento: f.segmento.value.trim() || null,
-    endereco: f.endereco.value.trim() || null,
-    email: f.email.value.trim() || null,
-    oferta: f.oferta.value.trim() || null,
-    inep: f.inep.value.trim() || null,
-    site_apm: f.site_apm.value.trim() || null,
-    tem_transporte: f.tem_transporte.checked,
-    tem_eja: f.tem_eja.checked,
+// Estado corrente entregue às views/ (detalhe, formulário) —
+// reconstruído a cada chamada, é leitura barata.
+function ctxAtual() {
+  return {
+    perfil, podeEditar, recarregar,
+    abrirForm: (u) => abrirForm(u, ctxAtual()),
+    removerEscola: (u) => removerEscola(u, ctxAtual()),
   };
-  if (!payload.nome) return falha(msg, 'Informe o nome.');
-  const telefones = lerPhonesEditor(f);
-
-  const btn = document.getElementById('ef-save'); btn.disabled = true; btn.textContent = 'Salvando…';
-  try {
-    const id = u ? (await atualizarUnidade(u.id, payload), u.id) : (await criarUnidade(payload)).id;
-    await sincronizarTelefones({ unidadeId: id }, telefones);
-    ALL = await getUnidades();
-    fecharDrawer(); pintar();
-  } catch (err) {
-    falha(msg, 'Erro: ' + (err.message || err));
-    btn.disabled = false; btn.textContent = u ? 'Salvar' : 'Criar';
-  }
-}
-
-async function remover(u) {
-  const ok = await confirmar(`Excluir a escola "${u.nome}"?`,
-    { detalhe: 'Esta ação não pode ser desfeita.', textoOk: 'Excluir', perigo: true });
-  if (!ok) return;
-  try {
-    await excluirUnidade(u.id);
-    ALL = await getUnidades();
-    fecharDrawer(); pintar();
-  } catch (err) {
-    toast({ titulo: 'Não foi possível excluir', texto: err.message || String(err), tipo: 'no' });
-  }
 }

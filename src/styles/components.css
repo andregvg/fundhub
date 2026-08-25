@@ -753,6 +753,19 @@ input[type="checkbox"] { width: 18px; height: 18px; }
 .field .lbl { margin-bottom: 3px; color: var(--muted); font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
 .field .val { font-size: 14.5px; }
 .field .val a { word-break: break-word; }
+
+/* Título de bloco dentro da gaveta de detalhe. */
+.bloco-tit {
+  margin: 20px 0 10px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+.drawer-body > .bloco-tit:first-of-type { border-top: 0; padding-top: 0; margin-top: 6px; }
 .people { display: flex; flex-direction: column; gap: 10px; margin-top: 6px; }
 .person { padding: 11px 13px; border: 1px solid var(--border); border-radius: 11px; background: var(--surface-2); }
 .person .role { color: var(--brand); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; }
