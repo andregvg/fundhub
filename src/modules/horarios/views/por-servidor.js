@@ -1,0 +1,132 @@
+// ============================================================
+// FundHub — horarios/views/por-servidor.js
+// A semana de UMA pessoa, agrupada pelos locais onde ela tem jornada.
+// É o caminho que faltava: até aqui só dava para chegar ao horário
+// escolhendo primeiro a escola, e quem procurava pela pessoa não
+// encontrava onde cadastrar.
+// ============================================================
+import { DIAS, getBlocosDoServidor, totalDoDia, duracao } from '../horarios.model.js';
+import { getServidores, vinculosAbertos } from '../../servidores/servidores.model.js';
+import { rotulaCargo } from '../../servidores/vinculos.model.js';
+import { esc } from '../../../shared/dom.js';
+import { loading, emptyState, erroBox } from '../../../shared/ui/feedback.js';
+import { linhaDia } from './por-escola.js';
+import { formBloco } from './bloco.js';
+
+let servidores = [], blocos = [];
+let servidorId = '';
+let ultimoParam;   // mesma lógica de por-escola.js: distingue navegação
+                    // nova (deep link mudou) de troca de aba (mesmo ctx).
+let ctxAtual = null;
+
+export async function renderPorServidor(box, ctx) {
+  ctxAtual = ctx;
+  if (ctx.servidorId !== ultimoParam) {
+    servidorId = ctx.servidorId || '';
+    ultimoParam = ctx.servidorId;
+  }
+
+  box.innerHTML = `
+    <div class="toolbar">
+      <label class="search">👤
+        <select id="hs-servidor"><option value="">Selecione a pessoa…</option></select>
+      </label>
+    </div>
+    <div id="hs-corpo"></div>`;
+
+  try { servidores = await getServidores(); }
+  catch (err) { document.getElementById('hs-corpo').innerHTML = erroBox(err); return; }
+
+  pintarSeletor();
+
+  document.getElementById('hs-servidor').addEventListener('change', e => {
+    servidorId = e.target.value; carregar();
+  });
+
+  if (servidorId) carregar(); else limparCorpo();
+}
+
+// Só entra no seletor quem tem vínculo aberto — vínculo encerrado não
+// tem onde lançar jornada nova.
+function pintarSeletor() {
+  const sel = document.getElementById('hs-servidor');
+  const comVinculo = servidores.filter(s => vinculosAbertos(s).length)
+    .sort((a, b) => (a.apelido || a.nome).localeCompare(b.apelido || b.nome, 'pt'));
+  sel.innerHTML = `<option value="">Selecione a pessoa…</option>` +
+    comVinculo.map(s => `<option value="${esc(s.id)}">${esc(s.apelido || s.nome)}</option>`).join('');
+  if (servidorId && !sel.querySelector(`option[value="${CSS.escape(servidorId)}"]`)) servidorId = '';
+  sel.value = servidorId;
+}
+
+function limparCorpo() {
+  document.getElementById('hs-corpo').innerHTML = emptyState('👤', 'Escolha uma pessoa',
+    'Selecione o servidor acima para ver e editar a jornada dele.');
+}
+
+async function carregar() {
+  const corpo = document.getElementById('hs-corpo');
+  if (!servidorId) { limparCorpo(); return; }
+  corpo.innerHTML = loading();
+
+  try { blocos = await getBlocosDoServidor(servidorId); }
+  catch (err) { corpo.innerHTML = erroBox(err); return; }
+
+  const s = servidores.find(x => x.id === servidorId);
+  if (!s) { corpo.innerHTML = erroBox(new Error('Servidor não encontrado.')); return; }
+
+  // Os locais a mostrar: onde já há bloco lançado, mais os locais de
+  // vínculo aberto sem bloco ainda — é ali que a pessoa precisa poder
+  // ADICIONAR o primeiro.
+  const locais = new Map();
+  for (const b of blocos) if (b.unidade && !locais.has(b.unidade.id)) locais.set(b.unidade.id, b.unidade);
+  for (const v of vinculosAbertos(s)) if (v.unidade && !locais.has(v.unidade.id)) locais.set(v.unidade.id, v.unidade);
+
+  if (!locais.size) {
+    corpo.innerHTML = emptyState('🏫', 'Sem local de lotação',
+      `${esc(s.apelido || s.nome)} não tem vínculo aberto em nenhum local.`);
+    return;
+  }
+
+  corpo.innerHTML = [...locais.values()]
+    .sort((a, b) => a.nome.localeCompare(b.nome, 'pt'))
+    .map(local => painelLocal(s, local)).join('');
+  ligarEventos();
+}
+
+function painelLocal(s, local) {
+  const doLocal = blocos.filter(b => b.unidade_id === local.id);
+  const vinc = vinculosAbertos(s).find(v => v.unidade_id === local.id);
+  const semana = DIAS.map(d => linhaDia(s, d, doLocal.filter(b => b.dia_semana === d.n),
+    { podeEditar: ctxAtual.podeEditar, unidadeId: local.id })).join('');
+  const totalSemana = DIAS.reduce((acc, d) =>
+    acc + totalDoDia(doLocal.filter(b => b.dia_semana === d.n)), 0);
+
+  return `<section class="panel hb-painel">
+    <h2>
+      ${esc(local.apelido || local.nome)}
+      <small class="hb-sub">${esc(rotulaCargo(vinc?.papel || ''))} · ${duracao(totalSemana)} na semana</small>
+    </h2>
+    <div class="hb-grade">${semana}</div>
+  </section>`;
+}
+
+function ligarEventos() {
+  const corpo = document.getElementById('hs-corpo');
+  if (!ctxAtual.podeEditar) return;
+
+  corpo.querySelectorAll('[data-add]').forEach(b => b.addEventListener('click', () => {
+    const [sid, diaStr, uni] = b.dataset.add.split(':');
+    const dia = parseInt(diaStr, 10);
+    const nome = DIAS.find(d => d.n === dia)?.nome || '';
+    formBloco(null, { servidorId: sid, unidadeId: uni, dia, nome, recarregar: carregar });
+  }));
+  corpo.querySelectorAll('[data-bloco]').forEach(b => b.addEventListener('click', () => {
+    const bloco = blocos.find(x => x.id === b.dataset.bloco);
+    if (!bloco) return;
+    const nome = DIAS.find(d => d.n === bloco.dia_semana)?.nome || '';
+    formBloco(bloco, {
+      servidorId: bloco.servidor_id, unidadeId: bloco.unidade_id, dia: bloco.dia_semana, nome,
+      recarregar: carregar,
+    });
+  }));
+}

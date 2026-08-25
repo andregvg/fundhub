@@ -49,12 +49,24 @@ const FIM = paraMin(COBERTURA_FIM);      // 1100
 // ── Acesso a dados ───────────────────────────────────────────
 const SEL = '*, servidor:servidor(id, nome, apelido)';
 
-export async function getBlocos(unidadeId, ano) {
+// O ano saiu da interface junto com o do vínculo: o que se vê é a
+// jornada VIGENTE. A coluna continua no banco como carimbo.
+export async function getBlocos(unidadeId) {
   if (!hasSupabase() || !unidadeId) return [];
   const { data, error } = await sb().from('horario_bloco')
-    .select(SEL)
-    .eq('unidade_id', unidadeId).eq('ano', ano)
+    .select(SEL).eq('unidade_id', unidadeId)
     .order('dia_semana').order('inicio');
+  if (error) throw error;
+  return data || [];
+}
+
+// A jornada de UMA pessoa, em todos os locais onde ela tem bloco.
+export async function getBlocosDoServidor(servidorId) {
+  if (!hasSupabase() || !servidorId) return [];
+  const { data, error } = await sb().from('horario_bloco')
+    .select(`${SEL}, unidade:unidade_escolar(id, nome, apelido, tipo)`)
+    .eq('servidor_id', servidorId)
+    .order('unidade_id').order('dia_semana').order('inicio');
   if (error) throw error;
   return data || [];
 }
