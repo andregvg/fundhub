@@ -337,9 +337,12 @@ literal é defensável), e os 2 arquivos acima do limite de linhas.
 8. Dividir `afastamentos.view.js` (575 linhas) em `views/` por superfície:
    lista, calendário, formulário e sincronização.
 9. Avaliar `servidores.view.js` (429 linhas) pelo mesmo critério.
-10. Acrescentar `agoraISO()` a `shared/format.js` e migrar os 13 usos.
-11. Implementar `shared/ui/confirmar.js` e substituir os `confirm()`/`alert()`.
-12. Implementar a paleta `--mod-*` em `tokens.css` e o campo `cor` no manifesto.
+10. ~~Acrescentar `agoraISO()`~~ — feito na rodada de implementação (25/08/2026).
+11. ~~Implementar `shared/ui/confirmar.js`~~ — feito na rodada de implementação (25/08/2026).
+12. ~~Implementar a paleta `--mod-*`~~ — **decisão do André (25/08/2026): não implementar
+    especulativamente.** Um só sistema de tokens compartilhado para todos os módulos; o mecanismo
+    de R14 só nasce no dia em que ele pedir destaque para um módulo específico. Ver R14 em
+    `.claude/rules/ui.md`.
 
 ### 6.2 O que este spec deliberadamente não faz
 

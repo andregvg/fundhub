@@ -33,9 +33,10 @@ Sempre conferir `src/styles/components.css` antes de escrever CSS novo. O que j�
 - **Cards e grades:** `.card` · `.cards` · `.tile` · `.tiles` · `.panel` · `.dash-grid` · `.md-grid`
 - **Stats:** `.stat-row` · `.stat-tile` · `.stat-ico` · `.stat-num` · `.stat-label`
 - **Formulário:** `.esc-form` · `.esc-row` · `.form-grid` · `.form-grupo` · `.form-foot` · `.form-hint` · `.field`
-- **Botões:** `.btn-primary` · `.btn-secundario` · `.mini-btn` (com `.ok` / `.no`)
+- **Botões:** `.btn-primary` · `.btn-secundario` · `.btn-perigo` (ação destrutiva, só em diálogo) · `.mini-btn` (com `.ok` / `.no`)
 - **Marcadores:** `.chip` · `.tag` · `.badge` · `.pill`
 - **Gaveta:** `.drawer` e família — usar sempre via `shared/ui/drawer.js`, nunca à mão
+- **Confirmação:** `.confirmar-back`/`.confirmar-card` — usar sempre via `shared/ui/confirmar.js`, nunca à mão
 - **Busca:** `.search`
 
 CSS de módulo (`<modulo>.css`) só **acrescenta** ao vocabulário comum; nunca redefine `.card`,
@@ -51,18 +52,24 @@ sair de graça.
 Se falta uma cor, o caminho é **acrescentar um token** em `tokens.css` (nas duas variantes), não
 escrever a cor no módulo.
 
-## R14 — Identidade por módulo
+## R14 — Identidade por módulo (sob demanda, não por padrão)
 
-Cada módulo pode ter uma cor de destaque **sem sair do sistema de tokens**:
+**Decisão do André (25/08/2026): não criar uma cor por módulo especulativamente.** O padrão é UM
+sistema de tokens compartilhado (`--brand`, `--brand-2`, `--accent`, `--danger`, `--ok` + o que for
+preciso completar de forma harmônica nele) — não 17 paletas. Todo módulo usa esse padrão até o
+André pedir destaque próprio para um módulo específico.
 
-1. `tokens.css` define a paleta de destaques `--mod-<nome>`, cada uma com valor claro e escuro;
-2. o manifesto declara `cor: '<nome>'` (ao lado de `ico`);
+Quando ele pedir, o mecanismo (ainda não implementado — só nasce no primeiro pedido, regra de três
+não se aplica a uma decisão já tomada pelo dono do produto) é:
+
+1. `tokens.css` ganha `--mod-<nome>`, com valor claro e escuro;
+2. o manifesto daquele módulo declara `cor: '<nome>'` (ao lado de `ico`);
 3. o roteador aplica `--modulo: var(--mod-<nome>)` no container da página;
-4. o CSS do módulo usa `var(--modulo)` onde hoje usaria `var(--brand)`.
+4. o CSS daquele módulo usa `var(--modulo)` onde hoje usaria `var(--brand)`.
 
-Módulo sem `cor` cai em `--brand` — o default continua consistente. O que **não** muda por módulo:
-fundo, superfície, borda, texto, sombra, raio, tipografia e espaçamento. Identidade é o destaque,
-não um tema próprio.
+Módulo sem `cor` cai em `--brand` — o default continua consistente. O que **não** muda por módulo,
+nem quando um ganhar destaque: fundo, superfície, borda, texto, sombra, raio, tipografia e
+espaçamento. Identidade é o destaque, não um tema próprio.
 
 ## R16 — Diálogos
 
