@@ -9,6 +9,7 @@ import { esc, falha, ok } from '../../shared/dom.js';
 import { MESES, DOW, hojeISO, fmtData } from '../../shared/format.js';
 import { loading, erroBox } from '../../shared/ui/feedback.js';
 import { drawerHtml, drawerHead, montarDrawer, abrirDrawer, fecharDrawer } from '../../shared/ui/drawer.js';
+import { toast } from '../../shared/ui/toast.js';
 
 const agora = new Date();
 let ano = agora.getFullYear(), mes = agora.getMonth() + 1;   // mes 1-12
@@ -154,7 +155,7 @@ async function salvar(e, iso) {
       const n = await upsertPeriodo(dia, iso, ate);
       fecharDrawer();
       await carregar();               // recarrega o mês (o intervalo pode passar dele)
-      return void alert(`${n} dia(s) atualizado(s).`);
+      return void toast({ titulo: 'Intervalo aplicado', texto: `${n} dia(s) atualizado(s).`, tipo: 'ok' });
     }
     await upsertDiaCalendario(dia);
     dias[iso] = dia;

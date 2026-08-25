@@ -7,6 +7,8 @@
 import { criarLocal, atualizarLocal, excluirLocal, linkMaps } from '../../locais/locais.model.js';
 import { esc, val, checked, falha } from '../../../shared/dom.js';
 import { emptyState } from '../../../shared/ui/feedback.js';
+import { confirmar } from '../../../shared/ui/confirmar.js';
+import { toast } from '../../../shared/ui/toast.js';
 
 let ctx = null;
 
@@ -111,12 +113,14 @@ async function salvar(e, l) {
 }
 
 async function remover(l) {
-  if (!l || !confirm(`Excluir o local "${l.nome}"?`)) return;
+  if (!l) return;
+  const ok = await confirmar(`Excluir o local "${l.nome}"?`, { textoOk: 'Excluir', perigo: true });
+  if (!ok) return;
   try {
     await excluirLocal(l.id);
     await ctx.recarregarLocais();
     render(ctx);
   } catch (err) {
-    alert('Não foi possível excluir: ' + (err.message || err));
+    toast({ titulo: 'Não foi possível excluir', texto: err.message || String(err), tipo: 'no' });
   }
 }

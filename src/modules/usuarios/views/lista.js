@@ -23,6 +23,8 @@ import { esc, val, checked, falha } from '../../../shared/dom.js';
 import { fmtDataHora } from '../../../shared/format.js';
 import { loading, emptyState, erroBox } from '../../../shared/ui/feedback.js';
 import { drawerHtml, drawerHead, montarDrawer, abrirDrawer, fecharDrawer } from '../../../shared/ui/drawer.js';
+import { confirmar } from '../../../shared/ui/confirmar.js';
+import { toast } from '../../../shared/ui/toast.js';
 import { isInstitucional } from '../../../core/auth.js';
 
 let lista = [], papeis = [], presets = {}, servidores = [];
@@ -254,7 +256,9 @@ async function salvar(e, p, lerSegs, lerExcecoes) {
 }
 
 async function remover(p) {
-  if (!confirm(`Remover o acesso de "${p.email}"? Ele deixará de conseguir entrar no FundHub.`)) return;
+  const ok = await confirmar(`Remover o acesso de "${p.email}"?`,
+    { detalhe: 'Ele deixará de conseguir entrar no FundHub.', textoOk: 'Remover acesso', perigo: true });
+  if (!ok) return;
   try { await excluirPerfil(p.email); carregar(); }
-  catch (err) { alert('Não foi possível remover: ' + (err.message || err)); }
+  catch (err) { toast({ titulo: 'Não foi possível remover', texto: err.message || String(err), tipo: 'no' }); }
 }

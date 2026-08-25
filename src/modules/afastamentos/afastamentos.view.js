@@ -18,6 +18,8 @@ import { MESES, DOW, hojeISO, fmtData, agoraISO } from '../../shared/format.js';
 import { loading, emptyState, erroBox } from '../../shared/ui/feedback.js';
 import { drawerHtml, drawerHead, montarDrawer, abrirDrawer, fecharDrawer } from '../../shared/ui/drawer.js';
 import { criarFiltroSegmento, indexarUnidades } from '../../shared/ui/filtro-segmento.js';
+import { confirmar } from '../../shared/ui/confirmar.js';
+import { toast } from '../../shared/ui/toast.js';
 
 let perfil = null, servidores = [], unidades = [], lista = [];
 let seg = null, idxUnidades = {};
@@ -299,13 +301,13 @@ function ligarAcoes(box) {
   box.querySelectorAll('[data-excluir]').forEach(b =>
     b.addEventListener('click', () => excluir(lista.find(a => a.id === b.dataset.excluir))));
   box.querySelectorAll('[data-confirmar]').forEach(b =>
-    b.addEventListener('click', () => confirmar(lista.find(a => a.id === b.dataset.confirmar))));
+    b.addEventListener('click', () => confirmarImportado(lista.find(a => a.id === b.dataset.confirmar))));
 }
 
-async function confirmar(a) {
+async function confirmarImportado(a) {
   if (!a) return;
   try { await confirmarAfastamento(a.id); carregar(); }
-  catch (err) { alert('Não foi possível confirmar: ' + (err.message || err)); }
+  catch (err) { toast({ titulo: 'Não foi possível confirmar', texto: err.message || String(err), tipo: 'no' }); }
 }
 
 // ── Formulário ───────────────────────────────────────────────
@@ -372,7 +374,10 @@ async function salvar(e, a) {
     const bloq = await getDiasBloqueiamAfastamento(payload.inicio, payload.fim || payload.inicio);
     if (bloq.length) {
       const quais = bloq.slice(0, 3).map(d => fmtData(d.data) + (d.evento ? ` (${d.evento})` : '')).join(', ');
-      if (!confirm(`O calendário marca ${bloq.length} dia(s) como "não conceder afastamentos": ${quais}${bloq.length > 3 ? '…' : ''}.\n\nRegistrar mesmo assim?`)) return;
+      const ok = await confirmar('Registrar mesmo assim?', {
+        detalhe: `O calendário marca ${bloq.length} dia(s) como "não conceder afastamentos": ${quais}${bloq.length > 3 ? '…' : ''}.`,
+      });
+      if (!ok) return;
     }
   } catch (_) { /* sem calendário, segue */ }
 
@@ -388,21 +393,27 @@ async function salvar(e, a) {
 }
 
 async function cancelar(a) {
-  if (!a || !confirm(`Cancelar este afastamento de "${a.servidor?.nome || 'servidor'}"?\nEle sai das visões ativas, mas o histórico é preservado.`)) return;
+  if (!a) return;
+  const ok = await confirmar(`Cancelar este afastamento de "${a.servidor?.nome || 'servidor'}"?`,
+    { detalhe: 'Ele sai das visões ativas, mas o histórico é preservado.', textoOk: 'Cancelar afastamento', perigo: true });
+  if (!ok) return;
   try { await cancelarAfastamento(a.id); carregar(); }
-  catch (err) { alert('Não foi possível cancelar: ' + (err.message || err)); }
+  catch (err) { toast({ titulo: 'Não foi possível cancelar', texto: err.message || String(err), tipo: 'no' }); }
 }
 
 async function reativar(a) {
   if (!a) return;
   try { await reativarAfastamento(a); carregar(); }
-  catch (err) { alert('Não foi possível reativar: ' + (err.message || err)); }
+  catch (err) { toast({ titulo: 'Não foi possível reativar', texto: err.message || String(err), tipo: 'no' }); }
 }
 
 async function excluir(a) {
-  if (!a || !confirm(`Excluir DEFINITIVAMENTE este afastamento?\nEsta ação não pode ser desfeita (o cancelamento preserva o histórico).`)) return;
+  if (!a) return;
+  const ok = await confirmar('Excluir DEFINITIVAMENTE este afastamento?',
+    { detalhe: 'Esta ação não pode ser desfeita (o cancelamento preserva o histórico).', textoOk: 'Excluir', perigo: true });
+  if (!ok) return;
   try { await excluirAfastamento(a.id); carregar(); }
-  catch (err) { alert('Não foi possível excluir: ' + (err.message || err)); }
+  catch (err) { toast({ titulo: 'Não foi possível excluir', texto: err.message || String(err), tipo: 'no' }); }
 }
 
 // ── Sincronização com a planilha do Drive ────────────────────

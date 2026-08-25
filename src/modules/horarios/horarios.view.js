@@ -19,6 +19,8 @@ import { esc, falha } from '../../shared/dom.js';
 import { loading, emptyState, erroBox } from '../../shared/ui/feedback.js';
 import { drawerHtml, drawerHead, montarDrawer, abrirDrawer, fecharDrawer } from '../../shared/ui/drawer.js';
 import { criarFiltroSegmento } from '../../shared/ui/filtro-segmento.js';
+import { confirmar } from '../../shared/ui/confirmar.js';
+import { toast } from '../../shared/ui/toast.js';
 
 let perfil = null, unidades = [], servidores = [], blocos = [];
 let unidadeId = '', ano = ANO_LETIVO, seg = null;
@@ -297,12 +299,13 @@ async function salvarBloco(e, bloco, servidorId, dia) {
 }
 
 async function removerBloco(bloco) {
-  if (!confirm('Excluir este bloco da jornada?')) return;
+  const ok = await confirmar('Excluir este bloco da jornada?', { textoOk: 'Excluir', perigo: true });
+  if (!ok) return;
   try {
     await excluirBloco(bloco.id);
     fecharDrawer();
     await carregar();
   } catch (err) {
-    alert('Não foi possível excluir: ' + (err.message || err));
+    toast({ titulo: 'Não foi possível excluir', texto: err.message || String(err), tipo: 'no' });
   }
 }

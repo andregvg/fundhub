@@ -12,6 +12,8 @@ import { esc, norm, val, falha } from '../../shared/dom.js';
 import { hojeISO, fmtData, addDias } from '../../shared/format.js';
 import { loading, emptyState, erroBox } from '../../shared/ui/feedback.js';
 import { drawerHtml, drawerHead, montarDrawer, abrirDrawer, fecharDrawer } from '../../shared/ui/drawer.js';
+import { confirmar } from '../../shared/ui/confirmar.js';
+import { toast } from '../../shared/ui/toast.js';
 import { criarFiltroSegmento, indexarUnidades } from '../../shared/ui/filtro-segmento.js';
 
 let perfil = null, unidades = [], lista = [], idxUnidades = {};
@@ -264,11 +266,13 @@ async function salvar(e, o) {
 }
 
 async function remover(o) {
-  if (!confirm(`Excluir a ocorrência "${o.assunto}"? Esta ação não pode ser desfeita.`)) return;
+  const ok = await confirmar(`Excluir a ocorrência "${o.assunto}"?`,
+    { detalhe: 'Esta ação não pode ser desfeita.', textoOk: 'Excluir', perigo: true });
+  if (!ok) return;
   try {
     await excluirOcorrencia(o.id);
     fecharDrawer(); carregar();
   } catch (err) {
-    alert('Não foi possível excluir: ' + (err.message || err));
+    toast({ titulo: 'Não foi possível excluir', texto: err.message || String(err), tipo: 'no' });
   }
 }

@@ -13,6 +13,8 @@ import { hojeISO, fmtData, addDias } from '../../shared/format.js';
 import { loading, emptyState, erroBox } from '../../shared/ui/feedback.js';
 import { drawerHtml, drawerHead, montarDrawer, abrirDrawer, fecharDrawer } from '../../shared/ui/drawer.js';
 import { criarFiltroSegmento, indexarUnidades } from '../../shared/ui/filtro-segmento.js';
+import { confirmar } from '../../shared/ui/confirmar.js';
+import { toast } from '../../shared/ui/toast.js';
 
 let perfil = null, unidades = [], lista = [], idxUnidades = {};
 let seg = null;
@@ -244,7 +246,9 @@ async function salvar(e, v) {
 }
 
 async function remover(v) {
-  if (!confirm('Excluir este relatório de visita? Esta ação não pode ser desfeita.')) return;
+  const ok = await confirmar('Excluir este relatório de visita?',
+    { detalhe: 'Esta ação não pode ser desfeita.', textoOk: 'Excluir', perigo: true });
+  if (!ok) return;
   try { await excluirVisita(v.id); fecharDrawer(); carregar(); }
-  catch (err) { alert('Não foi possível excluir: ' + (err.message || err)); }
+  catch (err) { toast({ titulo: 'Não foi possível excluir', texto: err.message || String(err), tipo: 'no' }); }
 }

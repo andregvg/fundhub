@@ -5,6 +5,8 @@
 import { criarAtividade, atualizarAtividade, excluirAtividade } from '../atividades.model.js';
 import { esc, slug, val, checked, falha } from '../../../shared/dom.js';
 import { emptyState } from '../../../shared/ui/feedback.js';
+import { confirmar } from '../../../shared/ui/confirmar.js';
+import { toast } from '../../../shared/ui/toast.js';
 
 let ctx = null;
 
@@ -141,12 +143,14 @@ async function salvar(e, a) {
 }
 
 async function remover(a) {
-  if (!a || !confirm(`Excluir a atividade "${a.nome}"?`)) return;
+  if (!a) return;
+  const ok = await confirmar(`Excluir a atividade "${a.nome}"?`, { textoOk: 'Excluir', perigo: true });
+  if (!ok) return;
   try {
     await excluirAtividade(a.id);
     await ctx.recarregarAtividades();
     render(ctx);
   } catch (err) {
-    alert('Não foi possível excluir: ' + (err.message || err));
+    toast({ titulo: 'Não foi possível excluir', texto: err.message || String(err), tipo: 'no' });
   }
 }

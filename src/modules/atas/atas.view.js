@@ -9,6 +9,8 @@ import { esc, norm, val, falha } from '../../shared/dom.js';
 import { hojeISO, fmtData, fmtExtenso, addDias } from '../../shared/format.js';
 import { loading, emptyState, erroBox } from '../../shared/ui/feedback.js';
 import { drawerHtml, drawerHead, montarDrawer, abrirDrawer, fecharDrawer } from '../../shared/ui/drawer.js';
+import { confirmar } from '../../shared/ui/confirmar.js';
+import { toast } from '../../shared/ui/toast.js';
 
 let perfil = null, lista = [];
 let filtro = { de: addDias(hojeISO(), -180), ate: hojeISO(), tipo: '', q: '' };
@@ -223,7 +225,9 @@ async function salvar(e, a) {
 }
 
 async function remover(a) {
-  if (!confirm(`Excluir a ata nº ${a.numero}/${a.ano}? Esta ação não pode ser desfeita.`)) return;
+  const ok = await confirmar(`Excluir a ata nº ${a.numero}/${a.ano}?`,
+    { detalhe: 'Esta ação não pode ser desfeita.', textoOk: 'Excluir', perigo: true });
+  if (!ok) return;
   try { await excluirAta(a.id); fecharDrawer(); carregar(); }
-  catch (err) { alert('Não foi possível excluir: ' + (err.message || err)); }
+  catch (err) { toast({ titulo: 'Não foi possível excluir', texto: err.message || String(err), tipo: 'no' }); }
 }

@@ -11,6 +11,8 @@ import { esc } from '../../../shared/dom.js';
 import { fmtData } from '../../../shared/format.js';
 import { loading, emptyState, erroBox } from '../../../shared/ui/feedback.js';
 import { criarFiltroSegmento, indexarUnidades } from '../../../shared/ui/filtro-segmento.js';
+import { confirmar } from '../../../shared/ui/confirmar.js';
+import { toast } from '../../../shared/ui/toast.js';
 
 const FILTROS = ['', 'solicitado', 'em_analise', 'confirmado', 'negado'];
 
@@ -112,7 +114,7 @@ function item(s) {
 async function mudarStatus(id, status) {
   if (status === 'confirmado' && !(await frotaLibera(id))) return;
   try { await atualizarStatusSolicitacao(id, status); render(ctx); }
-  catch (err) { alert('Não foi possível atualizar: ' + (err.message || err)); }
+  catch (err) { toast({ titulo: 'Não foi possível atualizar', texto: err.message || String(err), tipo: 'no' }); }
 }
 
 // Confere o saldo de ônibus do dia/período. Não bloqueia: avisa e deixa o
@@ -126,10 +128,13 @@ async function frotaLibera(id) {
     const jaReserva = STATUS_RESERVA.includes(s.status);
     const projetado = (uso[s.periodo] || 0) + (jaReserva ? 0 : s.qtd_onibus);
     if (cap === 0) {
-      return confirm(`A oferta de ônibus não está definida para ${fmtData(s.data)} (${s.periodo}). Confirmar mesmo assim?`);
+      return confirmar('Confirmar mesmo assim?',
+        { detalhe: `A oferta de ônibus não está definida para ${fmtData(s.data)} (${s.periodo}).` });
     }
     if (projetado > cap) {
-      return confirm(`Frota insuficiente: oferta ${cap}, uso ficaria ${projetado} ônibus em ${fmtData(s.data)} (${s.periodo}). Confirmar mesmo assim?`);
+      return confirmar('Confirmar mesmo assim?', {
+        detalhe: `Frota insuficiente: oferta ${cap}, uso ficaria ${projetado} ônibus em ${fmtData(s.data)} (${s.periodo}).`,
+      });
     }
   } catch (_) { /* se a checagem falhar, segue o fluxo normal */ }
   return true;

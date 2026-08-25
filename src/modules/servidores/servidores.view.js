@@ -22,6 +22,8 @@ import { drawerHtml, drawerHead, montarDrawer, abrirDrawer, fecharDrawer } from 
 import { phonesEditorHtml, montarPhonesEditor, lerPhonesEditor, telefonesTexto } from '../../shared/ui/phones.js';
 import { criarFiltroSegmento, indexarUnidades } from '../../shared/ui/filtro-segmento.js';
 import { podeEscrever } from '../../core/permissoes.js';
+import { confirmar } from '../../shared/ui/confirmar.js';
+import { toast } from '../../shared/ui/toast.js';
 
 let perfil = null, lista = [], unidades = [], idxUnidades = {};
 let seg = null, podeEditar = false;
@@ -337,15 +339,16 @@ async function salvarServidor(e, s) {
 async function removerServidor(s) {
   const n = s.vinculos.length;
   const aviso = n
-    ? `Excluir "${s.nome}"?\n\nIsso apaga junto ${n} vínculo(s), os horários e os afastamentos dele. Não pode ser desfeito.`
-    : `Excluir "${s.nome}"? Esta ação não pode ser desfeita.`;
-  if (!confirm(aviso)) return;
+    ? `Isso apaga junto ${n} vínculo(s), os horários e os afastamentos dele. Não pode ser desfeito.`
+    : 'Esta ação não pode ser desfeita.';
+  const ok = await confirmar(`Excluir "${s.nome}"?`, { detalhe: aviso, textoOk: 'Excluir', perigo: true });
+  if (!ok) return;
   try {
     await excluirServidor(s.id);
     lista = await getServidores();
     fecharDrawer(); pintar();
   } catch (err) {
-    alert('Não foi possível excluir: ' + (err.message || err));
+    toast({ titulo: 'Não foi possível excluir', texto: err.message || String(err), tipo: 'no' });
   }
 }
 
@@ -405,25 +408,29 @@ async function salvarVinculo(e, s) {
 async function encerrar(s, vinculoId) {
   const fim = prompt('Data de encerramento do vínculo (AAAA-MM-DD):', hojeISO());
   if (!fim) return;
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(fim)) return alert('Data inválida. Use o formato AAAA-MM-DD.');
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(fim)) {
+    return toast({ titulo: 'Data inválida', texto: 'Use o formato AAAA-MM-DD.', tipo: 'no' });
+  }
   try {
     await encerrarVinculo(vinculoId, fim);
     lista = await getServidores();
     pintar();
     detalhe(s.id);
   } catch (err) {
-    alert('Não foi possível encerrar: ' + (err.message || err));
+    toast({ titulo: 'Não foi possível encerrar', texto: err.message || String(err), tipo: 'no' });
   }
 }
 
 async function removerVinculo(s, vinculoId) {
-  if (!confirm('Excluir este vínculo? Para preservar o histórico, prefira “Encerrar”.')) return;
+  const ok = await confirmar('Excluir este vínculo?',
+    { detalhe: 'Para preservar o histórico, prefira "Encerrar".', textoOk: 'Excluir', perigo: true });
+  if (!ok) return;
   try {
     await excluirVinculo(vinculoId);
     lista = await getServidores();
     pintar();
     detalhe(s.id);
   } catch (err) {
-    alert('Não foi possível excluir: ' + (err.message || err));
+    toast({ titulo: 'Não foi possível excluir', texto: err.message || String(err), tipo: 'no' });
   }
 }

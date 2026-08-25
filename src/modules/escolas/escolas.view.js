@@ -12,6 +12,8 @@ import { drawerHtml, drawerHead, montarDrawer, abrirDrawer, fecharDrawer } from 
 import { phonesEditorHtml, montarPhonesEditor, lerPhonesEditor, telefonesTexto } from '../../shared/ui/phones.js';
 import { criarFiltroSegmento } from '../../shared/ui/filtro-segmento.js';
 import { podeEscrever } from '../../core/permissoes.js';
+import { confirmar } from '../../shared/ui/confirmar.js';
+import { toast } from '../../shared/ui/toast.js';
 
 let ALL = [];
 let perfil = null;
@@ -300,12 +302,14 @@ async function salvar(e, u) {
 }
 
 async function remover(u) {
-  if (!confirm(`Excluir a escola "${u.nome}"? Esta ação não pode ser desfeita.`)) return;
+  const ok = await confirmar(`Excluir a escola "${u.nome}"?`,
+    { detalhe: 'Esta ação não pode ser desfeita.', textoOk: 'Excluir', perigo: true });
+  if (!ok) return;
   try {
     await excluirUnidade(u.id);
     ALL = await getUnidades();
     fecharDrawer(); pintar();
   } catch (err) {
-    alert('Não foi possível excluir: ' + (err.message || err));
+    toast({ titulo: 'Não foi possível excluir', texto: err.message || String(err), tipo: 'no' });
   }
 }

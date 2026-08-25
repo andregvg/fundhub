@@ -14,6 +14,8 @@ import { fmtData } from '../../shared/format.js';
 import { loading, emptyState, erroBox } from '../../shared/ui/feedback.js';
 import { drawerHtml, drawerHead, montarDrawer, abrirDrawer, fecharDrawer } from '../../shared/ui/drawer.js';
 import { criarFiltroSegmento } from '../../shared/ui/filtro-segmento.js';
+import { confirmar } from '../../shared/ui/confirmar.js';
+import { toast } from '../../shared/ui/toast.js';
 
 let perfil = null, unidades = [], lista = [];
 let filtro = { status: '', tipo: '', q: '' };
@@ -175,7 +177,7 @@ async function pintarInteresses(p) {
   box.querySelectorAll('[data-del-int]').forEach(b =>
     b.addEventListener('click', async () => {
       try { await removerInteresse(b.dataset.delInt); await pintarInteresses(p); }
-      catch (err) { alert('Não foi possível remover: ' + (err.message || err)); }
+      catch (err) { toast({ titulo: 'Não foi possível remover', texto: err.message || String(err), tipo: 'no' }); }
     }));
 }
 
@@ -292,7 +294,11 @@ async function salvar(e, p) {
 }
 
 async function remover(p) {
-  if (!confirm(`Excluir o projeto "${p.titulo}"? Isso remove junto as manifestações de interesse. Não pode ser desfeito.`)) return;
+  const ok = await confirmar(`Excluir o projeto "${p.titulo}"?`, {
+    detalhe: 'Isso remove junto as manifestações de interesse. Não pode ser desfeito.',
+    textoOk: 'Excluir', perigo: true,
+  });
+  if (!ok) return;
   try { await excluirProjeto(p.id); fecharDrawer(); carregar(); }
-  catch (err) { alert('Não foi possível excluir: ' + (err.message || err)); }
+  catch (err) { toast({ titulo: 'Não foi possível excluir', texto: err.message || String(err), tipo: 'no' }); }
 }
