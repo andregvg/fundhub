@@ -9,6 +9,13 @@ versionamento **MINOR** = módulo novo ou mudança de modelo de dados, **PATCH**
 
 ---
 
+## [0.10.2] — 2026-08-25
+
+### Corrigido
+- No computador, o botão ☰ não escondia mais o menu lateral: o menu
+  continuava por cima do conteúdo mesmo depois de recolhido. Agora ele
+  some e volta como deveria, e a página aproveita a largura toda.
+
 ## [0.10.1] — 2026-08-25
 
 Ajustes internos de manutenção — sem módulo novo.
