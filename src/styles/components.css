@@ -99,6 +99,105 @@ a.tile:hover {
 
 .filters { display: flex; gap: 6px; flex-wrap: wrap; }
 
+/* Linha de filtros que não são multi-escolha: select para escolha
+   única entre muitos, toggle para liga/desliga. O chip continua
+   sendo a forma da multi-escolha (segmento). */
+.filtros-linha { display: grid; grid-template-columns: 1fr; gap: 8px 14px; }
+.filtro-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.filtro-campo select {
+  padding: 6px 9px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-btn);
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+}
+.filtro-campo select:focus {
+  outline: 2px solid color-mix(in srgb, var(--brand) 40%, transparent);
+  border-color: var(--brand);
+}
+
+/* Chip do filtro que veio pela URL (`?unidade=…`): mostra o recorte e
+   deixa desfazê-lo. */
+.chip-filtro {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: end;
+  padding: 5px 10px;
+  border: 1px solid var(--brand);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--brand) 10%, transparent);
+  color: var(--brand);
+  font-size: 13px;
+  font-weight: 600;
+}
+.chip-filtro button {
+  border: 0;
+  background: none;
+  color: inherit;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* Toggle: markup sem comportamento, então é classe CSS e não
+   componente JS (R12). O estado real é o do checkbox — teclado,
+   rótulo e leitor de tela funcionam de graça. */
+.switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  align-self: end;
+  min-height: var(--controle);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: 0;
+  cursor: pointer;
+}
+.switch input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.switch-trilho {
+  position: relative;
+  flex: 0 0 auto;
+  width: 34px;
+  height: 20px;
+  border: 1px solid var(--border-forte);
+  border-radius: 999px;
+  background: var(--surface-3);
+  transition: background .15s ease, border-color .15s ease;
+}
+.switch-trilho::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--surface);
+  box-shadow: var(--shadow-btn);
+  transition: transform .15s ease;
+}
+.switch input:checked + .switch-trilho { background: var(--brand); border-color: var(--brand); }
+.switch input:checked + .switch-trilho::after { transform: translateX(14px); }
+.switch input:focus-visible + .switch-trilho { outline: 2px solid var(--brand); outline-offset: 2px; }
+@media (pointer: coarse) { .switch { min-height: var(--toque); } }
+
 /* Segunda barra de filtros (período/escola/status), usada por módulos de
    lista como Ocorrências, Visitas e Auditoria. */
 .subfiltros { margin-top: -6px; }
@@ -611,6 +710,45 @@ input[type="checkbox"] { width: 18px; height: 18px; }
 .form-grupo + .form-grupo { border-top: 1px solid var(--border); padding-top: 16px; }
 .form-grupo .campos { display: flex; flex-direction: column; gap: 13px; }
 
+/* Grade que reflui sozinha. Resolve os dois requisitos de uma vez: os
+   campos se reorganizam conforme a largura E um campo sozinho na linha
+   se estende até o fim do container — que é o que `.campos.duas`
+   (grade fixa, só acima de 1280px) não faz. */
+.form-grupo .campos.auto { display: grid; grid-template-columns: 1fr; gap: 13px; }
+.form-grupo .campos.auto > .col-full { grid-column: 1 / -1; }
+
+/* Rótulo SEMPRE acima do campo. A única exceção é o checkbox
+   (.inline), onde o rótulo ao lado é o que a caixa significa. */
+.form-grupo .campos label:not(.inline) {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+.form-grupo .campos label > input,
+.form-grupo .campos label > select,
+.form-grupo .campos label > textarea { width: 100%; }
+
+/* Valor derivado, exibido no formulário mas editado em outro lugar
+   (cargo e lotação vêm do vínculo). Parece campo, não é. */
+.campo-derivado {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: var(--controle);
+  padding: 7px 10px;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-btn);
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+}
+.campo-derivado .vazio { color: var(--muted); }
+.campo-derivado .mini-btn { margin-left: auto; }
+
 .field { margin-bottom: 14px; }
 .field .lbl { margin-bottom: 3px; color: var(--muted); font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
 .field .val { font-size: 14.5px; }
@@ -644,6 +782,8 @@ hr.sep { margin: 20px 0; border: 0; border-top: 1px solid var(--border); }
   .dash-grid { gap: 16px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
   .form-grid { grid-template-columns: 1fr 1fr; }
   .form-grid label.col-2, .form-grid .col-2 { grid-column: 1 / -1; }
+  .form-grupo .campos.auto { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+  .filtros-linha { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
   .esc-row { flex-direction: row; flex-wrap: wrap; gap: 22px; }
   .form-foot { flex-direction: row; justify-content: space-between; align-items: center; }
   .search { flex: 1 1 240px; }
