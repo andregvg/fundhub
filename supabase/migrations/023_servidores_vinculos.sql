@@ -49,6 +49,25 @@ begin
   end if;
 end $$;
 
+-- 3a2. Sob o esquema antigo, "renovar o vínculo" era criar uma linha nova
+-- por ano sem fechar a anterior — normal sob unique(...,ano), agora
+-- colide com o índice único parcial abaixo. Fecha os duplicados abertos,
+-- mantendo aberto só o de ingresso mais recente por (servidor, unidade,
+-- papel); os demais recebem fim = 31/12 do próprio ano, no mesmo padrão
+-- de 3a.
+with duplicados as (
+  select id, row_number() over (
+    partition by servidor_id, unidade_id, papel
+    order by ano desc, ingresso desc nulls last, criado_em desc
+  ) as rn
+  from vinculo
+  where fim is null
+)
+update vinculo v
+   set fim = make_date(v.ano, 12, 31)
+  from duplicados d
+ where v.id = d.id and d.rn > 1;
+
 -- 3b. Cargo vira texto livre. Os três papéis fixos viram os rótulos
 -- que a tela já exibia — a partir daqui o valor gravado É o rótulo.
 update vinculo set papel = 'Gestor(a)'       where papel = 'gestor';
