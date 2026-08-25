@@ -31,6 +31,19 @@ export async function getServidores() {
     sb().from('servidor').select(SEL).order('nome'),
     getTelefonesMapas(),
   ]);
+  // Migration 023 ainda não rodou: sem a coluna `tipo`, o embed de
+  // unidade_escolar quebra a query inteira — refaz sem ela. Quem
+  // consome trata `tipo` ausente como "não é sede" (mesma idiom de
+  // `=== 'sede'` usada em todo o app), então a degradação é segura.
+  if (error?.code === '42703') {
+    const SEL_SEM_TIPO = SEL.replace(', tipo', '');
+    const { data: d2, error: e2 } = await sb().from('servidor').select(SEL_SEM_TIPO).order('nome');
+    if (e2) throw e2;
+    _cache = (d2 || []).map(s => ({
+      ...s, vinculos: s.vinculos || [], telefones: tel.porServidor[s.id] || [],
+    }));
+    return _cache;
+  }
   if (error) throw error;
   _cache = (data || []).map(s => ({
     ...s, vinculos: s.vinculos || [], telefones: tel.porServidor[s.id] || [],
