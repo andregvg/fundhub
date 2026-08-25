@@ -4,6 +4,7 @@
 // ============================================================
 import { sb, hasSupabase, emailAtual } from '../../core/supabase.js';
 import { subscribeTabela } from '../../shared/realtime.js';
+import { agoraISO } from '../../shared/format.js';
 
 // Vocabulário de tipos. É um SUPERCONJUNTO que cobre também os tipos da
 // planilha do Drive (Abonada, LTS, TRE, Férias, Outros) — sem "Falta
@@ -146,7 +147,7 @@ export async function reativarAfastamento(a) {
 export async function confirmarAfastamento(id) {
   if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
   const { error } = await sb().from('afastamento')
-    .update({ status: 'ativo', atualizado_em: new Date().toISOString(), atualizado_por: await emailAtual() })
+    .update({ status: 'ativo', atualizado_em: agoraISO(), atualizado_por: await emailAtual() })
     .eq('id', id);
   if (error?.code === SEM_COLUNA) throw exigeMigration018();
   if (error) throw error;

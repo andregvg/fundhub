@@ -4,6 +4,7 @@
 // SATE consulta antes de aceitar uma solicitação.
 // ============================================================
 import { sb, hasSupabase } from '../../core/supabase.js';
+import { agoraISO } from '../../shared/format.js';
 
 export const TIPOS_DIA = ['calendário escolar', 'evento pedagógico', 'cultural', 'prova', 'feriado'];
 
@@ -41,7 +42,7 @@ export async function getDiaCalendario(dataISO) {
 
 export async function upsertDiaCalendario(dia) {
   if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
-  const patch = { ...dia, atualizado_em: new Date().toISOString() };
+  const patch = { ...dia, atualizado_em: agoraISO() };
   const { error } = await sb().from('dia_calendario').upsert(patch, { onConflict: 'data' });
   if (error) throw error;
 }
@@ -65,7 +66,7 @@ function isosDoPeriodo(de, ate) {
 export async function upsertPeriodo(diaBase, de, ate) {
   if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
   const { data: _omit, ...base } = diaBase;
-  const agora = new Date().toISOString();
+  const agora = agoraISO();
   const rows = isosDoPeriodo(de, ate).map(data => ({ ...base, data, atualizado_em: agora }));
   if (!rows.length) throw new Error('Intervalo inválido.');
   const { error } = await sb().from('dia_calendario').upsert(rows, { onConflict: 'data' });
@@ -78,7 +79,7 @@ export async function upsertPeriodo(diaBase, de, ate) {
 export async function upsertDias(rows) {
   if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
   if (!rows.length) return 0;
-  const agora = new Date().toISOString();
+  const agora = agoraISO();
   const stamped = rows.map(r => ({ ...r, atualizado_em: agora }));
   const { error } = await sb().from('dia_calendario').upsert(stamped, { onConflict: 'data' });
   if (error) throw error;

@@ -4,6 +4,7 @@
 // `numero` sequencial por ano é atribuído no banco (trigger da 013).
 // ============================================================
 import { sb, hasSupabase, emailAtual } from '../../core/supabase.js';
+import { agoraISO } from '../../shared/format.js';
 
 export const TIPOS = {
   gestor: 'Gestor(a)', coordenador: 'Coordenador(a)',
@@ -42,7 +43,7 @@ export async function criarAta(payload) {
 
 export async function atualizarAta(id, payload) {
   if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
-  const patch = { ...limpar(payload), atualizado_em: new Date().toISOString() };
+  const patch = { ...limpar(payload), atualizado_em: agoraISO() };
   const { error } = await sb().from('ata_atendimento').update(patch).eq('id', id);
   if (error) throw error;
 }

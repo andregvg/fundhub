@@ -6,6 +6,7 @@
 // ============================================================
 import { sb, hasSupabase, emailAtual } from '../../core/supabase.js';
 import { subscribeTabela } from '../../shared/realtime.js';
+import { agoraISO } from '../../shared/format.js';
 
 export const CANAIS = {
   telefone: 'Telefone', presencial: 'Presencial', whatsapp: 'WhatsApp',
@@ -59,7 +60,7 @@ export async function criarOcorrencia(payload) {
 
 export async function atualizarOcorrencia(id, payload) {
   if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
-  const patch = { ...limpar(payload), atualizado_em: new Date().toISOString() };
+  const patch = { ...limpar(payload), atualizado_em: agoraISO() };
   const { error } = await sb().from('ocorrencia').update(patch).eq('id', id);
   if (error) throw error;
 }

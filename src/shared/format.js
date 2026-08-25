@@ -12,6 +12,11 @@ export const DOW = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 // Hoje em ISO local (yyyy-mm-dd).
 export const hojeISO = () => new Date().toLocaleDateString('sv-SE');
 
+// Agora, timestamp ISO/UTC — para carimbar criado_em/atualizado_em.
+// Diferente de hojeISO(): aqui o UTC é o formato certo (é o que o banco
+// grava); nunca fatiar isto para virar data civil (ver hojeISO acima).
+export const agoraISO = () => new Date().toISOString();
+
 // '2026-07-14' → '14/07/2026'
 export function fmtData(iso) {
   if (!iso) return '';

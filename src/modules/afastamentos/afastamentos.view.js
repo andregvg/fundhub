@@ -14,7 +14,7 @@ import { getServidores } from '../servidores/servidores.model.js';
 import { getUnidades } from '../escolas/escolas.model.js';
 import { getDiasBloqueiamAfastamento, getCalendarioMes } from '../calendario/calendario.model.js';
 import { esc, norm, falha, ok } from '../../shared/dom.js';
-import { MESES, DOW, hojeISO, fmtData } from '../../shared/format.js';
+import { MESES, DOW, hojeISO, fmtData, agoraISO } from '../../shared/format.js';
 import { loading, emptyState, erroBox } from '../../shared/ui/feedback.js';
 import { drawerHtml, drawerHead, montarDrawer, abrirDrawer, fecharDrawer } from '../../shared/ui/drawer.js';
 import { criarFiltroSegmento, indexarUnidades } from '../../shared/ui/filtro-segmento.js';
@@ -437,10 +437,13 @@ function parseDataBR(v) {
 }
 
 // "dd/mm/aaaa HH:MM" → ISO (ou null). Usado para espelhar criado_em.
+// Não é agoraISO(): serializa uma data JÁ PARSEADA da planilha, não "agora" —
+// por isso fica aqui, e não em shared/format.js (é parsing de um formato
+// externo específico deste módulo, não formatação de exibição reusável).
 function parseCarimbo(v) {
   const m = String(v || '').trim().match(/^(\d{2})\/(\d{2})\/(\d{4})[ T](\d{2}):(\d{2})/);
   if (!m) return null;
-  return new Date(+m[3], +m[2] - 1, +m[1], +m[4], +m[5]).toISOString();
+  return new Date(+m[3], +m[2] - 1, +m[1], +m[4], +m[5]).toISOString(); // fundhub:ok-6 ver comentario acima
 }
 
 function abrirSync() {
@@ -530,9 +533,9 @@ async function sincronizar(e) {
       // Sempre presente: o upsert em lote do PostgREST exige chaves uniformes
       // e criado_em é NOT NULL. (criado_em/atualizado_em são "ruído" para a
       // auditoria — ver 011 — então re-sincronizar não polui o log.)
-      criado_em: parseCarimbo(criadoEmRaw) || new Date().toISOString(),
+      criado_em: parseCarimbo(criadoEmRaw) || agoraISO(),
       criado_por: iCriadoPor >= 0 ? (String(c[iCriadoPor] || '').trim() || null) : null,
-      atualizado_em: new Date().toISOString(),
+      atualizado_em: agoraISO(),
       atualizado_por: iAtualPor >= 0 ? (String(c[iAtualPor] || '').trim() || null) : null,
     });
   }

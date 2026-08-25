@@ -4,6 +4,7 @@
 // acompanhamento. Só banco, nunca DOM.
 // ============================================================
 import { sb, hasSupabase, emailAtual } from '../../core/supabase.js';
+import { agoraISO } from '../../shared/format.js';
 
 export const TIPOS = {
   rotina: 'Rotina', acompanhamento: 'Acompanhamento',
@@ -44,7 +45,7 @@ export async function criarVisita(payload) {
 
 export async function atualizarVisita(id, payload) {
   if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
-  const patch = { ...limpar(payload), atualizado_em: new Date().toISOString() };
+  const patch = { ...limpar(payload), atualizado_em: agoraISO() };
   const { error } = await sb().from('relatorio_visita').update(patch).eq('id', id);
   if (error) throw error;
 }

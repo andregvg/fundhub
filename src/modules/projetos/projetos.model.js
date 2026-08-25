@@ -7,6 +7,7 @@
 // aqui — depende de Edge Function. Este model cobre o fluxo interno.
 // ============================================================
 import { sb, hasSupabase, emailAtual } from '../../core/supabase.js';
+import { agoraISO } from '../../shared/format.js';
 
 export const TIPOS = {
   pesquisa: 'Pesquisa', projeto: 'Projeto', programa: 'Programa', outro: 'Outro',
@@ -50,7 +51,7 @@ export async function criarProjeto(payload) {
 
 export async function atualizarProjeto(id, payload) {
   if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
-  const patch = { ...limpar(payload), atualizado_em: new Date().toISOString() };
+  const patch = { ...limpar(payload), atualizado_em: agoraISO() };
   const { error } = await sb().from('projeto').update(patch).eq('id', id);
   if (error) throw error;
 }

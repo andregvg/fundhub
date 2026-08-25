@@ -8,6 +8,7 @@
 // tenta data/unidades.local.json (gitignored); senão, estado vazio.
 // ============================================================
 import { sb, hasSupabase } from '../../core/supabase.js';
+import { agoraISO } from '../../shared/format.js';
 // Quem é dono do vocabulário de papéis é o módulo Gestores — model → model.
 import { rotulaPapel } from '../servidores/servidores.model.js';
 // Telefones agora vêm da tabela dedicada (fonte única) — model → model.
@@ -94,7 +95,7 @@ export async function criarUnidade(payload) {
 
 export async function atualizarUnidade(id, payload) {
   if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
-  const patch = { ...limpar(payload), atualizado_em: new Date().toISOString() };
+  const patch = { ...limpar(payload), atualizado_em: agoraISO() };
   const { error } = await sb().from('unidade_escolar').update(patch).eq('id', id);
   if (error) throw error;
   _cache = null;

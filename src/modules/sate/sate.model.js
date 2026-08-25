@@ -7,6 +7,7 @@
 // ============================================================
 import { sb, hasSupabase, emailAtual } from '../../core/supabase.js';
 import { subscribeTabela } from '../../shared/realtime.js';
+import { agoraISO } from '../../shared/format.js';
 
 export const CAP_ONIBUS = 44;         // lugares por ônibus
 export const ANTECEDENCIA_MIN = 5;    // dias mínimos p/ a escola (admin não tem limite)
@@ -49,7 +50,7 @@ export async function criarSolicitacao(payload) {
 export async function atualizarStatusSolicitacao(id, status) {
   if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
   const { error } = await sb().from('solicitacao_transporte')
-    .update({ status, atualizado_em: new Date().toISOString() }).eq('id', id);
+    .update({ status, atualizado_em: agoraISO() }).eq('id', id);
   if (error) throw error;
 }
 
