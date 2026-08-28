@@ -14,12 +14,21 @@
 // Segmentos-base. O `codigo` é o que está em unidade_escolar.segmento
 // (mais 'EJA', que vem da flag tem_eja).
 // `ico` é o NOME do traçado em shared/ui/icones.js, não o desenho -
-// os consumidores envolvem em ico(). CEI e EMEI dividem 'infantil'
-// (não há traçado de bebê/paleta separado) e EJA usa 'escuro' pelo
-// desenho de lua minguante, sem relação com o tema escuro do app.
+// os consumidores envolvem em ico(). Duas decisões aqui:
+//   • EJA usa 'noturno' (entrada própria em TRACOS, mesmo traçado de lua
+//     que 'escuro' hoje desenha). Nome de domínio, não de modo de tela -
+//     EJA é o segmento noturno da rede, e é isso que o ícone significa
+//     aqui. Se o traçado de 'escuro' um dia virar sol/lua/contraste, o
+//     chip de EJA não muda junto: são entradas independentes em TRACOS.
+//   • CEI e EMEI dividem 'infantil' de propósito, não por falta de opção.
+//     Em todo consumidor o rótulo de texto fica colado ao ícone
+//     (`${ico(s.ico)} ${esc(s.rotulo)}`) e o ícone é aria-hidden,
+//     puramente decorativo - não há perda de informação, e inventar uma
+//     metáfora distinta para "0 a 3 anos" vs. "4 a 5 anos" seria
+//     arbitrário e pior que a divisão honesta.
 export const SEGMENTOS = [
   { codigo: 'EMEF',       rotulo: 'EMEF',        ico: 'escola' },
-  { codigo: 'EJA',        rotulo: 'EJA',         ico: 'escuro' },
+  { codigo: 'EJA',        rotulo: 'EJA',         ico: 'noturno' },
   { codigo: 'CEI',        rotulo: 'CEI',         ico: 'infantil' },
   { codigo: 'EMEI',       rotulo: 'EMEI',        ico: 'infantil' },
   { codigo: 'CONVENIADA', rotulo: 'Conveniadas', ico: 'parceria' },

@@ -11,7 +11,7 @@ import { ico } from '../../../shared/ui/icones.js';
 export function render(ctx) {
   ctx.box().innerHTML = `
     <div class="toolbar">
-      <label class="search compacta">${ico('calendario', { tam: 14 })} <input id="fr-data" type="date" value="${hojeISO()}" /></label>
+      <label class="search compacta">${ico('calendario', { tam: 14 })} <input id="fr-data" type="date" value="${hojeISO()}" aria-label="Data" /></label>
       <span class="count">Defina os ônibus disponíveis por período e acompanhe o saldo.</span>
     </div>
     <div id="fr-body">${loading()}</div>`;

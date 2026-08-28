@@ -51,7 +51,7 @@ test('todos os icones do conjunto produzem svg', () => {
     'excluir', 'buscar', 'adicionar', 'fechar', 'ok', 'atencao', 'erro',
     'restrito', 'menu', 'perdido', 'vazio', 'fixo', 'celular', 'whatsapp',
     'email', 'documento', 'arquivo', 'identidade', 'imprimir', 'tema',
-    'escuro', 'subir', 'meta', 'parceria', 'obra', 'infantil',
+    'escuro', 'noturno', 'subir', 'meta', 'parceria', 'obra', 'infantil',
     'acessibilidade', 'destaque', 'atualizar', 'sair', 'chevron', 'info', 'arrastar'];
   for (const n of nomes) {
     assert.ok(ico(n).startsWith('<svg '), `icone ausente: ${n}`);

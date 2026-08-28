@@ -22,7 +22,7 @@ export async function render(app) {
     </div>
     <div class="toolbar no-print">
       <label class="search compacta">${ico('calendario', { tam: 14 })}
-        <input id="pv-data" type="date" value="${dataSel}" />
+        <input id="pv-data" type="date" value="${dataSel}" aria-label="Data" />
       </label>
       <span class="count" id="pv-count"></span>
       <button id="pv-print" class="btn-primary">${ico('imprimir')} Imprimir</button>

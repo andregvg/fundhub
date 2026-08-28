@@ -51,7 +51,7 @@ function card(l) {
     ${l.desembarque ? `<div class="atv-field"><b>Desembarque:</b> ${esc(l.desembarque)}</div>` : ''}
     <div class="tags">
       ${l.ativo ? '' : '<span class="tag eja">Inativo</span>'}
-      ${(l.latitude != null && l.longitude != null) ? `<span class="tag">${ico('visita', { tam: 12 })} Geocodado</span>` : ''}
+      ${(l.latitude != null && l.longitude != null) ? `<span class="tag">${ico('meta', { tam: 12 })} Geocodado</span>` : ''}
       ${maps ? `<a class="tag" href="${esc(maps)}" target="_blank" rel="noopener">ver no mapa</a>` : ''}
     </div>
   </article>`;

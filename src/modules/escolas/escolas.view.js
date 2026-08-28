@@ -48,7 +48,7 @@ export async function render(app, ctx = {}) {
         </label>
         <label class="switch">
           <input type="checkbox" id="f-eja" /><span class="switch-trilho" aria-hidden="true"></span>
-          ${ico('escuro', { tam: 14 })} EJA
+          ${ico('noturno', { tam: 14 })} EJA
         </label>
       </div>
     </div>
@@ -134,7 +134,7 @@ function pintar() {
 function cardHtml(u) {
   const tags = [
     u.tem_transporte ? `<span class="tag bus">${ico('transporte', { tam: 12 })} Transporte</span>` : '',
-    u.tem_eja ? `<span class="tag eja">${ico('escuro', { tam: 12 })} EJA</span>` : '',
+    u.tem_eja ? `<span class="tag eja">${ico('noturno', { tam: 12 })} EJA</span>` : '',
     u.oferta ? `<span class="tag">${esc(u.oferta)}</span>` : '',
   ].join('');
   // O card exibe o NOME da escola, em caixa alta — não o apelido. O
