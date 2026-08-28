@@ -821,9 +821,37 @@ Padrão, usando `salvar()` de `usuarios/views/lista.js` como referência:
     fecharDrawer(); carregar();
     toast({ titulo: p ? 'Acesso atualizado' : 'Acesso adicionado', texto: email, tipo: 'sucesso' });
   } catch (err) {
-    // Erro de gravação é resultado da ação, não do campo: vai de
-    // toast, que sobrevive à gaveta fechar.
-    toast({ titulo: 'Não foi possível salvar', texto: err.message || String(err), tipo: 'erro' });
+    // Nem todo erro de gravação é resultado da ação: violação de
+    // constraint com a gaveta ainda ABERTA é erro de campo, e um
+    // toast que some sozinho é o pior lugar para dizê-lo.
+    reportarErro(err, { msg, titulo: 'Não foi possível salvar' });
+```
+
+**A classificação inline-versus-toast fica num lugar só.** São 13 formulários; a
+regra de três está cumprida com folga, e um lugar para errar é melhor que treze.
+Acrescente a `src/shared/ui/feedback.js`:
+
+```js
+import { toast } from './toast.js';
+import { falha } from '../dom.js';
+
+// Erros que a pessoa consegue corrigir no formulário que está aberto na
+// frente dela. Códigos do Postgres, no mesmo idioma que escolas.model.js
+// e afastamentos.model.js já usam para 42P01/42703.
+const CORRIGIVEL = new Set([
+  '23505',   // unique_violation   - número de ata repetido, segundo vínculo aberto
+  '23514',   // check_violation    - valor fora do domínio permitido
+  '23502',   // not_null_violation - campo obrigatório vazio
+]);
+
+// Erro de gravação: inline quando dá para consertar ali, toast quando não dá.
+// Rede, chave estrangeira (23503) e permissão negada pelo RLS (42501) não se
+// consertam no formulário - e a gaveta pode fechar antes de a pessoa ler.
+export function reportarErro(err, { msg, titulo = 'Não foi possível salvar' } = {}) {
+  const texto = err?.message || String(err);
+  if (msg && CORRIGIVEL.has(err?.code)) { falha(msg, texto); return; }
+  toast({ titulo, texto, tipo: 'erro' });
+}
 ```
 
 **O que NÃO muda:** as validações de campo antes do `try` continuam inline. Em `usuarios/views/lista.js`, `falha(msg, 'Informe o e-mail.')` e `falha(msg, 'Use um e-mail do domínio institucional…')` ficam como estão - a correção é ali, no campo.

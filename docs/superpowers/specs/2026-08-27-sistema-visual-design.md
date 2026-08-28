@@ -215,9 +215,17 @@ espera a pessoa parar de digitar não serve.
 > Resultado da ação vira toast.**
 
 Concretamente: "Informe o e-mail" é inline (`.auth-msg`), porque a correção é
-ali. "Acesso adicionado" e "Não foi possível salvar: violates foreign key" são
-toast, porque a gaveta já fechou ou vai fechar e a mensagem precisa sobreviver a
-isso. Todo `fecharDrawer(); carregar();` de sucesso ganha um toast.
+ali. "Acesso adicionado" é toast, porque a gaveta já fechou. Todo
+`fecharDrawer(); carregar();` de sucesso ganha um toast.
+
+**O erro de gravação se divide, e a divisão não é pelo que ele é, mas pelo que a
+pessoa pode fazer com ele.** Número de ata repetido chega como erro do banco, mas
+a gaveta continua aberta e o campo "Nº" está na tela: é erro de campo, e vai
+inline. Falha de rede, chave estrangeira e permissão negada pelo RLS não se
+consertam ali: vão de toast. A fronteira é o código do Postgres - `23505`,
+`23514` e `23502` são corrigíveis, o resto não - e mora num helper só
+(`reportarErro`, em `shared/ui/feedback.js`), porque são 13 formulários e treze
+cópias da mesma decisão são treze chances de errar.
 
 **Tokens novos** em `tokens.css`, nas duas variantes. As cores de traço já
 existem (`--ok`, `--danger`, `--accent`, `--brand`); falta o fundo suave:
