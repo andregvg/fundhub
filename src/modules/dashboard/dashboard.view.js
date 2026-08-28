@@ -1,8 +1,8 @@
 // ============================================================
-// FundHub — modules/dashboard/dashboard.view.js
+// FundHub - modules/dashboard/dashboard.view.js
 // Painel do dia. É o único módulo que compõe dados de VÁRIOS outros:
 // lê os models de Escolas, SATE, Afastamentos e Calendário. Não tem
-// model próprio — de propósito: o dashboard não é dono de nada.
+// model próprio - de propósito: o dashboard não é dono de nada.
 // ============================================================
 import { getUnidades } from '../escolas/escolas.model.js';
 import { getAtividades } from '../sate/atividades.model.js';
@@ -59,7 +59,7 @@ async function painelOcorrencias(hoje) {
   catch (err) { box.innerHTML = emptyState(ico('atencao', { tam: 32 }), 'Não foi possível carregar', esc(err.message || err)); return; }
 
   if (!lista.length) {
-    box.innerHTML = emptyState('—', 'Sem registros', 'Nenhum atendimento registrado hoje.');
+    box.innerHTML = emptyState(ico('ocorrencia', { tam: 32 }), 'Sem registros', 'Nenhum atendimento registrado hoje.');
     return;
   }
   box.innerHTML = lista.map(o => {
@@ -106,12 +106,12 @@ async function painelExtraclasse(hoje) {
   if (tile) tile.textContent = String(solics.length);
 
   if (!solics.length) {
-    box.innerHTML = emptyState('—', 'Nada hoje', 'Nenhuma atividade extraclasse agendada.');
+    box.innerHTML = emptyState(ico('transporte', { tam: 32 }), 'Nada hoje', 'Nenhuma atividade extraclasse agendada.');
     return;
   }
   box.innerHTML = solics.map(s => {
     const cor = s.atividade?.cor || 'var(--brand)';
-    const escola = s.unidade?.apelido || s.unidade?.nome || '—';
+    const escola = s.unidade?.apelido || s.unidade?.nome || 'sem escola';
     return `<div class="dash-item" style="border-left:3px solid ${esc(cor)}">
       <div class="di-top">
         <b>${esc(s.atividade?.nome || s.atividade_livre || 'Atividade')}</b>
@@ -131,13 +131,13 @@ async function painelAfastamentos(hoje) {
   catch (err) { box.innerHTML = emptyState(ico('atencao', { tam: 32 }), 'Não foi possível carregar', esc(err.message || err)); return; }
 
   if (!afs.length) {
-    box.innerHTML = emptyState('—', 'Equipe completa', 'Nenhum afastamento vigente hoje.');
+    box.innerHTML = emptyState(ico('afastamento', { tam: 32 }), 'Equipe completa', 'Nenhum afastamento vigente hoje.');
     return;
   }
   box.innerHTML = afs.map(a => {
     const unidade = a.unidade?.apelido || a.unidade?.nome;
     return `<div class="dash-item">
-      <div class="di-top"><b>${esc(a.servidor?.nome || '—')}</b><span class="tag">${esc(a.tipo)}</span></div>
+      <div class="di-top"><b>${esc(a.servidor?.nome || 'sem nome')}</b><span class="tag">${esc(a.tipo)}</span></div>
       <div class="di-meta">${a.fim ? 'até ' + esc(fmtData(a.fim)) : 'em aberto'}${unidade ? ' · ' + esc(unidade) : ''}</div>
     </div>`;
   }).join('');
@@ -150,7 +150,7 @@ async function painelCalendario(hoje) {
   catch (err) { box.innerHTML = emptyState(ico('atencao', { tam: 32 }), 'Não foi possível carregar', esc(err.message || err)); return; }
 
   if (!dia) {
-    box.innerHTML = emptyState('—', 'Dia comum', 'Sem evento no calendário escolar.');
+    box.innerHTML = emptyState(ico('calendario', { tam: 32 }), 'Dia comum', 'Sem evento no calendário escolar.');
     return;
   }
   const marcas = [

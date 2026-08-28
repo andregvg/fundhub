@@ -1,9 +1,9 @@
 // ============================================================
-// FundHub — horarios/views/por-escola.js
+// FundHub - horarios/views/por-escola.js
 // Aba "Por escola": escolhida a unidade, a tela mostra a COBERTURA
 // (7h00–18h20, com as lacunas em vermelho) e, abaixo, a semana de
 // cada servidor vinculado, em barras. A cobertura é regra de ESCOLA
-// — a sede da SME não entra nela (Step 5 do brief).
+// - a sede da SME não entra nela (Step 5 do brief).
 //
 // `linhaDia` é exportada para a aba "Por servidor" reaproveitar a
 // mesma barra gráfica sem duplicar 30 linhas de desenho.
@@ -16,7 +16,7 @@ import {
 import { getServidoresDaUnidade, vinculosAbertos } from '../../servidores/servidores.model.js';
 import { rotulaCargo } from '../../servidores/vinculos.model.js';
 import { getUnidades } from '../../escolas/escolas.model.js';
-import { esc } from '../../../shared/dom.js';
+import { esc, vazio } from '../../../shared/dom.js';
 import { loading, emptyState, erroBox } from '../../../shared/ui/feedback.js';
 import { criarFiltroSegmento, indexarUnidades } from '../../../shared/ui/filtro-segmento.js';
 import { formBloco } from './bloco.js';
@@ -25,7 +25,7 @@ import { ico } from '../../../shared/ui/icones.js';
 let unidades = [], idxUnidades = {}, seg = null;
 let servidores = [], blocos = [];
 let unidadeId = '';
-let ultimoParam;   // valor de ctx.unidadeId visto no último render — distingue
+let ultimoParam;   // valor de ctx.unidadeId visto no último render - distingue
                     // navegação nova (deep link mudou) de troca de aba (mesmo ctx).
 let ctxAtual = null;
 
@@ -53,7 +53,7 @@ export async function renderPorEscola(box, ctx) {
 
   // O seletor respeita o segmento: quem cuida da Educação Infantil não
   // precisa rolar por 90 EMEFs para achar o seu CEI. A sede não tem
-  // segmento — fica sempre visível, filtro nenhum a esconde.
+  // segmento - fica sempre visível, filtro nenhum a esconde.
   seg = criarFiltroSegmento(document.getElementById('h-seg'), {
     perfil: ctx.perfil, chaveMemoria: 'fundhub:seg:horarios',
     onChange: () => { pintarSeletor(); if (!unidadeId) limparCorpo(); },
@@ -169,7 +169,7 @@ function cartaoServidor(s) {
 }
 
 // A semana de UM servidor em UM local, num dia. Reaproveitada pela
-// aba "Por servidor" — por isso não lê nenhum estado de módulo:
+// aba "Por servidor" - por isso não lê nenhum estado de módulo:
 // recebe os blocos do dia prontos e onde editar.
 export function linhaDia(s, d, doDia, { podeEditar, unidadeId: uni }) {
   const problemas = validarDia(doDia);
@@ -197,14 +197,14 @@ export function linhaDia(s, d, doDia, { podeEditar, unidadeId: uni }) {
     <div class="hb-dia">${d.curto}</div>
     <div class="hb-track">${eixo()}${barras || `<span class="hb-vazio">sem jornada</span>`}</div>
     <div class="hb-info">
-      ${total ? `<b>${duracao(total)}</b>` : '<span class="hb-vazio">—</span>'}
+      ${total ? `<b>${duracao(total)}</b>` : vazio('sem jornada')}
       ${addBtn}
     </div>
     ${alertas ? `<div class="hb-alertas">${alertas}</div>` : ''}
   </div>`;
 }
 
-// O Postgres devolve `time` como '07:00:00' — a tela mostra '07:00'.
+// O Postgres devolve `time` como '07:00:00' - a tela mostra '07:00'.
 const hhmm = (t) => String(t ?? '').slice(0, 5);
 
 // Eixo de horas ao fundo da barra (só desenhado uma vez por linha).

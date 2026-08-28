@@ -1,12 +1,12 @@
 // ============================================================
-// FundHub — modules/servidores/servidores.view.js
+// FundHub - modules/servidores/servidores.view.js
 // Servidores: cadastro das pessoas e dos seus vínculos com as
 // escolas. Cobre também quem é lotado na SEDE (equipe de
 // acompanhamento, agentes administrativos), que não tem vínculo com
 // unidade mas tem afastamento a controlar.
 //
 // Casca: busca, filtros e a lista de cards. A gaveta de detalhe (com
-// os vínculos) e os formulários vivem em views/ — é lá que a escola de
+// os vínculos) e os formulários vivem em views/ - é lá que a escola de
 // fato entra na história da pessoa.
 // ============================================================
 import { getServidores } from './servidores.model.js';
@@ -125,7 +125,7 @@ function pintarChipUnidade() {
   });
 }
 
-// Estado corrente entregue às views/ (lista, detalhe, formulário) —
+// Estado corrente entregue às views/ (lista, detalhe, formulário) -
 // reconstruído a cada chamada, é leitura barata. unidades só é
 // carregado uma vez em render() e não muda.
 function ctxAtual() {
@@ -140,7 +140,7 @@ function ctxAtual() {
 }
 
 // Recarrega a lista e o catálogo de cargos do banco, repinta e
-// devolve o ctx já atualizado — quem chamou (ex.: depois de salvar um
+// devolve o ctx já atualizado - quem chamou (ex.: depois de salvar um
 // vínculo) usa o retorno para reabrir o detalhe sem trabalhar com dado
 // velho.
 async function recarregar() {

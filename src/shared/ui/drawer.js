@@ -1,7 +1,7 @@
 // ============================================================
-// FundHub — shared/ui/drawer.js
+// FundHub - shared/ui/drawer.js
 // Painel lateral (gaveta) usado por Escolas, Calendário e
-// Afastamentos. Em telas pequenas ocupa a largura toda — é o padrão
+// Afastamentos. Em telas pequenas ocupa a largura toda - é o padrão
 // mobile-first de "detalhe/edição" do FundHub.
 //
 // Uso na view:
@@ -62,7 +62,7 @@ export function abrirDrawer(html, { voltar = null } = {}) {
 }
 
 export function fecharDrawer() {
-  // Se há uma gaveta embaixo, "fechar" é voltar para ela — e é ela que
+  // Se há uma gaveta embaixo, "fechar" é voltar para ela - e é ela que
   // chama abrirDrawer de novo, já com o dado atualizado.
   if (voltarPara) {
     const volta = voltarPara;

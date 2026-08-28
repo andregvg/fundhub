@@ -1,5 +1,5 @@
 // ============================================================
-// FundHub — modules/servidores/vinculos.model.js
+// FundHub - modules/servidores/vinculos.model.js
 // O VÍNCULO (designação): pessoa × local × cargo × período.
 // É a fonte única do "onde" e do "como" de um servidor.
 //
@@ -7,7 +7,7 @@
 // verdade para o mesmo fato produziam o estado impossível
 // "inativo, sem data de encerramento" (corrigido na migration 023).
 //
-// O cargo é TEXTO LIVRE e o catálogo é derivado dos valores em uso —
+// O cargo é TEXTO LIVRE e o catálogo é derivado dos valores em uso -
 // ele não tem vida própria, ele É o conjunto dos cargos em uso. Cargo
 // novo entra ao ser digitado; cargo cujo último vínculo acabou some.
 // ============================================================
@@ -46,7 +46,7 @@ export async function getCargos() {
 }
 
 // Reaproveita a grafia já em uso quando o cargo digitado só difere em
-// maiúscula — senão o catálogo acumula "Coordenadora" e "coordenadora".
+// maiúscula - senão o catálogo acumula "Coordenadora" e "coordenadora".
 export async function cargoCanonico(bruto) {
   const c = normalizaCargo(bruto);
   if (!c) return '';

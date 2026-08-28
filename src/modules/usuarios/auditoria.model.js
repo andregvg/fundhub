@@ -1,6 +1,6 @@
 // ============================================================
-// FundHub — modules/usuarios/auditoria.model.js
-// Leitura do audit_log (preenchido pelo trigger fn_audit no banco —
+// FundHub - modules/usuarios/auditoria.model.js
+// Leitura do audit_log (preenchido pelo trigger fn_audit no banco -
 // ver migration 011). Só admin lê, pelo RLS. A tela nunca escreve
 // aqui: auditoria que se apaga não é auditoria.
 // ============================================================
@@ -62,10 +62,12 @@ export async function getAuditoria({ tabela, operacao, autor, de, ate, limit = 2
 }
 
 // Descreve o valor de um campo do jsonb para exibição (booleanos, nulos, etc).
+// Texto puro, nunca HTML: quem chama sempre passa o retorno por esc(),
+// por isso o vazio aqui não usa o helper vazio() de shared/dom.js.
 export function mostrarValor(v) {
-  if (v === null || v === undefined) return '—';
+  if (v === null || v === undefined) return 'vazio';
   if (v === true) return 'sim';
   if (v === false) return 'não';
-  if (Array.isArray(v)) return v.join(', ') || '—';
+  if (Array.isArray(v)) return v.join(', ') || 'vazio';
   return String(v);
 }

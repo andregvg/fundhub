@@ -1,5 +1,5 @@
 /* ============================================================
-   FundHub — base.css
+   FundHub - base.css
    Reset, moldura (topo, menu lateral, rodapé) e impressão.
    MOBILE-FIRST: o que está fora de @media é o layout do celular.
    As telas maiores só acrescentam, via @media (min-width: …).
@@ -274,7 +274,7 @@ body.menu-aberto .sidebar { transform: translateX(0); }
     /* `left: 0` e `bottom: 0` vêm da gaveta (position: fixed). Em
        sticky eles viram RESTRIÇÃO de encaixe: a coluna ficava presa
        no canto esquerdo da janela e o margin-left negativo empurrava
-       só o conteúdo — o menu não recolhia. Zerar os dois é o que faz
+       só o conteúdo - o menu não recolhia. Zerar os dois é o que faz
        o menu funcionar no desktop. */
     left: auto;
     bottom: auto;
@@ -290,7 +290,7 @@ body.menu-aberto .sidebar { transform: translateX(0); }
   .sidebar-back { display: none; }
 }
 
-/* Em telas de toque, alvos menores que 40px são um problema real —
+/* Em telas de toque, alvos menores que 40px são um problema real -
    o visual compacto do desktop não vale a pena aqui. */
 @media (pointer: coarse) {
   .sidebar a { min-height: var(--toque); }

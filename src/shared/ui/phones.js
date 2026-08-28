@@ -1,7 +1,7 @@
 // ============================================================
-// FundHub — shared/ui/phones.js
+// FundHub - shared/ui/phones.js
 // Editor de lista de telefones (presentational). NÃO fala com o
-// Supabase — só monta o HTML, liga add/remover e lê os valores.
+// Supabase - só monta o HTML, liga add/remover e lê os valores.
 // Quem persiste é modules/telefones/telefones.model.js.
 //
 // A máscara é progressiva e decide sozinha entre fixo e celular:
@@ -14,7 +14,7 @@
 //   montarPhonesEditor(form);
 //   const telefones = lerPhonesEditor(form);   // no submit
 // ============================================================
-import { esc } from '../dom.js';
+import { esc, vazio } from '../dom.js';
 import { ico } from './icones.js';
 
 export const TIPOS_TELEFONE = [['fixo', 'Fixo'], ['celular', 'Celular'], ['whatsapp', 'WhatsApp']];
@@ -25,7 +25,7 @@ export const TIPOS_TELEFONE = [['fixo', 'Fixo'], ['celular', 'Celular'], ['whats
 const DDD_PADRAO = '16';
 
 // ── Máscara ──────────────────────────────────────────────────
-// Formata o que já foi digitado, sem exigir o número completo — a
+// Formata o que já foi digitado, sem exigir o número completo - a
 // pessoa vê o formato nascendo enquanto digita.
 export function formatarTelefone(valor) {
   const d = String(valor || '').replace(/\D/g, '').slice(0, 11);
@@ -42,7 +42,7 @@ export function formatarTelefone(valor) {
 
 // Normaliza para gravar: completa o DDD padrão quando vieram só os
 // 8/9 dígitos locais. Guardamos formatado porque é assim que o
-// número é lido e conferido — e é o formato que já está no banco.
+// número é lido e conferido - e é o formato que já está no banco.
 export function normalizarTelefone(valor) {
   const d = String(valor || '').replace(/\D/g, '');
   if (!d) return '';
@@ -116,7 +116,7 @@ export function montarPhonesEditor(root) {
     const campo = e.target.closest('.phone-num');
     if (!campo) return;
     aplicarMascara(campo);
-    // Cortesia: ao reconhecer um celular, ajusta o tipo — mas só se
+    // Cortesia: ao reconhecer um celular, ajusta o tipo - mas só se
     // ainda estiver no default 'fixo', para não desfazer a escolha
     // de quem marcou WhatsApp de propósito.
     const tipo = campo.closest('.phone-row')?.querySelector('.phone-tipo');
@@ -133,7 +133,7 @@ export function montarPhonesEditor(root) {
   garantirPrincipal();
 }
 
-// Reaplica a máscara preservando a posição do cursor — sem isto, o
+// Reaplica a máscara preservando a posição do cursor - sem isto, o
 // cursor pula para o fim a cada tecla ao editar o meio do número.
 function aplicarMascara(campo) {
   const antes = campo.value;
@@ -182,5 +182,5 @@ export function telefonesTexto(lista = []) {
       const pri = t.principal ? ' <small class="pri">principal</small>' : '';
       return `<span class="tel-item">${ico(ICO_TEL[t.tipo] || 'fixo', { tam: 14 })} ${num}${rot}${pri}</span>`;
     })
-    .join(' · ') || '—';
+    .join(' · ') || vazio('sem telefone cadastrado');
 }

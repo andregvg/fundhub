@@ -1,5 +1,5 @@
 // ============================================================
-// FundHub — core/auth.js  (autenticação e gate de acesso)
+// FundHub - core/auth.js  (autenticação e gate de acesso)
 // Login por magic link (OTP por e-mail) ou Google, restrito ao
 // domínio institucional. O domínio é validado aqui (UX) e, de forma
 // definitiva, pelo RLS no banco (is_institucional() + allowlist).

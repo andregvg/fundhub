@@ -1,5 +1,5 @@
 // Manifesto do módulo Programação de Viagens.
-// (NÃO chamar de "romaneio" — o nome oficial é Programação de Viagens.)
+// (NÃO chamar de "romaneio" - o nome oficial é Programação de Viagens.)
 export default {
   id: 'viagens',
   ico: 'documento',

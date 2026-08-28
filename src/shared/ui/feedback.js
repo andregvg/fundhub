@@ -1,5 +1,5 @@
 // ============================================================
-// FundHub — shared/ui/feedback.js
+// FundHub - shared/ui/feedback.js
 // Estados de carregamento, vazio e erro. Um único visual para todos
 // os módulos: se mudar aqui, muda no hub inteiro.
 // ============================================================

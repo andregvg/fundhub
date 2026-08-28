@@ -1,9 +1,9 @@
 // ============================================================
-// FundHub — modules/docs/docs.view.js
+// FundHub - modules/docs/docs.view.js
 // Apresenta as seções de docs.content.js: índice + conteúdo.
 // No celular o índice é uma faixa rolável de chips no topo; a partir
 // de 900px vira uma coluna fixa à esquerda que acompanha a rolagem.
-// Rota restrita a admin — a guarda está no roteador (module.js: admin).
+// Rota restrita a admin - a guarda está no roteador (module.js: admin).
 // ============================================================
 import { SECOES } from './docs.content.js';
 import { esc } from '../../shared/dom.js';
@@ -28,7 +28,7 @@ export async function render(app, { perfil } = {}) {
   app.innerHTML = `
     <div class="page-head">
       <h1>Documentação</h1>
-      <p>Como o FundHub funciona por dentro — arquitetura, segurança, banco e o passo a passo
+      <p>Como o FundHub funciona por dentro - arquitetura, segurança, banco e o passo a passo
          para criar um módulo novo.</p>
     </div>
 
@@ -42,7 +42,7 @@ export async function render(app, { perfil } = {}) {
     </div>`;
 
   // Rolagem suave até a seção, sem sujar o histórico com hashes falsos
-  // (o roteador é por hash — um href="#doc-x" trocaria de rota).
+  // (o roteador é por hash - um href="#doc-x" trocaria de rota).
   document.getElementById('doc-toc').addEventListener('click', (e) => {
     const a = e.target.closest('[data-ir]');
     if (!a) return;

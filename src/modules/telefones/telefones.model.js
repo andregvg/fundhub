@@ -1,12 +1,12 @@
 // ============================================================
-// FundHub — modules/telefones/telefones.model.js
+// FundHub - modules/telefones/telefones.model.js
 // Telefones de escolas e servidores. Tabela dedicada `telefone` com
 // dono exclusivo (unidade_id OU servidor_id). É o "M": só banco,
 // nunca DOM. Escolas e Servidores importam DESTE arquivo.
 //
 // Fonte única da verdade dos telefones. As colunas legadas
 // (unidade_escolar.telefones/whatsapp, servidor.telefone) estão
-// deprecadas — só servem de fallback de leitura na view do banco.
+// deprecadas - só servem de fallback de leitura na view do banco.
 // ============================================================
 import { sb, hasSupabase } from '../../core/supabase.js';
 
@@ -27,7 +27,7 @@ export async function getTelefonesMapas() {
   if (!hasSupabase()) return out;
   const { data, error } = await sb().from('telefone').select(COLS);
   if (error) {
-    if (error.code === '42P01') { console.warn('Tabela telefone ausente — rode a migration 016.'); return out; }
+    if (error.code === '42P01') { console.warn('Tabela telefone ausente - rode a migration 016.'); return out; }
     throw error;
   }
   (data || []).forEach(t => {

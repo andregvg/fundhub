@@ -1,4 +1,4 @@
-# FundHub — Servidores, Escolas e Horários: modelo e telas
+# FundHub - Servidores, Escolas e Horários: modelo e telas
 
 > Decisões tomadas em 25/08/2026 a partir de uma rodada de pedidos do André
 > sobre os três módulos. Vale a partir da versão 0.10.2 (`dev`).
@@ -15,11 +15,11 @@ frentes:
    valores, também fixo no código) descrevem a mesma coisa e podem se
    contradizer. Quem edita o servidor consegue mudar um sem o outro.
 2. **O vínculo é modelado por ano letivo**, não por período. Um vínculo tem
-   `ano` + `ativo` + `ingresso` + `fim` — quatro campos para representar algo
+   `ano` + `ativo` + `ingresso` + `fim` - quatro campos para representar algo
    que são duas datas. "Está na escola agora" depende de `ativo && ano ===
    ANO_LETIVO`, que é uma regra que ninguém consegue adivinhar olhando a tela.
 3. **Não existe lotação na SME.** `vinculo.unidade_id` é obrigatório, então
-   quem trabalha na sede não tem vínculo nenhum — a informação vive solta em
+   quem trabalha na sede não tem vínculo nenhum - a informação vive solta em
    `servidor.lotacao` + `servidor.cargo`, sem data de início nem de fim.
 4. **Os formulários misturam padrões de exibição.** Alguns rótulos ficam acima
    do campo, outros ao lado; a grade de duas colunas só existe acima de 1280px;
@@ -39,9 +39,9 @@ independentemente de onde trabalha: nome, documentos, nascimento, contato,
 ingresso na rede.
 
 Isso resolve 1, 2 e 3 de uma vez, e é o que torna possível responder
-"onde fulano estava em março de 2025?" — hoje impossível.
+"onde fulano estava em março de 2025?" - hoje impossível.
 
-## 3. Modelo de dados — migration `023_servidores_vinculos.sql`
+## 3. Modelo de dados - migration `023_servidores_vinculos.sql`
 
 ### 3.1 Data de nascimento
 
@@ -49,7 +49,7 @@ Isso resolve 1, 2 e 3 de uma vez, e é o que torna possível responder
 alter table servidor add column if not exists nascimento date;
 ```
 
-Data civil (`yyyy-mm-dd`), tratada como string em todo o front — nunca vira
+Data civil (`yyyy-mm-dd`), tratada como string em todo o front - nunca vira
 `Date` para ser formatada (R8). Exibida por `fmtData`, com a idade calculada
 ao lado (`fmtIdade`, função nova em `shared/format.js`, porque toda aritmética
 de data mora lá).
@@ -62,21 +62,21 @@ alter table unidade_escolar add column if not exists tipo text not null
 ```
 
 Mais uma linha, idempotente, com `tipo = 'sede'`, `segmento = null` e
-`numero = 0` — número reservado, para a linha ser encontrável sem depender do
+`numero = 0` - número reservado, para a linha ser encontrável sem depender do
 nome que aparece na tela.
 
 **Por que assim e não uma tabela `orgao`:** um vínculo com a SME tem
-exatamente a mesma forma de um vínculo com escola — pessoa, cargo, início,
+exatamente a mesma forma de um vínculo com escola - pessoa, cargo, início,
 fim. Uma tabela separada obrigaria `vinculo` a apontar para dois destinos
 possíveis, e esse polimorfismo apareceria em todo model e em toda tela que
 hoje faz `join unidade_escolar`. O custo real da alternativa escolhida é uma
-linha a mais numa tabela de 145 — e o filtro `tipo = 'escola'` no único lugar
+linha a mais numa tabela de 145 - e o filtro `tipo = 'escola'` no único lugar
 que lista escolas.
 
 **Consequência a respeitar:** `escolas.model.js` passa a filtrar
 `tipo = 'escola'`. Quem lista **locais de lotação** (formulário de vínculo,
 seletor de Horários) usa a lista completa, com a SME no topo. O filtro por
-segmento nunca esconde a sede — ela não tem segmento, e sumir com a equipe da
+segmento nunca esconde a sede - ela não tem segmento, e sumir com a equipe da
 SME por causa de um filtro de escolas seria o mesmo bug que `lista.js` já
 evita hoje para quem é da sede.
 
@@ -91,11 +91,11 @@ evita hoje para quem é da sede.
 
 **Por que `ativo` sai:** duas fontes de verdade para o mesmo fato. Um vínculo
 com `ativo = false` e `fim = null` é um estado que não significa nada, e existe
-hoje na base. Derivar de `fim is null` torna impossível a contradição — é o
+hoje na base. Derivar de `fim is null` torna impossível a contradição - é o
 pedido (h) levado ao modelo, não só à tela.
 
 **Por que o índice único vira parcial:** o `unique` por ano impedia alguém de
-sair de uma escola e voltar no mesmo ano com o mesmo cargo — coisa que
+sair de uma escola e voltar no mesmo ano com o mesmo cargo - coisa que
 acontece. A versão parcial garante o que realmente importa: **não existem dois
 vínculos abertos idênticos**. Histórico fica livre.
 
@@ -109,7 +109,7 @@ Backfill, na ordem:
 2. normaliza `papel`: `gestor → 'Gestor(a)'`, `coordenador → 'Coordenador(a)'`,
    `supervisor → 'Supervisor(a)'`;
 3. cria vínculo com a SME para quem tem `lotacao = 'sede'` e `cargo` preenchido
-   e ainda não tem vínculo aberto — `ingresso = servidor.inicio_rede`, `papel =
+   e ainda não tem vínculo aberto - `ingresso = servidor.inicio_rede`, `papel =
    servidor.cargo`;
 4. dropa o `unique` antigo, cria o parcial, dropa a coluna `ativo`;
 5. `vw_escola_pessoas` passa a filtrar `where v.fim is null` e a devolver
@@ -129,7 +129,7 @@ O código novo não pode quebrar entre o deploy e a execução do SQL:
   enviada e o `default true` cobre.
 - `servidor.nascimento` ausente (`42703`) → campo escondido no formulário.
 
-## 4. Kernel — três mudanças pequenas
+## 4. Kernel - três mudanças pequenas
 
 ### 4.1 Rota com parâmetros
 
@@ -138,7 +138,7 @@ O código novo não pode quebrar entre o deploy e a execução do SQL:
 muda: continua sendo roteamento por hash.
 
 Isso habilita `#/servidores?unidade=<id>` e `#/horarios?unidade=<id>` /
-`?servidor=<id>` — que é o que os pedidos de "abrir já filtrado" exigem.
+`?servidor=<id>` - que é o que os pedidos de "abrir já filtrado" exigem.
 Sem isso, a alternativa seria estado global entre módulos, que é pior.
 
 ### 4.2 Gaveta empilhada
@@ -154,12 +154,12 @@ Quando `voltar` é passado, o cabeçalho ganha um `←` e **Esc / × chamam
 
 **Por que guardar uma função e não o HTML anterior:** restaurar HTML deixaria
 para trás os listeners, que estavam ligados aos elementos substituídos. As
-views já sabem se reabrir (`detalhe(id, ctx)`) — a pilha só chama o que já
+views já sabem se reabrir (`detalhe(id, ctx)`) - a pilha só chama o que já
 existe. É também o que garante que a gaveta de baixo volte com **dado
 recarregado**, e não com o estado velho de antes da edição.
 
 Comportamento é estado + ciclo de vida, então isto é componente JS e não classe
-CSS (R12) — e é o componente que já existe, não um novo.
+CSS (R12) - e é o componente que já existe, não um novo.
 
 ### 4.3 A gaveta devolve o foco
 
@@ -167,7 +167,7 @@ CSS (R12) — e é o componente que já existe, não um novo.
 `abrirDrawer` passa a guardar `document.activeElement` e `fecharDrawer` a
 restaurá-lo. Correção de acessibilidade, não funcionalidade nova.
 
-## 5. Vocabulário de formulário — uma regra só
+## 5. Vocabulário de formulário - uma regra só
 
 **Rótulo sempre acima do campo.** A única exceção é o checkbox, onde o rótulo
 fica ao lado (`.inline`, já existente) porque é o que a caixa significa.
@@ -181,7 +181,7 @@ Duas classes novas em `styles/components.css`:
 
 `auto-fit` + `minmax` resolve os dois pedidos com uma declaração: os campos
 refluem conforme a largura **e** um campo sozinho na linha estica até o fim do
-container — que é o comportamento pedido e o que `.campos.duas` (grade fixa,
+container - que é o comportamento pedido e o que `.campos.duas` (grade fixa,
 só acima de 1280px) não dá.
 
 `.campos.duas` continua existindo para o que ainda não foi tocado. Some quando
@@ -190,13 +190,13 @@ o último uso migrar; não vale uma varredura só para isso.
 ### Máscaras
 
 `shared/format.js` ganha `mascaraCPF` e `mascaraRG`, e as views ligam o
-`input` a elas — mesmo padrão de `phones.js`, sem componente novo.
+`input` a elas - mesmo padrão de `phones.js`, sem componente novo.
 
-- **CPF** — `000.000.000-00`.
-- **RG** — `00.000.000-0`, aceitando `X` no dígito verificador.
+- **CPF** - `000.000.000-00`.
+- **RG** - `00.000.000-0`, aceitando `X` no dígito verificador.
 
 Valor fora do padrão **avisa e deixa salvar** (R15: a situação é indesejável,
-não impossível — RG de outro estado tem outro formato, e a SME precisa
+não impossível - RG de outro estado tem outro formato, e a SME precisa
 cadastrar essa pessoa).
 
 ## 6. Módulo Servidores
@@ -212,13 +212,13 @@ Grupos, todos em `.campos.auto`:
 | Rede | Ingresso na rede |
 | Contato | E-mail (`.col-full`) · Telefones (`.col-full`) |
 
-**Cargo/função e Lotação continuam aparecendo — na ficha e no formulário —
+**Cargo/função e Lotação continuam aparecendo - na ficha e no formulário -
 como texto não editável**, cada um com um botão `✎` ao lado que abre a gaveta
 do vínculo **por cima** da que está aberta. Esc fecha a de cima e devolve à ficha do servidor, já recarregada
 (§ 4.2).
 
 Isso mantém a informação visível onde ela é procurada, sem criar um segundo
-lugar onde ela pode ser alterada — a edição acontece no único dono do dado.
+lugar onde ela pode ser alterada - a edição acontece no único dono do dado.
 Quando não há vínculo aberto, os dois campos mostram "Sem vínculo" e o botão
 vira `+ Vincular`.
 
@@ -226,28 +226,28 @@ vira `+ Vincular`.
 
 | Campo | Observação |
 |---|---|
-| Local | escolas (`tipo='escola'`) + **SME — Sede** no topo |
+| Local | escolas (`tipo='escola'`) + **SME - Sede** no topo |
 | Cargo/função | select do catálogo dinâmico + `➕ Outro…` que revela um input |
 | Início | data civil, opcional |
 | Término | data civil, vazio = vínculo aberto |
 
 Sem ano letivo. **Editar vínculo** (pedido g) é o mesmo formulário com os
-valores carregados. **Encerrar** deixa de ser um `prompt()` nativo — vira o
+valores carregados. **Encerrar** deixa de ser um `prompt()` nativo - vira o
 mesmo formulário com foco no Término, que é a última quebra de R16 no
 repositório.
 
 ### 6.3 Catálogo de cargos
 
-`vinculos.model.js § getCargos()` — `select papel from vinculo`, distinto,
+`vinculos.model.js § getCargos()` - `select papel from vinculo`, distinto,
 ordenado, cacheado, invalidado em toda escrita (padrão de cache do projeto).
 
 Nasce vazio; ganha o valor quando alguém digita um cargo novo; perde o valor
 quando o último vínculo daquele cargo deixa de existir. É exatamente o pedido
-(c) — e a razão de não ser uma tabela `cargo` administrável: o catálogo não
+(c) - e a razão de não ser uma tabela `cargo` administrável: o catálogo não
 tem vida própria, ele **é** o conjunto dos cargos em uso.
 
 Normalização ao gravar: aparar espaços e colapsar espaços internos. Não
-forçamos caixa — "Coordenador(a)" e "Vice-diretor(a)" são escritos como a SME
+forçamos caixa - "Coordenador(a)" e "Vice-diretor(a)" são escritos como a SME
 escreve. Cargo idêntico ignorando caixa é reaproveitado do catálogo, para não
 criar duas entradas que só diferem em maiúscula.
 
@@ -282,7 +282,7 @@ não é reescrita.
 ```
 
 O que muda em relação a hoje: os atributos viram **chips no cabeçalho** (eram
-linhas "Transporte: Sim", "EJA: Não" — um campo inteiro para dizer "não"), os
+linhas "Transporte: Sim", "EJA: Não" - um campo inteiro para dizer "não"), os
 campos restantes ganham título de bloco, e a equipe deixa de ser uma lista
 solta.
 
@@ -296,7 +296,7 @@ mudança de payload.
 ### 7.3 Divisão do arquivo
 
 `escolas.view.js` tem 315 linhas e serve três superfícies (lista, ficha,
-formulário) — passa do limite de R11. Divide-se por superfície:
+formulário) - passa do limite de R11. Divide-se por superfície:
 
 ```
 escolas/
@@ -319,9 +319,9 @@ horarios/
   views/bloco.js         formulário de bloco (compartilhado pelas duas)
 ```
 
-- **Por escola** — o que já existe, sem o seletor de ano. A equipe passa a ser
+- **Por escola** - o que já existe, sem o seletor de ano. A equipe passa a ser
   "quem tem vínculo aberto nesta unidade".
-- **Por servidor** — busca a pessoa e mostra a semana dela, com o `+` em cada
+- **Por servidor** - busca a pessoa e mostra a semana dela, com o `+` em cada
   dia. É a resposta ao "não sei onde adicionar horário".
 
 ### 8.2 Atalhos
@@ -333,13 +333,13 @@ horarios/
 
 A edição hoje exige `perfil.isAdmin`, resquício do modelo binário anterior à
 migration 021. Passa a usar `podeEscrever('horarios')`, como todo o resto do
-hub. Quem tem nível `proprios` na própria unidade continua barrado pelo RLS —
+hub. Quem tem nível `proprios` na própria unidade continua barrado pelo RLS -
 a tela não é a barreira.
 
 ### 8.4 Cobertura da SME
 
 A janela 7h00–18h20 e as lacunas são regra de **escola**. Na visão da sede, a
-cobertura não é exibida — só as jornadas. As demais regras (8h/dia, 6h
+cobertura não é exibida - só as jornadas. As demais regras (8h/dia, 6h
 contínuas, sem sobreposição) valem para todo mundo e continuam no model.
 
 ## 9. Filtros das telas iniciais
@@ -357,7 +357,7 @@ Abaixo dele, uma linha `.filtros-linha`:
 Regra de escolha do elemento: **escolha única entre muitos → select; liga/
 desliga → toggle switch.** O chip fica para multi-escolha.
 
-O toggle é markup sem comportamento — `input[type=checkbox]` estilizado por
+O toggle é markup sem comportamento - `input[type=checkbox]` estilizado por
 `.switch` em `components.css`, não componente JS (R12).
 
 Em tela estreita a linha vira grade de duas colunas; abaixo de 400px, uma
@@ -373,7 +373,7 @@ coluna. O contador ("72 de 210") continua onde está.
 | `src/shared/format.js` | `fmtIdade`, `mascaraCPF`, `mascaraRG` |
 | `src/styles/components.css` | `.campos.auto`, `.col-full`, `.switch`, `.filtros-linha` |
 | `src/modules/servidores/servidores.model.js` | lotação derivada; para de escrever cargo/lotacao |
-| `src/modules/servidores/vinculos.model.js` | criar — vínculo + catálogo de cargos |
+| `src/modules/servidores/vinculos.model.js` | criar - vínculo + catálogo de cargos |
 | `src/modules/servidores/views/{lista,formulario,detalhe}.js` | reescrever |
 | `src/modules/servidores/views/vinculo.js` | criar |
 | `src/modules/escolas/escolas.model.js` | filtrar `tipo='escola'`; expor `getLocais()` |
@@ -408,7 +408,7 @@ documentação por módulo é assunto de outra spec.
 3. O select de cargo nasce vazio numa base sem vínculos e reflete exatamente os
    cargos em uso.
 4. RG e CPF são mascarados; valor fora do padrão avisa e salva.
-5. A lotação exibida é o nome do local do vínculo aberto — escola ou SME.
+5. A lotação exibida é o nome do local do vínculo aberto - escola ou SME.
 6. Vínculo se cria e se edita com local, cargo, início e fim, sem ano letivo.
 7. Vínculo sem data de fim aparece como aberto; com data, como encerrado.
 8. Na ficha do servidor, `✎` ao lado de Cargo e de Lotação abre a gaveta do

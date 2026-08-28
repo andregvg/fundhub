@@ -1,7 +1,7 @@
 // ============================================================
-// FundHub — modules/modulos/modulos.view.js
+// FundHub - modules/modulos/modulos.view.js
 // O índice de ferramentas do hub (a antiga home). Os tiles saem do
-// registro de módulos — nada é escrito à mão aqui, e o que a pessoa
+// registro de módulos - nada é escrito à mão aqui, e o que a pessoa
 // não pode ver já vem filtrado por modulosVisiveis().
 // ============================================================
 import { modulosVisiveis, GRUPOS, chavePerm } from '../../core/registry.js';

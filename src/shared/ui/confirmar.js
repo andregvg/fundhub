@@ -1,6 +1,6 @@
 // ============================================================
-// FundHub — shared/ui/confirmar.js
-// Diálogo de confirmação assíncrono, no padrão visual do hub —
+// FundHub - shared/ui/confirmar.js
+// Diálogo de confirmação assíncrono, no padrão visual do hub -
 // substitui o confirm() nativo (bloqueante, não estilizável, fora do
 // design system). Ver .claude/rules/ui.md § R16.
 //
@@ -28,7 +28,7 @@ function caixa() {
 // `perigo: true` pinta o botão de confirmação como ação destrutiva.
 export function confirmar(titulo, { detalhe = '', textoOk = 'Confirmar', textoCancelar = 'Cancelar', perigo = false } = {}) {
   // Uma confirmação pendente é sempre encerrada (como "não") antes de
-  // abrir a próxima — não dá para empilhar dois diálogos.
+  // abrir a próxima - não dá para empilhar dois diálogos.
   fechar(false);
 
   return new Promise((resolve) => {

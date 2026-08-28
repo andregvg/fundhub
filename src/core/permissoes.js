@@ -1,18 +1,18 @@
 // ============================================================
-// FundHub — core/permissoes.js  (autorização por módulo)
+// FundHub - core/permissoes.js  (autorização por módulo)
 // Substitui o antigo "admin sim / admin não" por um mapa
 // módulo → nível, que vem do banco (meu_mapa_permissoes) e é a
 // MESMA fonte que o RLS consulta. Ver migration 021.
 //
 // Os quatro níveis:
-//   oculto   — o módulo não existe para essa pessoa.
-//   proprios — vê e mexe só no que é da própria escola/cadastro.
-//   leitura  — vê tudo do módulo, não escreve.
-//   escrita  — vê e escreve tudo.
+//   oculto   - o módulo não existe para essa pessoa.
+//   proprios - vê e mexe só no que é da própria escola/cadastro.
+//   leitura  - vê tudo do módulo, não escreve.
+//   escrita  - vê e escreve tudo.
 //
 // Regra de ouro deste arquivo: ele decide o que APARECE. Quem decide
 // o que a pessoa consegue LER de fato é o RLS. Se os dois
-// discordarem, o banco vence — e é assim que tem que ser.
+// discordarem, o banco vence - e é assim que tem que ser.
 // ============================================================
 
 export const OCULTO = 'oculto';
@@ -20,7 +20,7 @@ export const PROPRIOS = 'proprios';
 export const LEITURA = 'leitura';
 export const ESCRITA = 'escrita';
 
-// Ordem crescente de poder — permite comparar níveis sem if aninhado.
+// Ordem crescente de poder - permite comparar níveis sem if aninhado.
 const ORDEM = { [OCULTO]: 0, [PROPRIOS]: 1, [LEITURA]: 2, [ESCRITA]: 3 };
 
 export const NIVEIS = [

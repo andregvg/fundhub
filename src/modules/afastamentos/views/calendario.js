@@ -1,6 +1,6 @@
 // ============================================================
-// FundHub — afastamentos/views/calendario.js  (visão Calendário)
-// Grade mensal com chips por dia — mesmo padrão do Apps Script
+// FundHub - afastamentos/views/calendario.js  (visão Calendário)
+// Grade mensal com chips por dia - mesmo padrão do Apps Script
 // afastamentos-gestores. Sobrepõe o evento do calendário escolar, o
 // dia não letivo e o veto de "não conceder afastamentos".
 // ============================================================
@@ -9,7 +9,7 @@ import { esc } from '../../../shared/dom.js';
 import { DOW, hojeISO } from '../../../shared/format.js';
 import { ico } from '../../../shared/ui/icones.js';
 
-// `ctx`: { perfil, ano, mes, diasCal, lista, abrirForm } — ver afastamentos.view.js § ctxAtual().
+// `ctx`: { perfil, ano, mes, diasCal, lista, abrirForm } - ver afastamentos.view.js § ctxAtual().
 // `ativos` já vem filtrado (busca + segmento) pela casca.
 export function pintarCalendario(box, ativos, ctx) {
   const { ano, mes, diasCal, perfil } = ctx;
@@ -25,10 +25,10 @@ export function pintarCalendario(box, ativos, ctx) {
     const doDia = ativos.filter(a => a.inicio <= iso && (!a.fim || a.fim >= iso));
     const chips = doDia.slice(0, 4).map(a => {
       const cor = CORES_AFASTAMENTO[a.tipo] || 'var(--brand)';
-      const nome = a.servidor?.apelido || a.servidor?.nome || '—';
+      const nome = a.servidor?.apelido || a.servidor?.nome || 'sem nome';
       const pend = a.status === 'importado' ? ' pendente' : '';
       return `<span class="af-chip${perfil?.isAdmin ? ' clicavel' : ''}${pend}" style="background:${esc(cor)}" data-id="${a.id}"
-        title="${esc(a.tipo)} — ${esc(a.servidor?.nome || '')}${a.status === 'importado' ? ' (aguardando confirmação)' : ''}">${esc(nome)}</span>`;
+        title="${esc(a.tipo)} - ${esc(a.servidor?.nome || '')}${a.status === 'importado' ? ' (aguardando confirmação)' : ''}">${esc(nome)}</span>`;
     }).join('');
     const mais = doDia.length > 4 ? `<span class="af-mais">+${doDia.length - 4}</span>` : '';
 

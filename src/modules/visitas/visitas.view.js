@@ -1,5 +1,5 @@
 // ============================================================
-// FundHub — modules/visitas/visitas.view.js
+// FundHub - modules/visitas/visitas.view.js
 // Relatórios de visita técnica às escolas. Leitura para autorizados;
 // CRUD para admin. Filtros por período, escola e status.
 // ============================================================
@@ -21,7 +21,7 @@ let perfil = null, unidades = [], lista = [], idxUnidades = {};
 let seg = null;
 let filtro = { de: addDias(hojeISO(), -90), ate: hojeISO(), unidadeId: '', status: '', q: '' };
 
-// Escolas do segmento selecionado — alimenta o seletor e o recorte da lista.
+// Escolas do segmento selecionado - alimenta o seletor e o recorte da lista.
 const unidadesDoSegmento = () =>
   [...unidades].filter(u => !seg || seg.combina(u)).sort((a, b) => a.nome.localeCompare(b.nome, 'pt'));
 
@@ -136,7 +136,7 @@ function pintar() {
 }
 
 function item(v) {
-  const escola = v.unidade?.apelido || v.unidade?.nome || '—';
+  const escola = v.unidade?.apelido || v.unidade?.nome || 'sem escola';
   const atrasado = v.status === 'aberto' && v.prazo && v.prazo < hojeISO();
   return `<div class="solic vi-item" data-id="${esc(v.id)}" tabindex="0">
     <div class="solic-main">
@@ -163,7 +163,7 @@ function detalhe(id) {
     </div>` : '';
 
   abrirDrawer(`
-    ${drawerHead(ico('escola', { tam: 16 }) + ' ' + esc(v.unidade?.nome || '—'), esc(fmtData(v.data)) + ' · ' + esc(TIPOS[v.tipo] || v.tipo))}
+    ${drawerHead(ico('escola', { tam: 16 }) + ' ' + esc(v.unidade?.nome || 'sem escola'), esc(fmtData(v.data)) + ' · ' + esc(TIPOS[v.tipo] || v.tipo))}
     <div class="drawer-body">
       ${acoes}
       <div class="field"><div class="lbl">Situação</div>

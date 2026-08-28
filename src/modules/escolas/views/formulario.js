@@ -1,5 +1,5 @@
 // ============================================================
-// FundHub — escolas/views/formulario.js  (criar, editar, excluir)
+// FundHub - escolas/views/formulario.js  (criar, editar, excluir)
 // ============================================================
 import { criarUnidade, atualizarUnidade, excluirUnidade } from '../escolas.model.js';
 import { sincronizarTelefones } from '../../telefones/telefones.model.js';
@@ -10,14 +10,14 @@ import { confirmar } from '../../../shared/ui/confirmar.js';
 import { toast } from '../../../shared/ui/toast.js';
 import { reportarErro } from '../../../shared/ui/feedback.js';
 
-// `ctx`: { recarregar } — ver escolas.view.js § ctxAtual().
+// `ctx`: { recarregar } - ver escolas.view.js § ctxAtual().
 export function abrirForm(u, ctx) {
   const novo = !u;
   const v = (k) => esc(u?.[k] ?? '');
   const chk = (k) => (u?.[k] ? 'checked' : '');
 
   // Os campos são muitos (16). Agrupá-los em blocos com título é só
-  // visual — o payload continua o mesmo — mas transforma uma parede
+  // visual - o payload continua o mesmo - mas transforma uma parede
   // de inputs numa ficha que se lê de relance.
   abrirDrawer(`
     ${drawerHead(novo ? 'Nova escola' : 'Editar escola', novo ? '' : esc(u.nome))}
@@ -32,7 +32,7 @@ export function abrirForm(u, ctx) {
             <label>Apelido <input name="apelido" value="${v('apelido')}" />
               <small class="form-hint">Forma curta de uso interno (ex.: “Alcina”).</small></label>
             <label class="col-full">Nome oficial / SAE <input name="nome_oficial" value="${v('nome_oficial')}" />
-              <small class="form-hint">Como consta no SAE — use para conferir relatórios.</small></label>
+              <small class="form-hint">Como consta no SAE - use para conferir relatórios.</small></label>
           </div>
         </fieldset>
 

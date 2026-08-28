@@ -1,5 +1,5 @@
 // ============================================================
-// FundHub — sate/views/catalogo.js  (aba Catálogo)
+// FundHub - sate/views/catalogo.js  (aba Catálogo)
 // Atividades extraclasse geridas pela SME. Todos veem; admin edita.
 // ============================================================
 import { criarAtividade, atualizarAtividade, excluirAtividade } from '../atividades.model.js';
@@ -62,7 +62,7 @@ function abrirForm(a) {
   const novo = !a;
   const v = (k) => esc(a?.[k] ?? '');
   const chk = (k, padrao) => ((a ? a[k] : padrao) ? 'checked' : '');
-  // input[type=color] exige hex literal no `value` — não aceita var(). Lê o
+  // input[type=color] exige hex literal no `value` - não aceita var(). Lê o
   // token computado (respeita o tema atual) em vez de fixar a cor clara.
   const corPadrao = getComputedStyle(document.documentElement).getPropertyValue('--brand').trim();
   const optsLocais = (ctx.locais || [])
@@ -80,7 +80,7 @@ function abrirForm(a) {
         <label>Mín. participantes <input id="a-min" type="number" inputmode="numeric" min="0" value="${v('min_participantes')}" /></label>
         <label class="col-2">Local (destino)
           <select id="a-local-id">
-            <option value="">— sem local —</option>
+            <option value="">- sem local -</option>
             ${optsLocais}
           </select>
           <small class="form-hint">Cadastre e edite destinos na aba <b>Locais</b>.</small>

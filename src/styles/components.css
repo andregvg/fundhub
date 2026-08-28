@@ -1,8 +1,8 @@
 /* ============================================================
-   FundHub — components.css
+   FundHub - components.css
    As peças reusadas por todos os módulos. Antes de escrever CSS em um
    módulo, procure aqui: um módulo sem .css próprio é um bom sinal.
-   MOBILE-FIRST — o padrão é uma coluna; as grades entram no @media.
+   MOBILE-FIRST - o padrão é uma coluna; as grades entram no @media.
    ============================================================ */
 
 /* ── Hero e tiles (home) ──────────────────────────────────── */
@@ -103,6 +103,7 @@ a.tile:hover {
   font-size: 16px;   /* 16px evita o zoom automático do iOS ao focar */
 }
 .count { color: var(--muted); font-size: 13px; }
+.vazio { color: var(--muted); font-style: italic; }
 
 .filters { display: flex; gap: 6px; flex-wrap: wrap; }
 
@@ -162,7 +163,7 @@ a.tile:hover {
 }
 
 /* Toggle: markup sem comportamento, então é classe CSS e não
-   componente JS (R12). O estado real é o do checkbox — teclado,
+   componente JS (R12). O estado real é o do checkbox - teclado,
    rótulo e leitor de tela funcionam de graça. */
 .switch {
   position: relative;
@@ -252,7 +253,7 @@ a.tile:hover {
 /* ── Botões ───────────────────────────────────────────────────
    Padrão discreto, no espírito do GitHub: altura de 32px, borda de
    1px, raio de 6px e peso 500. A hierarquia se faz pela COR de
-   fundo (só o primário é preenchido), não pelo tamanho — botão
+   fundo (só o primário é preenchido), não pelo tamanho - botão
    grande demais rouba a atenção do conteúdo, que é o que importa
    numa tela de cadastro.
 
@@ -299,7 +300,7 @@ a.tile:hover {
 .btn-secundario:hover,
 .mini-btn:hover { background: var(--surface-3); border-color: var(--border-forte); }
 
-/* Ação destrutiva num diálogo (confirmar.js) — mesmo peso do .btn-primary,
+/* Ação destrutiva num diálogo (confirmar.js) - mesmo peso do .btn-primary,
    cor de perigo. Não usar fora de um confirmar(): a excluir/cancelar de
    itens em lista continua .mini-btn.no (ícone, não botão preenchido). */
 .btn-perigo {
@@ -335,7 +336,7 @@ a.tile:hover {
 .card:hover { transform: translateY(-2px); border-color: color-mix(in srgb, var(--brand) 45%, var(--border)); }
 .card .card-top { display: flex; justify-content: space-between; align-items: start; gap: 8px; }
 .card h3 { margin: 0; font-size: 15.5px; line-height: 1.25; }
-/* .seg é vocabulário compartilhado — card E gaveta de detalhe usam. */
+/* .seg é vocabulário compartilhado - card E gaveta de detalhe usam. */
 .seg {
   white-space: nowrap;
   padding: 3px 8px;
@@ -345,14 +346,14 @@ a.tile:hover {
   color: var(--brand);
   background: color-mix(in srgb, var(--brand) 12%, transparent);
 }
-/* Nomes de escola e de servidor vão em caixa alta — é como constam
+/* Nomes de escola e de servidor vão em caixa alta - é como constam
    nos sistemas oficiais (SAE, folha) e como são conferidos. O
    apelido, logo abaixo, fica em caixa normal de propósito: serve
    justamente para dar o contraponto legível. */
 .card h3.nome-oficial { text-transform: uppercase; font-size: 14.5px; letter-spacing: .01em; }
 .card .apelido { margin-top: 3px; color: var(--muted); font-size: 12.5px; }
 .card .addr { margin: 8px 0 10px; color: var(--muted); font-size: 13px; }
-/* .tags idem — a linha de chips do cabeçalho da gaveta usa a mesma. */
+/* .tags idem - a linha de chips do cabeçalho da gaveta usa a mesma. */
 .tags { display: flex; gap: 6px; flex-wrap: wrap; }
 
 .tag {
@@ -675,7 +676,7 @@ input[type="checkbox"] { width: 18px; height: 18px; }
 
 /* ── Diálogo de confirmação (shared/ui/confirmar.js) ─────────
    Mesmo pano de fundo do drawer-back, card centralizado em vez de
-   gaveta lateral — a diferença visual reforça que é uma decisão
+   gaveta lateral - a diferença visual reforça que é uma decisão
    pontual (sim/não), não uma tela. */
 .confirmar-back {
   position: fixed;
@@ -720,7 +721,7 @@ input[type="checkbox"] { width: 18px; height: 18px; }
 
 /* Grade que reflui sozinha. Resolve os dois requisitos de uma vez: os
    campos se reorganizam conforme a largura E um campo sozinho na linha
-   se estende até o fim do container — que é o que `.campos.duas`
+   se estende até o fim do container - que é o que `.campos.duas`
    (grade fixa, só acima de 1280px) não faz. */
 .form-grupo .campos.auto { display: grid; grid-template-columns: 1fr; gap: 13px; }
 .form-grupo .campos.auto > .col-full { grid-column: 1 / -1; }
@@ -814,7 +815,7 @@ hr.sep { margin: 20px 0; border: 0; border-top: 1px solid var(--border); }
   .solic { flex-direction: row; justify-content: space-between; align-items: center; }
   /* Tipo · número · rótulo · principal · remover, tudo numa linha.
      O número recebe uma largura mínima própria porque um celular
-     formatado — (16) 99999-9999 — tem 15 caracteres e era o campo
+     formatado - (16) 99999-9999 - tem 15 caracteres e era o campo
      que quebrava primeiro. */
   .phone-row {
     grid-template-columns: 104px minmax(148px, 1fr) minmax(120px, 1fr) auto auto;

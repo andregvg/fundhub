@@ -1,4 +1,4 @@
-# FundHub — Ajuda: documentação por módulo
+# FundHub - Ajuda: documentação por módulo
 
 > Decisões tomadas em 25/08/2026. Cria um módulo **Ajuda** com tutoriais de uso
 > escritos em Markdown, um por módulo, visíveis conforme a permissão de cada
@@ -8,7 +8,7 @@
 
 O FundHub tem 17 módulos e **nenhuma documentação para quem usa**. O módulo
 `docs` que existe (`#/docs`, restrito a admin) é outra coisa: descreve
-arquitetura, camadas, migrations e RLS — foi escrito para quem mantém o
+arquitetura, camadas, migrations e RLS - foi escrito para quem mantém o
 código.
 
 Quem opera o sistema hoje aprende por tentativa. E há regras que não são
@@ -42,7 +42,7 @@ manter o texto, e essa pessoa não é necessariamente quem programa. O conteúdo
 precisa poder ser corrigido sem tocar em código.
 
 **Por que um leitor próprio:** o FundHub não tem build nem pode ganhar
-dependência — é restrição arquitetural, não preferência. Um leitor do
+dependência - é restrição arquitetural, não preferência. Um leitor do
 subconjunto que os tutoriais usam cabe em ~120 linhas.
 
 Subconjunto suportado, e apenas ele:
@@ -71,7 +71,7 @@ injetar HTML mesmo que alguém escreva `<script>` nele. É o mesmo princípio de
 
 `modules/ajuda/markdown.js`. Tem exatamente um consumidor, e R13 é clara:
 utilitário nasce no terceiro caso concreto. Se um segundo módulo precisar
-renderizar Markdown, ele se muda para `shared/` — e aí terá dois casos reais
+renderizar Markdown, ele se muda para `shared/` - e aí terá dois casos reais
 em vez de uma previsão.
 
 ### 3.3 Permissão: nenhum mecanismo novo
@@ -79,14 +79,14 @@ em vez de uma previsão.
 O manifesto ganha um campo opcional `doc: true`.
 
 A tela de Ajuda lista os módulos em que `nivel(chavePerm(mod)) !== OCULTO` e
-`mod.doc === true`. Quem não enxerga Usuários não vê o tutorial de Usuários —
+`mod.doc === true`. Quem não enxerga Usuários não vê o tutorial de Usuários -
 não porque a Ajuda decide, mas porque ela pergunta a `core/permissoes.js`, a
 mesma fonte que monta o menu e barra a rota.
 
 Um `#/ajuda?m=<id>` de módulo oculto responde como o roteador já responde:
 a mesma mensagem de "não encontrado", sem confirmar que o módulo existe.
 
-**O módulo Ajuda em si é visível a todos** — não entra no mapa de permissões,
+**O módulo Ajuda em si é visível a todos** - não entra no mapa de permissões,
 como `meus-dados`. Documentação de uso não é informação restrita, e uma tela
 de ajuda que exige permissão para ser aberta é uma piada de mau gosto.
 
@@ -98,7 +98,7 @@ de ajuda que exige permissão para ser aberta é uma piada de mau gosto.
 
 **Por que não um botão em cada `page-head`:** seriam 17 views alteradas para um
 elemento que é o mesmo em todas, e a 18ª nasceria sem ele. A moldura é o lugar
-de tudo que é igual em toda tela — foi por isso que ela existe.
+de tudo que é igual em toda tela - foi por isso que ela existe.
 
 Quando a rota atual não tem tutorial, o `?` leva ao índice da Ajuda.
 
@@ -106,7 +106,7 @@ Quando a rota atual não tem tutorial, o `?` leva ao índice da Ajuda.
 
 `docs` passa a se chamar **"Docs técnicos"** na navegação (o nome completo
 vira "Documentação técnica"). Segue restrito a admin. São dois públicos
-diferentes e agora dois lugares distintos — misturá-los faria a pessoa que
+diferentes e agora dois lugares distintos - misturá-los faria a pessoa que
 procura "como cadastro um vínculo" cair numa tabela de migrations.
 
 ### 3.6 Como o tutorial se mantém atualizado
@@ -115,23 +115,23 @@ Documentação envelhece em silêncio: ninguém percebe que ela mentiu até
 alguém seguir o passo a passo e o botão não estar lá. Três mecanismos, do mais
 forte ao mais fraco:
 
-**1. Regra de trabalho — `.claude/rules/documentacao.md` (novo) e uma linha na
+**1. Regra de trabalho - `.claude/rules/documentacao.md` (novo) e uma linha na
 tabela de `CLAUDE.md`.**
 
 > Mexeu na tela, no fluxo ou numa regra de negócio de um módulo com
 > `doc: true`? O `docs/modulos/<id>.md` correspondente é atualizado **no mesmo
 > commit**. Mudança de layout que não altera o que a pessoa faz não conta;
-> campo novo, botão novo, passo a mais, regra que passou a bloquear — conta.
+> campo novo, botão novo, passo a mais, regra que passou a bloquear - conta.
 
 Este é o mecanismo que de fato automatiza: as regras de `.claude/rules/` são
 lidas a cada sessão e passam a fazer parte do critério de "pronto". A rodada de
-Servidores/Escolas/Horários é o primeiro teste — ela altera os três tutoriais
+Servidores/Escolas/Horários é o primeiro teste - ela altera os três tutoriais
 que estão sendo criados.
 
 **2. Checagem mecânica de defasagem** (parte da checagem 11, § 3.7).
 O script compara a data do último commit que tocou `src/modules/<id>/` com a
 do último que tocou `docs/modulos/<id>.md`. Código mais novo que tutorial vira
-**aviso** — não bloqueia, porque nem toda mudança de código muda o que o
+**aviso** - não bloqueia, porque nem toda mudança de código muda o que o
 usuário faz, e um bloqueio que se aprende a ignorar não é um bloqueio.
 
 **3. Carimbo visível.** Cada tutorial termina com `> Atualizado na versão
@@ -140,7 +140,7 @@ distância para a versão do rodapé é uma denúncia que não depende de ferram
 
 **Por que não um hook que edite o `.md` sozinho:** um tutorial gerado
 automaticamente a partir do código descreve o que o código faz, não o que a
-pessoa precisa saber — e a parte que importa ("encerrar preserva o histórico,
+pessoa precisa saber - e a parte que importa ("encerrar preserva o histórico,
 excluir não") não está em lugar nenhum de onde se possa extraí-la. O que dá
 para automatizar é a **cobrança**, e é o que estes três fazem.
 
@@ -156,12 +156,12 @@ para automatizar é a **cobrança**, e é o que estes três fazem.
 
 (a) e (b) evitam o modo de falha óbvio: marcar `doc: true` antes de escrever o
 texto, ou renomear um módulo e deixar o tutorial órfão. (c) é o detector de
-defasagem do § 3.6 — usa `git log -1 --format=%ct` nos dois caminhos e não
+defasagem do § 3.6 - usa `git log -1 --format=%ct` nos dois caminhos e não
 custa nada.
 
 ## 4. Forma do tutorial
 
-Todo `docs/modulos/<id>.md` segue a mesma espinha — previsibilidade importa
+Todo `docs/modulos/<id>.md` segue a mesma espinha - previsibilidade importa
 mais que criatividade num texto de referência:
 
 ```markdown
@@ -183,13 +183,13 @@ Regras de escrita:
 - **Escrito para quem usa**, não para quem programa. Nenhum nome de arquivo,
   de tabela, de função ou de coluna. "O sistema guarda" e não "o Postgres
   grava".
-- **Passo a passo é numerado e literal** — nomeia o botão como ele aparece na
+- **Passo a passo é numerado e literal** - nomeia o botão como ele aparece na
   tela.
 - **"Regras que o sistema aplica"** diz o que bloqueia (erro) e o que só avisa
   (aviso), com o motivo. É a seção que resolve o problema real de hoje.
 - **"Ligações com outros módulos"** diz de onde vem cada dado que a tela mostra
   mas não é dona, e para onde o que se cadastra ali repercute.
-- **Nenhum dado real** (R7): exemplos são inventados — "Escola Exemplo",
+- **Nenhum dado real** (R7): exemplos são inventados - "Escola Exemplo",
   `nome@exemplo.com`, `(00) 00000-0000`. O repositório é público.
 - Quando a tela mudar, o tutorial muda **no mesmo commit**. Documentação que
   descreve uma tela que não existe mais é pior que nenhuma.
@@ -204,23 +204,23 @@ Regras de escrita:
 | `usuarios.md` | allowlist: quem entra; os quatro níveis por módulo; segmentos de atuação; o que o histórico registra e por que não se apaga |
 
 Os três primeiros descrevem as telas **depois** da rodada de Servidores/
-Escolas/Horários — daí esta spec vir depois daquela.
+Escolas/Horários - daí esta spec vir depois daquela.
 
 ## 6. Arquivos
 
 | Arquivo | Ação |
 |---|---|
 | `docs/modulos/{escolas,servidores,horarios,usuarios}.md` | criar |
-| `src/modules/ajuda/module.js` | criar — manifesto |
-| `src/modules/ajuda/ajuda.view.js` | criar — índice + leitor |
-| `src/modules/ajuda/markdown.js` | criar — leitor de Markdown |
+| `src/modules/ajuda/module.js` | criar - manifesto |
+| `src/modules/ajuda/ajuda.view.js` | criar - índice + leitor |
+| `src/modules/ajuda/markdown.js` | criar - leitor de Markdown |
 | `src/modules/ajuda/ajuda.css` | criar (+ `@import` em `styles/main.css`) |
 | `src/core/registry.js` | registrar o módulo |
 | `src/shell/chrome.js` | botão `?` no topo |
 | `src/modules/{escolas,servidores,horarios,usuarios}/module.js` | `doc: true` |
 | `src/modules/docs/module.js` | renomear para "Documentação técnica" |
 | `.claude/scripts/verificar_arquitetura.py` | checagem 11 (três partes) |
-| `.claude/rules/documentacao.md` | criar — regra de manutenção |
+| `.claude/rules/documentacao.md` | criar - regra de manutenção |
 | `CLAUDE.md` | linha na tabela de regras sob demanda |
 
 O módulo Ajuda é **agregador**: tem tela e não tem dados próprios nem model,

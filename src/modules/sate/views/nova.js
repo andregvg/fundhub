@@ -1,5 +1,5 @@
 // ============================================================
-// FundHub — sate/views/nova.js  (aba Nova solicitação)
+// FundHub - sate/views/nova.js  (aba Nova solicitação)
 // Dois modos: atividade do CATÁLOGO (gerida pela SME) ou atividade
 // LIVRE (organizada pela escola, com destino informado à mão).
 // Validações: data no passado, antecedência mínima (só p/ escola),
@@ -41,7 +41,7 @@ export function render(contexto) {
           <input id="f-ativ-livre" type="text" placeholder="Ex.: Visita ao Teatro Pedro II" /></label>
         <label class="m-livre col-2">Destino
           <select id="f-local">
-            <option value="">— outro destino (digitar abaixo) —</option>
+            <option value="">- outro destino (digitar abaixo) -</option>
             ${optsLocais}
           </select></label>
         <label class="m-livre">Destino (local)

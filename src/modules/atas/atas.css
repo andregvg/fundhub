@@ -1,11 +1,11 @@
 /* ============================================================
-   FundHub — modules/atas/atas.css
+   FundHub - modules/atas/atas.css
    A folha timbrada. Fica escondida na tela (a lista é o que se vê) e
-   só aparece na impressão — por isso o módulo existe. Ao imprimir uma
+   só aparece na impressão - por isso o módulo existe. Ao imprimir uma
    ata, o body ganha .imprimindo-ata e só a folha fica visível.
 
    As cores de tinta preta abaixo são exceção deliberada à R9: papel
-   impresso não segue o tema da tela — sempre tinta escura sobre papel
+   impresso não segue o tema da tela - sempre tinta escura sobre papel
    claro, mesmo se a pessoa estiver no modo escuro ao clicar em imprimir.
    ============================================================ */
 

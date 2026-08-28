@@ -1,5 +1,5 @@
 /* ============================================================
-   FundHub — modules/docs/docs.css
+   FundHub - modules/docs/docs.css
    Documentação: índice + conteúdo. No celular o índice é uma lista
    no topo; a partir de 900px vira coluna fixa que acompanha a rolagem.
    ============================================================ */
@@ -90,7 +90,7 @@
   white-space: pre;
 }
 
-/* Tabelas: idem — a tabela rola, a página não. */
+/* Tabelas: idem - a tabela rola, a página não. */
 .doc-tabela {
   display: block;
   overflow-x: auto;

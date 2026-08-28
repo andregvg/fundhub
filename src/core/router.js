@@ -1,5 +1,5 @@
 // ============================================================
-// FundHub — core/router.js  (roteador por hash)
+// FundHub - core/router.js  (roteador por hash)
 // Roteamento por hash (#/rota) para funcionar no GitHub Pages sob
 // qualquer base path (/fundhub hoje, domínio próprio depois) sem
 // precisar de reescrita no servidor.
@@ -38,7 +38,7 @@ export async function route() {
     location.replace(REDIRECIONAMENTOS[caminho] + hash.slice(caminho.length));
     return;
   }
-  // A raiz é a dashboard — sem trocar a URL, para "#/" continuar
+  // A raiz é a dashboard - sem trocar a URL, para "#/" continuar
   // sendo um endereço curto e válido que qualquer um pode digitar.
   if (caminho === '#/' || caminho === '#') hash = ROTA_INICIAL;
 

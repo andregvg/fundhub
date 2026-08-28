@@ -1,5 +1,5 @@
 // ============================================================
-// FundHub — core/supabase.js  (cliente Supabase compartilhado)
+// FundHub - core/supabase.js  (cliente Supabase compartilhado)
 // A anon key é pública por design: sem login institucional, o RLS
 // não devolve nenhum dado. Segurança = RLS, não segredo da chave.
 // ============================================================

@@ -104,7 +104,7 @@ test('blocos da escala pedida sao usados quando existem', () => {
   assert.deepEqual(escolherBlocos(blocos, 'tdc-a').map(b => b.inicio), ['08:00']);
 });
 
-test('sem bloco na escala, cai no normal — o fallback que poupa 140 gestores', () => {
+test('sem bloco na escala, cai no normal - o fallback que poupa 140 gestores', () => {
   const blocos = [B('normal', '07:00')];
   assert.deepEqual(escolherBlocos(blocos, 'tdc-b').map(b => b.inicio), ['07:00']);
 });
@@ -127,7 +127,7 @@ test('le o dia da semana sem passar pelo fuso', () => {
   assert.equal(diaDaSemana('2026-08-30'), 0);   // domingo
 });
 
-test('a data civil nao volta um dia — o bug classico do toISOString', () => {
+test('a data civil nao volta um dia - o bug classico do toISOString', () => {
   // Se a implementacao usasse new Date('2026-01-01') sem T00:00:00,
   // no fuso do Brasil isso viraria 31/12 e o dia da semana mudaria.
   assert.equal(diaDaSemana('2026-01-01'), 4);   // quinta
@@ -178,7 +178,7 @@ Esperado: FAIL - `resolverEscala` não exportada.
 ```js
 // ── Escalas ──────────────────────────────────────────────────
 // ESCALA é o nome de um dia. O horário não é escrito contra datas,
-// é escrito contra nomes de dia — e o calendário diz, para cada data
+// é escrito contra nomes de dia - e o calendário diz, para cada data
 // real, qual nome ela tem. Foi essa inversão que tornou o TDC com
 // revezamento uma consulta em vez de uma inferência: "em que fase
 // estamos?" não se calcula, se consulta.
@@ -201,7 +201,7 @@ export function resolverEscala({ rede, override } = {}) {
   return rede || 'normal';
 }
 
-// Blocos daquela escala. Sem nenhum, cai nos 'normal' — é o fallback
+// Blocos daquela escala. Sem nenhum, cai nos 'normal' - é o fallback
 // que faz quem não tem jornada alternativa não precisar de registro
 // nenhum. 'normal' nunca cai em outra coisa: seria circular.
 export function escolherBlocos(blocos, escala) {
@@ -373,7 +373,7 @@ export function gerarPropostaTDC(ano, { naoLetivos = new Set() } = {}) {
   }
   // A alternância corre sobre a sequência que SOBROU: se a 1ª quarta
   // caiu num não letivo, a 3ª assume a vez dela. É o comportamento
-  // que a escola espera — o revezamento não "perde a vez".
+  // que a escola espera - o revezamento não "perde a vez".
   return datas.map((data, i) => ({ data, escala: i % 2 === 0 ? 'tdc-a' : 'tdc-b' }));
 }
 
@@ -476,14 +476,14 @@ O módulo ganha uma segunda superfície. Se `calendario.view.js` passar de 400 l
 
 ```js
 // ============================================================
-// FundHub — calendario/views/escalas.js
+// FundHub - calendario/views/escalas.js
 // Quais datas são TDC e em que fase do revezamento. É esta tela que
 // dá sentido às abas de escala do módulo Horários: a jornada é
 // escrita contra o NOME do dia, e é aqui que o nome é dado.
 //
 // Duas visões:
-//   Rede   — as datas oficiais, valendo para todas as escolas;
-//   Escola — as remarcações daquela unidade sobrepondo a rede.
+//   Rede   - as datas oficiais, valendo para todas as escolas;
+//   Escola - as remarcações daquela unidade sobrepondo a rede.
 //
 // A geração nunca grava direto: propõe uma tabela que o admin edita
 // e da qual pode descartar linhas.
@@ -741,19 +741,19 @@ git commit -m "feat(horarios): jornada e grade por escala, com fallback para a n
 
 ```js
 // ============================================================
-// FundHub — dashboard/views/hoje.js
+// FundHub - dashboard/views/hoje.js
 // "Nesta data, a rede está em que escala, e quem está fora?"
 //
 // O campo de data abre em hoje mas aceita qualquer dia: é ele que
 // atende também a consulta retroativa ("que horário valia em 12/03"),
 // sem exigir uma aba nova em Horários. O passado é estável porque a
-// escala é DADO GRAVADO, não conta — corrigir o calendário hoje não
+// escala é DADO GRAVADO, não conta - corrigir o calendário hoje não
 // reescreve o que valia em março.
 //
 // Quem está afastado aparece marcado, mas a AUSÊNCIA NÃO ALTERA A
 // COBERTURA: a jornada cadastrada continua sendo a referência.
 // Recalcular geraria alarme falso toda vez que um colega cobre
-// informalmente o outro — que é o que acontece na prática.
+// informalmente o outro - que é o que acontece na prática.
 // ============================================================
 import { getEscalasRede } from '../../calendario/calendario.model.js';
 import { resolverEscala, rotulaEscala, diaDaSemana, ESCALAS } from '../../horarios/horarios.model.js';

@@ -1,12 +1,12 @@
 // ============================================================
-// FundHub — modules/docs/docs.content.js
+// FundHub - modules/docs/docs.content.js
 // O CONTEÚDO da documentação, separado da apresentação (docs.view.js).
 // Cada seção é { id, ico, titulo, resumo, html }. Para escrever uma
 // seção nova, acrescente um objeto aqui: o índice e a navegação se
 // montam sozinhos.
 //
 // Regra: nada de dado real, nome de pessoa ou segredo aqui. Este é um
-// repositório PÚBLICO — o que entra neste arquivo é público.
+// repositório PÚBLICO - o que entra neste arquivo é público.
 //
 // O campo `ico` de cada seção é o NOME do traçado em shared/ui/icones.js
 // (docs.view.js envolve em ico()), não um emoji - a maioria é
@@ -34,16 +34,16 @@ export const SECOES = [
 
       <h3>Quem usa</h3>
       <ul>
-        <li><b>Equipe da Gerência (admin)</b> — cadastra, valida solicitações, define a frota, edita o calendário.</li>
-        <li><b>Equipe autorizada (leitor)</b> — consulta e cria solicitações, sem poder de escrita nos cadastros.</li>
-        <li><b>Escolas</b> — hoje entram pela mesma tela do SATE; a camada do professor sem login (por token) está no backlog.</li>
+        <li><b>Equipe da Gerência (admin)</b> - cadastra, valida solicitações, define a frota, edita o calendário.</li>
+        <li><b>Equipe autorizada (leitor)</b> - consulta e cria solicitações, sem poder de escrita nos cadastros.</li>
+        <li><b>Escolas</b> - hoje entram pela mesma tela do SATE; a camada do professor sem login (por token) está no backlog.</li>
       </ul>
 
       <div class="doc-nota">
         <b>Endereços.</b> Produção: <code>andregvg.github.io/fundhub/</code> ·
         Desenvolvimento: <code>andregvg.github.io/fundhub/dev/</code>.
         O roteamento é por hash (<code>#/rota</code>) justamente para o app poder mudar de endereço
-        — inclusive para um domínio próprio — sem tocar em uma linha de código.
+        - inclusive para um domínio próprio - sem tocar em uma linha de código.
       </div>`,
   },
 
@@ -54,7 +54,7 @@ export const SECOES = [
     resumo: 'SPA sem build + Supabase. As quatro camadas.',
     html: `
       <p>O FundHub é uma <b>SPA estática</b>: HTML, CSS e JavaScript puros, servidos pelo GitHub Pages.
-      <b>Não há passo de build</b> — nenhum npm, nenhum bundler. O que está no repositório é
+      <b>Não há passo de build</b> - nenhum npm, nenhum bundler. O que está no repositório é
       exatamente o que roda no navegador. Isso é uma escolha deliberada: o sistema precisa continuar
       manutenível por quem vier depois, sem depender de uma cadeia de ferramentas.</p>
 
@@ -73,7 +73,7 @@ export const SECOES = [
           <tr><td><b>Compartilhado</b></td><td><code>src/shared/</code></td>
               <td>Peças reusáveis sem domínio: escape de HTML, datas, gaveta lateral, toasts, estados de vazio/erro.</td></tr>
           <tr><td><b>Módulos</b></td><td><code>src/modules/</code></td>
-              <td>Uma pasta por ferramenta. É onde vive o domínio — e onde 90% do trabalho acontece.</td></tr>
+              <td>Uma pasta por ferramenta. É onde vive o domínio - e onde 90% do trabalho acontece.</td></tr>
         </tbody>
       </table>
 
@@ -92,7 +92,7 @@ export const SECOES = [
       </table>
       <p>Quando um módulo cresce demais (o SATE tem quatro abas), a view se divide em
       <code>views/&lt;aba&gt;.js</code> dentro da própria pasta do módulo. A divisão só acontece
-      quando se paga — um módulo de 80 linhas continua em um arquivo só.</p>
+      quando se paga - um módulo de 80 linhas continua em um arquivo só.</p>
 
       <div class="doc-nota">
         <b>Sobre PSR.</b> As PSR (PSR-4, PSR-12…) são padrões do PHP-FIG e <b>não se aplicam</b> a um
@@ -116,7 +116,7 @@ export const SECOES = [
 │   │   ├── config.js         URL e chave pública do Supabase, domínio institucional
 │   │   ├── supabase.js       cliente único
 │   │   ├── auth.js           magic link, Google, tela de login
-│   │   ├── perfil.js         perfil, papel e unidades — camada de autorização
+│   │   ├── perfil.js         perfil, papel e unidades - camada de autorização
 │   │   ├── permissoes.js     mapa módulo → nível (oculto/próprios/leitura/escrita)
 │   │   ├── segmentos.js      vocabulário de segmentos de ensino, compartilhado
 │   │   ├── registry.js       registro dos módulos (fonte única de tiles/nav/rotas)
@@ -138,7 +138,7 @@ export const SECOES = [
 │   │       └── views/            sub-telas, só se o módulo for grande
 │   └── styles/
 │       ├── main.css          @import de tudo (inclusive os CSS dos módulos)
-│       ├── tokens.css        cores, sombras, raios — claro e escuro
+│       ├── tokens.css        cores, sombras, raios - claro e escuro
 │       ├── base.css          reset, topo, navegação, rodapé, impressão
 │       └── components.css    tiles, cards, formulários, gaveta, chips…
 ├── supabase/migrations/    ← o schema, em ordem numérica
@@ -147,7 +147,7 @@ export const SECOES = [
       <h3>Quem pode importar quem</h3>
       <p>Estas quatro regras são o que impede o projeto de virar um novelo:</p>
       <ol>
-        <li><b>O kernel não importa módulo</b> — exceto os <code>module.js</code> (manifestos), no registry.</li>
+        <li><b>O kernel não importa módulo</b> - exceto os <code>module.js</code> (manifestos), no registry.</li>
         <li><b>Módulo importa de <code>shared/</code> e <code>core/</code></b> à vontade.</li>
         <li><b>Módulo pode importar o <i>model</i> de outro módulo</b>, <b>nunca a view</b>.
             É a API pública de um módulo. Exemplo legítimo: Viagens lê <code>sate.model.js</code>,
@@ -170,33 +170,33 @@ export const SECOES = [
       <table class="doc-tabela">
         <thead><tr><th>Módulo</th><th>Rota</th><th>Tabelas</th><th>Situação</th></tr></thead>
         <tbody>
-          <tr><td>${ico('dashboard', { tam: 14 })} <b>Dashboard do dia</b></td><td><code>#/dashboard</code></td><td>— (compõe os outros)</td><td class="ok">ativo</td></tr>
-          <tr><td>${ico('modulos', { tam: 14 })} <b>Módulos</b></td><td><code>#/modulos</code></td><td>— (lê o registry)</td><td class="ok">ativo · os tiles do hub</td></tr>
+          <tr><td>${ico('dashboard', { tam: 14 })} <b>Dashboard do dia</b></td><td><code>#/dashboard</code></td><td>- (compõe os outros)</td><td class="ok">ativo</td></tr>
+          <tr><td>${ico('modulos', { tam: 14 })} <b>Módulos</b></td><td><code>#/modulos</code></td><td>- (lê o registry)</td><td class="ok">ativo · os tiles do hub</td></tr>
           <tr><td>${ico('escola', { tam: 14 })} <b>Escolas</b></td><td><code>#/escolas</code></td><td><code>unidade_escolar</code>, <code>vw_escola_pessoas</code></td><td class="ok">ativo · CRUD admin</td></tr>
           <tr><td>${ico('calendario', { tam: 14 })} <b>Calendário Escolar</b></td><td><code>#/calendario</code></td><td><code>dia_calendario</code></td><td class="ok">ativo · admin edita</td></tr>
           <tr><td>${ico('afastamento', { tam: 14 })} <b>Afastamentos</b></td><td><code>#/afastamentos</code></td><td><code>afastamento</code></td><td class="ok">ativo · CRUD admin</td></tr>
           <tr><td>${ico('transporte', { tam: 14 })} <b>SATE · Transporte</b></td><td><code>#/sate</code></td><td><code>solicitacao_transporte</code>, <code>atividade_extraclasse</code>, <code>oferta_onibus</code></td><td class="ok">ativo · 4 abas</td></tr>
-          <tr><td>${ico('documento', { tam: 14 })} <b>Programação de Viagens</b></td><td><code>#/viagens</code></td><td>— (lê do SATE)</td><td class="ok">ativo · imprimível</td></tr>
+          <tr><td>${ico('documento', { tam: 14 })} <b>Programação de Viagens</b></td><td><code>#/viagens</code></td><td>- (lê do SATE)</td><td class="ok">ativo · imprimível</td></tr>
           <tr><td>${ico('equipe', { tam: 14 })} <b>Servidores</b></td><td><code>#/servidores</code></td><td><code>servidor</code>, <code>vinculo</code></td><td class="ok">ativo · CRUD admin</td></tr>
           <tr><td>${ico('horario', { tam: 14 })} <b>Horários de Trabalho</b></td><td><code>#/horarios</code></td><td><code>horario_bloco</code></td><td class="ok">ativo · CRUD admin</td></tr>
-          <tr><td>${ico('sino', { tam: 14 })} <b>Notificações</b></td><td>— (serviço)</td><td><code>solicitacao_transporte</code> (realtime)</td><td class="ok">ativo</td></tr>
+          <tr><td>${ico('sino', { tam: 14 })} <b>Notificações</b></td><td>- (serviço)</td><td><code>solicitacao_transporte</code> (realtime)</td><td class="ok">ativo</td></tr>
           <tr><td>${ico('ocorrencia', { tam: 14 })} <b>Ocorrências</b></td><td><code>#/ocorrencias</code></td><td><code>ocorrencia</code></td><td class="ok">ativo · CRUD admin</td></tr>
           <tr><td>${ico('ata', { tam: 14 })} <b>Atas de Atendimento</b></td><td><code>#/atas</code></td><td><code>ata_atendimento</code></td><td class="ok">ativo · imprime timbrado</td></tr>
           <tr><td>${ico('visita', { tam: 14 })} <b>Relatórios de Visita</b></td><td><code>#/visitas</code></td><td><code>relatorio_visita</code></td><td class="ok">ativo · CRUD admin</td></tr>
           <tr><td>${ico('acesso', { tam: 14 })} <b>Usuários &amp; Acessos</b></td><td><code>#/usuarios</code></td><td><code>perfil</code>, <code>audit_log</code></td><td class="ok">ativo · só admin</td></tr>
           <tr><td>${ico('projeto', { tam: 14 })} <b>Projetos &amp; Pesquisas</b></td><td><code>#/projetos</code></td><td><code>projeto</code>, <code>projeto_interesse</code></td><td class="ok">ativo (interno) · portal externo por token é backlog</td></tr>
           <tr><td>${ico('identidade', { tam: 14 })} <b>Meus dados</b></td><td><code>#/meus-dados</code></td><td><code>servidor</code>, <code>telefone</code></td><td class="ok">ativo · cada um edita o próprio cadastro</td></tr>
-          <tr><td>${ico('docs', { tam: 14 })} <b>Documentação</b></td><td><code>#/docs</code></td><td>—</td><td class="ok">ativo · só admin</td></tr>
+          <tr><td>${ico('docs', { tam: 14 })} <b>Documentação</b></td><td><code>#/docs</code></td><td>-</td><td class="ok">ativo · só admin</td></tr>
         </tbody>
       </table>
       <p><b>Todos os 17 módulos estão ativos.</b> O que resta é aprofundamento (parte externa de
-      Projetos por token, fotos nas Visitas, exportações) — está no backlog do HANDOFF.</p>
+      Projetos por token, fotos nas Visitas, exportações) - está no backlog do HANDOFF.</p>
 
       <h3>As dependências que importam</h3>
       <ul>
         <li><b>Calendário → SATE.</b> Antes de aceitar uma solicitação, o SATE consulta o dia:
             se ele estiver marcado como <i>bloqueia extraclasse</i> ou como não letivo, a escola é barrada.
-            <b>O admin passa por cima</b> — é proposital, exceções existem.</li>
+            <b>O admin passa por cima</b> - é proposital, exceções existem.</li>
         <li><b>SATE → Viagens.</b> A Programação de Viagens não tem dados próprios: é a leitura das
             solicitações <i>confirmadas</i> de um dia, no formato que a empresa de transporte recebe.</li>
         <li><b>Escolas → todo mundo.</b> É o cadastro de base. Quase todo módulo importa
@@ -204,9 +204,9 @@ export const SECOES = [
         <li><b>Gestores → Horários e Afastamentos.</b> Quem é dono das pessoas (<code>servidor</code>) e
             dos <code>vinculo</code>s é o módulo Gestores. Horários só enxerga quem tem <b>vínculo ativo
             no ano</b> com aquela escola; Afastamentos escolhe o servidor da mesma lista. Sem vínculo,
-            a pessoa não aparece em lugar nenhum — é o efeito desejado.</li>
+            a pessoa não aparece em lugar nenhum - é o efeito desejado.</li>
         <li><b>SATE, Afastamentos e Ocorrências → Notificações.</b> O serviço assina o Realtime das
-            três tabelas (via <code>shared/realtime.js</code>) e traduz cada evento num aviso — sino
+            três tabelas (via <code>shared/realtime.js</code>) e traduz cada evento num aviso - sino
             e toast. Acrescentar uma quarta fonte é assinar a tabela + escrever um descritor.</li>
         <li><b>Escolas ↔ Gestores.</b> O detalhe da escola mostra a equipe (leitura, via
             <code>vw_escola_pessoas</code>) e linka para Gestores, onde os vínculos têm CRUD.</li>
@@ -221,7 +221,7 @@ export const SECOES = [
     html: `
       <p>A jornada de um servidor num dia é um <b>conjunto de blocos</b>, e não um par
       entrada/saída. Essa escolha não é um detalhe técnico: é o que permite exigir que quem
-      cumpre 8 horas tenha um intervalo — com um par único de entrada e saída, a regra das
+      cumpre 8 horas tenha um intervalo - com um par único de entrada e saída, a regra das
       6h contínuas seria impossível de representar.</p>
 
       <h3>O que é validado (em <code>horarios.model.js</code>)</h3>
@@ -233,7 +233,7 @@ export const SECOES = [
           <tr><td>Mais de <b>8h no dia</b></td><td><b>Erro</b></td>
               <td>Bloqueia o salvamento.</td></tr>
           <tr><td>Mais de <b>6h contínuas</b></td><td>Aviso</td>
-              <td>Deixa salvar, mas sinaliza na tela. Blocos <b>encostados</b> (um termina onde o outro começa) contam como um trecho contínuo só — 7h–12h + 12h–14h são 7h seguidas, não 5h + 2h.</td></tr>
+              <td>Deixa salvar, mas sinaliza na tela. Blocos <b>encostados</b> (um termina onde o outro começa) contam como um trecho contínuo só - 7h–12h + 12h–14h são 7h seguidas, não 5h + 2h.</td></tr>
           <tr><td>Cobertura <b>7h00–18h20</b></td><td>Aviso</td>
               <td>Calculada por escola, não por pessoa: é a <i>união</i> dos blocos de todos os servidores no dia. O que sobra vira lacuna, em vermelho.</td></tr>
         </tbody>
@@ -242,32 +242,32 @@ export const SECOES = [
       <div class="doc-nota">
         <b>Erro barra, aviso não.</b> Sobreposição e excesso de carga são impossíveis e por isso
         impedem o salvamento. Já 6h contínuas e lacuna de cobertura são situações que existem na
-        vida real e que a SME às vezes precisa aceitar conscientemente — a tela mostra, mas não
+        vida real e que a SME às vezes precisa aceitar conscientemente - a tela mostra, mas não
         impede. É a mesma filosofia do SATE, onde o admin pode confirmar uma viagem mesmo sem
         saldo de frota.
       </div>
 
       <h3>Quem aparece na tela</h3>
       <p>Horários só lista quem tem <b>vínculo ativo, naquela escola, naquele ano</b>. Servidor sem
-      vínculo não aparece — cadastre o vínculo primeiro, em Gestores &amp; Coordenadores.</p>`,
+      vínculo não aparece - cadastre o vínculo primeiro, em Gestores &amp; Coordenadores.</p>`,
   },
 
   {
     id: 'seguranca',
     ico: 'restrito',
     titulo: 'Segurança e permissões',
-    resumo: 'RLS, allowlist, papéis — e por que a chave é pública.',
+    resumo: 'RLS, allowlist, papéis - e por que a chave é pública.',
     html: `
       <div class="doc-alerta">
         <b>O repositório é PÚBLICO.</b> Nenhum dado real, nenhuma planilha, nenhum seed, nenhum nome
-        de servidor pode ser versionado — em hipótese alguma. Dados reais só existem no Supabase.
+        de servidor pode ser versionado - em hipótese alguma. Dados reais só existem no Supabase.
         Seeds ficam em <code>_private/</code> (ignorado pelo git). Sempre conferir
         <code>git diff --cached</code> antes de commitar.
       </div>
 
       <h3>Por que a chave do Supabase está no código</h3>
       <p>A chave <i>publishable</i> (<code>sb_publishable_…</code>), em <code>src/core/config.js</code>,
-      é <b>pública por design</b> — ela é enviada ao navegador de todo mundo, sempre; não há como
+      é <b>pública por design</b> - ela é enviada ao navegador de todo mundo, sempre; não há como
       escondê-la em um app estático. Ela não é uma senha: é um identificador de projeto.
       <b>Quem protege os dados é o RLS</b>, não o segredo da chave.</p>
       <p>A chave <b>secreta</b> (<code>sb_secret_…</code> / <code>service_role</code>) ignora o RLS.
@@ -283,11 +283,11 @@ export const SECOES = [
             <code>perfil</code>. É o que a função <code>is_autorizado()</code> confere.</li>
         <li><b>Nível por módulo.</b> Cada papel tem um mapa <i>módulo → nível</i>
             (<code>meu_mapa_permissoes</code>, migration 021): <code>oculto</code> · <code>proprios</code>
-            · <code>leitura</code> · <code>escrita</code>. É a mesma fonte que o RLS consulta —
+            · <code>leitura</code> · <code>escrita</code>. É a mesma fonte que o RLS consulta -
             <code>admin_sme</code> tem escrita em tudo; os demais papéis variam módulo a módulo.</li>
       </ol>
       <p>O padrão de toda tabela é <b>default-deny</b>: nada é legível até uma policy dizer o
-      contrário. Quem está deslogado (<code>anon</code>) <b>não acessa absolutamente nada</b> — e isso
+      contrário. Quem está deslogado (<code>anon</code>) <b>não acessa absolutamente nada</b> - e isso
       é o comportamento desejado, não um bug.</p>
 
       <h3>Onde a permissão é checada no front</h3>
@@ -297,13 +297,13 @@ export const SECOES = [
         <li><code>core/permissoes.js</code> guarda o mapa e expõe <code>nivel()</code>,
             <code>podeVer()</code> e <code>podeEscrever()</code> por módulo.</li>
         <li>O <b>roteador</b> barra a rota de todo módulo cujo nível seja <code>oculto</code>.</li>
-        <li><code>registry.js</code> filtra os tiles e os itens de menu do mesmo jeito — módulo
+        <li><code>registry.js</code> filtra os tiles e os itens de menu do mesmo jeito - módulo
             <code>oculto</code> some de tudo, não só da rota.</li>
         <li>Cada <b>view</b> recebe <code>ctx.perfil</code> e <code>ctx.nivel</code>, e esconde os
             controles de escrita conforme o nível.</li>
       </ul>
       <div class="doc-nota">
-        Nada disso é segurança de verdade — é <b>conforto</b>: esconder um botão não impede ninguém
+        Nada disso é segurança de verdade - é <b>conforto</b>: esconder um botão não impede ninguém
         de abrir o console. A segurança real é o RLS, e por isso ela é redundante lá. Se o front
         deixar passar, o banco recusa.
       </div>
@@ -330,7 +330,7 @@ export const SECOES = [
       não por código de tela. Isso tem duas consequências que nenhuma solução no front teria:</p>
       <ul>
         <li><b>É automático.</b> Nenhuma tela precisa "lembrar" de registrar. Um módulo novo entra na
-            auditoria com uma linha no array de tabelas do trigger — nada no JavaScript.</li>
+            auditoria com uma linha no array de tabelas do trigger - nada no JavaScript.</li>
         <li><b>É à prova de bypass.</b> Quem alterar por SQL direto, por outra ferramenta, ou por um
             bug de tela, <b>também</b> fica registrado. A auditoria não depende de ninguém se comportar.</li>
       </ul>
@@ -339,16 +339,16 @@ export const SECOES = [
       (<code>atualizado_em</code>, <code>ultimo_acesso</code>) são ignorados para não virar ruído.</p>
 
       <h3>Quem pode ler</h3>
-      <p>Só admin, pelo RLS. E <b>ninguém escreve</b> no <code>audit_log</code> — não há policy de
+      <p>Só admin, pelo RLS. E <b>ninguém escreve</b> no <code>audit_log</code> - não há policy de
       insert/update/delete. O único que grava ali é o próprio trigger (que roda como dono da tabela).
       Auditoria que se apaga não é auditoria.</p>
 
       <h3>Último acesso</h3>
       <p>Cada login carimba <code>perfil.ultimo_acesso</code>, via a função <code>registrar_acesso()</code>
-      (a única exceção que deixa um usuário comum escrever no próprio perfil — e só nesse campo).
+      (a única exceção que deixa um usuário comum escrever no próprio perfil - e só nesse campo).
       A função devolve o acesso <i>anterior</i>, que é o que aparece no menu de usuário
       ("Último acesso: …"). Todo horário exibido no FundHub passa por <code>fmtDataHora</code>, que
-      formata no fuso <b>America/Sao_Paulo</b> — o relógio bate com o de quem está usando,
+      formata no fuso <b>America/Sao_Paulo</b> - o relógio bate com o de quem está usando,
       não importa onde o banco esteja.</p>`,
   },
 
@@ -360,7 +360,7 @@ export const SECOES = [
     html: `
       <p>O schema vive em <code>supabase/migrations/</code> e é aplicado <b>à mão, em ordem
       numérica</b>, pelo SQL Editor do painel do Supabase. Não há ferramenta de migração
-      automática — de novo, por opção: o volume não justifica.</p>
+      automática - de novo, por opção: o volume não justifica.</p>
 
       <pre class="doc-arvore">schema.sql
  → 002_leitura_allowlist.sql     allowlist + is_autorizado()
@@ -384,29 +384,29 @@ export const SECOES = [
         <tbody>
           <tr><td><code>unidade_escolar</code></td><td>As 144 escolas: nome, endereço, segmento, oferta, transporte, EJA, INEP.</td></tr>
           <tr><td><code>regional</code></td><td>As regionais da rede.</td></tr>
-          <tr><td><code>servidor</code></td><td>Gestores, coordenadores e supervisores. A <code>chave</code> é única — a tela a deriva do nome e desempata com sufixo.</td></tr>
+          <tr><td><code>servidor</code></td><td>Gestores, coordenadores e supervisores. A <code>chave</code> é única - a tela a deriva do nome e desempata com sufixo.</td></tr>
           <tr><td><code>vinculo</code></td><td>Liga servidor × unidade × papel × <b>ano</b>. É temporal: encerrar um vínculo (<code>ativo=false</code> + <code>fim</code>) preserva o histórico; excluir apaga. A view <code>vw_escola_pessoas</code> achata isso para a tela de Escolas.</td></tr>
-          <tr><td><code>horario_bloco</code></td><td>A jornada. Um dia é um <b>conjunto de blocos</b>, não um par entrada/saída — é o que permite exigir intervalo em quem cumpre 8h.</td></tr>
+          <tr><td><code>horario_bloco</code></td><td>A jornada. Um dia é um <b>conjunto de blocos</b>, não um par entrada/saída - é o que permite exigir intervalo em quem cumpre 8h.</td></tr>
           <tr><td><code>perfil</code></td><td><b>A allowlist.</b> E-mail + papel (<code>admin_sme</code> ou leitor). Hoje só se edita por SQL.</td></tr>
           <tr><td><code>atividade_extraclasse</code></td><td>O catálogo do SATE. A Feira do Livro é <i>uma linha aqui</i>, não um sistema à parte.</td></tr>
           <tr><td><code>solicitacao_transporte</code></td><td>O pedido da escola: atividade, data, período, alunos, ônibus, status.</td></tr>
           <tr><td><code>oferta_onibus</code></td><td>Quantos ônibus existem por dia e período. Confrontada com o uso ao confirmar.</td></tr>
           <tr><td><code>dia_calendario</code></td><td>Dia letivo, evento, tipo e os <b>bloqueios</b> que o SATE respeita.</td></tr>
           <tr><td><code>afastamento</code></td><td>Servidor × tipo × período × unidade. <code>fim</code> nulo = em aberto.</td></tr>
-          <tr><td><code>ocorrencia</code></td><td>Atendimentos telefônicos da recepção. A escola é <b>opcional</b> — nem toda ligação é sobre uma unidade.</td></tr>
+          <tr><td><code>ocorrencia</code></td><td>Atendimentos telefônicos da recepção. A escola é <b>opcional</b> - nem toda ligação é sobre uma unidade.</td></tr>
           <tr><td><code>relatorio_visita</code></td><td>Visitas técnicas às escolas: pauta, constatações, encaminhamentos e prazo.</td></tr>
           <tr><td><code>ata_atendimento</code></td><td>Atas com numeração sequencial por ano (trigger) e impressão em papel timbrado.</td></tr>
-          <tr><td><code>audit_log</code></td><td><b>A auditoria.</b> Preenchida pelo trigger <code>fn_audit</code> — cada alteração com o antes, o depois e o diff. Só admin lê; ninguém escreve direto.</td></tr>
+          <tr><td><code>audit_log</code></td><td><b>A auditoria.</b> Preenchida pelo trigger <code>fn_audit</code> - cada alteração com o antes, o depois e o diff. Só admin lê; ninguém escreve direto.</td></tr>
           <tr><td><code>projeto</code>, <code>projeto_interesse</code></td><td>Projetos/pesquisas ofertados às escolas e a manifestação de interesse de cada unidade.</td></tr>
         </tbody>
       </table>
 
       <h3>Funções</h3>
       <ul>
-        <li><code>auth_email()</code> — o e-mail do JWT da sessão.</li>
-        <li><code>is_institucional()</code> — o e-mail termina no domínio da SME?</li>
-        <li><code>is_autorizado()</code> — está na tabela <code>perfil</code>? (usada em todo <code>select</code>)</li>
-        <li><code>is_admin()</code> — <code>papel = 'admin_sme'</code>? (usada em todo <code>insert/update/delete</code>)</li>
+        <li><code>auth_email()</code> - o e-mail do JWT da sessão.</li>
+        <li><code>is_institucional()</code> - o e-mail termina no domínio da SME?</li>
+        <li><code>is_autorizado()</code> - está na tabela <code>perfil</code>? (usada em todo <code>select</code>)</li>
+        <li><code>is_admin()</code> - <code>papel = 'admin_sme'</code>? (usada em todo <code>insert/update/delete</code>)</li>
       </ul>
 
       <h3>Seeds</h3>
@@ -453,7 +453,7 @@ export const SECOES = [
       <p>Os Apps Scripts antigos (<code>agendamentos-fil</code>,
       <code>afastamentos-gestores</code>) seguem <b>em produção em paralelo</b>. Eles servem de
       inspiração e nada mais: <b>não são alterados</b>. O SATE é a generalização do
-      <code>agendamentos-fil</code> — a Feira do Livro virou uma atividade do catálogo.</p>`,
+      <code>agendamentos-fil</code> - a Feira do Livro virou uma atividade do catálogo.</p>`,
   },
 
   {
@@ -476,7 +476,7 @@ export const SECOES = [
 ├── module.js
 ├── ocorrencias.model.js
 └── ocorrencias.view.js</pre>
-      <p><code>module.js</code> — é isto que faz o módulo existir para o hub:</p>
+      <p><code>module.js</code> - é isto que faz o módulo existir para o hub:</p>
       <pre class="doc-arvore">export default {
   id: 'ocorrencias',
   ico: 'ocorrencia',
@@ -490,7 +490,7 @@ export const SECOES = [
 };</pre>
 
       <h3>3. O model</h3>
-      <p>Só banco, nunca DOM. Toda função checa <code>hasSupabase()</code> antes — é o que mantém
+      <p>Só banco, nunca DOM. Toda função checa <code>hasSupabase()</code> antes - é o que mantém
       o modo dev-local funcionando:</p>
       <pre class="doc-arvore">import { sb, hasSupabase, emailAtual } from '../../core/supabase.js';
 
@@ -514,7 +514,7 @@ export async function criarOcorrencia(payload) {
 }</pre>
 
       <h3>4. A view</h3>
-      <p>Exporta <code>render(app, ctx)</code>. O <code>ctx.perfil</code> já vem pronto do roteador —
+      <p>Exporta <code>render(app, ctx)</code>. O <code>ctx.perfil</code> já vem pronto do roteador -
       <b>não</b> chame <code>getPerfilAtual()</code> de novo:</p>
       <pre class="doc-arvore">import { getOcorrencias } from './ocorrencias.model.js';
 import { esc } from '../../shared/dom.js';
@@ -532,7 +532,7 @@ export async function render(app, { perfil } = {}) {
 
       <h3>5. Registrar</h3>
       <p>Em <code>src/core/registry.js</code>, importe o manifesto e acrescente-o ao array
-      <code>MODULOS</code> — a posição no array é a posição do tile na home. <b>Só isso.</b>
+      <code>MODULOS</code> - a posição no array é a posição do tile na home. <b>Só isso.</b>
       O tile, o item de navegação e a rota aparecem sozinhos.</p>
       <p>Se o módulo tiver estilo próprio, crie <code>ocorrencias.css</code> na pasta dele e
       acrescente um <code>@import</code> em <code>src/styles/main.css</code>.</p>
@@ -552,7 +552,7 @@ export async function render(app, { perfil } = {}) {
     html: `
       <h3>Mobile-first, de verdade</h3>
       <p>O CSS é escrito <b>primeiro para a tela pequena</b>; as telas maiores recebem
-      acréscimos via <code>@media (min-width: …)</code> — nunca o contrário. Os cortes usados são
+      acréscimos via <code>@media (min-width: …)</code> - nunca o contrário. Os cortes usados são
       <b>560px</b>, <b>720px</b> e <b>900px</b>.</p>
       <p>Na prática, isso significa: um dedo alcança tudo, os alvos de toque têm no mínimo 40px,
       a navegação vira um botão de menu, os formulários viram uma coluna só e a gaveta lateral ocupa a

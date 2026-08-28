@@ -1,7 +1,7 @@
 /* ============================================================
-   FundHub — modules/horarios/horarios.css
+   FundHub - modules/horarios/horarios.css
    A barra de horário. A pista representa sempre a janela 7h00–18h20,
-   e cada bloco é posicionado em % dentro dela — por isso a barra
+   e cada bloco é posicionado em % dentro dela - por isso a barra
    funciona igual no celular e no desktop, sem rolagem horizontal.
 
    No celular a linha empilha (dia / barra / total); a partir de 720px

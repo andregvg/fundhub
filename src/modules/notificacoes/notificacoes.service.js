@@ -1,11 +1,11 @@
 // ============================================================
-// FundHub — modules/notificacoes/notificacoes.service.js
+// FundHub - modules/notificacoes/notificacoes.service.js
 // Sino no topo + toasts para eventos em tempo real de VÁRIOS módulos:
 // solicitações (SATE), afastamentos e ocorrências. O RLS garante que
 // cada usuário só recebe eventos das linhas que já poderia ver.
 //
 // Serviço (sem tela): main.js chama iniciar() após o login e parar()
-// no logout — o contrato de todo módulo com `servico: true`.
+// no logout - o contrato de todo módulo com `servico: true`.
 //
 // Cada tabela tem um "descritor" que traduz o evento cru num aviso
 // legível. Acrescentar uma fonte = assinar a tabela + escrever o

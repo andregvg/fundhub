@@ -1,6 +1,6 @@
 // Manifesto do módulo Projetos & Pesquisas.
 // Cobre o fluxo INTERNO (cadastro + interesse das escolas). O portal
-// externo do proponente por token depende de Edge Function — backlog.
+// externo do proponente por token depende de Edge Function - backlog.
 export default {
   id: 'projetos',
   ico: 'projeto',

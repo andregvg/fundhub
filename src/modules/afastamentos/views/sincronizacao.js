@@ -1,10 +1,10 @@
 // ============================================================
-// FundHub — afastamentos/views/sincronizacao.js  (sync da planilha)
+// FundHub - afastamentos/views/sincronizacao.js  (sync da planilha)
 // A aba "Lançamentos" (Apps Script afastamentos-gestores) segue sendo o
-// ponto de lançamento — inclusive das respostas do formulário dos gestores.
+// ponto de lançamento - inclusive das respostas do formulário dos gestores.
 // Aqui o FundHub ESPELHA aquela aba: cola-se o recorte com cabeçalho e o
 // upsert é IDEMPOTENTE pela chave_externa (tipo|nome|início|criado_em, a
-// mesma identidade que o Apps Script usa) — reimportar atualiza, não duplica.
+// mesma identidade que o Apps Script usa) - reimportar atualiza, não duplica.
 //
 // Por que colar e não buscar da planilha: buscar exigiria publicá-la na web
 // (expondo dado pessoal de servidor, o que a regra de segurança proíbe) ou
@@ -36,7 +36,7 @@ function parseDataBR(v) {
 }
 
 // "dd/mm/aaaa HH:MM" → ISO (ou null). Usado para espelhar criado_em.
-// Não é agoraISO(): serializa uma data JÁ PARSEADA da planilha, não "agora" —
+// Não é agoraISO(): serializa uma data JÁ PARSEADA da planilha, não "agora" -
 // por isso fica aqui, e não em shared/format.js (é parsing de um formato
 // externo específico deste módulo, não formatação de exibição reusável).
 function parseCarimbo(v) {
@@ -45,7 +45,7 @@ function parseCarimbo(v) {
   return new Date(+m[3], +m[2] - 1, +m[1], +m[4], +m[5]).toISOString(); // fundhub:ok-6 ver comentario acima
 }
 
-// `ctx`: { servidores, unidades, carregar } — ver afastamentos.view.js § ctxAtual().
+// `ctx`: { servidores, unidades, carregar } - ver afastamentos.view.js § ctxAtual().
 export function abrirSync(ctx) {
   abrirDrawer(`
     ${drawerHead('Sincronizar com a planilha', 'Aba “Lançamentos” do Drive')}
@@ -55,7 +55,7 @@ export function abrirSync(ctx) {
         Reconhece as colunas do Apps Script: <code>tipo, data_inicio, data_fim,
         nome_completo, processo, escola, status, origem, observacoes, criado_em,
         criado_por, atualizado_por</code>.
-        A sincronização é <b>idempotente</b> — colar o mesmo trecho de novo
+        A sincronização é <b>idempotente</b> - colar o mesmo trecho de novo
         <b>atualiza</b> os registros, nunca duplica.
         Gestores que não estiverem cadastrados em <a href="#/servidores">Servidores</a>
         são <b>ignorados e listados</b> no fim.
@@ -132,7 +132,7 @@ async function sincronizar(e, ctx) {
       origem: iOrigem >= 0 ? (norm(String(c[iOrigem] || '').trim()) || 'planilha') : 'planilha',
       // Sempre presente: o upsert em lote do PostgREST exige chaves uniformes
       // e criado_em é NOT NULL. (criado_em/atualizado_em são "ruído" para a
-      // auditoria — ver 011 — então re-sincronizar não polui o log.)
+      // auditoria - ver 011 - então re-sincronizar não polui o log.)
       criado_em: parseCarimbo(criadoEmRaw) || agoraISO(),
       criado_por: iCriadoPor >= 0 ? (String(c[iCriadoPor] || '').trim() || null) : null,
       atualizado_em: agoraISO(),
@@ -171,7 +171,7 @@ function relatorioSync(n, invalidas, semServidor) {
       <div class="field">
         <div class="lbl">Gestores não cadastrados (ignorados)</div>
         <div class="val">
-          <p class="form-hint">Cadastre em <a href="#/servidores">Servidores</a> e sincronize de novo — os registros entram sem duplicar.</p>
+          <p class="form-hint">Cadastre em <a href="#/servidores">Servidores</a> e sincronize de novo - os registros entram sem duplicar.</p>
           <ul class="af-faltantes">${faltantes.map(f => `<li>${esc(f)}</li>`).join('')}</ul>
         </div>
       </div>` : ''}`;

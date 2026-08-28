@@ -1,7 +1,7 @@
 // ============================================================
-// FundHub — modules/atas/atas.view.js
+// FundHub - modules/atas/atas.view.js
 // Atas de atendimento: lista + redação (admin) + IMPRESSÃO em papel
-// timbrado. A impressão é o entregável — ver atas.css § @media print.
+// timbrado. A impressão é o entregável - ver atas.css § @media print.
 // A folha timbrada é montada aqui e só fica visível ao imprimir.
 // ============================================================
 import { TIPOS, getAtas, criarAta, atualizarAta, excluirAta } from './atas.model.js';
@@ -93,7 +93,7 @@ function item(a) {
   return `<div class="solic at-item" data-id="${esc(a.id)}" tabindex="0">
     <div class="solic-main">
       <div class="di-top">
-        <b>Ata nº ${esc(a.numero ?? '—')}/${esc(a.ano)}</b>
+        <b>Ata nº ${esc(a.numero ?? 's/nº')}/${esc(a.ano)}</b>
         <span class="tag">${esc(TIPOS[a.tipo] || a.tipo)}</span>
       </div>
       <div class="di-meta">${esc(fmtData(a.data))}${a.local ? ' · ' + esc(a.local) : ''}</div>
@@ -114,7 +114,7 @@ function detalhe(a) {
     </div>` : '';
 
   abrirDrawer(`
-    ${drawerHead(`Ata nº ${esc(ata.numero ?? '—')}/${esc(ata.ano)}`, esc(fmtData(ata.data)) + ' · ' + esc(TIPOS[ata.tipo] || ata.tipo))}
+    ${drawerHead(`Ata nº ${esc(ata.numero ?? 's/nº')}/${esc(ata.ano)}`, esc(fmtData(ata.data)) + ' · ' + esc(TIPOS[ata.tipo] || ata.tipo))}
     <div class="drawer-body">
       <div class="drawer-acoes"><button class="btn-primary" id="at-print">${ico('imprimir')} Imprimir (papel timbrado)</button></div>
       ${acoes}
@@ -146,7 +146,7 @@ function imprimir(a) {
         <span>Gerência de Ensino Fundamental</span>
       </div>
     </div>
-    <h1 class="ata-titulo">Ata de Atendimento nº ${esc(a.numero ?? '—')}/${esc(a.ano)}</h1>
+    <h1 class="ata-titulo">Ata de Atendimento nº ${esc(a.numero ?? 's/nº')}/${esc(a.ano)}</h1>
     <p class="ata-abertura">
       Aos ${esc(fmtExtenso(a.data))}${a.hora ? `, às ${esc(a.hora.slice(0, 5))}` : ''}${a.local ? `, em ${esc(a.local)}` : ''},
       realizou-se o atendimento a <strong>${esc(TIPOS[a.tipo] || a.tipo)}</strong>, conforme registrado a seguir.

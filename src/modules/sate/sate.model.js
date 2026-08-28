@@ -1,8 +1,8 @@
 // ============================================================
-// FundHub — modules/sate/sate.model.js
+// FundHub - modules/sate/sate.model.js
 // Solicitações de transporte, oferta de frota e realtime.
 // Também guarda as REGRAS DE NEGÓCIO do SATE (capacidade do ônibus,
-// antecedência mínima, status que reservam frota) — elas são do
+// antecedência mínima, status que reservam frota) - elas são do
 // domínio, não da tela, e outros módulos leem daqui.
 // ============================================================
 import { sb, hasSupabase, emailAtual } from '../../core/supabase.js';

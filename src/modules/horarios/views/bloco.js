@@ -1,14 +1,14 @@
 // ============================================================
-// FundHub — horarios/views/bloco.js
+// FundHub - horarios/views/bloco.js
 // Formulário de UM bloco de jornada, compartilhado pelas duas
 // visões (por escola e por servidor). Não conhece nenhuma delas:
 // recebe servidor/unidade/dia prontos e devolve o controle via
-// `recarregar` depois de salvar ou excluir — quem chamou decide o
+// `recarregar` depois de salvar ou excluir - quem chamou decide o
 // que "recarregar" significa na própria tela.
 //
 // As validações continuam vindo de validarDia no model; aqui só se
 // pinta o resultado. Para validar o dia INTEIRO (o bloco novo somado
-// aos que já existem), busca os blocos atuais da unidade — não confia
+// aos que já existem), busca os blocos atuais da unidade - não confia
 // em nenhuma lista que o chamador já tenha em memória, que pode estar
 // desatualizada.
 // ============================================================
@@ -63,7 +63,7 @@ async function salvarBloco(e, bloco, { servidorId, unidadeId, dia, recarregar })
   const btn = document.getElementById('b-save'); btn.disabled = true; btn.textContent = 'Salvando…';
 
   try {
-    // Valida contra o dia INTEIRO daquele servidor naquela unidade —
+    // Valida contra o dia INTEIRO daquele servidor naquela unidade -
     // o bloco novo somado aos que já existem, buscados agora mesmo.
     const doUnidade = await getBlocos(unidadeId);
     const outros = doUnidade.filter(b =>

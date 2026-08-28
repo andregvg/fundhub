@@ -1,5 +1,5 @@
 /* ============================================================
-   FundHub — main.css
+   FundHub - main.css
    O único CSS carregado pelo index.html. Tudo o mais entra por
    @import: primeiro a base, depois os módulos (que só acrescentam).
    Módulo novo com estilo próprio → uma linha aqui embaixo.
@@ -9,7 +9,7 @@
 @import url('./base.css');
 @import url('./components.css');
 
-/* Estilos por módulo — convivem com os componentes, não os substituem. */
+/* Estilos por módulo - convivem com os componentes, não os substituem. */
 @import url('../modules/calendario/calendario.css');
 @import url('../modules/afastamentos/afastamentos.css');
 @import url('../modules/servidores/servidores.css');

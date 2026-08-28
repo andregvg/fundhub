@@ -1,5 +1,5 @@
 // ============================================================
-// FundHub — modules/calendario/calendario.view.js
+// FundHub - modules/calendario/calendario.view.js
 // Grade mensal: dias letivos, eventos e bloqueios (extraclasse /
 // afastamento) que o SATE e os Afastamentos consultam.
 // Admin edita cada dia; os demais visualizam.

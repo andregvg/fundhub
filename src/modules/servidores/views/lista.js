@@ -1,5 +1,5 @@
 // ============================================================
-// FundHub — servidores/views/lista.js  (busca, filtros e cards)
+// FundHub - servidores/views/lista.js  (busca, filtros e cards)
 // ============================================================
 import { vinculosAbertos, lotacaoDe } from '../servidores.model.js';
 import { rotulaCargo } from '../vinculos.model.js';
@@ -19,7 +19,7 @@ function combina(s, ctx) {
   if (filtro.semVinculo && abertos.length) return false;
 
   // Recorte por segmento: entra quem atua em ALGUMA escola do
-  // segmento. A sede não tem segmento — e por isso continua visível,
+  // segmento. A sede não tem segmento - e por isso continua visível,
   // senão o filtro esconderia justamente a equipe da SME.
   if (seg && seg.selecionados().length) {
     const soSede = abertos.length && abertos.every(v => v.unidade?.tipo === 'sede');
@@ -37,7 +37,7 @@ function combina(s, ctx) {
   return true;
 }
 
-// `ctx`: { perfil, filtro, seg, idxUnidades, filtroUnidade, abrirDetalhe } — ver servidores.view.js § ctxAtual().
+// `ctx`: { perfil, filtro, seg, idxUnidades, filtroUnidade, abrirDetalhe } - ver servidores.view.js § ctxAtual().
 export function pintarLista(box, lista, ctx) {
   const vis = lista.filter(s => combina(s, ctx)).sort((a, b) => a.nome.localeCompare(b.nome, 'pt'));
   document.getElementById('sv-count').textContent = `${vis.length} de ${lista.length} servidores`;
@@ -60,11 +60,11 @@ function card(s) {
 
   const lugares = abertos.length
     ? abertos.map(v => `<span class="tag">${v.unidade?.tipo === 'sede' ? ico('sede', { tam: 12 }) + ' ' : ''}${
-        esc(v.unidade?.apelido || v.unidade?.nome || '—')}</span>`).join('')
+        esc(v.unidade?.apelido || v.unidade?.nome || 'sem escola')}</span>`).join('')
     : `<span class="tag eja">${ico('atencao', { tam: 12 })} Sem vínculo</span>`;
 
   // Nome completo em caixa alta (como nos sistemas oficiais); o
-  // apelido logo abaixo, em caixa normal — não precisa de destaque.
+  // apelido logo abaixo, em caixa normal - não precisa de destaque.
   return `<article class="card" data-id="${esc(s.id)}" tabindex="0">
     <div class="card-top">
       <h3 class="nome-oficial">${esc(s.nome)}</h3>

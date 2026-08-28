@@ -1,5 +1,5 @@
 // ============================================================
-// FundHub — modules/usuarios/usuarios.model.js
+// FundHub - modules/usuarios/usuarios.model.js
 // A allowlist (tabela `perfil`): quem entra, com qual papel, em quais
 // segmentos e com quais exceções de permissão.
 //
@@ -11,7 +11,7 @@
 import { sb, hasSupabase } from '../../core/supabase.js';
 
 // Fallback caso a tabela `papel` não responda (banco antigo, offline).
-// A fonte de verdade é o banco — isto é só para a tela não quebrar.
+// A fonte de verdade é o banco - isto é só para a tela não quebrar.
 const PAPEIS_FALLBACK = {
   admin_sme: 'Administrador',
   equipe_sme: 'Equipe SME',
@@ -91,7 +91,7 @@ export async function criarPerfil(payload) {
   return data;
 }
 
-// A chave primária é o e-mail — não se edita; para trocar, exclua e recrie.
+// A chave primária é o e-mail - não se edita; para trocar, exclua e recrie.
 export async function atualizarPerfil(email, payload) {
   if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
   const patch = limpar(payload); delete patch.email;
@@ -122,7 +122,7 @@ export async function getMeuPerfil() {
   if (!user) return null;
   // O servidor embeda os vínculos: "Meus dados" exibe cargo e lotação
   // via vinculosAbertos()/cargoDe()/lotacaoDe() (servidores.model.js),
-  // que precisam do array — sem ele os dois campos ficam sempre em
+  // que precisam do array - sem ele os dois campos ficam sempre em
   // branco. `tipo` fica de fora: esta tela não lê.
   const { data, error } = await sb().from('perfil')
     .select(`*, servidor:servidor_id(*, vinculos:vinculo(

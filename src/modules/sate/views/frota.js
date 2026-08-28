@@ -1,5 +1,5 @@
 // ============================================================
-// FundHub — sate/views/frota.js  (aba Frota — só admin)
+// FundHub - sate/views/frota.js  (aba Frota - só admin)
 // Oferta de ônibus por dia/período × uso já reservado = saldo.
 // ============================================================
 import { getOfertaDia, setOferta, getUsoDia, PERIODOS } from '../sate.model.js';

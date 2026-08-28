@@ -1,5 +1,5 @@
 // ============================================================
-// FundHub — sate/views/solicitacoes.js  (aba Solicitações)
+// FundHub - sate/views/solicitacoes.js  (aba Solicitações)
 // Lista as solicitações e, para admin, os botões de validação.
 // Ao CONFIRMAR, confere o saldo de frota do dia/período antes.
 // ============================================================
@@ -39,14 +39,14 @@ export async function render(contexto) {
   });
 
   const el = document.getElementById('st-lista');
-  // As unidades já vêm da casca do SATE (sate.view.js) — não vale uma
+  // As unidades já vêm da casca do SATE (sate.view.js) - não vale uma
   // segunda ida ao banco só para saber o segmento de cada escola.
   idxUnidades = indexarUnidades(ctx.unidades || []);
   try { lista = await listSolicitacoes(filtroStatus ? { status: filtroStatus } : {}); }
   catch (err) { el.innerHTML = erroBox(err); return; }
 
   // `render` remonta a aba inteira a cada troca de filtro, então o
-  // componente é recriado — a memória de sessão preserva a escolha.
+  // componente é recriado - a memória de sessão preserva a escolha.
   seg = criarFiltroSegmento(document.getElementById('st-seg'), {
     perfil: ctx.perfil, chaveMemoria: 'fundhub:seg:sate', onChange: pintar,
   });
@@ -79,7 +79,7 @@ const botao = (id, acao, txt, kind = '') =>
 
 function item(s) {
   const cor = s.atividade?.cor || 'var(--brand)';
-  const escola = s.unidade?.apelido || s.unidade?.nome || '—';
+  const escola = s.unidade?.apelido || s.unidade?.nome || 'sem escola';
   const nome = s.atividade?.nome || s.atividade_livre || 'Atividade';
   const livre = !s.atividade?.nome && s.atividade_livre;
   const horarios = [s.horario_embarque, s.horario_retorno].filter(Boolean).join(' → ');
@@ -104,7 +104,7 @@ function item(s) {
         ${s.qtd_alunos ? '· ' + esc(s.qtd_alunos) + ' alunos' : ''}
         ${s.qtd_onibus ? '· ' + esc(s.qtd_onibus) + ' ônibus' : ''}
         ${s.qtd_cadeirante > 0 ? '· ' + ico('acessibilidade', { tam: 12 }) + ' ' + esc(s.qtd_cadeirante) : ''}</div>
-      ${s.destino_nome ? `<div class="di-meta">Destino: ${esc(s.destino_nome)}${s.destino_endereco ? ' — ' + esc(s.destino_endereco) : ''}</div>` : ''}
+      ${s.destino_nome ? `<div class="di-meta">Destino: ${esc(s.destino_nome)}${s.destino_endereco ? ' - ' + esc(s.destino_endereco) : ''}</div>` : ''}
       ${horarios ? `<div class="di-meta">Horário: ${esc(horarios)}</div>` : ''}
       ${s.contato_professor ? `<div class="di-meta">Contato: ${esc(s.contato_professor)}</div>` : ''}
     </div>

@@ -1,5 +1,5 @@
 // ============================================================
-// FundHub — modules/afastamentos/afastamentos.model.js
+// FundHub - modules/afastamentos/afastamentos.model.js
 // Afastamentos de servidores (servidor × tipo × período × unidade).
 // ============================================================
 import { sb, hasSupabase, emailAtual } from '../../core/supabase.js';
@@ -7,14 +7,14 @@ import { subscribeTabela } from '../../shared/realtime.js';
 import { agoraISO } from '../../shared/format.js';
 
 // Vocabulário de tipos. É um SUPERCONJUNTO que cobre também os tipos da
-// planilha do Drive (Abonada, LTS, TRE, Férias, Outros) — sem "Falta
+// planilha do Drive (Abonada, LTS, TRE, Férias, Outros) - sem "Falta
 // Abonada" e "TRE" o sync perderia registros. Ver MAPA_TIPOS_PLANILHA.
 export const TIPOS_AFASTAMENTO = [
   'Férias', 'Falta Abonada', 'Licença Saúde (LTS)', 'Licença Maternidade',
   'Licença Prêmio', 'Atestado', 'TRE (Justiça Eleitoral)', 'Afastamento SME', 'Outro',
 ];
 
-// Cor por tipo — usada na barra lateral do item e nos chips do calendário.
+// Cor por tipo - usada na barra lateral do item e nos chips do calendário.
 // Valores em styles/tokens.css (--af-*): nenhuma cor fixa em módulo.
 export const CORES_AFASTAMENTO = {
   'Férias': 'var(--af-ferias)', 'Falta Abonada': 'var(--af-abonada)',
@@ -39,9 +39,9 @@ export const ORIGEM_AFASTAMENTO = {
 };
 
 // Ciclo de vida (mesma semântica da planilha):
-//   ativo      — vale.
-//   importado  — veio da planilha/formulário e aguarda confirmação da SME.
-//   cancelado  — soft-delete; preserva histórico (é o 'excluido' da planilha).
+//   ativo      - vale.
+//   importado  - veio da planilha/formulário e aguarda confirmação da SME.
+//   cancelado  - soft-delete; preserva histórico (é o 'excluido' da planilha).
 export const STATUS_AFASTAMENTO = {
   ativo: 'Ativo', importado: 'Importado', cancelado: 'Cancelado',
 };
@@ -57,8 +57,8 @@ export function diasAfastamento(a) {
 }
 
 // Lista afastamentos. Opções:
-//   vigentesEm: 'yyyy-mm-dd' — só os vigentes na data.
-//   status: 'ativo' | 'cancelado' — filtra por status; ausente = só ativos
+//   vigentesEm: 'yyyy-mm-dd' - só os vigentes na data.
+//   status: 'ativo' | 'cancelado' - filtra por status; ausente = só ativos
 //           (os cancelados ficam escondidos por padrão).
 // Postgres 42703 = coluna inexistente (migration 018 ainda não rodada).
 const SEM_COLUNA = '42703';
@@ -77,7 +77,7 @@ export async function getAfastamentos({ vigentesEm, status } = {}) {
   // Sem a 018 o módulo continua listando (só não conhece cancelados),
   // em vez de quebrar a tela inteira.
   if (error?.code === SEM_COLUNA) {
-    console.warn('Coluna afastamento.status ausente — rode a migration 018.');
+    console.warn('Coluna afastamento.status ausente - rode a migration 018.');
     if (status === 'cancelado') return [];
     ({ data, error } = await montar(false));
   }
@@ -155,7 +155,7 @@ export async function confirmarAfastamento(id) {
 
 // ── Sincronização com a planilha do Drive ────────────────────
 // Espelha a aba "Lançamentos". IDEMPOTENTE: `chave_externa` (a mesma
-// identidade que o Apps Script usa — tipo|nome|inicio|criado_em) faz a
+// identidade que o Apps Script usa - tipo|nome|inicio|criado_em) faz a
 // reimportação ATUALIZAR a linha, nunca duplicar. Rodar de novo o mesmo
 // recorte da planilha é seguro.
 export async function sincronizarPlanilha(rows) {
@@ -170,7 +170,7 @@ export async function sincronizarPlanilha(rows) {
   return rows.length;
 }
 
-// Exclusão definitiva (apaga de vez) — só faz sentido para limpar cancelados.
+// Exclusão definitiva (apaga de vez) - só faz sentido para limpar cancelados.
 export async function excluirAfastamento(id) {
   if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
   const { error } = await sb().from('afastamento').delete().eq('id', id);

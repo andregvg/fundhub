@@ -1,5 +1,5 @@
 // ============================================================
-// FundHub — modules/visitas/visitas.model.js
+// FundHub - modules/visitas/visitas.model.js
 // Relatórios das visitas técnicas às escolas pela equipe de
 // acompanhamento. Só banco, nunca DOM.
 // ============================================================

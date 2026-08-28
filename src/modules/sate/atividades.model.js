@@ -1,5 +1,5 @@
 // ============================================================
-// FundHub — modules/sate/atividades.model.js
+// FundHub - modules/sate/atividades.model.js
 // Catálogo de atividades extraclasse geridas pela SME (a Feira do
 // Livro, por exemplo, é uma linha daqui). Vive dentro do SATE porque
 // é o catálogo que alimenta as solicitações de transporte.

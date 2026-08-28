@@ -1,5 +1,5 @@
 // ============================================================
-// FundHub — modules/ocorrencias/ocorrencias.view.js
+// FundHub - modules/ocorrencias/ocorrencias.view.js
 // Registro dos atendimentos telefônicos. Leitura para autorizados;
 // CRUD para admin. Filtros por período, escola e status; busca livre.
 // ============================================================
@@ -21,7 +21,7 @@ let perfil = null, unidades = [], lista = [], idxUnidades = {};
 let seg = null;
 let filtro = { de: addDias(hojeISO(), -30), ate: hojeISO(), unidadeId: '', status: '', q: '' };
 
-// Escolas do segmento selecionado — alimenta o seletor e o recorte da lista.
+// Escolas do segmento selecionado - alimenta o seletor e o recorte da lista.
 const unidadesDoSegmento = () =>
   [...unidades].filter(u => !seg || seg.combina(u)).sort((a, b) => a.nome.localeCompare(b.nome, 'pt'));
 
@@ -213,7 +213,7 @@ function abrirForm(o) {
           <label>Hora <input id="f-hora" type="time" value="${esc(o?.hora ? o.hora.slice(0, 5) : '')}" /></label>
         </div>
         <label>Canal <select id="f-canal">${optsCanal}</select></label>
-        <label>Escola (opcional) <select id="f-uni"><option value="">— nenhuma —</option>${optsUni}</select></label>
+        <label>Escola (opcional) <select id="f-uni"><option value="">- nenhuma -</option>${optsUni}</select></label>
         <label>Solicitante (quem procurou) <input id="f-solic" value="${esc(o?.solicitante || '')}" /></label>
         <label>Contato de retorno <input id="f-contato" type="tel" value="${esc(o?.solicitante_contato || '')}" /></label>
         <label>Assunto <input id="f-assunto" required value="${esc(o?.assunto || '')}" /></label>

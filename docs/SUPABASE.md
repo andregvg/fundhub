@@ -1,4 +1,4 @@
-# FundHub — Configuração e Segurança do Supabase
+# FundHub - Configuração e Segurança do Supabase
 
 Projeto: `uwkroffzjyzbjslepjnh` · API: `https://uwkroffzjyzbjslepjnh.supabase.co`
 
@@ -15,7 +15,7 @@ Projeto: `uwkroffzjyzbjslepjnh` · API: `https://uwkroffzjyzbjslepjnh.supabase.c
 ### 1. Criar as tabelas e políticas
 SQL Editor → cole e rode **`supabase/schema.sql`** (deste repositório).
 
-### 2. Carregar os dados (seed) — sem versionar nada
+### 2. Carregar os dados (seed) - sem versionar nada
 O seed fica **fora do repositório** (é dado sensível). No seu PC ele está em
 `_private/seed_unidades.sql` (gerado localmente, gitignored).
 SQL Editor → cole o conteúdo desse arquivo e rode. Ele bypassa o RLS por ser
@@ -50,12 +50,12 @@ Para habilitar o botão "Entrar com conta Google":
 1. **Google Cloud Console** → crie um *OAuth 2.0 Client ID* (tipo *Web application*).
    - *Authorized redirect URI:* `https://uwkroffzjyzbjslepjnh.supabase.co/auth/v1/callback`
 2. **Supabase → Authentication → Providers → Google:** habilite e cole o *Client ID* e *Client secret*.
-3. Pronto — o botão já existe no app. O login Google não substitui o magic link; os dois convivem.
+3. Pronto - o botão já existe no app. O login Google não substitui o magic link; os dois convivem.
 
 > Restrição de acesso: mesmo entrando por Google, só lê quem estiver na allowlist
 > (`perfil`). O parâmetro `hd` apenas sugere ao Google a conta do domínio.
 
 ## Verificação de que está fechado
 
-- Deslogado, a aba Escolas deve aparecer **vazia/entrar em login** — nunca mostrar dados.
+- Deslogado, a aba Escolas deve aparecer **vazia/entrar em login** - nunca mostrar dados.
 - Um e-mail fora do domínio institucional não deve conseguir ler nada (o app recusa no login e o RLS recusa no banco).

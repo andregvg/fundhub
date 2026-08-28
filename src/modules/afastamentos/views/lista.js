@@ -1,5 +1,5 @@
 // ============================================================
-// FundHub — afastamentos/views/lista.js  (visão Lista)
+// FundHub - afastamentos/views/lista.js  (visão Lista)
 // A lista filtrada + as ações por linha: editar, cancelar, reativar,
 // excluir e confirmar um afastamento importado da planilha.
 // ============================================================
@@ -14,7 +14,7 @@ import { confirmar } from '../../../shared/ui/confirmar.js';
 import { toast } from '../../../shared/ui/toast.js';
 import { ico } from '../../../shared/ui/icones.js';
 
-// `ctx`: { perfil, lista, abrirForm, carregar } — ver afastamentos.view.js § ctxAtual().
+// `ctx`: { perfil, lista, abrirForm, carregar } - ver afastamentos.view.js § ctxAtual().
 export function pintarLista(box, filtrada, ctx) {
   if (!filtrada.length) {
     box.innerHTML = emptyState(ico('afastamento', { tam: 32 }), 'Nenhum afastamento', 'Nada a exibir para o filtro atual.');
@@ -26,7 +26,7 @@ export function pintarLista(box, filtrada, ctx) {
 
 function item(a, perfil) {
   const cor = CORES_AFASTAMENTO[a.tipo] || 'var(--brand)';
-  const nome = a.servidor?.nome || '—';
+  const nome = a.servidor?.nome || 'sem nome';
   const dias = diasAfastamento(a);
   const periodo = a.fim ? `${fmtData(a.inicio)} a ${fmtData(a.fim)}` : `desde ${fmtData(a.inicio)} (em aberto)`;
   const unidade = a.unidade?.apelido || a.unidade?.nome;

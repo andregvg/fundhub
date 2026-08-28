@@ -1,12 +1,12 @@
 // ============================================================
-// FundHub — modules/horarios/horarios.view.js
-// Casca do módulo Horários: duas abas sobre o mesmo domínio — a
+// FundHub - modules/horarios/horarios.view.js
+// Casca do módulo Horários: duas abas sobre o mesmo domínio - a
 // cobertura de UMA escola (por-escola) e a semana de UMA pessoa, em
 // todos os locais onde ela atua (por-servidor). Compartilham perfil,
 // permissão e a lista de locais (escolas + sede).
 //
 // A checagem de escrita é por módulo (podeEscrever), não mais por
-// perfil.isAdmin — resquício do modelo binário anterior à migration
+// perfil.isAdmin - resquício do modelo binário anterior à migration
 // 021. Quem tem nível 'proprios' continua barrado pelo RLS na hora
 // de gravar; a tela nunca foi a barreira.
 // ============================================================

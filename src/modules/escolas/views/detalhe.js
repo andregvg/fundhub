@@ -1,6 +1,6 @@
 // ============================================================
-// FundHub — escolas/views/detalhe.js  (gaveta de detalhe da escola)
-// Atributos booleanos (transporte, EJA) viram chip no cabeçalho — um
+// FundHub - escolas/views/detalhe.js  (gaveta de detalhe da escola)
+// Atributos booleanos (transporte, EJA) viram chip no cabeçalho - um
 // campo inteiro para dizer "EJA: Não" ocupava espaço para informar
 // nada. Os demais campos ficam agrupados sob título de bloco.
 // ============================================================
@@ -10,7 +10,7 @@ import { telefonesTexto } from '../../../shared/ui/phones.js';
 import { ico } from '../../../shared/ui/icones.js';
 
 // `ctx`: { perfil, podeEditar, recarregar, abrirForm, removerEscola }
-// — ver escolas.view.js § ctxAtual().
+// - ver escolas.view.js § ctxAtual().
 export function detalhe(u, ctx) {
   const tel = telefonesTexto(u.telefones);
   const maps = u.endereco

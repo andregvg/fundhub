@@ -1,7 +1,7 @@
 // ============================================================
-// FundHub — modules/ocorrencias/ocorrencias.model.js
+// FundHub - modules/ocorrencias/ocorrencias.model.js
 // Atendimentos telefônicos das recepcionistas, ligados (ou não) a uma
-// escola. Só banco, nunca DOM. A unidade é opcional — nem toda ligação
+// escola. Só banco, nunca DOM. A unidade é opcional - nem toda ligação
 // é sobre uma escola específica.
 // ============================================================
 import { sb, hasSupabase, emailAtual } from '../../core/supabase.js';
@@ -18,7 +18,7 @@ export const STATUS = {
   resolvida: 'Resolvida', encaminhada: 'Encaminhada',
 };
 
-// Cor por status — a mesma família visual dos outros módulos.
+// Cor por status - a mesma família visual dos outros módulos.
 export const STATUS_TAG = {
   aberta: 'st-em_analise', em_andamento: 'st-em_analise',
   resolvida: 'st-confirmado', encaminhada: 'st-negado',

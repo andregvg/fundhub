@@ -1,15 +1,15 @@
 // ============================================================
-// FundHub — modules/escolas/escolas.model.js
+// FundHub - modules/escolas/escolas.model.js
 // Repositório das unidades escolares. É o "M" do MVC: só fala com o
 // banco, nunca com o DOM. Outros módulos (SATE, Afastamentos,
-// Notificações, Dashboard) importam DESTE arquivo — nunca da view.
+// Notificações, Dashboard) importam DESTE arquivo - nunca da view.
 //
 // Fonte: Supabase (RLS). Nenhum dado real é versionado. Em dev-local,
 // tenta data/unidades.local.json (gitignored); senão, estado vazio.
 // ============================================================
 import { sb, hasSupabase } from '../../core/supabase.js';
 import { agoraISO } from '../../shared/format.js';
-// Telefones agora vêm da tabela dedicada (fonte única) — model → model.
+// Telefones agora vêm da tabela dedicada (fonte única) - model → model.
 import { getTelefonesMapas } from '../telefones/telefones.model.js';
 
 // Normaliza uma linha do Supabase para a mesma forma do JSON local.

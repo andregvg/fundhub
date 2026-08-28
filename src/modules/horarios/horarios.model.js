@@ -1,7 +1,7 @@
 // ============================================================
-// FundHub — modules/horarios/horarios.model.js
+// FundHub - modules/horarios/horarios.model.js
 // Jornada da equipe gestora. Um dia é um conjunto de BLOCOS, não um
-// par entrada/saída — é isso que permite representar a regra das 6h
+// par entrada/saída - é isso que permite representar a regra das 6h
 // contínuas (quem cumpre 8h precisa partir a jornada).
 //
 // As REGRAS moram aqui, não na tela:
@@ -131,7 +131,7 @@ export function validarDia(blocosDoDia) {
   if (total > MAX_DIA_MIN) {
     problemas.push({
       nivel: 'erro',
-      texto: `${duracao(total)} no dia — o limite é ${duracao(MAX_DIA_MIN)}.`,
+      texto: `${duracao(total)} no dia - o limite é ${duracao(MAX_DIA_MIN)}.`,
     });
   }
 
@@ -140,7 +140,7 @@ export function validarDia(blocosDoDia) {
   if (maior > MAX_CONTINUO_MIN) {
     problemas.push({
       nivel: 'aviso',
-      texto: `${duracao(maior)} contínuas — o limite é ${duracao(MAX_CONTINUO_MIN)}. Inclua um intervalo.`,
+      texto: `${duracao(maior)} contínuas - o limite é ${duracao(MAX_CONTINUO_MIN)}. Inclua um intervalo.`,
     });
   }
 

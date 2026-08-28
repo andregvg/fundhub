@@ -1,5 +1,5 @@
 // ============================================================
-// FundHub — horarios/views/por-servidor.js
+// FundHub - horarios/views/por-servidor.js
 // A semana de UMA pessoa, agrupada pelos locais onde ela tem jornada.
 // É o caminho que faltava: até aqui só dava para chegar ao horário
 // escolhendo primeiro a escola, e quem procurava pela pessoa não
@@ -47,7 +47,7 @@ export async function renderPorServidor(box, ctx) {
   if (servidorId) carregar(); else limparCorpo();
 }
 
-// Só entra no seletor quem tem vínculo aberto — vínculo encerrado não
+// Só entra no seletor quem tem vínculo aberto - vínculo encerrado não
 // tem onde lançar jornada nova.
 function pintarSeletor() {
   const sel = document.getElementById('hs-servidor');
@@ -76,7 +76,7 @@ async function carregar() {
   if (!s) { corpo.innerHTML = erroBox(new Error('Servidor não encontrado.')); return; }
 
   // Os locais a mostrar: onde já há bloco lançado, mais os locais de
-  // vínculo aberto sem bloco ainda — é ali que a pessoa precisa poder
+  // vínculo aberto sem bloco ainda - é ali que a pessoa precisa poder
   // ADICIONAR o primeiro.
   const locais = new Map();
   for (const b of blocos) if (b.unidade && !locais.has(b.unidade.id)) locais.set(b.unidade.id, b.unidade);

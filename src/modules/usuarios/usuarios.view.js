@@ -1,6 +1,6 @@
 // ============================================================
-// FundHub — modules/usuarios/usuarios.view.js
-// Casca do módulo Usuários & Acessos: duas abas — a allowlist (quem
+// FundHub - modules/usuarios/usuarios.view.js
+// Casca do módulo Usuários & Acessos: duas abas - a allowlist (quem
 // entra) e a Auditoria (o que mudou). Ambas só para admin; a guarda
 // definitiva é o RLS. Segue o padrão de abas do SATE.
 // ============================================================
@@ -20,7 +20,7 @@ export async function render(app, { perfil } = {}) {
   app.innerHTML = `
     <div class="page-head">
       <h1>Usuários &amp; Acessos</h1>
-      <p>Quem tem acesso ao FundHub, com qual papel — e o histórico de tudo que foi alterado.</p>
+      <p>Quem tem acesso ao FundHub, com qual papel - e o histórico de tudo que foi alterado.</p>
     </div>
     <div class="tabbar" id="us-abas" role="tablist"></div>
     <div id="us-body">${loading()}</div>`;

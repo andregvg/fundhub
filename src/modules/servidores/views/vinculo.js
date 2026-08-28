@@ -1,9 +1,9 @@
 // ============================================================
-// FundHub — servidores/views/vinculo.js
+// FundHub - servidores/views/vinculo.js
 // O formulário da DESIGNAÇÃO: local, cargo, início e fim.
 //
 // Sem ano letivo: o vínculo é um período, e "está aberto" é não ter
-// data de fim. Encerrar é preencher o Término — o mesmo formulário,
+// data de fim. Encerrar é preencher o Término - o mesmo formulário,
 // e não mais um prompt() do navegador (R16).
 //
 // Pode ser aberto sobre a ficha do servidor: quem chama passa
@@ -20,7 +20,7 @@ import { ico } from '../../../shared/ui/icones.js';
 const OUTRO = '::outro::';   // sentinela: os dois-pontos garantem que
                              // nenhum cargo digitado colide com ele
 
-// `ctx`: { locais, cargos, recarregar } — ver servidores.view.js § ctxAtual().
+// `ctx`: { locais, cargos, recarregar } - ver servidores.view.js § ctxAtual().
 export function formVinculo(s, vinculo, ctx, { voltar = null } = {}) {
   const novo = !vinculo;
   const cargoAtual = rotulaCargo(vinculo?.papel || '');

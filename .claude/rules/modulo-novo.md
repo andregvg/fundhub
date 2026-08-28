@@ -5,13 +5,13 @@ Cinco passos, sempre os mesmos. Antes de começar, confirme que é mesmo um mód
 - **Tem rota e tela própria?** → módulo completo (com manifesto).
 - **É uma tela que só lê dados de outros?** → módulo agregador (com manifesto, sem model).
 - **É um domínio novo consumido por telas existentes?** → módulo de domínio sem tela
-  (só `<x>.model.js`, sem manifesto — como `telefones` e `locais`).
+  (só `<x>.model.js`, sem manifesto - como `telefones` e `locais`).
 - **É mais uma aba de um módulo existente?** → **não é módulo.** Vire uma aba em `views/`.
   A navegação já é longa; nem todo assunto merece rota.
 
 ## 1. Migration
 
-`supabase/migrations/<NNN>_<x>.sql` — conferir qual é o próximo número livre na pasta.
+`supabase/migrations/<NNN>_<x>.sql` - conferir qual é o próximo número livre na pasta.
 
 ```sql
 create table if not exists <tabela> ( ... );
@@ -24,11 +24,11 @@ grant select, insert, update, delete on <tabela> to authenticated;
 ```
 
 Mais: religar o trigger de auditoria e acrescentar a tabela ao array da `019`. A migration precisa
-ser **idempotente** (`if not exists`, `on conflict do nothing`) — ela pode ser rodada duas vezes.
+ser **idempotente** (`if not exists`, `on conflict do nothing`) - ela pode ser rodada duas vezes.
 
 Rodar no SQL Editor do painel. Checklist completo em `.claude/rules/seguranca.md`.
 
-## 2. Model — `src/modules/<x>/<x>.model.js`
+## 2. Model - `src/modules/<x>/<x>.model.js`
 
 Só banco e regras de domínio. **Nunca DOM.** Toda função começa com o guarda de dev-local:
 
@@ -54,11 +54,11 @@ export async function criar<X>(payload) {
 ```
 
 Degradar se a migration ainda não rodou (`42P01` tabela ausente, `42703` coluna ausente).
-Este arquivo é a **API pública** do módulo — é o único que outros módulos podem importar.
+Este arquivo é a **API pública** do módulo - é o único que outros módulos podem importar.
 
-## 3. View — `src/modules/<x>/<x>.view.js`
+## 3. View - `src/modules/<x>/<x>.view.js`
 
-Exporta `render(app, ctx)`. **Nunca chama `sb()`.** Usa `ctx.perfil`, que já vem do roteador —
+Exporta `render(app, ctx)`. **Nunca chama `sb()`.** Usa `ctx.perfil`, que já vem do roteador -
 não chamar `getPerfilAtual()` de novo.
 
 ```js
@@ -82,20 +82,20 @@ export async function render(app, ctx = {}) {
 Todo valor do banco passa por `esc()`. Reusar o vocabulário de `components.css` antes de escrever
 CSS novo (ver `.claude/rules/ui.md`).
 
-## 4. Manifesto — `src/modules/<x>/module.js`
+## 4. Manifesto - `src/modules/<x>/module.js`
 
 ```js
 export default {
   id: '<x>',
   ico: '📌',
-  cor: '<token>',              // opcional — destaque do módulo
+  cor: '<token>',              // opcional - destaque do módulo
   nome: 'Nome completo',
   desc: 'Uma linha sobre o que o módulo faz.',
-  navNome: 'Nome curto',       // opcional — se o nome completo não couber no menu
+  navNome: 'Nome curto',       // opcional - se o nome completo não couber no menu
   rota: '#/<x>',
   nav: true,
   grupo: 'modulos',            // principal | modulos | conta | admin | ajuda
-  perm: '<x>',                 // opcional — default é o próprio id
+  perm: '<x>',                 // opcional - default é o próprio id
   ativo: true,
   load: () => import('./<x>.view.js'),
 };
@@ -106,7 +106,7 @@ Registrar em `src/core/registry.js`: um `import` no topo e o nome no array `MODU
 sozinhos.
 
 Se o módulo é um **serviço de fundo** (sem tela), use `servico: true` em vez de `rota`/`nav`, e
-exporte `iniciar()` / `parar()` — ver `notificacoes`.
+exporte `iniciar()` / `parar()` - ver `notificacoes`.
 
 ## 5. Permissões e CSS
 
@@ -123,5 +123,5 @@ python .claude/scripts/verificar_arquitetura.py
 E ainda: testar em dev-local **inclusive em tela estreita**, conferir o console, rodar
 `git diff --cached` procurando dado real, commitar na `dev`.
 
-Ao fechar a entrega: subir `CONFIG.versao` e registrar em `CHANGELOG.md` — escrito para quem **usa**
+Ao fechar a entrega: subir `CONFIG.versao` e registrar em `CHANGELOG.md` - escrito para quem **usa**
 o sistema, sem jargão e sem nome de arquivo.

@@ -1,5 +1,5 @@
 // ============================================================
-// FundHub — modules/servidores/servidores.model.js
+// FundHub - modules/servidores/servidores.model.js
 // A PESSOA. Existe independentemente de onde trabalha: nome,
 // documentos, nascimento, contato, ingresso na rede.
 //
@@ -13,7 +13,7 @@
 // ============================================================
 import { sb, hasSupabase } from '../../core/supabase.js';
 import { slug } from '../../shared/dom.js';
-// Telefones vêm da tabela dedicada (fonte única) — model → model.
+// Telefones vêm da tabela dedicada (fonte única) - model → model.
 import { getTelefonesMapas } from '../telefones/telefones.model.js';
 
 const SEL = `*, vinculos:vinculo(
@@ -32,7 +32,7 @@ export async function getServidores() {
     getTelefonesMapas(),
   ]);
   // Migration 023 ainda não rodou: sem a coluna `tipo`, o embed de
-  // unidade_escolar quebra a query inteira — refaz sem ela. Quem
+  // unidade_escolar quebra a query inteira - refaz sem ela. Quem
   // consome trata `tipo` ausente como "não é sede" (mesma idiom de
   // `=== 'sede'` usada em todo o app), então a degradação é segura.
   if (error?.code === '42703') {
@@ -55,7 +55,7 @@ export async function getServidores() {
 // Aberto = SEM data de fim. Uma regra, um lugar.
 export const vinculosAbertos = (s) => (s?.vinculos || []).filter(v => !v.fim);
 
-// A lotação é o nome do local do vínculo aberto — escola ou SME.
+// A lotação é o nome do local do vínculo aberto - escola ou SME.
 // Mais de um vínculo aberto acontece (alguém responde por duas
 // unidades) e esconder isso seria mentir.
 export function lotacaoDe(s) {
@@ -130,7 +130,7 @@ export async function atualizarServidor(id, payload) {
 }
 
 // Apaga o servidor. Os vínculos e horários caem junto (on delete cascade)
-// — assim como os afastamentos dele. É por isso que a tela avisa.
+// - assim como os afastamentos dele. É por isso que a tela avisa.
 export async function excluirServidor(id) {
   if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
   const { error } = await sb().from('servidor').delete().eq('id', id);

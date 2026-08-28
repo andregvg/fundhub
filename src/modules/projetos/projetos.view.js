@@ -1,5 +1,5 @@
 // ============================================================
-// FundHub — modules/projetos/projetos.view.js
+// FundHub - modules/projetos/projetos.view.js
 // Projetos e pesquisas: lista + CRUD (admin) + manifestação de
 // interesse das escolas, na própria gaveta do projeto.
 // ============================================================
@@ -169,7 +169,7 @@ async function pintarInteresses(p) {
   if (!itens.length) { box.innerHTML = `<p class="count">Nenhuma escola registrou interesse ainda.</p>`; return; }
   box.innerHTML = itens.map(i => `
     <div class="person">
-      <div class="pname">${esc(i.unidade?.apelido || i.unidade?.nome || '—')}</div>
+      <div class="pname">${esc(i.unidade?.apelido || i.unidade?.nome || 'sem escola')}</div>
       <div class="pmeta">
         ${i.observacao ? `<span>${esc(i.observacao)}</span>` : ''}
         ${perfil?.isAdmin ? `<div class="vinc-acoes"><button class="mini-btn no" data-del-int="${i.id}" aria-label="Remover interesse">${ico('excluir')}</button></div>` : ''}
@@ -189,7 +189,7 @@ async function pintarInteresses(p) {
 }
 
 function formInteresse(p) {
-  // O par (projeto, escola) é unique no banco — não precisa filtrar aqui.
+  // O par (projeto, escola) é unique no banco - não precisa filtrar aqui.
   //
   // O recorte por segmento entra no SELETOR, não na lista de projetos:
   // um projeto sem interesse registrado ainda não tem escola, e filtrá-lo

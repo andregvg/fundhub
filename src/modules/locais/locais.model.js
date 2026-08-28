@@ -1,7 +1,7 @@
 // ============================================================
-// FundHub — modules/locais/locais.model.js
+// FundHub - modules/locais/locais.model.js
 // Catálogo de locais (destinos das atividades e solicitações do SATE).
-// Fonte única do endereço/coordenadas de cada destino — a base do
+// Fonte única do endereço/coordenadas de cada destino - a base do
 // futuro cálculo de rota/tempo. É o "M": só banco, nunca DOM.
 //
 // Inspirado no Locais.js do agendamentos-fil: um destino é apontado
@@ -21,7 +21,7 @@ export async function getLocais({ somenteAtivos = false } = {}) {
   if (!hasSupabase()) { _cache = []; return _cache; }
   const { data, error } = await sb().from('local').select(COLS).order('nome');
   if (error) {
-    if (error.code === '42P01') { console.warn('Tabela local ausente — rode a migration 017.'); return []; }
+    if (error.code === '42P01') { console.warn('Tabela local ausente - rode a migration 017.'); return []; }
     throw error;
   }
   _cache = data || [];
@@ -64,7 +64,7 @@ export async function excluirLocal(id) {
   const { error } = await sb().from('local').delete().eq('id', id);
   // Local em uso (FK) → Postgres barra com 23503; devolve mensagem amigável.
   if (error) {
-    if (error.code === '23503') throw new Error('Local em uso por atividades ou solicitações — desative-o em vez de excluir.');
+    if (error.code === '23503') throw new Error('Local em uso por atividades ou solicitações - desative-o em vez de excluir.');
     throw error;
   }
   _cache = null;

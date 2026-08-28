@@ -1,7 +1,7 @@
 """Servidor estático de desenvolvimento do FundHub.
 
 O `python -m http.server` não manda cabeçalho de cache, e o browser
-passa a servir os módulos ES do cache heurístico — você edita um
+passa a servir os módulos ES do cache heurístico - você edita um
 arquivo, recarrega e continua vendo a versão antiga. Este servidor é
 idêntico, só que com `Cache-Control: no-store`.
 

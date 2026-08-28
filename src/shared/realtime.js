@@ -1,5 +1,5 @@
 // ============================================================
-// FundHub — shared/realtime.js
+// FundHub - shared/realtime.js
 // Assinatura de mudanças de uma tabela via Supabase Realtime. O RLS
 // continua valendo: cada usuário só recebe eventos das linhas que já
 // poderia ler. A tabela precisa estar na publicação `supabase_realtime`

@@ -1,16 +1,16 @@
 // ============================================================
-// FundHub — shell/chrome.js  (moldura do app: topo, menu, rodapé)
+// FundHub - shell/chrome.js  (moldura do app: topo, menu, rodapé)
 // A navegação mora num MENU LATERAL à esquerda, montado a partir do
 // registro de módulos e agrupado por seção (Módulos, Minha conta,
 // Administração, Documentação). Os links do topo saíram: com o
 // número de módulos que o hub tem hoje, a barra virava um amontoado.
 //
 // O estado aberto/fechado é LEMBRADO entre sessões (localStorage).
-// No celular o menu é uma gaveta sobreposta e sempre começa fechado —
+// No celular o menu é uma gaveta sobreposta e sempre começa fechado -
 // lembrar "aberto" numa tela de 375px seria uma armadilha.
 //
 // O canto superior direito tem só duas coisas: o sino (inserido pelo
-// serviço de notificações) e o MENU DE USUÁRIO — um dropdown que reúne
+// serviço de notificações) e o MENU DE USUÁRIO - um dropdown que reúne
 // e-mail, papel, último acesso, origem dos dados e o botão Sair.
 // ============================================================
 import { navPorGrupo, caminhoDaRota } from '../core/registry.js';
@@ -65,7 +65,7 @@ export function montarNav() {
     if (e.key === 'Escape' && !DESKTOP()) fecharMenu();
   });
 
-  // Restaura a última escolha — mas só no desktop (ver cabeçalho).
+  // Restaura a última escolha - mas só no desktop (ver cabeçalho).
   const lembrado = localStorage.getItem(CHAVE_MENU);
   if (DESKTOP() && lembrado !== 'false') abrirMenu({ lembrar: false });
   else fecharMenu({ lembrar: false });

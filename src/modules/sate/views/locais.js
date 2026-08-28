@@ -1,5 +1,5 @@
 // ============================================================
-// FundHub — sate/views/locais.js  (aba Locais — admin)
+// FundHub - sate/views/locais.js  (aba Locais - admin)
 // Catálogo de destinos das atividades/solicitações. Fonte única do
 // endereço + ponto de desembarque + coordenadas de cada local.
 // Todos veem; admin edita. Usa modules/locais/locais.model.js.
@@ -20,7 +20,7 @@ export function render(contexto) {
 
   const barra = perfil?.isAdmin ? `
     <div class="toolbar">
-      <span class="count">Destinos das atividades e solicitações — geocode uma vez, reutilize.</span>
+      <span class="count">Destinos das atividades e solicitações - geocode uma vez, reutilize.</span>
       <button id="novo-local" class="btn-primary">+ Novo local</button>
     </div>` : '';
 

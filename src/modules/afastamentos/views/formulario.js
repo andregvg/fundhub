@@ -1,8 +1,8 @@
 // ============================================================
-// FundHub — afastamentos/views/formulario.js  (criar/editar)
+// FundHub - afastamentos/views/formulario.js  (criar/editar)
 // Gaveta de criação e edição. Antes de salvar, integra com o
 // Calendário: avisa (não bloqueia) se o período cai em dia marcado
-// "não conceder afastamentos" — o admin decide se registra mesmo assim.
+// "não conceder afastamentos" - o admin decide se registra mesmo assim.
 // ============================================================
 import { TIPOS_AFASTAMENTO, diasAfastamento, criarAfastamento, atualizarAfastamento } from '../afastamentos.model.js';
 import { getDiasBloqueiamAfastamento } from '../../calendario/calendario.model.js';
@@ -13,7 +13,7 @@ import { confirmar } from '../../../shared/ui/confirmar.js';
 import { toast } from '../../../shared/ui/toast.js';
 import { reportarErro } from '../../../shared/ui/feedback.js';
 
-// `ctx`: { servidores, unidades, carregar } — ver afastamentos.view.js § ctxAtual().
+// `ctx`: { servidores, unidades, carregar } - ver afastamentos.view.js § ctxAtual().
 export function abrirForm(a, ctx) {
   const novo = !a;
   const optsServ = ctx.servidores.map(s =>
@@ -34,7 +34,7 @@ export function abrirForm(a, ctx) {
           <label>Fim (em aberto se vazio) <input id="f-fim" type="date" value="${esc(a?.fim || '')}" /></label>
         </div>
         <p class="form-hint" id="f-dias"></p>
-        <label>Unidade (opcional) <select id="f-uni"><option value="">—</option>${optsUni}</select></label>
+        <label>Unidade (opcional) <select id="f-uni"><option value="">Nenhuma</option>${optsUni}</select></label>
         <label>Processo (opcional) <input id="f-proc" value="${esc(a?.processo || '')}" placeholder="Nº do processo" /></label>
         <label>Motivo / observação <input id="f-motivo" value="${esc(a?.motivo || '')}" /></label>
         <div class="form-foot">

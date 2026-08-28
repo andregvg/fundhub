@@ -1,5 +1,5 @@
 // ============================================================
-// FundHub — modules/meus-dados/meus-dados.view.js
+// FundHub - modules/meus-dados/meus-dados.view.js
 // A tela em que a pessoa cuida do próprio cadastro.
 //
 // O que ela PODE editar: nome de exibição e, se o perfil estiver
@@ -7,7 +7,7 @@
 // (apelido, e-mail alternativo, telefones).
 //
 // O que ela NÃO pode: papel, segmentos, permissões e o vínculo com o
-// servidor. Isso é decisão de administrador — e não depende de a tela
+// servidor. Isso é decisão de administrador - e não depende de a tela
 // esconder: a policy perfil_upd deixa a linha ser atualizada, mas o
 // trigger fn_perfil_protege_privilegio devolve esses campos ao valor
 // antigo se quem edita não é admin. Se este arquivo tentasse mandar
@@ -24,7 +24,7 @@ import { recarregarPerfil } from '../../core/perfil.js';
 import { mapaAtual, rotulaNivel, OCULTO } from '../../core/permissoes.js';
 import { MODULOS, chavePerm } from '../../core/registry.js';
 import { rotuloSelecao } from '../../core/segmentos.js';
-import { esc } from '../../shared/dom.js';
+import { esc, vazio } from '../../shared/dom.js';
 import { fmtData, fmtDataHora } from '../../shared/format.js';
 import { erroBox, emptyState, reportarErro } from '../../shared/ui/feedback.js';
 import { phonesEditorHtml, montarPhonesEditor, lerPhonesEditor } from '../../shared/ui/phones.js';
@@ -65,7 +65,7 @@ export async function render(app, ctx = {}) {
         <form id="md-conta" class="esc-form">
           <label>E-mail institucional
             <input value="${esc(perfil.email)}" readonly />
-            <small class="form-hint">É a sua identidade no hub — não pode ser alterado.</small></label>
+            <small class="form-hint">É a sua identidade no hub - não pode ser alterado.</small></label>
           <label>Nome de exibição
             <input id="md-nome" value="${esc(perfil.nome || '')}" placeholder="Como você quer ser chamado(a)" /></label>
           <div class="form-foot">
@@ -113,7 +113,7 @@ function blocoAcesso() {
     <div class="field"><div class="lbl">Segmentos de atuação</div>
       <div class="val">${esc(rotuloSelecao(perfil.segmentos))}</div></div>
     <div class="field"><div class="lbl">Último acesso</div>
-      <div class="val">${esc(fmtDataHora(perfil.ultimo_acesso))}</div></div>
+      <div class="val">${perfil.ultimo_acesso ? esc(fmtDataHora(perfil.ultimo_acesso)) : vazio('nunca acessou')}</div></div>
     <div class="field"><div class="lbl">Módulos liberados</div>
       <div class="tags" style="margin-top:4px">${visiveis || '<span class="count">Nenhum.</span>'}</div></div>
     <p class="form-hint">Precisa de outro módulo ou de mudar o segmento?
@@ -143,11 +143,11 @@ function blocoServidor() {
           <div class="campos duas">
             <label>Nome completo <input value="${esc(s.nome || '')}" readonly /></label>
             <label>Código funcional <input value="${esc(s.codigo_funcional || '')}" readonly /></label>
-            <label>Lotação <input value="${esc(lotacaoDe(s))}" readonly /></label>
-            <label>Cargo / função <input value="${esc(cargoDe(s))}" readonly /></label>
+            <label>Lotação <input value="${esc(lotacaoDe(s) || 'sem lotação')}" readonly /></label>
+            <label>Cargo / função <input value="${esc(cargoDe(s) || 'cargo não informado')}" readonly /></label>
             <label>Ingresso na rede <input value="${esc(s.inicio_rede ? fmtData(s.inicio_rede) : '')}" readonly /></label>
           </div>
-          <small class="form-hint">Nome, documentos e lotação constam da folha —
+          <small class="form-hint">Nome, documentos e lotação constam da folha -
             correções são feitas por um administrador.</small>
         </fieldset>
 
@@ -166,7 +166,7 @@ function blocoServidor() {
         <fieldset class="form-grupo">
           <legend>Lotações vigentes</legend>
           <div class="tags">
-            ${vinculos.map(v => `<span class="tag">${esc(v.unidade?.nome || '—')} · ${esc(rotulaCargo(v.papel))}</span>`).join('')}
+            ${vinculos.map(v => `<span class="tag">${esc(v.unidade?.nome || 'sem escola')} · ${esc(rotulaCargo(v.papel))}</span>`).join('')}
           </div>
         </fieldset>` : ''}
 

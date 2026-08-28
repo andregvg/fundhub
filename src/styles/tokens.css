@@ -1,9 +1,9 @@
 /* ============================================================
-   FundHub — tokens.css
+   FundHub - tokens.css
    Cores, sombras e raios. NENHUM módulo escreve cor fixa: tudo sai
    daqui, para o tema escuro sair de graça.
 
-   Sobre os botões: o padrão é o do GitHub — discreto, compacto,
+   Sobre os botões: o padrão é o do GitHub - discreto, compacto,
    borda sutil e raio pequeno. Antes eram grandes e arredondados
    (pensados no toque); o alvo de 40px do celular continua garantido
    por @media (pointer: coarse), sem impor o tamanho ao desktop.
@@ -29,10 +29,10 @@
 
   /* Altura padrão de controle (botões, inputs) no desktop. */
   --controle: 32px;
-  /* Alvo mínimo de toque — mobile-first não é só largura. */
+  /* Alvo mínimo de toque - mobile-first não é só largura. */
   --toque: 40px;
 
-  /* Cor por tipo de afastamento (CORES_AFASTAMENTO, afastamentos.model.js) —
+  /* Cor por tipo de afastamento (CORES_AFASTAMENTO, afastamentos.model.js) -
      usada na barra lateral do item e nos chips do calendário. */
   --af-ferias: #0ea5a4;
   --af-abonada: #0ea5e9;
@@ -44,7 +44,7 @@
   --af-sme: #2563eb;
   --af-outro: #64708a;
 
-  /* Texto sobre um fundo colorido arbitrário (chip, badge) — branco
+  /* Texto sobre um fundo colorido arbitrário (chip, badge) - branco
      funciona nos dois temas porque o fundo já é a cor saturada, não a
      superfície da página. */
   --on-cor: #fff;

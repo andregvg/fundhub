@@ -1,12 +1,12 @@
 // ============================================================
-// FundHub — modules/afastamentos/afastamentos.view.js
+// FundHub - modules/afastamentos/afastamentos.view.js
 // Afastamentos de gestores/coordenadores/supervisores. Leitura para
 // autorizados; CRUD para admin. Duas visões: Lista e Calendário (grade
 // mensal com chips por dia, como o Apps Script afastamentos-gestores).
 //
 // Casca: carrega o que as duas visões compartilham (perfil, servidores,
 // unidades, filtros) e delega a pintura para views/. O formulário e a
-// sincronização também vivem em views/ — a casca só os aciona.
+// sincronização também vivem em views/ - a casca só os aciona.
 // ============================================================
 import { TIPOS_AFASTAMENTO, getAfastamentos } from './afastamentos.model.js';
 import { getServidores } from '../servidores/servidores.model.js';
@@ -90,7 +90,7 @@ export async function render(app, ctx = {}) {
 }
 
 // Estado corrente entregue às views/ (lista, calendário, formulário,
-// sincronização) — reconstruído a cada chamada, é uma leitura barata.
+// sincronização) - reconstruído a cada chamada, é uma leitura barata.
 // servidores/unidades só são carregados uma vez em render() e não mudam.
 function ctxAtual() {
   return {
@@ -101,7 +101,7 @@ function ctxAtual() {
 }
 
 // Monta a barra de filtros conforme a visão atual (lista vs calendário).
-// Só desenha o HTML — o clique é tratado por onFiltroClick (delegado uma vez).
+// Só desenha o HTML - o clique é tratado por onFiltroClick (delegado uma vez).
 function montarFiltros() {
   const box = document.getElementById('af-filtros');
   if (modo === 'calendario') {
@@ -157,7 +157,7 @@ async function moverMes(delta) {
   pintar();
 }
 
-// Dias do calendário escolar do mês visível — é o que faz a grade de
+// Dias do calendário escolar do mês visível - é o que faz a grade de
 // afastamentos mostrar o evento previsto (como no Apps Script, que junta
 // a aba `dados` ao mês). Degrada em silêncio: sem calendário, só some o
 // contexto, os chips continuam.
@@ -192,7 +192,7 @@ async function carregar() {
 function combinaBusca(a) {
   if (filtro.tipo && a.tipo !== filtro.tipo) return false;
   // Recorte por segmento, pela escola do afastamento. Quem não tem
-  // escola (servidor da sede) permanece visível — é justamente a
+  // escola (servidor da sede) permanece visível - é justamente a
   // equipe da SME, que não deve sumir por causa de um filtro de rede.
   if (seg && seg.selecionados().length && a.unidade_id
       && !seg.combina(idxUnidades[a.unidade_id])) return false;

@@ -1,11 +1,11 @@
 // ============================================================
-// FundHub — modules/escolas/escolas.view.js
+// FundHub - modules/escolas/escolas.view.js
 // Tela do módulo Escolas: busca, filtros e a lista de cards. A gaveta
-// de detalhe e os formulários (criar/editar/excluir) vivem em views/ —
+// de detalhe e os formulários (criar/editar/excluir) vivem em views/ -
 // é lá que a ficha e o CRUD de fato acontecem.
 // ============================================================
 import { getUnidades } from './escolas.model.js';
-import { esc, norm } from '../../shared/dom.js';
+import { esc, norm, vazio } from '../../shared/dom.js';
 import { emptyState, erroBox } from '../../shared/ui/feedback.js';
 import { drawerHtml, montarDrawer } from '../../shared/ui/drawer.js';
 import { criarFiltroSegmento } from '../../shared/ui/filtro-segmento.js';
@@ -92,7 +92,7 @@ export async function render(app, ctx = {}) {
   pintar();
 }
 
-// As ofertas são as que existem na base — nada fixo no código.
+// As ofertas são as que existem na base - nada fixo no código.
 function pintarOfertas() {
   const ofertas = [...new Set(ALL.map(u => u.oferta).filter(Boolean))]
     .sort((a, b) => a.localeCompare(b, 'pt'));
@@ -137,7 +137,7 @@ function cardHtml(u) {
     u.tem_eja ? `<span class="tag eja">${ico('noturno', { tam: 12 })} EJA</span>` : '',
     u.oferta ? `<span class="tag">${esc(u.oferta)}</span>` : '',
   ].join('');
-  // O card exibe o NOME da escola, em caixa alta — não o apelido. O
+  // O card exibe o NOME da escola, em caixa alta - não o apelido. O
   // apelido ("Alcina") é uma abreviação de uso interno; quem procura
   // uma escola numa lista de 144 precisa do nome como ele é oficial.
   return `<article class="card" data-id="${esc(u.id || u.numero)}" tabindex="0">
@@ -146,7 +146,7 @@ function cardHtml(u) {
       ${u.segmento ? `<span class="seg">${esc(u.segmento)}</span>` : ''}
     </div>
     ${u.apelido ? `<div class="apelido">${esc(u.apelido)}</div>` : ''}
-    <div class="addr">${esc(u.endereco || '—')}</div>
+    <div class="addr">${u.endereco ? esc(u.endereco) : vazio('não informado')}</div>
     <div class="tags">${tags}</div>
   </article>`;
 }
@@ -157,7 +157,7 @@ function porChave(key) {
 }
 
 // Recarrega a lista do banco (o model já invalidou o cache ao salvar
-// ou excluir), repinta e devolve o ctx já atualizado — quem chamou
+// ou excluir), repinta e devolve o ctx já atualizado - quem chamou
 // (ex.: depois de salvar) usa o retorno para reabrir o detalhe sem
 // trabalhar com dado velho.
 async function recarregar() {
@@ -167,7 +167,7 @@ async function recarregar() {
   return ctxAtual();
 }
 
-// Estado corrente entregue às views/ (detalhe, formulário) —
+// Estado corrente entregue às views/ (detalhe, formulário) -
 // reconstruído a cada chamada, é leitura barata.
 function ctxAtual() {
   return {

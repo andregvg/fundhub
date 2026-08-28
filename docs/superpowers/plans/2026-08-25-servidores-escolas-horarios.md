@@ -1,6 +1,6 @@
-# Servidores, Escolas e Horários — Plano de Implementação
+# Servidores, Escolas e Horários - Plano de Implementação
 
-> **Para quem executa:** SUB-SKILL OBRIGATÓRIA — use `superpowers:subagent-driven-development`
+> **Para quem executa:** SUB-SKILL OBRIGATÓRIA - use `superpowers:subagent-driven-development`
 > (recomendado) ou `superpowers:executing-plans` para executar tarefa a tarefa.
 > Os passos usam checkbox (`- [ ]`) para acompanhamento.
 
@@ -20,7 +20,7 @@
 - **Nenhum dado real** (nome, e-mail, telefone, CPF, RG, matrícula) em código, comentário, exemplo ou fixture. Exemplos são inventados: `Escola Exemplo`, `nome@exemplo.com`, `(00) 00000-0000`, `000.000.000-00`. Conferir `git diff --cached` antes de cada commit.
 - **Todo valor vindo do banco passa por `esc()`** antes de entrar em template literal, inclusive em atributo.
 - **Model nunca toca no DOM; view nunca chama `sb()`.** View recebe `ctx.perfil` do roteador e não chama `getPerfilAtual()`.
-- **Data civil** é `string` `yyyy-mm-dd`, manipulada como string. Toda formatação de data/hora fica em `src/shared/format.js` — módulo não chama `toISOString`, `toLocaleDateString`, `toLocaleString` nem `toLocaleTimeString`.
+- **Data civil** é `string` `yyyy-mm-dd`, manipulada como string. Toda formatação de data/hora fica em `src/shared/format.js` - módulo não chama `toISOString`, `toLocaleDateString`, `toLocaleString` nem `toLocaleTimeString`.
 - **Nenhuma cor literal** (`#hex`, `rgb()`, `hsl()`) em `src/modules/**`. Só `var(--token)`.
 - **Erro barra, aviso não.** Situação impossível bloqueia o salvamento; situação indesejável mas às vezes necessária deixa salvar e sinaliza.
 - **Limites de tamanho (R11):** view > 400 linhas ou model > 250 linhas → dividir por superfície de UI em `views/`. Não criar arquivo com menos de ~60 linhas.
@@ -28,9 +28,9 @@
 
 ## Como se testa neste projeto
 
-Não há framework de teste, e não vai haver — seria dependência nova. O ciclo de cada tarefa usa três ferramentas, nesta ordem:
+Não há framework de teste, e não vai haver - seria dependência nova. O ciclo de cada tarefa usa três ferramentas, nesta ordem:
 
-**1. Verificação mecânica.** `python .claude/scripts/verificar_arquitetura.py` — dez checagens das regras acima. Exit 0 obrigatório.
+**1. Verificação mecânica.** `python .claude/scripts/verificar_arquitetura.py` - dez checagens das regras acima. Exit 0 obrigatório.
 
 **2. Asserção de função pura no navegador.** O servidor de desenvolvimento serve os módulos ES direto, então dá para importar um módulo real no console e afirmar sobre ele. É teste de verdade, sem infraestrutura:
 
@@ -42,7 +42,7 @@ console.assert(f.mascaraCPF('11111111111') === '111.111.111-11', 'CPF');
 
 Use isto sempre que a tarefa produzir função sem DOM e sem banco: máscaras, idade, derivação de lotação, catálogo de cargos, validação.
 
-**3. Verificação de tela.** Com o modo dev-local ligado (abaixo), carregar a rota, conferir que o console está limpo e afirmar sobre o DOM. Sem banco, as telas mostram estado vazio — o que se verifica localmente é **estrutura, ausência de erro e responsividade**. O comportamento com dado real é verificado pelo André na URL de dev, depois da migration; cada tarefa diz o que ele precisa confirmar lá.
+**3. Verificação de tela.** Com o modo dev-local ligado (abaixo), carregar a rota, conferir que o console está limpo e afirmar sobre o DOM. Sem banco, as telas mostram estado vazio - o que se verifica localmente é **estrutura, ausência de erro e responsividade**. O comportamento com dado real é verificado pelo André na URL de dev, depois da migration; cada tarefa diz o que ele precisa confirmar lá.
 
 ### Ligar o modo dev-local
 
@@ -91,11 +91,11 @@ Toda tarefa que mexe em tela verifica em **375px, 768px e 1280px** (ferramenta `
 | `src/modules/horarios/horarios.model.js` | cobertura só para escola | modificar |
 | `src/modules/meus-dados/meus-dados.view.js` | cargo e vínculos vindos do vínculo aberto | modificar |
 
-Dois models em `servidores/` é legítimo: o módulo é dono de dois agregados (a pessoa e a designação), caso previsto por R2 — o mesmo de `sate/`.
+Dois models em `servidores/` é legítimo: o módulo é dono de dois agregados (a pessoa e a designação), caso previsto por R2 - o mesmo de `sate/`.
 
 ---
 
-### Task 1: Migration 023 — o modelo
+### Task 1: Migration 023 - o modelo
 
 **Files:**
 - Create: `supabase/migrations/023_servidores_vinculos.sql`
@@ -110,7 +110,7 @@ Criar `supabase/migrations/023_servidores_vinculos.sql`:
 
 ```sql
 -- ============================================================
--- 023 — Servidor, vínculo e a SME como local de lotação
+-- 023 - Servidor, vínculo e a SME como local de lotação
 -- Rode no SQL Editor, depois da 022.
 --
 -- O princípio: o VÍNCULO é a fonte única do "onde" e do "como" de uma
@@ -141,7 +141,7 @@ create index if not exists idx_unidade_tipo on unidade_escolar(tipo);
 
 -- numero = 0 é reservado: acha a linha sem depender do nome exibido.
 insert into unidade_escolar (numero, nome, apelido, tipo, segmento)
-values (0, 'SME — Sede', 'SME', 'sede', null)
+values (0, 'SME - Sede', 'SME', 'sede', null)
 on conflict (numero) do update
   set tipo = 'sede', segmento = null;
 
@@ -161,7 +161,7 @@ begin
 end $$;
 
 -- 3b. Cargo vira texto livre. Os três papéis fixos viram os rótulos
--- que a tela já exibia — a partir daqui o valor gravado É o rótulo.
+-- que a tela já exibia - a partir daqui o valor gravado É o rótulo.
 update vinculo set papel = 'Gestor(a)'       where papel = 'gestor';
 update vinculo set papel = 'Coordenador(a)'  where papel = 'coordenador';
 update vinculo set papel = 'Supervisor(a)'   where papel = 'supervisor';
@@ -229,14 +229,14 @@ select registrar_migration('023', 'Servidor, vinculo por periodo, cargo livre e 
 
 - [ ] **Step 2: Conferir a idempotência comando a comando**
 
-Migration que explode na segunda execução vira armadilha na hora do reparo — foi a razão de existir da 022. Ler o arquivo do começo ao fim e confirmar, para **cada** comando, o que o protege:
+Migration que explode na segunda execução vira armadilha na hora do reparo - foi a razão de existir da 022. Ler o arquivo do começo ao fim e confirmar, para **cada** comando, o que o protege:
 
 | Comando | O que o protege numa 2ª execução |
 |---|---|
 | `alter table … add column if not exists` | a própria cláusula |
 | `add constraint unidade_tipo_valido` | o `if not exists` em `pg_constraint` |
 | `insert into unidade_escolar … on conflict (numero)` | a cláusula `do update` |
-| 3a `update vinculo … where ativo = false` | o `do $$` que testa `information_schema.columns` — sem ele, 3e já dropou `ativo` e o arquivo morre com `42703` |
+| 3a `update vinculo … where ativo = false` | o `do $$` que testa `information_schema.columns` - sem ele, 3e já dropou `ativo` e o arquivo morre com `42703` |
 | 3b `update vinculo set papel = …` | o `where papel = 'gestor'` não casa mais nada |
 | 3c `insert into vinculo … select … from servidor` | o `do $$` sobre `servidor.lotacao` **e** o `not exists` de vínculo aberto |
 | 3d `drop constraint if exists` + `create unique index if not exists` | as próprias cláusulas |
@@ -253,7 +253,7 @@ git diff --cached -- supabase/migrations/023_servidores_vinculos.sql
 python .claude/scripts/verificar_arquitetura.py --so-pii
 ```
 
-Esperado: nenhum achado. O único texto literal de pessoa no arquivo é `'SME — Sede'`, que é nome de órgão, não de gente.
+Esperado: nenhum achado. O único texto literal de pessoa no arquivo é `'SME - Sede'`, que é nome de órgão, não de gente.
 
 - [ ] **Step 4: Commit**
 
@@ -264,7 +264,7 @@ git commit -m "feat(023): vinculo por periodo, cargo livre e SME como local de l
 
 - [ ] **Step 5: Pedir a execução ao André**
 
-A migration é aplicada à mão no SQL Editor do painel — não há ferramenta automática, por opção. Avisar que ela precisa rodar antes de a Task 6 ser verificada com dado real, e que até lá o front degrada (Task 6 trata `42703`).
+A migration é aplicada à mão no SQL Editor do painel - não há ferramenta automática, por opção. Avisar que ela precisa rodar antes de a Task 6 ser verificada com dado real, e que até lá o front degrada (Task 6 trata `42703`).
 
 Confirmação no banco, depois de rodar:
 
@@ -390,7 +390,7 @@ git commit -m "feat(core): rota aceita query e a view recebe ctx.params"
 
 **Interfaces:**
 - Consumes: nada.
-- Produces: `abrirDrawer(html, { voltar } = {})` — quando `voltar` é uma função, o cabeçalho ganha um `←` e Esc/× chamam `voltar()` em vez de fechar. `fecharDrawer()` continua com a mesma assinatura. `drawerHtml()`, `montarDrawer()` e `drawerHead(titulo, sub)` inalterados.
+- Produces: `abrirDrawer(html, { voltar } = {})` - quando `voltar` é uma função, o cabeçalho ganha um `←` e Esc/× chamam `voltar()` em vez de fechar. `fecharDrawer()` continua com a mesma assinatura. `drawerHtml()`, `montarDrawer()` e `drawerHead(titulo, sub)` inalterados.
 
 - [ ] **Step 1: Reescrever `abrirDrawer` e `fecharDrawer`**
 
@@ -444,7 +444,7 @@ export function abrirDrawer(html, { voltar = null } = {}) {
 }
 
 export function fecharDrawer() {
-  // Se há uma gaveta embaixo, "fechar" é voltar para ela — e é ela que
+  // Se há uma gaveta embaixo, "fechar" é voltar para ela - e é ela que
   // chama abrirDrawer de novo, já com o dado atualizado.
   if (voltarPara) {
     const volta = voltarPara;
@@ -578,7 +578,7 @@ export function fmtIdade(iso) {
 // ── Máscaras de documento ────────────────────────────────────
 // Formatação progressiva: mascaram o que já foi digitado e não
 // reclamam do que falta. Quem valida "de verdade" é noPadrao*(),
-// e o resultado dela é AVISO, não erro (R15) — RG de outro estado
+// e o resultado dela é AVISO, não erro (R15) - RG de outro estado
 // tem outro formato e a SME precisa cadastrar essa pessoa.
 
 // '11111111111' → '111.111.111-11'
@@ -670,7 +670,7 @@ git commit -m "feat(format): idade e mascaras de CPF e RG"
 
 **Interfaces:**
 - Consumes: nada.
-- Produces: `.campos.auto`, `.col-full`, `.filtros-linha`, `.filtro-campo`, `.switch` (+ `.switch-trilho`), `.chip-filtro` — todas em `components.css`, disponíveis para qualquer módulo.
+- Produces: `.campos.auto`, `.col-full`, `.filtros-linha`, `.filtro-campo`, `.switch` (+ `.switch-trilho`), `.chip-filtro` - todas em `components.css`, disponíveis para qualquer módulo.
 
 - [ ] **Step 1: Grade automática de campos**
 
@@ -679,7 +679,7 @@ Em `src/styles/components.css`, logo abaixo de `.form-grupo .campos { … }`:
 ```css
 /* Grade que reflui sozinha. Resolve os dois requisitos de uma vez: os
    campos se reorganizam conforme a largura E um campo sozinho na linha
-   se estende até o fim do container — que é o que `.campos.duas`
+   se estende até o fim do container - que é o que `.campos.duas`
    (grade fixa, só acima de 1280px) não faz. */
 .form-grupo .campos.auto { display: grid; grid-template-columns: 1fr; gap: 13px; }
 .form-grupo .campos.auto > .col-full { grid-column: 1 / -1; }
@@ -784,7 +784,7 @@ Ainda em `components.css`, na sequência:
 
 ```css
 /* Toggle: markup sem comportamento, então é classe CSS e não
-   componente JS (R12). O estado real é o do checkbox — teclado,
+   componente JS (R12). O estado real é o do checkbox - teclado,
    rótulo e leitor de tela funcionam de graça. */
 .switch {
   display: inline-flex;
@@ -884,7 +884,7 @@ git commit -m "feat(ui): grade automatica de campos, barra de filtros e toggle s
 
 ---
 
-### Task 6: Models — locais, pessoa e vínculo
+### Task 6: Models - locais, pessoa e vínculo
 
 **Files:**
 - Modify: `src/modules/escolas/escolas.model.js`
@@ -902,7 +902,7 @@ git commit -m "feat(ui): grade automatica de campos, barra de filtros e toggle s
 
 Em `src/modules/escolas/escolas.model.js`:
 
-1. Remover o import de `rotulaPapel` — a `vw_escola_pessoas` agora devolve o cargo já legível (migration 023 § 3b/4). Na montagem de `byU`, trocar `papel: rotulaPapel(r.papel)` por `papel: r.papel`.
+1. Remover o import de `rotulaPapel` - a `vw_escola_pessoas` agora devolve o cargo já legível (migration 023 § 3b/4). Na montagem de `byU`, trocar `papel: rotulaPapel(r.papel)` por `papel: r.papel`.
 2. No `select` de unidades, filtrar escolas: `cli.from('unidade_escolar').select('*').eq('tipo', 'escola').order('nome')`.
 3. Acrescentar, depois de `getUnidades`:
 
@@ -940,7 +940,7 @@ Substituir o arquivo inteiro por:
 
 ```js
 // ============================================================
-// FundHub — modules/servidores/servidores.model.js
+// FundHub - modules/servidores/servidores.model.js
 // A PESSOA. Existe independentemente de onde trabalha: nome,
 // documentos, nascimento, contato, ingresso na rede.
 //
@@ -954,7 +954,7 @@ Substituir o arquivo inteiro por:
 // ============================================================
 import { sb, hasSupabase } from '../../core/supabase.js';
 import { slug } from '../../shared/dom.js';
-// Telefones vêm da tabela dedicada (fonte única) — model → model.
+// Telefones vêm da tabela dedicada (fonte única) - model → model.
 import { getTelefonesMapas } from '../telefones/telefones.model.js';
 
 const SEL = `*, vinculos:vinculo(
@@ -983,7 +983,7 @@ export async function getServidores() {
 // Aberto = SEM data de fim. Uma regra, um lugar.
 export const vinculosAbertos = (s) => (s?.vinculos || []).filter(v => !v.fim);
 
-// A lotação é o nome do local do vínculo aberto — escola ou SME.
+// A lotação é o nome do local do vínculo aberto - escola ou SME.
 // Mais de um vínculo aberto acontece (alguém responde por duas
 // unidades) e esconder isso seria mentir.
 export function lotacaoDe(s) {
@@ -1058,7 +1058,7 @@ export async function atualizarServidor(id, payload) {
 }
 
 // Apaga o servidor. Os vínculos e horários caem junto (on delete cascade)
-// — assim como os afastamentos dele. É por isso que a tela avisa.
+// - assim como os afastamentos dele. É por isso que a tela avisa.
 export async function excluirServidor(id) {
   if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
   const { error } = await sb().from('servidor').delete().eq('id', id);
@@ -1071,7 +1071,7 @@ export async function excluirServidor(id) {
 
 ```js
 // ============================================================
-// FundHub — modules/servidores/vinculos.model.js
+// FundHub - modules/servidores/vinculos.model.js
 // O VÍNCULO (designação): pessoa × local × cargo × período.
 // É a fonte única do "onde" e do "como" de um servidor.
 //
@@ -1079,7 +1079,7 @@ export async function excluirServidor(id) {
 // verdade para o mesmo fato produziam o estado impossível
 // "inativo, sem data de encerramento" (corrigido na migration 023).
 //
-// O cargo é TEXTO LIVRE e o catálogo é derivado dos valores em uso —
+// O cargo é TEXTO LIVRE e o catálogo é derivado dos valores em uso -
 // ele não tem vida própria, ele É o conjunto dos cargos em uso. Cargo
 // novo entra ao ser digitado; cargo cujo último vínculo acabou some.
 // ============================================================
@@ -1118,7 +1118,7 @@ export async function getCargos() {
 }
 
 // Reaproveita a grafia já em uso quando o cargo digitado só difere em
-// maiúscula — senão o catálogo acumula "Coordenadora" e "coordenadora".
+// maiúscula - senão o catálogo acumula "Coordenadora" e "coordenadora".
 export async function cargoCanonico(bruto) {
   const c = normalizaCargo(bruto);
   if (!c) return '';
@@ -1176,7 +1176,7 @@ export async function excluirVinculo(id) {
 }
 ```
 
-> `criarVinculo` usa `new Date().getFullYear()` — é leitura do ano corrente, não formatação nem serialização de data, e por isso não viola R8. O script de verificação só reclama de `toISOString`/`toLocale*`.
+> `criarVinculo` usa `new Date().getFullYear()` - é leitura do ano corrente, não formatação nem serialização de data, e por isso não viola R8. O script de verificação só reclama de `toISOString`/`toLocale*`.
 
 - [ ] **Step 4: Consertar quem importava o que saiu**
 
@@ -1191,7 +1191,7 @@ Esperado: `servidores/servidores.view.js`, `servidores/views/{lista,detalhe,form
 | Sumiu | Passa a ser |
 |---|---|
 | `v.ativo` | `!v.fim` |
-| `v.ano === ANO_LETIVO` | (nada — o critério agora é só `!v.fim`) |
+| `v.ano === ANO_LETIVO` | (nada - o critério agora é só `!v.fim`) |
 | `rotulaPapel(v.papel)` | `rotulaCargo(v.papel)` |
 | `s.cargo` | `cargoDe(s)` |
 | `rotulaLotacao(s.lotacao)` | `lotacaoDe(s)` |
@@ -1205,7 +1205,7 @@ const m = await import('http://localhost:8123/src/modules/servidores/servidores.
 const s = { vinculos: [
   { papel: 'Gestor(a)',      fim: null,         unidade: { nome: 'Escola Exemplo', apelido: 'Exemplo' } },
   { papel: 'Coordenador(a)', fim: '2025-12-31', unidade: { nome: 'Outra Escola' } },
-  { papel: 'Gestor(a)',      fim: null,         unidade: { nome: 'SME — Sede', apelido: 'SME' } },
+  { papel: 'Gestor(a)',      fim: null,         unidade: { nome: 'SME - Sede', apelido: 'SME' } },
 ]};
 console.assert(m.vinculosAbertos(s).length === 2, 'só os sem fim');
 console.assert(m.lotacaoDe(s) === 'Exemplo · SME', 'lotação = locais abertos');
@@ -1239,7 +1239,7 @@ Depois da migration: a lista de Escolas continua com 144 (sem a SME); o cargo qu
 
 ---
 
-### Task 7: Servidores — filtros, ficha, formulário e vínculo
+### Task 7: Servidores - filtros, ficha, formulário e vínculo
 
 **Files:**
 - Modify: `src/modules/servidores/servidores.view.js`
@@ -1252,7 +1252,7 @@ Depois da migration: a lista de Escolas continua com 144 (sem a SME); o cargo qu
 - Consumes: Tasks 2–6.
 - Produces: `render(app, ctx)` lendo `ctx.params.get('unidade')`; `views/vinculo.js` exporta `formVinculo(servidor, vinculo, ctx)` e `removerVinculo(servidor, vinculoId, ctx)`; o `ctx` interno (`ctxAtual()`) ganha `cargos`, `locais`, `filtroUnidade` e `abrirFormVinculo(vinculo)`.
 
-- [ ] **Step 1: Casca — carregar locais e cargos, e a barra de filtros nova**
+- [ ] **Step 1: Casca - carregar locais e cargos, e a barra de filtros nova**
 
 Em `servidores.view.js`:
 
@@ -1317,7 +1317,7 @@ function pintarChipUnidade() {
 }
 ```
 
-8. Remover o antigo `document.querySelectorAll('#sv-filtros .chip')…` de `pintar()` — os chips de papel/lotação não existem mais.
+8. Remover o antigo `document.querySelectorAll('#sv-filtros .chip')…` de `pintar()` - os chips de papel/lotação não existem mais.
 9. `ctxAtual()` passa a devolver também `cargos`, `locais`, `filtroUnidade`, e `abrirFormVinculo: (v) => formVinculo(sAtual, v, ctxAtual())` é montado dentro de `detalhe.js` (não aqui). Acrescentar só `cargos`, `locais` e `filtroUnidade` ao objeto.
 10. Em `recarregar()`, atualizar também o catálogo: `[lista, cargos] = await Promise.all([getServidores(), getCargos().catch(() => [])]); pintarOpcoes();`
 
@@ -1343,7 +1343,7 @@ function combina(s, ctx) {
   if (filtro.semVinculo && abertos.length) return false;
 
   // Recorte por segmento: entra quem atua em ALGUMA escola do
-  // segmento. A sede não tem segmento — e por isso continua visível,
+  // segmento. A sede não tem segmento - e por isso continua visível,
   // senão o filtro esconderia justamente a equipe da SME.
   if (seg && seg.selecionados().length) {
     const soSede = abertos.length && abertos.every(v => v.unidade?.tipo === 'sede');
@@ -1372,11 +1372,11 @@ function card(s) {
 
   const lugares = abertos.length
     ? abertos.map(v => `<span class="tag">${v.unidade?.tipo === 'sede' ? '🏛 ' : ''}${
-        esc(v.unidade?.apelido || v.unidade?.nome || '—')}</span>`).join('')
+        esc(v.unidade?.apelido || v.unidade?.nome || '-')}</span>`).join('')
     : `<span class="tag eja">⚠️ Sem vínculo</span>`;
 
   // Nome completo em caixa alta (como nos sistemas oficiais); o
-  // apelido logo abaixo, em caixa normal — não precisa de destaque.
+  // apelido logo abaixo, em caixa normal - não precisa de destaque.
   return `<article class="card" data-id="${esc(s.id)}" tabindex="0">
     <div class="card-top">
       <h3 class="nome-oficial">${esc(s.nome)}</h3>
@@ -1399,8 +1399,8 @@ export function formServidor(s, ctx, { voltar = null } = {}) {
   const cargo = s ? cargoDe(s) : '';
   const lotacao = s ? lotacaoDe(s) : '';
 
-  // Cargo e lotação continuam à vista — são o que identifica a pessoa
-  // — mas não são editáveis aqui: eles vêm do vínculo, que é o único
+  // Cargo e lotação continuam à vista - são o que identifica a pessoa
+  // - mas não são editáveis aqui: eles vêm do vínculo, que é o único
   // dono desse dado. O ✎ abre a gaveta do vínculo POR CIMA desta.
   const derivado = (rotulo, valor, acao) => `
     <label>${rotulo}
@@ -1512,7 +1512,7 @@ Em `salvarServidor`, o payload perde `cargo` e `lotacao` e ganha `nascimento`; o
   ].filter(Boolean);
   if (fora.length) {
     toast({ titulo: `${fora.join(' e ')} fora do padrão`,
-            texto: 'Salvo assim mesmo — confira se está correto.', tipo: 'ok' });
+            texto: 'Salvo assim mesmo - confira se está correto.', tipo: 'ok' });
   }
 ```
 
@@ -1578,7 +1578,7 @@ function listaVinculos(s, podeEditar) {
       </div>` : '';
     return `<div class="person ${encerrado ? 'inativo' : ''}">
       <div class="role">${esc(rotulaCargo(v.papel))}${encerrado ? ' · encerrado' : ''}</div>
-      <div class="pname">${v.unidade?.tipo === 'sede' ? '🏛 ' : ''}${esc(v.unidade?.nome || '—')}</div>
+      <div class="pname">${v.unidade?.tipo === 'sede' ? '🏛 ' : ''}${esc(v.unidade?.nome || '-')}</div>
       <div class="pmeta">
         ${periodo ? `<span>${esc(periodo)}</span>` : ''}
         ${acoes}
@@ -1604,17 +1604,17 @@ E os listeners, ao fim de `detalhe()`:
     b.addEventListener('click', () => removerVinculo(s, b.dataset.delVinc, ctx)));
 ```
 
-O botão `+ Vincular a uma escola` vira `+ Novo vínculo` (agora também serve para a SME). As funções `encerrar()` e `removerVinculo()` saem daqui — vão para `views/vinculo.js`, e com elas o último `prompt()` do repositório.
+O botão `+ Vincular a uma escola` vira `+ Novo vínculo` (agora também serve para a SME). As funções `encerrar()` e `removerVinculo()` saem daqui - vão para `views/vinculo.js`, e com elas o último `prompt()` do repositório.
 
 - [ ] **Step 5: Criar `views/vinculo.js`**
 
 ```js
 // ============================================================
-// FundHub — servidores/views/vinculo.js
+// FundHub - servidores/views/vinculo.js
 // O formulário da DESIGNAÇÃO: local, cargo, início e fim.
 //
 // Sem ano letivo: o vínculo é um período, e "está aberto" é não ter
-// data de fim. Encerrar é preencher o Término — o mesmo formulário,
+// data de fim. Encerrar é preencher o Término - o mesmo formulário,
 // e não mais um prompt() do navegador (R16).
 //
 // Pode ser aberto sobre a ficha do servidor: quem chama passa
@@ -1629,7 +1629,7 @@ import { toast } from '../../../shared/ui/toast.js';
 const OUTRO = '::outro::';   // sentinela: os dois-pontos garantem que
                              // nenhum cargo digitado colide com ele
 
-// `ctx`: { locais, cargos, recarregar } — ver servidores.view.js § ctxAtual().
+// `ctx`: { locais, cargos, recarregar } - ver servidores.view.js § ctxAtual().
 export function formVinculo(s, vinculo, ctx, { voltar = null } = {}) {
   const novo = !vinculo;
   const cargoAtual = rotulaCargo(vinculo?.papel || '');
@@ -1718,7 +1718,7 @@ async function salvar(e, s, vinculo, ctx, voltar) {
     if (vinculo) await atualizarVinculo(vinculo.id, { unidade_id, papel, ingresso, fim });
     else await criarVinculo({ servidor_id: s.id, unidade_id, papel, ingresso, fim });
     const novoCtx = await ctx.recarregar();
-    // Volta para a gaveta de baixo já com o dado novo — é para isso
+    // Volta para a gaveta de baixo já com o dado novo - é para isso
     // que a pilha guarda uma função, e não o HTML anterior.
     if (voltar) voltar(); else novoCtx.abrirDetalhe(s.id);
   } catch (err) {
@@ -1757,7 +1757,7 @@ console.assert(document.documentElement.scrollWidth <= window.innerWidth + 1, 's
 'ok';
 ```
 
-Depois `#/servidores?unidade=qualquer-coisa` — a tela carrega sem erro e o chip **não** aparece (o id não existe na lista vazia). Console limpo em 375, 768 e 1280.
+Depois `#/servidores?unidade=qualquer-coisa` - a tela carrega sem erro e o chip **não** aparece (o id não existe na lista vazia). Console limpo em 375, 768 e 1280.
 
 - [ ] **Step 7: Commitar**
 
@@ -1773,7 +1773,7 @@ Roteiro: criar um servidor com nascimento, CPF e RG (a máscara formata; a idade
 
 ---
 
-### Task 8: Escolas — dividir, reorganizar a ficha e ligar a Servidores
+### Task 8: Escolas - dividir, reorganizar a ficha e ligar a Servidores
 
 **Files:**
 - Modify: `src/modules/escolas/escolas.view.js`
@@ -1786,7 +1786,7 @@ Roteiro: criar um servidor com nascimento, CPF e RG (a máscara formata; a idade
 
 - [ ] **Step 1: Dividir o arquivo**
 
-`escolas.view.js` tem 315 linhas e três superfícies — passa do limite de R11. Mover, sem mudar comportamento ainda:
+`escolas.view.js` tem 315 linhas e três superfícies - passa do limite de R11. Mover, sem mudar comportamento ainda:
 
 - `abrirDetalhe` → `views/detalhe.js`, renomeada para `detalhe(u, ctx)` (recebe a unidade, não a chave);
 - `abrirForm` + `salvar` + `remover` → `views/formulario.js`, exportando `abrirForm(u, ctx)` e `removerEscola(u, ctx)`;
@@ -1912,7 +1912,7 @@ Em `escolas.view.js`, substituir o `#filters` de chips por:
 O estado vira `{ q: '', oferta: '', transporte: false, eja: false }`; `sincronizarChips()` é apagada; as ofertas saem dos próprios dados:
 
 ```js
-// As ofertas são as que existem na base — nada fixo no código.
+// As ofertas são as que existem na base - nada fixo no código.
 function pintarOfertas() {
   const ofertas = [...new Set(ALL.map(u => u.oferta).filter(Boolean))]
     .sort((a, b) => a.localeCompare(b, 'pt'));
@@ -1952,7 +1952,7 @@ Abrir uma escola: os chips do cabeçalho batem com os dados; a equipe lista quem
 
 ---
 
-### Task 9: Horários — duas visões e permissão correta
+### Task 9: Horários - duas visões e permissão correta
 
 **Files:**
 - Modify: `src/modules/horarios/horarios.view.js`
@@ -1993,7 +1993,7 @@ export async function getBlocosDoServidor(servidorId) {
 }
 ```
 
-`criarBloco` continua recebendo `ano` no payload — quem monta o payload passa `new Date().getFullYear()`.
+`criarBloco` continua recebendo `ano` no payload - quem monta o payload passa `new Date().getFullYear()`.
 
 - [ ] **Step 2: Casca com abas**
 
@@ -2018,7 +2018,7 @@ A barra de abas usa o vocabulário que já existe:
     </div>
 ```
 
-O seletor de ano (`#h-ano`) é removido do HTML e do `render`. O seletor de escola passa a listar `getLocais()` (a SME entra, e a cobertura não se aplica a ela — Step 5).
+O seletor de ano (`#h-ano`) é removido do HTML e do `render`. O seletor de escola passa a listar `getLocais()` (a SME entra, e a cobertura não se aplica a ela - Step 5).
 
 Trocar `perfil?.isAdmin` por `podeEditar` em todo o módulo:
 
@@ -2026,7 +2026,7 @@ Trocar `perfil?.isAdmin` por `podeEditar` em todo o módulo:
 import { podeEscrever } from '../../core/permissoes.js';
 ```
 
-> A checagem por `isAdmin` é resquício do modelo binário anterior à migration 021. Quem tem nível `proprios` continua barrado pelo RLS na hora de gravar — a tela nunca foi a barreira.
+> A checagem por `isAdmin` é resquício do modelo binário anterior à migration 021. Quem tem nível `proprios` continua barrado pelo RLS na hora de gravar - a tela nunca foi a barreira.
 
 - [ ] **Step 3: `views/por-escola.js`**
 
@@ -2045,7 +2045,7 @@ Ajustes de conteúdo:
 
 ```js
 // ============================================================
-// FundHub — horarios/views/por-servidor.js
+// FundHub - horarios/views/por-servidor.js
 // A semana de UMA pessoa, agrupada pelos locais onde ela tem jornada.
 // É o caminho que faltava: até aqui só dava para chegar ao horário
 // escolhendo primeiro a escola, e quem procurava pela pessoa não
@@ -2053,7 +2053,7 @@ Ajustes de conteúdo:
 // ============================================================
 ```
 
-A tela: um `<select id="hs-servidor">` com os servidores que têm vínculo aberto (`getServidores()` + `vinculosAbertos`), e, para o escolhido, uma `<section class="panel hb-painel">` por local, cada uma com as cinco linhas de dia — a mesma `linhaDia` da visão por escola, importada de `./por-escola.js`.
+A tela: um `<select id="hs-servidor">` com os servidores que têm vínculo aberto (`getServidores()` + `vinculosAbertos`), e, para o escolhido, uma `<section class="panel hb-painel">` por local, cada uma com as cinco linhas de dia - a mesma `linhaDia` da visão por escola, importada de `./por-escola.js`.
 
 > `por-servidor.js` importar de `por-escola.js` é import **interno ao módulo**, permitido: R2 só restringe a fronteira entre módulos. Exportar `linhaDia` de `por-escola.js` evita duplicar 30 linhas de barra gráfica.
 
@@ -2079,7 +2079,7 @@ Mover `formBloco`, `salvarBloco` e `removerBloco` para cá, com a assinatura nov
 export function formBloco(bloco, { servidorId, unidadeId, dia, nome, recarregar }) { … }
 ```
 
-No payload de `criarBloco`, `ano: new Date().getFullYear()`. As validações continuam vindo de `validarDia` no model — a tela só pinta o resultado.
+No payload de `criarBloco`, `ano: new Date().getFullYear()`. As validações continuam vindo de `validarDia` no model - a tela só pinta o resultado.
 
 - [ ] **Step 7: Verificar em dev-local**
 
@@ -2095,7 +2095,7 @@ console.assert(document.querySelector('[data-aba="servidor"]').getAttribute('ari
 'ok';
 ```
 
-Depois `#/horarios?servidor=abc` — abre já na aba "Por servidor". `#/horarios?unidade=abc` — abre em "Por escola". Console limpo em 375, 768 e 1280.
+Depois `#/horarios?servidor=abc` - abre já na aba "Por servidor". `#/horarios?unidade=abc` - abre em "Por escola". Console limpo em 375, 768 e 1280.
 
 - [ ] **Step 8: Commitar**
 
@@ -2133,7 +2133,7 @@ import { rotulaCargo } from '../servidores/vinculos.model.js';
 
 - linha ~132: `const vinculos = vinculosAbertos(s);`
 - linha ~144: `<label>Cargo / função <input value="${esc(cargoDe(s))}" readonly /></label>`
-- linha ~166: `${esc(v.unidade?.nome || '—')} · ${esc(rotulaCargo(v.papel))}`
+- linha ~166: `${esc(v.unidade?.nome || '-')} · ${esc(rotulaCargo(v.papel))}`
 
 - [ ] **Step 2: Varredura final por símbolo morto**
 
@@ -2143,7 +2143,7 @@ grep -rn "prompt(\|confirm(\|alert(" src --include=*.js | grep -v confirmar
 grep -rn "campos duas" src --include=*.js
 ```
 
-Esperado: nenhum resultado nos dois primeiros. O terceiro pode listar módulos fora do escopo (Afastamentos, SATE) — `.campos.duas` continua válida para quem ainda não foi tocado; não migrar agora.
+Esperado: nenhum resultado nos dois primeiros. O terceiro pode listar módulos fora do escopo (Afastamentos, SATE) - `.campos.duas` continua válida para quem ainda não foi tocado; não migrar agora.
 
 - [ ] **Step 3: Subir a versão**
 
@@ -2151,17 +2151,17 @@ Em `src/core/config.js`, `versao: '0.11.0'` (MINOR: mudou o modelo de dados).
 
 - [ ] **Step 4: Changelog**
 
-Inserir antes da entrada `## [0.10.2]`, escrito **para quem usa** — sem jargão, sem nome de arquivo:
+Inserir antes da entrada `## [0.10.2]`, escrito **para quem usa** - sem jargão, sem nome de arquivo:
 
 ```markdown
-## [0.11.0] — 2026-08-25
+## [0.11.0] - 2026-08-25
 
 Rodada de **cadastro de pessoas**: onde alguém trabalha, com que cargo e
 desde quando passa a ser uma informação só, no lugar certo.
 
 ### Adicionado
 - Data de nascimento no cadastro do servidor, com a idade ao lado.
-- É possível vincular alguém à **SME**, e não só a uma escola — com data
+- É possível vincular alguém à **SME**, e não só a uma escola - com data
   de início e de término, como qualquer outra designação.
 - Os vínculos agora podem ser **editados**, não só criados e encerrados.
 - Horários de Trabalho ganhou a visão **Por servidor**: dá para achar a
@@ -2172,7 +2172,7 @@ desde quando passa a ser uma informação só, no lugar certo.
 
 ### Alterado
 - O **cargo/função** deixou de ser digitado no cadastro da pessoa: ele vem
-  da designação. A lista de opções se monta sozinha com os cargos em uso —
+  da designação. A lista de opções se monta sozinha com os cargos em uso -
   um cargo novo entra quando alguém o usa pela primeira vez e some quando
   ninguém mais o ocupa.
 - A **lotação** passou a mostrar o nome do lugar (a escola ou a SME), em
@@ -2187,7 +2187,7 @@ desde quando passa a ser uma informação só, no lugar certo.
   chaves liga/desliga.
 - A ficha da escola foi reorganizada em blocos, com a equipe em destaque.
 - Ao editar um vínculo a partir do cadastro do servidor, a janela abre por
-  cima da anterior — e o Esc volta para ela, em vez de fechar tudo.
+  cima da anterior - e o Esc volta para ela, em vez de fechar tudo.
 ```
 
 - [ ] **Step 5: Verificação final**
@@ -2234,4 +2234,4 @@ Avisar o André que a rodada está na `dev` e que a validação na URL de dev de
 
 **Consistência de nomes** (definidos numa tarefa, usados em outra): `caminhoDaRota` (T2 → T2), `abrirDrawer(html, { voltar })` (T3 → T7), `fmtIdade` / `mascaraCPF` / `mascaraRG` / `noPadraoCPF` / `noPadraoRG` (T4 → T7), `.campos.auto` / `.col-full` / `.campo-derivado` / `.filtros-linha` / `.filtro-campo` / `.switch` / `.chip-filtro` / `.bloco-tit` (T5, T8 → T7, T8), `getLocais` / `vinculosAbertos` / `lotacaoDe` / `cargoDe` / `getServidoresDaUnidade` / `getCargos` / `rotulaCargo` / `normalizaCargo` / `cargoCanonico` / `criarVinculo` / `atualizarVinculo` / `excluirVinculo` (T6 → T7, T9, T10), `formVinculo(s, vinculo, ctx, { voltar })` / `removerVinculo(s, id, ctx)` (T7 → T7), `renderPorEscola` / `renderPorServidor` / `formBloco` / `linhaDia` / `getBlocos(unidadeId)` / `getBlocosDoServidor` (T9 → T9).
 
-**Defeito encontrado e corrigido na revisão:** a Task 1 apresentava a migration sem os guardas de idempotência em 3a e 3c, e mandava corrigi-la no passo seguinte — um plano que pede para escrever código errado de propósito. Os guardas passaram para o Step 1 e o Step 2 virou o que devia ser: uma conferência com resposta obrigatória para cada comando.
+**Defeito encontrado e corrigido na revisão:** a Task 1 apresentava a migration sem os guardas de idempotência em 3a e 3c, e mandava corrigi-la no passo seguinte - um plano que pede para escrever código errado de propósito. Os guardas passaram para o Step 1 e o Step 2 virou o que devia ser: uma conferência com resposta obrigatória para cada comando.

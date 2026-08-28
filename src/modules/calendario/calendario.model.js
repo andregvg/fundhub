@@ -1,5 +1,5 @@
 // ============================================================
-// FundHub — modules/calendario/calendario.model.js
+// FundHub - modules/calendario/calendario.model.js
 // Dias do calendário escolar. É a fonte dos BLOQUEIOS de data que o
 // SATE consulta antes de aceitar uma solicitação.
 // ============================================================
@@ -61,7 +61,7 @@ function isosDoPeriodo(de, ate) {
 }
 
 // Aplica a MESMA configuração (menos a data) a todo um intervalo de dias
-// — para marcar recesso, feriados prolongados, semana de provas etc. de
+// - para marcar recesso, feriados prolongados, semana de provas etc. de
 // uma vez. Devolve quantos dias foram gravados.
 export async function upsertPeriodo(diaBase, de, ate) {
   if (!hasSupabase()) throw new Error('Sem conexão com o banco.');

@@ -1,5 +1,5 @@
 /* ============================================================
-   FundHub — modules/afastamentos/afastamentos.css
+   FundHub - modules/afastamentos/afastamentos.css
    Visão Calendário (chips por dia) e ajustes da lista. Reusa a grade
    do Calendário (.cal-grid/.cal-cell) e a tabbar do SATE.
    ============================================================ */
@@ -8,7 +8,7 @@
 
 /* Amostra listrada da legenda (mesmo padrão do chip pendente). Branco
    translúcido sobre uma cor de fundo arbitrária (--af-*), não sobre
-   superfície do tema — a listra funciona igual nos dois temas por
+   superfície do tema - a listra funciona igual nos dois temas por
    construção, não por token. */
 .lg-pend {
   background: var(--muted);
@@ -33,7 +33,7 @@
   text-overflow: ellipsis;
   cursor: default;
 }
-/* Só admin edita — para os demais o chip é informativo. */
+/* Só admin edita - para os demais o chip é informativo. */
 .af-chip.clicavel { cursor: pointer; }
 .af-chip.clicavel:hover { filter: brightness(1.08); }
 .af-mais { color: var(--muted); font-size: 10.5px; font-weight: 700; }

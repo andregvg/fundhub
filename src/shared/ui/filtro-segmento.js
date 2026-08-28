@@ -1,12 +1,12 @@
 // ============================================================
-// FundHub — shared/ui/filtro-segmento.js
+// FundHub - shared/ui/filtro-segmento.js
 // Filtro por segmento de ensino, compartilhado pelos módulos.
 //
 // O ponto central: ele começa PRÉ-PREENCHIDO com os segmentos de
 // atuação do perfil. Quem cuida da Educação Infantil abre o
 // Calendário e já vê CEI + EMEI + Conveniadas, sem clicar em nada.
 //
-// Isso NÃO é uma restrição de acesso — a pessoa pode desmarcar e ver
+// Isso NÃO é uma restrição de acesso - a pessoa pode desmarcar e ver
 // a rede inteira. Quem restringe é o RLS (ver migration 021); aqui é
 // só conveniência. Confundir os dois papéis seria um erro caro: um
 // filtro que "protege" dá falsa sensação de segurança.
@@ -55,7 +55,7 @@ export function criarFiltroSegmento(el, { perfil, onChange = () => {}, chaveMemo
       selecao = [];
     } else if (b.dataset.atalho) {
       const atalho = ATALHOS.find(a => a.id === b.dataset.atalho);
-      // Clicar no atalho já ativo desmarca — é o jeito rápido de
+      // Clicar no atalho já ativo desmarca - é o jeito rápido de
       // voltar a "todos" sem procurar o botão de limpar.
       selecao = atalhoDe(selecao) === atalho.id ? [] : [...atalho.segmentos];
     } else if (b.dataset.seg) {

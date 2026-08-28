@@ -1,6 +1,6 @@
 ---
 name: architecture-review
-description: Revisão arquitetural do FundHub — coesão, acoplamento, fronteiras de módulo, tamanho de arquivo e overengineering. Use ao revisar código antes de commitar, ao refatorar, ao avaliar se um módulo/abstração nova se justifica, ou quando o usuário pedir revisão de arquitetura, estrutura ou organização do código.
+description: Revisão arquitetural do FundHub - coesão, acoplamento, fronteiras de módulo, tamanho de arquivo e overengineering. Use ao revisar código antes de commitar, ao refatorar, ao avaliar se um módulo/abstração nova se justifica, ou quando o usuário pedir revisão de arquitetura, estrutura ou organização do código.
 ---
 
 # Revisão arquitetural do FundHub
@@ -12,24 +12,24 @@ Esta skill **conduz uma revisão**; ela não repete as regras. As regras estão 
 Princípio: **o script decide o que é objetivo; você decide o que exige julgamento.**
 Não gaste análise em nada que o script já verifica.
 
-## 1. Rode o script primeiro — sempre
+## 1. Rode o script primeiro - sempre
 
 ```bash
 python .claude/scripts/verificar_arquitetura.py
 ```
 
-Só depois analise. Se o script apontar bloqueios, eles entram no relatório como estão — não
+Só depois analise. Se o script apontar bloqueios, eles entram no relatório como estão - não
 re-verifique manualmente o que ele já verificou, e não os discuta: são objetivos.
 
 **Escopo da revisão:** por padrão, só o que mudou (`git diff`, `git diff --cached` ou os arquivos
-que você acabou de editar). Revisão do repositório inteiro só quando pedida explicitamente —
+que você acabou de editar). Revisão do repositório inteiro só quando pedida explicitamente -
 caso contrário o relatório vira uma lista de dívida antiga que ninguém vai ler.
 
 ## 2. Analise o que o script não alcança
 
-Nesta ordem. Para cada item, a pergunta é concreta — não procure problema onde não há.
+Nesta ordem. Para cada item, a pergunta é concreta - não procure problema onde não há.
 
-### Coesão — o módulo concentra o que é dele?
+### Coesão - o módulo concentra o que é dele?
 
 - Há regra de domínio na **view** que deveria estar no model? (cálculo, validação, decisão de
   negócio, parsing de formato externo)
@@ -37,15 +37,15 @@ Nesta ordem. Para cada item, a pergunta é concreta — não procure problema on
 - O módulo faz duas coisas que não têm relação entre si?
 
 > Sinal forte: `afastamentos.view.js` tem parsing de TSV, mapeamento de vocabulário e regra de
-> idempotência — isso é domínio, e domínio mora no model.
+> idempotência - isso é domínio, e domínio mora no model.
 
-### Acoplamento — o import novo se justifica?
+### Acoplamento - o import novo se justifica?
 
 Para cada import cross-módulo introduzido:
 
 - É `*.model.js`? (se não, o script já bloqueou)
 - Quem é o **dono** daquele dado? Se o módulo A precisa escrever no domínio de B, o dado
-  provavelmente está no módulo errado — ou A deveria só ler.
+  provavelmente está no módulo errado - ou A deveria só ler.
 - O import fecha um ciclo em potencial? (script cobre o ciclo real; você cobre o risco)
 - O módulo virou dependência de quase todo mundo? Isso é aceitável para **cadastro base**
   (`escolas`, `servidores`) e suspeito para qualquer outra coisa.
@@ -57,7 +57,7 @@ O script avisa quando passa do limite. **Você decide o eixo da divisão:**
 - Dividir por **superfície de UI** (aba, visão alternada) → `views/<aba>.js`.
 - **Nunca** dividir por tipo técnico (`utils.js`, `helpers.js`, `handlers.js`): isso espalha uma
   responsabilidade em vez de separar responsabilidades.
-- Se não há eixo natural de divisão, o arquivo talvez esteja grande porque faz coisas demais —
+- Se não há eixo natural de divisão, o arquivo talvez esteja grande porque faz coisas demais -
   o problema é a responsabilidade, não o tamanho.
 
 Cheque também o lado oposto: arquivo abaixo de ~60 linhas que não é manifesto e não é importado
@@ -104,12 +104,12 @@ Regras:
 - **Não conserte sozinho** enquanto revisa. Reporte; a correção é uma decisão à parte.
 - Sempre cite a regra (`R7`) e o arquivo (`src/...:linha`).
 
-## 4. Dívida conhecida — não reportar como novidade
+## 4. Dívida conhecida - não reportar como novidade
 
 Já mapeada em §6.1 do spec; mencione só se a mudança atual encostar nela:
 
 - `afastamentos.view.js` (575 linhas) e `servidores.view.js` (429) acima do limite;
-- `toISOString()` espalhado para carimbar timestamp — destino é um `agoraISO()` em `format.js`;
+- `toISOString()` espalhado para carimbar timestamp - destino é um `agoraISO()` em `format.js`;
 - `confirm()`/`alert()` nativos ainda em uso;
 - cores literais em `afastamentos.model.js`, `sate/views/catalogo.js` e em alguns CSS de módulo;
 - `docs.content.js` e `BLUEPRINT.md` §4 defasados quanto a papéis e nº de módulos;

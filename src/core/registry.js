@@ -1,5 +1,5 @@
 // ============================================================
-// FundHub — core/registry.js  (registro de módulos)
+// FundHub - core/registry.js  (registro de módulos)
 // Fonte ÚNICA de verdade sobre os módulos do hub: os tiles da página
 // "Módulos", os itens do menu lateral e as rotas saem todos daqui.
 // Cada módulo declara a si mesmo em `modules/<id>/module.js`.
@@ -9,11 +9,11 @@
 // `load()` → import() dinâmico. Nada de módulo inativo é baixado.
 //
 // Dois campos governam a navegação:
-//   grupo — em que seção do menu lateral o item aparece;
-//   perm  — a chave de permissão (default: o próprio id). Ver
+//   grupo - em que seção do menu lateral o item aparece;
+//   perm  - a chave de permissão (default: o próprio id). Ver
 //           core/permissoes.js; o mapa vem do banco (migration 021).
 //
-// Campos do manifesto — ver modules/docs/docs.content.js § "Novo módulo".
+// Campos do manifesto - ver modules/docs/docs.content.js § "Novo módulo".
 // ============================================================
 import { podeVer } from './permissoes.js';
 

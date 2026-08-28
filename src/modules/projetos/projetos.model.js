@@ -1,10 +1,10 @@
 // ============================================================
-// FundHub — modules/projetos/projetos.model.js
+// FundHub - modules/projetos/projetos.model.js
 // Projetos e pesquisas ofertados às escolas + a manifestação de
 // interesse de cada unidade. Só banco, nunca DOM.
 //
 // A parte externa (proponente envia por token, sem login) NÃO está
-// aqui — depende de Edge Function. Este model cobre o fluxo interno.
+// aqui - depende de Edge Function. Este model cobre o fluxo interno.
 // ============================================================
 import { sb, hasSupabase, emailAtual } from '../../core/supabase.js';
 import { agoraISO } from '../../shared/format.js';

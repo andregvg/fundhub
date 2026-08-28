@@ -1,13 +1,13 @@
 // ============================================================
-// FundHub — usuarios/views/auditoria.js  (aba Auditoria)
+// FundHub - usuarios/views/auditoria.js  (aba Auditoria)
 // Lê o audit_log e mostra, para cada alteração, quem fez, quando (fuso
-// São Paulo) e — o pedido central — O QUE mudou: campo a campo, o valor
+// São Paulo) e - o pedido central - O QUE mudou: campo a campo, o valor
 // de antes e o de depois. Nada aqui escreve no banco.
 // ============================================================
 import {
   TABELAS, OPERACOES, getAuditoria, mostrarValor, rotulaCampo,
 } from '../auditoria.model.js';
-import { esc } from '../../../shared/dom.js';
+import { esc, vazio } from '../../../shared/dom.js';
 import { fmtDataHora, hojeISO, addDias } from '../../../shared/format.js';
 import { loading, emptyState, erroBox } from '../../../shared/ui/feedback.js';
 import { drawerHtml, drawerHead, montarDrawer, abrirDrawer } from '../../../shared/ui/drawer.js';
@@ -63,7 +63,7 @@ async function carregar() {
 
   document.getElementById('au-count').textContent = `${lista.length} registro(s)`;
   if (!lista.length) {
-    box.innerHTML = emptyState(ico('documento', { tam: 32 }), 'Nada no período', 'Ajuste os filtros — ou ninguém alterou nada por aqui.');
+    box.innerHTML = emptyState(ico('documento', { tam: 32 }), 'Nada no período', 'Ajuste os filtros - ou ninguém alterou nada por aqui.');
     return;
   }
   box.innerHTML = lista.map(item).join('');
@@ -88,7 +88,7 @@ function item(e) {
         <span class="tag ${OP_TAG[e.operacao] || ''}">${esc(OPERACOES[e.operacao] || e.operacao)}</span>
       </div>
       <div class="di-meta">${esc(resumo(e))}</div>
-      <div class="di-meta">${esc(fmtDataHora(e.criado_em))} · ${ico('servidor', { tam: 12 })} ${esc(e.autor || '—')}</div>
+      <div class="di-meta">${esc(fmtDataHora(e.criado_em))} · ${ico('servidor', { tam: 12 })} ${e.autor ? esc(e.autor) : vazio('autor não identificado')}</div>
     </div>
   </div>`;
 }
@@ -123,7 +123,7 @@ function detalhe(id) {
     ${drawerHead(TABELAS[e.tabela] || e.tabela, OPERACOES[e.operacao] || e.operacao)}
     <div class="drawer-body">
       <div class="field"><div class="lbl">Quando</div><div class="val">${esc(fmtDataHora(e.criado_em))}</div></div>
-      <div class="field"><div class="lbl">Autor</div><div class="val">${esc(e.autor || '—')}</div></div>
+      <div class="field"><div class="lbl">Autor</div><div class="val">${e.autor ? esc(e.autor) : vazio('autor não identificado')}</div></div>
       ${e.registro_id ? `<div class="field"><div class="lbl">Registro</div><div class="val au-id">${esc(e.registro_id)}</div></div>` : ''}
       <hr class="sep" />
       ${corpo}

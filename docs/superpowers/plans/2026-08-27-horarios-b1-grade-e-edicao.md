@@ -65,12 +65,12 @@
 
 ```sql
 -- ============================================================
--- 024 — Horários: escalas de calendário, cargos de gestão e
+-- 024 - Horários: escalas de calendário, cargos de gestão e
 -- configuração de exibição por escola.
 -- Rode no SQL Editor, depois da 023.
 --
 -- ESCALA é o nome de um dia. O horário não é escrito contra datas,
--- é escrito contra nomes de dia — e o calendário diz, para cada data
+-- é escrito contra nomes de dia - e o calendário diz, para cada data
 -- real, qual nome ela tem. É isso que resolve o TDC com revezamento
 -- sem inferir nada: "em que fase estamos?" vira consulta.
 --
@@ -108,7 +108,7 @@ create index if not exists idx_horario_escala
 
 -- ── Cargos que compõem a equipe gestora ──────────────────────
 -- `vinculo.papel` é texto livre e o catálogo É o conjunto dos cargos
--- em uso — então o sistema não sabia responder "esta pessoa é
+-- em uso - então o sistema não sabia responder "esta pessoa é
 -- gestora?". Esta tabela é a resposta, e é decidida por gente.
 -- Cargo fora da lista NÃO é gestão: ninguém entra na cobertura da
 -- escola por acidente.
@@ -265,7 +265,7 @@ test('as 8h marcam os minutos excedentes, contados do fim para tras', () => {
 
 test('o excesso de carga atravessa o intervalo quando precisa', () => {
   // 07:00-12:00 (5h) + 13:00-17:30 (4h30) = 9h30. Excesso: 1h30.
-  // 17:30 menos 1h30 = 16:00 — cabe no ultimo trecho, sem atravessar.
+  // 17:30 menos 1h30 = 16:00 - cabe no ultimo trecho, sem atravessar.
   const p = acha(validarDia([b('07:00', '12:00'), b('13:00', '17:30')]), 'carga-dia');
   assert.equal(p.ini, paraMin('16:00'));
   assert.equal(p.fim, paraMin('17:30'));
@@ -327,13 +327,13 @@ Esperado: FAIL - os problemas não têm `codigo`, `ini` nem `fim`, e "carga-dia"
 
 ```js
 // Problemas da jornada de UM servidor em UM dia, cada um com o
-// INTERVALO em que ele acontece — para a grade poder marcar onde
+// INTERVALO em que ele acontece - para a grade poder marcar onde
 // está o problema em vez de só escrever o que ele é.
 //
 // Só a sobreposição barra o salvamento: ela descreve algo impossível
 // (a pessoa em dois lugares). Carga e trecho contínuo descrevem algo
 // indesejável mas às vezes necessário, e a SME precisa poder
-// registrar. Ver .claude/rules/dados.md — "erro barra, aviso não".
+// registrar. Ver .claude/rules/dados.md - "erro barra, aviso não".
 export function validarDia(blocosDoDia) {
   const problemas = [];
   if (!blocosDoDia?.length) return problemas;
@@ -362,7 +362,7 @@ export function validarDia(blocosDoDia) {
     const trecho = ultimosMinutos(unidos, excesso);
     problemas.push({
       nivel: 'aviso', codigo: 'carga-dia', ini: trecho.ini, fim: trecho.fim,
-      texto: `${duracao(total)} no dia — ${duracao(excesso)} além do limite de ${duracao(MAX_DIA_MIN)}.`,
+      texto: `${duracao(total)} no dia - ${duracao(excesso)} além do limite de ${duracao(MAX_DIA_MIN)}.`,
     });
   }
 
@@ -372,7 +372,7 @@ export function validarDia(blocosDoDia) {
       problemas.push({
         nivel: 'aviso', codigo: 'continuo',
         ini: run.ini + MAX_CONTINUO_MIN, fim: run.fim,
-        texto: `${duracao(run.fim - run.ini)} contínuas a partir de ${paraHora(run.ini)} — o limite é ${duracao(MAX_CONTINUO_MIN)}. Inclua um intervalo.`,
+        texto: `${duracao(run.fim - run.ini)} contínuas a partir de ${paraHora(run.ini)} - o limite é ${duracao(MAX_CONTINUO_MIN)}. Inclua um intervalo.`,
       });
       break;
     }
@@ -384,7 +384,7 @@ export function validarDia(blocosDoDia) {
 // Os últimos `minutos` de tempo TRABALHADO, caminhando de trás para
 // frente pelos trechos unidos. O intervalo devolvido pode atravessar
 // uma pausa: se o excesso é maior que o último trecho, ele continua
-// no anterior — e a marcação na grade cobre os dois.
+// no anterior - e a marcação na grade cobre os dois.
 function ultimosMinutos(unidos, minutos) {
   let faltam = minutos;
   let ini = unidos[unidos.length - 1].fim;
@@ -567,7 +567,7 @@ export const contarFaixas = (blocos) =>
 //
 // Sem linha em horario_exibicao vale o padrão: aparece se o cargo for
 // de gestão, conta na cobertura, ordenado por cargo e depois por nome.
-// Quem tem linha aparece de qualquer jeito — foi decisão de alguém.
+// Quem tem linha aparece de qualquer jeito - foi decisão de alguém.
 export function ordenarParaGrade(servidores, { exibicao = [], cargosGestao = new Set(), cargoDe }) {
   const porId = new Map((exibicao || []).map(e => [e.servidor_id, e]));
 
@@ -683,10 +683,10 @@ registrarCache(limparCacheCargosGestao);
 
 ```js
 // ============================================================
-// FundHub — horarios/views/cargos.js
+// FundHub - horarios/views/cargos.js
 // Quais cargos compõem a equipe gestora. O `vinculo.papel` é texto
 // livre, então sem esta lista o sistema não sabe responder "esta
-// pessoa é gestora?" — e é essa resposta que decide quem aparece na
+// pessoa é gestora?" - e é essa resposta que decide quem aparece na
 // grade por padrão.
 //
 // A tela mora aqui, e não em Servidores, porque Horários é o único
@@ -848,7 +848,7 @@ Esperado: FAIL - módulo não encontrado.
 
 ```js
 // ============================================================
-// FundHub — shared/ui/busca-selecao.js
+// FundHub - shared/ui/busca-selecao.js
 // Escolha por BUSCA, não por rolagem. Um <select> com 144 escolas ou
 // com o cadastro inteiro de servidores obriga a pessoa a saber onde o
 // item está na lista; um campo que filtra enquanto se digita só
@@ -858,9 +858,9 @@ Esperado: FAIL - módulo não encontrado.
 // o item destacado), teclado (setas, Enter, Esc) e gestão de foco.
 //
 // Opção: { id, rotulo, detalhe?, busca? }
-//   rotulo  — o que aparece e o que fica no campo quando escolhido;
-//   detalhe — texto secundário na lista (cargo, segmento);
-//   busca   — texto extra contra o qual casar sem aparecer (apelido).
+//   rotulo  - o que aparece e o que fica no campo quando escolhido;
+//   detalhe - texto secundário na lista (cargo, segmento);
+//   busca   - texto extra contra o qual casar sem aparecer (apelido).
 // ============================================================
 import { esc, norm } from '../dom.js';
 import { ico } from './icones.js';
@@ -1142,7 +1142,7 @@ Em `tokens.css`, no `:root` claro:
 ```css
   /* Série da grade de horários. Dessaturadas de propósito: em repouso
      a grade é quase monocromática e a cor só aparece quando alguém é
-     selecionado. Cor aqui AGRUPA, não identifica — quem identifica é
+     selecionado. Cor aqui AGRUPA, não identifica - quem identifica é
      a legenda. */
   --serie-1: #6d8fd6;
   --serie-2: #6fb3a4;
@@ -1158,10 +1158,10 @@ E no bloco escuro, os mesmos seis um pouco mais claros e ainda dessaturados (`#7
 
 ```js
 // ============================================================
-// FundHub — horarios/views/grade.js
+// FundHub - horarios/views/grade.js
 // O desenho da grade: eixo, faixas, cobertura, hachura de
 // divergência e a seleção por clique. Não sabe de onde vêm os dados
-// nem como salvá-los — recebe linhas prontas e devolve HTML.
+// nem como salvá-los - recebe linhas prontas e devolve HTML.
 //
 // Faixa existe porque dois blocos sobrepostos na mesma trilha se
 // cobrem, e a grade passa a mentir sobre quem está presente.
@@ -1176,7 +1176,7 @@ const hhmm = (t) => String(t ?? '').slice(0, 5);
 let sel = null;
 export const selecionado = () => sel;
 
-// Posição de um intervalo (em minutos) na barra, em % — reusa a
+// Posição de um intervalo (em minutos) na barra, em % - reusa a
 // mesma janela de posicaoNaBarra passando um pseudo-bloco.
 const posDoIntervalo = (ini, fim) =>
   posicaoNaBarra({ inicio: paraHora(ini), fim: paraHora(fim) });
@@ -1290,13 +1290,13 @@ A view fica responsável só por: escolher a escola (agora por busca), carregar,
 
 ```js
 // ============================================================
-// FundHub — horarios/views/por-escola.js
+// FundHub - horarios/views/por-escola.js
 // Aba "Por escola": escolhida a unidade, UMA grade com a semana de
 // todos os servidores exibidos, faixas para os blocos que se
 // sobrepõem, tira de cobertura sob cada dia e a divergência marcada
 // no minuto exato.
 //
-// A cobertura é regra de ESCOLA — a sede da SME não entra nela.
+// A cobertura é regra de ESCOLA - a sede da SME não entra nela.
 // ============================================================
 import { DIAS, getBlocos, getExibicao, salvarOrdem, definirCobertura,
   limparExibicao, ordenarParaGrade, COBERTURA_INICIO, COBERTURA_FIM } from '../horarios.model.js';
@@ -1459,14 +1459,14 @@ git commit -m "feat(horarios): grade unica por escola com faixas, series e diver
 
 ```js
 // ============================================================
-// FundHub — horarios/views/jornada.js
+// FundHub - horarios/views/jornada.js
 // A semana inteira de UM servidor em UMA escola, numa gaveta só.
 // Antes era um bloco por vez (views/bloco.js), e montar a jornada de
 // um gestor do zero custava cinco aberturas e dez cliques.
 //
 // Os campos de hora nascem VAZIOS. Antes vinham com 07:00/13:00
 // chumbados, o que induzia a pessoa a aceitar um horário que não era
-// o dela — pior que campo vazio, porque parece uma resposta.
+// o dela - pior que campo vazio, porque parece uma resposta.
 //
 // Sobreposição impede o salvamento; carga acima de 8h e mais de 6h
 // contínuas ficam marcados e deixam salvar. Ver .claude/rules/dados.md.
@@ -1534,7 +1534,7 @@ function pintar() {
   }).join('');
 
   box.querySelectorAll('.hj-add').forEach(b => b.addEventListener('click', () => {
-    // Campos vazios de propósito — ver o cabeçalho deste arquivo.
+    // Campos vazios de propósito - ver o cabeçalho deste arquivo.
     estado.dias[Number(b.dataset.dia)].push({ inicio: '', fim: '', obs: '' });
     pintar();
   }));
@@ -1798,7 +1798,7 @@ O `<select id="f-servidor">` com o cadastro inteiro da rede vira busca. Trocar o
 
 Em `salvar()`, `servidor_id: document.getElementById('f-servidor').value || null` vira `servidor_id: buscaServidor.valorAtual() || null` - passar `buscaServidor` para `salvar` do mesmo jeito que `lerSegs` e `lerExcecoes` já são passados.
 
-O `<option>` "— sem vínculo com cadastro funcional —" some: o campo vazio já significa isso, e o botão de limpar do componente devolve a ele.
+O `<option>` "- sem vínculo com cadastro funcional -" some: o campo vazio já significa isso, e o botão de limpar do componente devolve a ele.
 
 - [ ] **Step 2: `servidores/views/vinculo.js` e `horarios/views/por-servidor.js`**
 

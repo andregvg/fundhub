@@ -1,8 +1,8 @@
 // ============================================================
-// FundHub — core/segmentos.js  (segmentos de ensino)
+// FundHub - core/segmentos.js  (segmentos de ensino)
 // Vocabulário único dos segmentos e das combinações que a rede usa
 // no dia a dia. Fica no kernel porque QUASE todo módulo filtra por
-// segmento — e todos precisam concordar sobre o que "Educação
+// segmento - e todos precisam concordar sobre o que "Educação
 // Infantil" significa.
 //
 // O banco só conhece os segmentos-BASE (ver migration 021). As
@@ -73,7 +73,7 @@ export function atalhoDe(sel) {
 }
 
 // Os segmentos aos quais uma unidade pertence. Uma EMEF com EJA
-// pertence aos DOIS — por isso devolve lista, não string. Espelha
+// pertence aos DOIS - por isso devolve lista, não string. Espelha
 // unidade_segmentos() no Postgres; se mudar aqui, mude lá.
 export function segmentosDaUnidade(u) {
   if (!u) return [];

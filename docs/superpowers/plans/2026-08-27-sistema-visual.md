@@ -21,7 +21,7 @@
 - **O kernel (`core/` + `shared/`) nunca importa `modules/` nem `shell/`.**
 - **Ícones sempre `aria-hidden="true"`** - o significado vem do texto ao lado ou do `aria-label` do botão.
 - **Antes de cada commit:** `python .claude/scripts/verificar_arquitetura.py` sem novas violações, e `git diff --cached` lido à procura de dado real.
-- **Nenhum código novo nasce com `—`.** Ao transcrever os blocos deste plano, escreva `-` em todo comentário e string, inclusive nos blocos das Tasks 8 e 9, que rodam DEPOIS da varredura da Task 7. Se elas reintroduzirem travessão, a verificação final falha.
+- **Nenhum código novo nasce com `-`.** Ao transcrever os blocos deste plano, escreva `-` em todo comentário e string, inclusive nos blocos das Tasks 8 e 9, que rodam DEPOIS da varredura da Task 7. Se elas reintroduzirem travessão, a verificação final falha.
 - **Cortes responsivos:** 560 · 720 · 900 · 1100px. Base é o celular; `@media (min-width: …)` acrescenta, nunca subtrai.
 - **Testes:** `node --test` (sem argumento) roda tudo - o Node varre a partir do diretorio corrente. **Nao** use `node --test`: nesta maquina (Node 24, Windows) o Node trata o caminho como modulo e falha com `MODULE_NOT_FOUND`. Rodar um arquivo so continua valendo: `node --test tests/icones.test.mjs`. Arquivo por assunto, `.test.mjs`, só `node:test` e `node:assert/strict`.
 - **Só lógica pura é testada por `node`.** Os models importam limpo fora do navegador (`core/supabase.js` só toca em `window` dentro de `sb()`, nunca na carga) - isso foi verificado antes deste plano ser escrito e **precisa continuar valendo**: nenhum módulo pode passar a tocar em `window` ou `document` em tempo de carga. O que depende de DOM é verificado no navegador, com o patch de dev-local, e o patch é **revertido antes de commitar**.
@@ -187,14 +187,14 @@ Esperado: FAIL - `Cannot find module '../src/shared/ui/icones.js'`.
 
 ```js
 // ============================================================
-// FundHub — shared/ui/icones.js
+// FundHub - shared/ui/icones.js
 // Conjunto de ícones do hub. Traçados do Feather (MIT), grade
 // 24×24, sem preenchimento, traço de 2 e cantos redondos.
 //
 // Por que SVG e não emoji: emoji não alinha (cada glifo tem
 // baseline própria), não herda cor (é bitmap colorido, e por isso
 // ignora o tema escuro e a R9) e muda de desenho conforme o
-// sistema operacional — inaceitável numa rede de 144 escolas com
+// sistema operacional - inaceitável numa rede de 144 escolas com
 // parque heterogêneo.
 //
 // O nome descreve a COISA, não o desenho: 'excluir', não 'lixeira'.
@@ -265,7 +265,7 @@ Esperado: PASS, 7 testes.
 ```css
 /* Ícones (shared/ui/icones.js). O par `flex: 0 0 auto` aqui +
    centro no container é o que faz o alinhamento deixar de ser
-   sorte — emoji nunca teve como alinhar, SVG tem. */
+   sorte - emoji nunca teve como alinhar, SVG tem. */
 .ico { display: inline-block; vertical-align: -0.125em; flex: 0 0 auto; }
 ```
 
@@ -441,7 +441,7 @@ emptyState(ico('acesso', { tam: 32 }), 'Nenhum acesso cadastrado', 'Clique em "A
 ```js
 // antes  (phones.js:150)
 const ico = { whatsapp: '💬', celular: '📱', fixo: '☎️' };
-// depois  — cuidado: a variável local `ico` colide com o import.
+// depois  - cuidado: a variável local `ico` colide com o import.
 const ICO_TEL = { whatsapp: 'whatsapp', celular: 'celular', fixo: 'fixo' };
 // … e no map: ${ico(ICO_TEL[t.tipo] || 'fixo')}
 ```
@@ -554,7 +554,7 @@ Esperado: FAIL - `normalizarTipo` não exportada.
 
 ```js
 // ============================================================
-// FundHub — shared/ui/toast.js
+// FundHub - shared/ui/toast.js
 // Mensagens de sistema. Entram pela direita, no topo, logo abaixo
 // da barra de cabeçalho, e saem sozinhas.
 //
@@ -565,7 +565,7 @@ Esperado: FAIL - `normalizarTipo` não exportada.
 // "Informe o e-mail" é inline: a correção é ali. "Acesso adicionado"
 // e "Não foi possível salvar" são toast: a gaveta já fechou.
 //
-// Erro dura mais porque erro precisa ser lido — e costuma trazer um
+// Erro dura mais porque erro precisa ser lido - e costuma trazer um
 // texto do Postgres que a pessoa vai querer copiar. Por isso o hover
 // também pausa o timer.
 // ============================================================
@@ -594,7 +594,7 @@ export const duracaoPadrao = (tipo) => DURACAO[normalizarTipo(tipo)];
 
 // UM container. Dois containers fixos no mesmo `top` se sobreporiam na
 // tela. O papel vai em cada toast, não na caixa: role="alert" para erro
-// (assertivo por definição) e role="status" para os demais — que é o
+// (assertivo por definição) e role="status" para os demais - que é o
 // padrão ARIA para notificação transitória.
 function caixa() {
   let box = document.getElementById('toasts');
@@ -996,7 +996,7 @@ git commit -m "feat(ui): telefone principal e acesso ativo viram toggle"
 **Files:**
 - Modify: `src/shared/dom.js` (ganha `vazio`)
 - Modify: `src/styles/components.css` (`.vazio`)
-- Modify: todo o repositório (troca de `—`)
+- Modify: todo o repositório (troca de `-`)
 
 **Interfaces:**
 - Consumes: `esc()`.
@@ -1005,9 +1005,9 @@ git commit -m "feat(ui): telefone principal e acesso ativo viram toggle"
 - [ ] **Step 1: `vazio()` em `shared/dom.js`**
 
 ```js
-// Campo sem valor. Nunca "—": o travessão não informa nada, e não
+// Campo sem valor. Nunca "-": o travessão não informa nada, e não
 // distingue "ninguém cadastrou" de "carregou vazio por erro". Cada
-// chamada escolhe a mensagem — é aí que está o valor do helper.
+// chamada escolhe a mensagem - é aí que está o valor do helper.
 export const vazio = (msg) => `<span class="vazio">${esc(msg)}</span>`;
 ```
 
@@ -1021,8 +1021,8 @@ export const vazio = (msg) => `<span class="vazio">${esc(msg)}</span>`;
 |---|---|---|
 | `shell/chrome.js` | `'primeiro acesso'` (já semântico) | manter |
 | `modules/usuarios/views/lista.js` | `Último acesso: ${fmtDataHora(p.ultimo_acesso)}` | `Último acesso: ${p.ultimo_acesso ? esc(fmtDataHora(p.ultimo_acesso)) : vazio('nunca acessou')}` |
-| `shared/ui/phones.js:160` | `.join(' · ') \|\| '—'` | `.join(' · ') \|\| vazio('sem telefone cadastrado')` |
-| `modules/horarios/views/por-escola.js` | `<span class="hb-vazio">—</span>` | `vazio('sem jornada')` |
+| `shared/ui/phones.js:160` | `.join(' · ') \|\| '-'` | `.join(' · ') \|\| vazio('sem telefone cadastrado')` |
+| `modules/horarios/views/por-escola.js` | `<span class="hb-vazio">-</span>` | `vazio('sem jornada')` |
 | `modules/servidores/servidores.model.js` (`lotacaoDe`) | devolve `''` | manter `''`; quem exibe usa `vazio('sem lotação')` |
 | `modules/servidores/views/detalhe.js` | cargo ausente | `vazio('cargo não informado')` |
 | `modules/escolas/views/detalhe.js` | campos em branco | `vazio('não informado')` |
@@ -1030,13 +1030,13 @@ export const vazio = (msg) => `<span class="vazio">${esc(msg)}</span>`;
 Tom: minúscula, sem ponto final, descrevendo o **fato** ("nunca acessou"), não a ausência do dado ("sem informação"). Varrer o resto:
 
 ```bash
-grep -rn "'—'\|\"—\"\|>—<" src/
+grep -rn "'-'\|\"-\"\|>-<" src/
 ```
 
 - [ ] **Step 3: Concatenações passam a hífen**
 
 ```bash
-grep -rn "join(' — ')\|+ ' — '\| — \${" src/
+grep -rn "join(' - ')\|+ ' - '\| - \${" src/
 ```
 
 O caso citado na spec é a lotação: `SME - Sede`.
@@ -1058,9 +1058,9 @@ n = 0
 for p in alvos:
     if not os.path.exists(p) or p.endswith(pular): continue
     t = io.open(p, encoding='utf-8').read()
-    if '—' not in t: continue
-    n += t.count('—')
-    io.open(p, 'w', encoding='utf-8', newline='').write(t.replace('—', '-'))
+    if '-' not in t: continue
+    n += t.count('-')
+    io.open(p, 'w', encoding='utf-8', newline='').write(t.replace('-', '-'))
 print('trocados:', n)
 "
 ```
@@ -1070,13 +1070,13 @@ A spec `2026-08-27-sistema-visual-design.md` é pulada de propósito: lá o cara
 - [ ] **Step 5: Conferir**
 
 ```bash
-grep -rn "—" src/ docs/ .claude/ index.html CHANGELOG.md CLAUDE.md README.md \
+grep -rn "-" src/ docs/ .claude/ index.html CHANGELOG.md CLAUDE.md README.md \
   | grep -v "2026-08-27-sistema-visual-design.md" || echo "limpo"
 ```
 
 Esperado: `limpo`.
 
-Ler o diff procurando prosa que ficou estranha - `texto — texto` vira `texto - texto`, o que é aceitável, mas travessão duplo ou colado precisa de ajuste manual.
+Ler o diff procurando prosa que ficou estranha - `texto - texto` vira `texto - texto`, o que é aceitável, mas travessão duplo ou colado precisa de ajuste manual.
 
 - [ ] **Step 6: Verificar no navegador e commitar**
 
@@ -1164,14 +1164,14 @@ Esperado: FAIL - módulo não encontrado.
 
 ```js
 // ============================================================
-// FundHub — shared/cache.js
+// FundHub - shared/cache.js
 // Registro das funções que invalidam cache de model. Existe para o
 // botão Atualizar do cabeçalho poder dizer "recarregue tudo" sem que
 // o kernel precise conhecer módulo nenhum.
 //
 // A inversão é a mesma do core/registry.js: o kernel oferece o ponto
 // de registro, os módulos se registram. A diferença é que o registry
-// conhece manifestos e este não conhece nada — só guarda funções
+// conhece manifestos e este não conhece nada - só guarda funções
 // anônimas. Assim a R1 (kernel nunca importa modules/) fica intacta.
 //
 // Hoje são quatro models com cache: escolas, locais, servidores e
@@ -1222,7 +1222,7 @@ registrarCache(() => { _cache = null; });
 - [ ] **Step 6: `recarregarRota()` em `core/router.js`**
 
 ```js
-// Reexecuta a rota atual sem tocar no hash — o scroll, a aba e o
+// Reexecuta a rota atual sem tocar no hash - o scroll, a aba e o
 // filtro em que a pessoa estava sobrevivem. É o que o botão
 // Atualizar faz depois de invalidar os caches.
 export async function recarregarRota() {
@@ -1354,7 +1354,7 @@ python .claude/scripts/verificar_arquitetura.py
 As Tasks 8 e 9 criaram código depois da varredura da Task 7. Re-varrer:
 
 ```bash
-grep -rn "—" src/ docs/ .claude/ index.html CHANGELOG.md CLAUDE.md README.md   | grep -v "2026-08-27-sistema-visual-design.md" || echo "limpo"
+grep -rn "-" src/ docs/ .claude/ index.html CHANGELOG.md CLAUDE.md README.md   | grep -v "2026-08-27-sistema-visual-design.md" || echo "limpo"
 ```
 
 Esperado: `limpo`. Se aparecer algo, trocar por `-` antes de seguir.
@@ -1418,7 +1418,7 @@ git commit -m "chore: versao 0.12.0 e fecha a rodada do sistema visual"
 - [ ] `node --test` verde.
 - [ ] `python .claude/scripts/verificar_arquitetura.py` sem novas violações.
 - [ ] Zero emojis em `src/` (varredura da Task 3, Step 3).
-- [ ] Zero `—` no repositório, exceto a spec do sistema visual.
+- [ ] Zero `-` no repositório, exceto a spec do sistema visual.
 - [ ] Console do navegador limpo em todas as rotas.
 - [ ] Tema claro e escuro conferidos.
 - [ ] 375px conferido.

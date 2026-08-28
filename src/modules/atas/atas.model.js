@@ -1,5 +1,5 @@
 // ============================================================
-// FundHub — modules/atas/atas.model.js
+// FundHub - modules/atas/atas.model.js
 // Atas de atendimento (gestor/coordenador/servidor/munícipe). O
 // `numero` sequencial por ano é atribuído no banco (trigger da 013).
 // ============================================================

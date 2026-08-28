@@ -1,5 +1,5 @@
 // ============================================================
-// FundHub — shared/dom.js
+// FundHub - shared/dom.js
 // Utilitários de DOM/HTML usados por todos os módulos.
 // Regra de ouro: TODO valor vindo do banco passa por esc() antes de
 // entrar em um template literal. Isso é o que impede XSS armazenado.
@@ -9,6 +9,13 @@ const ENTIDADES = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": 
 
 // Escapa texto para interpolação segura em HTML.
 export const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ENTIDADES[c]);
+
+// Campo sem valor. Nunca um traço solto: ele não informa nada, e não
+// distingue "ninguém cadastrou" de "carregou vazio por erro". Cada
+// chamada escolhe a mensagem, e é aí que está o valor do helper.
+// Devolve HTML pronto: não passar por esc() de novo, e não usar dentro
+// de atributo (title=, value=), só em conteúdo de elemento.
+export const vazio = (msg) => `<span class="vazio">${esc(msg)}</span>`;
 
 // Normaliza para busca: minúsculas, sem acentos.
 export const norm = (s) => String(s ?? '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');

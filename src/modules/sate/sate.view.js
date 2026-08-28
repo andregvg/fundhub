@@ -1,5 +1,5 @@
 // ============================================================
-// FundHub — modules/sate/sate.view.js
+// FundHub - modules/sate/sate.view.js
 // Casca do SATE: carrega o que as quatro abas compartilham (perfil,
 // catálogo, escolas) e delega cada aba para o seu arquivo em views/.
 // A escola solicita o ônibus aqui; a SME (admin) valida.

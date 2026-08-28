@@ -1,5 +1,5 @@
 // ============================================================
-// FundHub — servidores/views/formulario.js  (criar, editar, excluir)
+// FundHub - servidores/views/formulario.js  (criar, editar, excluir)
 // ============================================================
 import { criarServidor, atualizarServidor, excluirServidor, cargoDe, lotacaoDe, vinculosAbertos } from '../servidores.model.js';
 import { sincronizarTelefones } from '../../telefones/telefones.model.js';
@@ -13,14 +13,14 @@ import { reportarErro } from '../../../shared/ui/feedback.js';
 import { formVinculo } from './vinculo.js';
 import { ico } from '../../../shared/ui/icones.js';
 
-// `ctx`: { recarregar } — ver servidores.view.js § ctxAtual().
+// `ctx`: { recarregar } - ver servidores.view.js § ctxAtual().
 export function formServidor(s, ctx, { voltar = null } = {}) {
   const novo = !s;
   const v = (k) => esc(s?.[k] ?? '');
   const cargo = s ? cargoDe(s) : '';
   const lotacao = s ? lotacaoDe(s) : '';
 
-  // Cargo e lotação continuam à vista — são o que identifica a pessoa
+  // Cargo e lotação continuam à vista - são o que identifica a pessoa
   // - mas não são editáveis aqui: eles vêm do vínculo, que é o único
   // dono desse dado. O botão de editar abre a gaveta do vínculo POR CIMA desta.
   const derivado = (rotulo, valor, acao) => `

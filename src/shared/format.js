@@ -1,5 +1,5 @@
 // ============================================================
-// FundHub — shared/format.js
+// FundHub - shared/format.js
 // Datas e rótulos. Tudo em fuso local: `toLocaleDateString('sv-SE')`
 // devolve yyyy-mm-dd no fuso do usuário (evita o bug clássico do
 // toISOString(), que volta um dia à noite no Brasil).
@@ -12,7 +12,7 @@ export const DOW = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 // Hoje em ISO local (yyyy-mm-dd).
 export const hojeISO = () => new Date().toLocaleDateString('sv-SE');
 
-// Agora, timestamp ISO/UTC — para carimbar criado_em/atualizado_em.
+// Agora, timestamp ISO/UTC - para carimbar criado_em/atualizado_em.
 // Diferente de hojeISO(): aqui o UTC é o formato certo (é o que o banco
 // grava); nunca fatiar isto para virar data civil (ver hojeISO acima).
 export const agoraISO = () => new Date().toISOString();
@@ -46,9 +46,9 @@ export const horaAgora = () =>
 // horário bater com o relógio local independentemente de onde o banco está.
 const TZ = 'America/Sao_Paulo';
 export function fmtDataHora(ts) {
-  if (!ts) return '—';
+  if (!ts) return '';
   const d = new Date(ts);
-  if (isNaN(d)) return '—';
+  if (isNaN(d)) return '';
   return d.toLocaleString('pt-BR', {
     timeZone: TZ, day: '2-digit', month: '2-digit', year: 'numeric',
     hour: '2-digit', minute: '2-digit',
@@ -70,7 +70,7 @@ export function fmtIdade(iso) {
 // ── Máscaras de documento ────────────────────────────────────
 // Formatação progressiva: mascaram o que já foi digitado e não
 // reclamam do que falta. Quem valida "de verdade" é noPadrao*(),
-// e o resultado dela é AVISO, não erro (R15) — RG de outro estado
+// e o resultado dela é AVISO, não erro (R15) - RG de outro estado
 // tem outro formato e a SME precisa cadastrar essa pessoa.
 
 // '11111111111' → '111.111.111-11'

@@ -1,4 +1,4 @@
-# Changelog — FundHub
+# Changelog - FundHub
 
 Registro das mudanças do Hub de Ferramentas do Ensino Fundamental (SME Ribeirão Preto).
 Formato inspirado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/);
@@ -9,14 +9,14 @@ versionamento **MINOR** = módulo novo ou mudança de modelo de dados, **PATCH**
 
 ---
 
-## [0.11.0] — 2026-08-25
+## [0.11.0] - 2026-08-25
 
 Rodada de **cadastro de pessoas**: onde alguém trabalha, com que cargo e
 desde quando passa a ser uma informação só, no lugar certo.
 
 ### Adicionado
 - Data de nascimento no cadastro do servidor, com a idade ao lado.
-- É possível vincular alguém à **SME**, e não só a uma escola — com data
+- É possível vincular alguém à **SME**, e não só a uma escola - com data
   de início e de término, como qualquer outra designação.
 - Os vínculos agora podem ser **editados**, não só criados e encerrados.
 - Horários de Trabalho ganhou a visão **Por servidor**: dá para achar a
@@ -27,7 +27,7 @@ desde quando passa a ser uma informação só, no lugar certo.
 
 ### Alterado
 - O **cargo/função** deixou de ser digitado no cadastro da pessoa: ele vem
-  da designação. A lista de opções se monta sozinha com os cargos em uso —
+  da designação. A lista de opções se monta sozinha com os cargos em uso -
   um cargo novo entra quando alguém o usa pela primeira vez e some quando
   ninguém mais o ocupa.
 - A **lotação** passou a mostrar o nome do lugar (a escola ou a SME), em
@@ -42,18 +42,18 @@ desde quando passa a ser uma informação só, no lugar certo.
   chaves liga/desliga.
 - A ficha da escola foi reorganizada em blocos, com a equipe em destaque.
 - Ao editar um vínculo a partir do cadastro do servidor, a janela abre por
-  cima da anterior — e o Esc volta para ela, em vez de fechar tudo.
+  cima da anterior - e o Esc volta para ela, em vez de fechar tudo.
 
-## [0.10.2] — 2026-08-25
+## [0.10.2] - 2026-08-25
 
 ### Corrigido
 - No computador, o botão ☰ não escondia mais o menu lateral: o menu
   continuava por cima do conteúdo mesmo depois de recolhido. Agora ele
   some e volta como deveria, e a página aproveita a largura toda.
 
-## [0.10.1] — 2026-08-25
+## [0.10.1] - 2026-08-25
 
-Ajustes internos de manutenção — sem módulo novo.
+Ajustes internos de manutenção - sem módulo novo.
 
 ### Alterado
 - Os avisos de confirmação (excluir, cancelar, etc.) e os avisos de erro
@@ -66,7 +66,7 @@ Ajustes internos de manutenção — sem módulo novo.
 - Pequenos ajustes de cor e de rodapé para manter a consistência entre
   tema claro e escuro.
 
-## [0.10.0] — 2026-07-19
+## [0.10.0] - 2026-07-19
 
 Onda de **autorização e navegação**. O hub deixa de distinguir apenas
 "admin / não-admin" e passa a ter permissões por módulo, com o mesmo mapa
@@ -74,13 +74,13 @@ valendo na interface **e** no banco.
 Requer a migration **021** (no SQL Editor, depois da 020).
 
 ### Adicionado
-- **Permissões por módulo** — mapa `módulo → nível` com quatro níveis:
+- **Permissões por módulo** - mapa `módulo → nível` com quatro níveis:
   `oculto`, `proprios`, `leitura`, `escrita`. O nível vem do **papel**
   (preset em `papel_permissao`) e admite **exceção por pessoa**
   (`perfil.permissoes`). Papéis novos: Equipe SME, Transporte,
-  Gestor(a) escolar — além de Administrador e Leitor. Um gestor escolar
+  Gestor(a) escolar - além de Administrador e Leitor. Um gestor escolar
   não vê Afastamentos nem no menu nem pela API. *(migration 021)*
-- **Segmentos de atuação** — `perfil.segmentos`, com os básicos
+- **Segmentos de atuação** - `perfil.segmentos`, com os básicos
   EMEF, EJA, CEI, EMEI e Conveniadas e os atalhos **Ensino Fundamental**
   (EMEF+EJA), **Educação Infantil** (CEI+EMEI+Conveniadas) e **Todas**.
   O filtro de segmento já abre **pré-preenchido** com a atuação da pessoa
@@ -88,16 +88,16 @@ Requer a migration **021** (no SQL Editor, depois da 020).
   Projetos e SATE. É conveniência, não restrição: dá para ampliar na tela.
 - **Menu lateral** agrupado (Módulos · Minha conta · Administração ·
   Documentação), com botão ☰ e **memória** do estado aberto/fechado.
-  Os links do topo saíram — não cabiam mais.
-- **Meus dados** (`#/meus-dados`) — a pessoa edita o próprio nome de
+  Os links do topo saíram - não cabiam mais.
+- **Meus dados** (`#/meus-dados`) - a pessoa edita o próprio nome de
   exibição e, se o acesso estiver ligado a um cadastro de servidor,
   os próprios contatos e telefones. Sem senha: o acesso continua por
   link mágico ou conta Google.
-- **Todos os Módulos** (`#/modulos`) — a antiga home de tiles. A tela
+- **Todos os Módulos** (`#/modulos`) - a antiga home de tiles. A tela
   inicial passou a ser a **Dashboard**.
-- **Vínculo `perfil` ↔ `servidor`** — um acesso aponta para o cadastro
+- **Vínculo `perfil` ↔ `servidor`** - um acesso aponta para o cadastro
   funcional, evitando dado duplicado de quem é servidor e usuário.
-- **Tela de acesso pendente** — quem autentica com e-mail institucional
+- **Tela de acesso pendente** - quem autentica com e-mail institucional
   mas não está na allowlist agora recebe uma explicação, em vez de entrar
   num app de listas vazias bloqueadas em silêncio pelo RLS.
 - **Máscara de telefone** com DDD, distinguindo fixo (8 dígitos) de
@@ -109,10 +109,10 @@ Requer a migration **021** (no SQL Editor, depois da 020).
   lotação na **sede** (equipe de acompanhamento, agentes administrativos),
   via `servidor.lotacao` e `servidor.cargo`. *(migration 021)*
 - **Cards de Escolas e Servidores** exibem o **nome completo em caixa
-  alta**, com o apelido abaixo — antes mostravam só o apelido.
+  alta**, com o apelido abaixo - antes mostravam só o apelido.
 - **Formulários** de escola e de servidor ganharam agrupamentos
   semânticos, e a gaveta ficou mais larga no desktop (560px, 680px em
-  telas grandes) — os telefones não cabiam.
+  telas grandes) - os telefones não cabiam.
 - **Servidores** ganhou RG, CPF e **código funcional** no formulário.
 - **Botões** redesenhados no padrão discreto do GitHub: 32px de altura,
   borda de 1px, raio de 6px. O alvo de 40px do toque continua garantido
@@ -120,40 +120,40 @@ Requer a migration **021** (no SQL Editor, depois da 020).
 
 ### Corrigido
 - O aviso "e-mail fora do domínio institucional" existia em `auth.js`
-  mas **nunca era exibido** — `renderLogin` era chamado sem a flag.
+  mas **nunca era exibido** - `renderLogin` era chamado sem a flag.
 - Telefones cadastrados sem DDD (`3333-3333`) eram exibidos como
   `(33) 3333-33`: a exibição passou a normalizar antes de formatar.
 
 ---
 
-## [0.9.0] — 2026-07-15
+## [0.9.0] - 2026-07-15
 
 Onda de **integridade de dados** e fechamento dos módulos de rotina.
 Requer as migrations **016 → 020** (nesta ordem, no SQL Editor).
 
 ### Adicionado
-- **Telefones** — tabela dedicada `telefone`, fonte única para escolas **e** servidores,
+- **Telefones** - tabela dedicada `telefone`, fonte única para escolas **e** servidores,
   com tipo, rótulo e telefone principal. Editor reutilizável em Escolas e Gestores.
   Antes, escola tinha um array e servidor um único telefone. *(migration 016)*
-- **Locais** — catálogo de destinos (endereço, ponto de desembarque, coordenadas),
+- **Locais** - catálogo de destinos (endereço, ponto de desembarque, coordenadas),
   usado pelas atividades e solicitações do SATE. É a base do futuro cálculo de rota.
   Vive como aba admin dentro do SATE. *(migration 017)*
-- **Afastamentos — visão Calendário**: grade mensal com um chip por servidor afastado,
+- **Afastamentos - visão Calendário**: grade mensal com um chip por servidor afastado,
   colorido por tipo, sobreposto ao **evento previsto no calendário escolar**.
-- **Afastamentos — sincronização com a planilha do Drive**: espelha a aba “Lançamentos”
+- **Afastamentos - sincronização com a planilha do Drive**: espelha a aba “Lançamentos”
   (que segue recebendo os lançamentos e as respostas do formulário dos gestores).
-  Idempotente por `chave_externa` — re-sincronizar atualiza, nunca duplica.
+  Idempotente por `chave_externa` - re-sincronizar atualiza, nunca duplica.
   Gestores sem cadastro são ignorados e listados. *(migration 020)*
-- **Calendário — edição por intervalo**: aplica a configuração de um dia a todo um
+- **Calendário - edição por intervalo**: aplica a configuração de um dia a todo um
   período (recesso, feriados, semana de provas) de uma vez.
-- **Calendário — importação**: cola-se TSV/CSV com cabeçalho e os dias são criados
+- **Calendário - importação**: cola-se TSV/CSV com cabeçalho e os dias são criados
   ou atualizados; dispensa gerar seed para atualizar o calendário.
-- **Auditoria consolidada** — migration que religa o gatilho em todas as tabelas
+- **Auditoria consolidada** - migration que religa o gatilho em todas as tabelas
   auditáveis; idempotente e à prova de tabela ausente. *(migration 019)*
-- **Versão e changelog** — versão no rodapé e este arquivo.
+- **Versão e changelog** - versão no rodapé e este arquivo.
 
 ### Alterado
-- **Afastamentos: ciclo de vida completo** — `ativo`, `importado` (aguardando
+- **Afastamentos: ciclo de vida completo** - `ativo`, `importado` (aguardando
   confirmação) e `cancelado`. Cancelar deixou de apagar: preserva histórico e
   auditoria, com reativar e excluir definitivo à parte. *(migration 018)*
 - **Afastamentos: vocabulário de tipos** ampliado para cobrir também os da planilha
@@ -163,7 +163,7 @@ Requer as migrations **016 → 020** (nesta ordem, no SQL Editor).
 - **Afastamentos**: avisa ao registrar em dia marcado como “não conceder afastamentos”.
 - `vw_escola_pessoas` passou a ler o telefone principal da tabela nova, com queda
   para o campo legado.
-- **SATE**: desenvolvimento **pausado** a pedido da coordenação — o módulo segue
+- **SATE**: desenvolvimento **pausado** a pedido da coordenação - o módulo segue
   funcional; a evolução das regras foi suspensa.
 
 ### Corrigido
@@ -182,28 +182,28 @@ telefone seguem no banco como reserva e serão removidas em versão futura.
 
 ---
 
-## [0.8.0] — 2026-07-14
+## [0.8.0] - 2026-07-14
 
 ### Adicionado
-- **Projetos & Pesquisas** — cadastro dos projetos ofertados às escolas e
+- **Projetos & Pesquisas** - cadastro dos projetos ofertados às escolas e
   manifestação de interesse de cada unidade. *(migration 015)*
-- **Notificações multi-módulo** — o sino passou a cobrir também afastamentos e
+- **Notificações multi-módulo** - o sino passou a cobrir também afastamentos e
   ocorrências, além das solicitações de transporte. *(migration 014)*
-- **Usuários & Acessos** com **auditoria** — visualizador do histórico de alterações
+- **Usuários & Acessos** com **auditoria** - visualizador do histórico de alterações
   (antes, depois e diferença campo a campo) e registro de último acesso. *(migration 011)*
 - **Atas de Atendimento** com impressão em papel timbrado e numeração anual. *(013)*
 - **Relatórios de Visita Técnica**. *(migration 012)*
-- **Ocorrências** — atendimentos telefônicos da recepção. *(migration 010)*
+- **Ocorrências** - atendimentos telefônicos da recepção. *(migration 010)*
 - **Gestores & Coordenadores** e **Horários de Trabalho**. *(migration 009)*
 - **Documentação** interna do sistema, em `#/docs`.
 
 ### Alterado
-- **Arquitetura reorganizada em fatias verticais** — uma pasta por módulo sobre um
+- **Arquitetura reorganizada em fatias verticais** - uma pasta por módulo sobre um
   núcleo que não conhece módulo algum. Substituiu a divisão por tipo de arquivo.
 
 ---
 
-## [0.7.0] — 2026-07-14
+## [0.7.0] - 2026-07-14
 
 ### Adicionado
 - **Calendário Escolar** com bloqueio de datas, consultado pelo SATE. *(migration 007)*
@@ -215,17 +215,17 @@ telefone seguem no banco como reserva e serão removidas em versão futura.
 
 ---
 
-## [0.5.0] — 2026-07-13
+## [0.5.0] - 2026-07-13
 
 ### Adicionado
-- **SATE** — solicitação de transporte extraclasse: a escola pede, a SME valida. *(004)*
+- **SATE** - solicitação de transporte extraclasse: a escola pede, a SME valida. *(004)*
 - **Dashboard do dia** e login com Google.
-- **Segurança** — RLS com negativa por padrão, login institucional e lista de
+- **Segurança** - RLS com negativa por padrão, login institucional e lista de
   leitura autorizada; publicação automática em produção e ambiente de testes.
 
 ---
 
-## [0.1.0] — 2026-07-13
+## [0.1.0] - 2026-07-13
 
 ### Adicionado
 - Primeira versão do hub e do módulo **Escolas**.

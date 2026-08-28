@@ -1,16 +1,16 @@
 // ============================================================
-// FundHub — usuarios/views/lista.js  (aba Usuários = a allowlist)
+// FundHub - usuarios/views/lista.js  (aba Usuários = a allowlist)
 // CRUD da tabela perfil + último acesso de cada um (fuso São Paulo).
 //
 // O formulário tem quatro decisões por pessoa:
-//   papel      — de onde vem o mapa de permissões (o preset);
-//   segmentos  — o recorte de atuação que pré-preenche os filtros;
-//   servidor   — o cadastro funcional correspondente, se houver;
-//   exceções   — ajustes de módulo que sobrepõem o preset do papel.
+//   papel      - de onde vem o mapa de permissões (o preset);
+//   segmentos  - o recorte de atuação que pré-preenche os filtros;
+//   servidor   - o cadastro funcional correspondente, se houver;
+//   exceções   - ajustes de módulo que sobrepõem o preset do papel.
 //
 // As exceções ficam recolhidas de propósito: o caminho normal é
 // escolher o papel certo. Se você se pegar criando exceção para
-// muita gente, o sinal é que falta um papel novo — não mais exceção.
+// muita gente, o sinal é que falta um papel novo - não mais exceção.
 // ============================================================
 import {
   getPapeis, getPresets, getPerfis, criarPerfil, atualizarPerfil, excluirPerfil,
@@ -19,7 +19,7 @@ import { getServidores } from '../../servidores/servidores.model.js';
 import { MODULOS, chavePerm } from '../../../core/registry.js';
 import { NIVEIS, OCULTO, rotulaNivel } from '../../../core/permissoes.js';
 import { SEGMENTOS, ATALHOS, expandir, atalhoDe, rotuloSelecao } from '../../../core/segmentos.js';
-import { esc, val, checked, falha } from '../../../shared/dom.js';
+import { esc, val, checked, falha, vazio } from '../../../shared/dom.js';
 import { fmtDataHora } from '../../../shared/format.js';
 import { loading, emptyState, erroBox, reportarErro } from '../../../shared/ui/feedback.js';
 import { drawerHtml, drawerHead, montarDrawer, abrirDrawer, fecharDrawer } from '../../../shared/ui/drawer.js';
@@ -32,7 +32,7 @@ let lista = [], papeis = [], presets = {}, servidores = [];
 let rotulos = {};
 
 // Módulos que aceitam permissão configurável (os serviços de fundo e
-// as páginas universais ficam de fora — não há o que decidir neles).
+// as páginas universais ficam de fora - não há o que decidir neles).
 const CONFIGURAVEIS = () =>
   MODULOS.filter(m => m.rota && !['modulos', 'meus_dados', 'meus-dados'].includes(m.id));
 
@@ -90,7 +90,7 @@ function item(p) {
       </div>
       <div class="di-meta">${esc(p.email)}</div>
       ${p.servidor ? `<div class="di-meta">${ico('equipe', { tam: 14 })} ${esc(p.servidor.nome)}${p.servidor.cargo ? ` · ${esc(p.servidor.cargo)}` : ''}</div>` : ''}
-      <div class="di-meta">Último acesso: ${esc(fmtDataHora(p.ultimo_acesso))}</div>
+      <div class="di-meta">Último acesso: ${p.ultimo_acesso ? esc(fmtDataHora(p.ultimo_acesso)) : vazio('nunca acessou')}</div>
     </div>
     <div class="solic-acoes">
       <button class="mini-btn" data-edit="${esc(p.email)}" aria-label="Editar">${ico('editar')}</button>
@@ -109,7 +109,7 @@ function abrirForm(p) {
     .map(x => `<option value="${esc(x.chave)}" ${papelAtual === x.chave ? 'selected' : ''}>${esc(x.rotulo)}</option>`)
     .join('');
 
-  const optsServidor = [`<option value="">— sem vínculo com cadastro funcional —</option>`]
+  const optsServidor = [`<option value="">- sem vínculo com cadastro funcional -</option>`]
     .concat([...servidores]
       .sort((a, b) => a.nome.localeCompare(b.nome, 'pt'))
       .map(s => `<option value="${esc(s.id)}" ${p?.servidor_id === s.id ? 'selected' : ''}>${esc(s.nome)}</option>`))
@@ -154,7 +154,7 @@ function abrirForm(p) {
           <div class="campos">
             <div id="f-segs"></div>
             <small class="form-hint">Pré-preenche os filtros dos módulos. Não restringe
-              o acesso — a pessoa pode ampliar o filtro na tela. Vazio = todos.</small>
+              o acesso - a pessoa pode ampliar o filtro na tela. Vazio = todos.</small>
           </div>
         </fieldset>
 
@@ -209,7 +209,7 @@ function abrirForm(p) {
       papeis.find(x => x.chave === selPapel.value)?.descricao || '';
 
     document.getElementById('f-perms').innerHTML = admin
-      ? `<p class="form-hint">Administrador tem escrita em tudo — não há o que ajustar.</p>`
+      ? `<p class="form-hint">Administrador tem escrita em tudo - não há o que ajustar.</p>`
       : CONFIGURAVEIS().map(m => {
           const herdado = preset[chavePerm(m)] || OCULTO;
           const atual = excecoes[chavePerm(m)] ?? '';

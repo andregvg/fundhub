@@ -1,12 +1,12 @@
 // ============================================================
-// FundHub — main.js  (bootstrap)
+// FundHub - main.js  (bootstrap)
 // Ordem: rodapé → gate de login → perfil/permissões → moldura
 // (menu, usuário) → roteador → serviços de fundo (notificações).
 // Fora daqui, ninguém decide quem entra: o gate é este arquivo, e a
 // palavra final é sempre do RLS no Supabase.
 //
 // Há TRÊS desfechos possíveis para quem chega, e cada um tem a sua
-// tela — antes os dois últimos caíam no mesmo silêncio confuso:
+// tela - antes os dois últimos caíam no mesmo silêncio confuso:
 //   1. e-mail institucional + cadastrado  → o app;
 //   2. e-mail institucional, sem cadastro → "acesso pendente";
 //   3. e-mail de fora do domínio          → login com o aviso.
@@ -27,7 +27,7 @@ const rodando = [];
 async function montarApp(user) {
   const perfil = await getPerfilAtual().catch(() => null);
 
-  // Autenticou, domínio certo — mas não está na allowlist. Antes o
+  // Autenticou, domínio certo - mas não está na allowlist. Antes o
   // perfil.js devolvia um "leitor" sintético e a pessoa navegava por
   // um app de listas vazias sem entender por quê.
   if (perfil?.naoCadastrado) {
