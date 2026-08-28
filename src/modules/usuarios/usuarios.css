@@ -64,7 +64,10 @@
 .perm-nome { font-size: 13px; font-weight: 500; text-transform: none; letter-spacing: 0; }
 .perm-sel { flex: 0 0 auto; max-width: 210px; }
 
-/* Papel e "acesso ativo" na mesma linha: `end` alinha o trilho com a
-   base do select, não com o topo do rótulo. */
-.acesso-row { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: end; }
-@media (max-width: 559px) { .acesso-row { grid-template-columns: 1fr; align-items: start; } }
+/* Papel e "acesso ativo": empilhados no celular, lado a lado a partir
+   de 560px. `end` alinha o trilho com a base do select, nao com o topo
+   do rotulo. */
+.acesso-row { display: grid; grid-template-columns: 1fr; gap: 12px; align-items: start; }
+@media (min-width: 560px) {
+  .acesso-row { grid-template-columns: 1fr auto; align-items: end; }
+}
