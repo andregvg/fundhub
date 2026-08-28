@@ -964,10 +964,17 @@ Trocar o `fieldset` de Acesso:
 O `form-hint` sai de dentro do `<label>` para não quebrar a linha do grid. `checked('f-ativo')` em `salvar()` continua funcionando: o id é o mesmo.
 
 ```css
-/* Papel e "acesso ativo" na mesma linha: `end` alinha o trilho com a
-   base do select, não com o topo do rótulo. */
-.acesso-row { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: end; }
-@media (max-width: 559px) { .acesso-row { grid-template-columns: 1fr; align-items: start; } }
+/* Papel e "acesso ativo": empilhados no celular, lado a lado a partir
+   de 560px. `end` alinha o trilho com a base do select, não com o topo
+   do rótulo.
+
+   Mobile-first de verdade (.claude/rules/ui.md): a base é a tela
+   estreita e o `min-width` ACRESCENTA. Não use `@media (max-width:)` -
+   não há nenhuma em todo o `src/`, contra 18 `min-width`. */
+.acesso-row { display: grid; grid-template-columns: 1fr; gap: 12px; align-items: start; }
+@media (min-width: 560px) {
+  .acesso-row { grid-template-columns: 1fr auto; align-items: end; }
+}
 ```
 
 - [ ] **Step 5: Verificar no navegador**
