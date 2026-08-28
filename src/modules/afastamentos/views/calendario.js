@@ -2,11 +2,12 @@
 // FundHub — afastamentos/views/calendario.js  (visão Calendário)
 // Grade mensal com chips por dia — mesmo padrão do Apps Script
 // afastamentos-gestores. Sobrepõe o evento do calendário escolar, o
-// dia não letivo e o veto 🚫 de "não conceder afastamentos".
+// dia não letivo e o veto de "não conceder afastamentos".
 // ============================================================
 import { CORES_AFASTAMENTO } from '../afastamentos.model.js';
 import { esc } from '../../../shared/dom.js';
 import { DOW, hojeISO } from '../../../shared/format.js';
+import { ico } from '../../../shared/ui/icones.js';
 
 // `ctx`: { perfil, ano, mes, diasCal, lista, abrirForm } — ver afastamentos.view.js § ctxAtual().
 // `ativos` já vem filtrado (busca + segmento) pela casca.
@@ -39,7 +40,7 @@ export function pintarCalendario(box, ativos, ctx) {
     if (d && d.letivo === false) cls.push('nletivo');
     if (d?.bloqueia_afastamento) cls.push('bloq');
     cells += `<div class="${cls.join(' ')}">
-      <div class="cal-num">${dia}${d?.bloqueia_afastamento ? ' <span class="af-veto" title="Não conceder afastamentos">🚫</span>' : ''}</div>
+      <div class="cal-num">${dia}${d?.bloqueia_afastamento ? ` <span class="af-veto" title="Não conceder afastamentos">${ico('erro', { tam: 12 })}</span>` : ''}</div>
       ${d?.evento ? `<div class="cal-ev" title="${esc(d.evento)}">${esc(d.evento)}</div>` : ''}
       <div class="af-chips">${chips}${mais}</div>
     </div>`;

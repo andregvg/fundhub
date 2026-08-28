@@ -17,6 +17,7 @@ import { erroBox } from '../../shared/ui/feedback.js';
 import { drawerHtml, montarDrawer } from '../../shared/ui/drawer.js';
 import { renderPorEscola } from './views/por-escola.js';
 import { renderPorServidor } from './views/por-servidor.js';
+import { ico } from '../../shared/ui/icones.js';
 
 let ctx = null;
 let aba = 'escola';
@@ -36,9 +37,9 @@ export async function render(app, { perfil, params } = {}) {
     </div>
     <div class="tabbar" id="h-abas" role="tablist">
       <button class="tab ${aba === 'escola' ? 'on' : ''}" role="tab"
-              aria-selected="${aba === 'escola'}" data-aba="escola">🏫 Por escola</button>
+              aria-selected="${aba === 'escola'}" data-aba="escola">${ico('escola')} Por escola</button>
       <button class="tab ${aba === 'servidor' ? 'on' : ''}" role="tab"
-              aria-selected="${aba === 'servidor'}" data-aba="servidor">👤 Por servidor</button>
+              aria-selected="${aba === 'servidor'}" data-aba="servidor">${ico('servidor')} Por servidor</button>
     </div>
     <div id="h-tab-body"></div>
     ${drawerHtml()}`;

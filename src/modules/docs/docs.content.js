@@ -7,12 +7,19 @@
 //
 // Regra: nada de dado real, nome de pessoa ou segredo aqui. Este é um
 // repositório PÚBLICO — o que entra neste arquivo é público.
+//
+// O campo `ico` de cada seção é o NOME do traçado em shared/ui/icones.js
+// (docs.view.js envolve em ico()), não um emoji - a maioria é
+// aproximação: não há traçado para bússola, guindaste, livros etc.
+// Dentro do `html` de cada seção, os ícones que ilustram tabelas de
+// conteúdo (ex.: a lista de módulos) já vêm prontos via ico().
 // ============================================================
+import { ico } from '../../shared/ui/icones.js';
 
 export const SECOES = [
   {
     id: 'visao-geral',
-    ico: '🧭',
+    ico: 'info',
     titulo: 'Visão geral',
     resumo: 'O que é o FundHub e para quem.',
     html: `
@@ -42,7 +49,7 @@ export const SECOES = [
 
   {
     id: 'arquitetura',
-    ico: '🏗️',
+    ico: 'sede',
     titulo: 'Arquitetura',
     resumo: 'SPA sem build + Supabase. As quatro camadas.',
     html: `
@@ -97,7 +104,7 @@ export const SECOES = [
 
   {
     id: 'estrutura',
-    ico: '🗂️',
+    ico: 'documento',
     titulo: 'Estrutura de pastas',
     resumo: 'Onde fica cada coisa e quem pode importar quem.',
     html: `
@@ -156,30 +163,30 @@ export const SECOES = [
 
   {
     id: 'modulos',
-    ico: '🧩',
+    ico: 'modulos',
     titulo: 'Os módulos',
     resumo: 'O que já roda, o que falta e quem depende de quem.',
     html: `
       <table class="doc-tabela">
         <thead><tr><th>Módulo</th><th>Rota</th><th>Tabelas</th><th>Situação</th></tr></thead>
         <tbody>
-          <tr><td>📊 <b>Dashboard do dia</b></td><td><code>#/dashboard</code></td><td>— (compõe os outros)</td><td class="ok">ativo</td></tr>
-          <tr><td>🧩 <b>Módulos</b></td><td><code>#/modulos</code></td><td>— (lê o registry)</td><td class="ok">ativo · os tiles do hub</td></tr>
-          <tr><td>🏫 <b>Escolas</b></td><td><code>#/escolas</code></td><td><code>unidade_escolar</code>, <code>vw_escola_pessoas</code></td><td class="ok">ativo · CRUD admin</td></tr>
-          <tr><td>📅 <b>Calendário Escolar</b></td><td><code>#/calendario</code></td><td><code>dia_calendario</code></td><td class="ok">ativo · admin edita</td></tr>
-          <tr><td>🌴 <b>Afastamentos</b></td><td><code>#/afastamentos</code></td><td><code>afastamento</code></td><td class="ok">ativo · CRUD admin</td></tr>
-          <tr><td>🚌 <b>SATE · Transporte</b></td><td><code>#/sate</code></td><td><code>solicitacao_transporte</code>, <code>atividade_extraclasse</code>, <code>oferta_onibus</code></td><td class="ok">ativo · 4 abas</td></tr>
-          <tr><td>📄 <b>Programação de Viagens</b></td><td><code>#/viagens</code></td><td>— (lê do SATE)</td><td class="ok">ativo · imprimível</td></tr>
-          <tr><td>👥 <b>Servidores</b></td><td><code>#/servidores</code></td><td><code>servidor</code>, <code>vinculo</code></td><td class="ok">ativo · CRUD admin</td></tr>
-          <tr><td>🕒 <b>Horários de Trabalho</b></td><td><code>#/horarios</code></td><td><code>horario_bloco</code></td><td class="ok">ativo · CRUD admin</td></tr>
-          <tr><td>🔔 <b>Notificações</b></td><td>— (serviço)</td><td><code>solicitacao_transporte</code> (realtime)</td><td class="ok">ativo</td></tr>
-          <tr><td>📞 <b>Ocorrências</b></td><td><code>#/ocorrencias</code></td><td><code>ocorrencia</code></td><td class="ok">ativo · CRUD admin</td></tr>
-          <tr><td>📝 <b>Atas de Atendimento</b></td><td><code>#/atas</code></td><td><code>ata_atendimento</code></td><td class="ok">ativo · imprime timbrado</td></tr>
-          <tr><td>📋 <b>Relatórios de Visita</b></td><td><code>#/visitas</code></td><td><code>relatorio_visita</code></td><td class="ok">ativo · CRUD admin</td></tr>
-          <tr><td>🔐 <b>Usuários &amp; Acessos</b></td><td><code>#/usuarios</code></td><td><code>perfil</code>, <code>audit_log</code></td><td class="ok">ativo · só admin</td></tr>
-          <tr><td>🔬 <b>Projetos &amp; Pesquisas</b></td><td><code>#/projetos</code></td><td><code>projeto</code>, <code>projeto_interesse</code></td><td class="ok">ativo (interno) · portal externo por token é backlog</td></tr>
-          <tr><td>👤 <b>Meus dados</b></td><td><code>#/meus-dados</code></td><td><code>servidor</code>, <code>telefone</code></td><td class="ok">ativo · cada um edita o próprio cadastro</td></tr>
-          <tr><td>📖 <b>Documentação</b></td><td><code>#/docs</code></td><td>—</td><td class="ok">ativo · só admin</td></tr>
+          <tr><td>${ico('dashboard', { tam: 14 })} <b>Dashboard do dia</b></td><td><code>#/dashboard</code></td><td>— (compõe os outros)</td><td class="ok">ativo</td></tr>
+          <tr><td>${ico('modulos', { tam: 14 })} <b>Módulos</b></td><td><code>#/modulos</code></td><td>— (lê o registry)</td><td class="ok">ativo · os tiles do hub</td></tr>
+          <tr><td>${ico('escola', { tam: 14 })} <b>Escolas</b></td><td><code>#/escolas</code></td><td><code>unidade_escolar</code>, <code>vw_escola_pessoas</code></td><td class="ok">ativo · CRUD admin</td></tr>
+          <tr><td>${ico('calendario', { tam: 14 })} <b>Calendário Escolar</b></td><td><code>#/calendario</code></td><td><code>dia_calendario</code></td><td class="ok">ativo · admin edita</td></tr>
+          <tr><td>${ico('afastamento', { tam: 14 })} <b>Afastamentos</b></td><td><code>#/afastamentos</code></td><td><code>afastamento</code></td><td class="ok">ativo · CRUD admin</td></tr>
+          <tr><td>${ico('transporte', { tam: 14 })} <b>SATE · Transporte</b></td><td><code>#/sate</code></td><td><code>solicitacao_transporte</code>, <code>atividade_extraclasse</code>, <code>oferta_onibus</code></td><td class="ok">ativo · 4 abas</td></tr>
+          <tr><td>${ico('documento', { tam: 14 })} <b>Programação de Viagens</b></td><td><code>#/viagens</code></td><td>— (lê do SATE)</td><td class="ok">ativo · imprimível</td></tr>
+          <tr><td>${ico('equipe', { tam: 14 })} <b>Servidores</b></td><td><code>#/servidores</code></td><td><code>servidor</code>, <code>vinculo</code></td><td class="ok">ativo · CRUD admin</td></tr>
+          <tr><td>${ico('horario', { tam: 14 })} <b>Horários de Trabalho</b></td><td><code>#/horarios</code></td><td><code>horario_bloco</code></td><td class="ok">ativo · CRUD admin</td></tr>
+          <tr><td>${ico('sino', { tam: 14 })} <b>Notificações</b></td><td>— (serviço)</td><td><code>solicitacao_transporte</code> (realtime)</td><td class="ok">ativo</td></tr>
+          <tr><td>${ico('ocorrencia', { tam: 14 })} <b>Ocorrências</b></td><td><code>#/ocorrencias</code></td><td><code>ocorrencia</code></td><td class="ok">ativo · CRUD admin</td></tr>
+          <tr><td>${ico('ata', { tam: 14 })} <b>Atas de Atendimento</b></td><td><code>#/atas</code></td><td><code>ata_atendimento</code></td><td class="ok">ativo · imprime timbrado</td></tr>
+          <tr><td>${ico('visita', { tam: 14 })} <b>Relatórios de Visita</b></td><td><code>#/visitas</code></td><td><code>relatorio_visita</code></td><td class="ok">ativo · CRUD admin</td></tr>
+          <tr><td>${ico('acesso', { tam: 14 })} <b>Usuários &amp; Acessos</b></td><td><code>#/usuarios</code></td><td><code>perfil</code>, <code>audit_log</code></td><td class="ok">ativo · só admin</td></tr>
+          <tr><td>${ico('projeto', { tam: 14 })} <b>Projetos &amp; Pesquisas</b></td><td><code>#/projetos</code></td><td><code>projeto</code>, <code>projeto_interesse</code></td><td class="ok">ativo (interno) · portal externo por token é backlog</td></tr>
+          <tr><td>${ico('identidade', { tam: 14 })} <b>Meus dados</b></td><td><code>#/meus-dados</code></td><td><code>servidor</code>, <code>telefone</code></td><td class="ok">ativo · cada um edita o próprio cadastro</td></tr>
+          <tr><td>${ico('docs', { tam: 14 })} <b>Documentação</b></td><td><code>#/docs</code></td><td>—</td><td class="ok">ativo · só admin</td></tr>
         </tbody>
       </table>
       <p><b>Todos os 17 módulos estão ativos.</b> O que resta é aprofundamento (parte externa de
@@ -208,7 +215,7 @@ export const SECOES = [
 
   {
     id: 'jornada',
-    ico: '🕒',
+    ico: 'horario',
     titulo: 'Regras da jornada',
     resumo: 'Como Horários valida a semana e a cobertura da escola.',
     html: `
@@ -247,7 +254,7 @@ export const SECOES = [
 
   {
     id: 'seguranca',
-    ico: '🔒',
+    ico: 'restrito',
     titulo: 'Segurança e permissões',
     resumo: 'RLS, allowlist, papéis — e por que a chave é pública.',
     html: `
@@ -310,7 +317,7 @@ export const SECOES = [
 
   {
     id: 'auditoria',
-    ico: '🕵️',
+    ico: 'auditoria',
     titulo: 'Auditoria e último acesso',
     resumo: 'Como se sabe o que mudou, quem mudou e quando.',
     html: `
@@ -347,7 +354,7 @@ export const SECOES = [
 
   {
     id: 'banco',
-    ico: '🗄️',
+    ico: 'arquivo',
     titulo: 'Banco de dados',
     resumo: 'Tabelas, migrations e como aplicá-las.',
     html: `
@@ -411,7 +418,7 @@ export const SECOES = [
 
   {
     id: 'fluxo',
-    ico: '🚀',
+    ico: 'subir',
     titulo: 'Fluxo de trabalho e deploy',
     resumo: 'dev → main, GitHub Pages, e como testar sem login.',
     html: `
@@ -451,7 +458,7 @@ export const SECOES = [
 
   {
     id: 'novo-modulo',
-    ico: '➕',
+    ico: 'adicionar',
     titulo: 'Como criar um novo módulo',
     resumo: 'O passo a passo completo, com código.',
     html: `
@@ -472,7 +479,7 @@ export const SECOES = [
       <p><code>module.js</code> — é isto que faz o módulo existir para o hub:</p>
       <pre class="doc-arvore">export default {
   id: 'ocorrencias',
-  ico: '📞',
+  ico: 'ocorrencia',
   nome: 'Ocorrências',
   desc: 'Registro de atendimentos telefônicos.',
   rota: '#/ocorrencias',
@@ -539,7 +546,7 @@ export async function render(app, { perfil } = {}) {
 
   {
     id: 'visual',
-    ico: '🎨',
+    ico: 'tema',
     titulo: 'Padrão visual',
     resumo: 'Mobile-first, tokens, e os componentes prontos.',
     html: `
@@ -548,7 +555,7 @@ export async function render(app, { perfil } = {}) {
       acréscimos via <code>@media (min-width: …)</code> — nunca o contrário. Os cortes usados são
       <b>560px</b>, <b>720px</b> e <b>900px</b>.</p>
       <p>Na prática, isso significa: um dedo alcança tudo, os alvos de toque têm no mínimo 40px,
-      a navegação vira um menu ☰, os formulários viram uma coluna só e a gaveta lateral ocupa a
+      a navegação vira um botão de menu, os formulários viram uma coluna só e a gaveta lateral ocupa a
       largura inteira.</p>
 
       <h3>Tokens</h3>
@@ -580,7 +587,7 @@ export async function render(app, { perfil } = {}) {
 
   {
     id: 'glossario',
-    ico: '📚',
+    ico: 'docs',
     titulo: 'Glossário',
     resumo: 'Os termos da casa.',
     html: `

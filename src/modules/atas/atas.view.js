@@ -11,6 +11,7 @@ import { loading, emptyState, erroBox } from '../../shared/ui/feedback.js';
 import { drawerHtml, drawerHead, montarDrawer, abrirDrawer, fecharDrawer } from '../../shared/ui/drawer.js';
 import { confirmar } from '../../shared/ui/confirmar.js';
 import { toast } from '../../shared/ui/toast.js';
+import { ico } from '../../shared/ui/icones.js';
 
 let perfil = null, lista = [];
 let filtro = { de: addDias(hojeISO(), -180), ate: hojeISO(), tipo: '', q: '' };
@@ -24,7 +25,7 @@ export async function render(app, ctx = {}) {
       <p>Redação e impressão em papel timbrado das atas de atendimento.</p>
     </div>
     <div class="toolbar no-print">
-      <label class="search">🔎
+      <label class="search">${ico('buscar')}
         <input id="at-q" type="search" placeholder="Buscar por assunto, participantes, local…" autocomplete="off" />
       </label>
       <button id="at-nova" class="btn-primary" hidden>+ Nova ata</button>
@@ -80,11 +81,11 @@ function pintar() {
 
   const box = document.getElementById('at-lista');
   if (!lista.length) {
-    box.innerHTML = emptyState('📝', 'Nenhuma ata no período',
+    box.innerHTML = emptyState(ico('ata', { tam: 32 }), 'Nenhuma ata no período',
       perfil?.isAdmin ? 'Ajuste os filtros ou clique em “Nova ata”.' : 'Ajuste o período ou o tipo.');
     return;
   }
-  box.innerHTML = vis.map(item).join('') || emptyState('🔎', 'Nada encontrado', 'Ajuste a busca.');
+  box.innerHTML = vis.map(item).join('') || emptyState(ico('buscar', { tam: 32 }), 'Nada encontrado', 'Ajuste a busca.');
   box.querySelectorAll('.at-item').forEach(el => el.addEventListener('click', () => detalhe(el.dataset.id)));
 }
 
@@ -108,14 +109,14 @@ function detalhe(a) {
   const campo = (l, v) => v ? `<div class="field"><div class="lbl">${l}</div><div class="val texto-completo">${v}</div></div>` : '';
   const acoes = perfil?.isAdmin ? `
     <div class="drawer-acoes">
-      <button class="mini-btn" id="at-edit">✎ Editar</button>
-      <button class="mini-btn no" id="at-del">🗑 Excluir</button>
+      <button class="mini-btn" id="at-edit">${ico('editar')} Editar</button>
+      <button class="mini-btn no" id="at-del">${ico('excluir')} Excluir</button>
     </div>` : '';
 
   abrirDrawer(`
     ${drawerHead(`Ata nº ${esc(ata.numero ?? '—')}/${esc(ata.ano)}`, esc(fmtData(ata.data)) + ' · ' + esc(TIPOS[ata.tipo] || ata.tipo))}
     <div class="drawer-body">
-      <div class="drawer-acoes"><button class="btn-primary" id="at-print">🖨 Imprimir (papel timbrado)</button></div>
+      <div class="drawer-acoes"><button class="btn-primary" id="at-print">${ico('imprimir')} Imprimir (papel timbrado)</button></div>
       ${acoes}
       ${campo('Local', esc(ata.local))}
       ${campo('Participantes', esc(ata.participantes))}
@@ -138,7 +139,7 @@ function imprimir(a) {
 
   document.getElementById('at-folha').innerHTML = `
     <div class="ata-timbre">
-      <div class="ata-brasao">🏛️</div>
+      <div class="ata-brasao">${ico('sede', { tam: 42 })}</div>
       <div class="ata-orgao">
         <strong>Prefeitura Municipal de Ribeirão Preto</strong>
         <span>Secretaria Municipal da Educação</span>

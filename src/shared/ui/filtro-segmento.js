@@ -18,6 +18,7 @@
 // ============================================================
 import { SEGMENTOS, ATALHOS, expandir, atalhoDe, unidadeNoSegmento } from '../../core/segmentos.js';
 import { esc } from '../dom.js';
+import { ico } from './icones.js';
 
 // `el` é o container (normalmente um <div> dentro da toolbar).
 export function criarFiltroSegmento(el, { perfil, onChange = () => {}, chaveMemoria } = {}) {
@@ -42,8 +43,8 @@ export function criarFiltroSegmento(el, { perfil, onChange = () => {}, chaveMemo
         <span class="fseg-sep" aria-hidden="true"></span>
         ${SEGMENTOS.map(s => `
           <button type="button" class="chip ${selecao.includes(s.codigo) ? 'on' : ''}"
-                  data-seg="${s.codigo}">${s.ico} ${esc(s.rotulo)}</button>`).join('')}
-        ${selecao.length ? `<button type="button" class="chip limpar" data-limpar="1">✕ limpar</button>` : ''}
+                  data-seg="${s.codigo}">${ico(s.ico, { tam: 14 })} ${esc(s.rotulo)}</button>`).join('')}
+        ${selecao.length ? `<button type="button" class="chip limpar" data-limpar="1">${ico('fechar', { tam: 12 })} limpar</button>` : ''}
       </div>`;
   }
 
@@ -55,7 +56,7 @@ export function criarFiltroSegmento(el, { perfil, onChange = () => {}, chaveMemo
     } else if (b.dataset.atalho) {
       const atalho = ATALHOS.find(a => a.id === b.dataset.atalho);
       // Clicar no atalho já ativo desmarca — é o jeito rápido de
-      // voltar a "todos" sem procurar o ✕.
+      // voltar a "todos" sem procurar o botão de limpar.
       selecao = atalhoDe(selecao) === atalho.id ? [] : [...atalho.segmentos];
     } else if (b.dataset.seg) {
       const c = b.dataset.seg;

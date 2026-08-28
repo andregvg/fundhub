@@ -15,6 +15,7 @@ import { drawerHtml, drawerHead, montarDrawer, abrirDrawer, fecharDrawer } from 
 import { criarFiltroSegmento, indexarUnidades } from '../../shared/ui/filtro-segmento.js';
 import { confirmar } from '../../shared/ui/confirmar.js';
 import { toast } from '../../shared/ui/toast.js';
+import { ico } from '../../shared/ui/icones.js';
 
 let perfil = null, unidades = [], lista = [], idxUnidades = {};
 let seg = null;
@@ -46,7 +47,7 @@ export async function render(app, ctx = {}) {
       <p>Registro das visitas técnicas às escolas pela equipe de acompanhamento.</p>
     </div>
     <div class="toolbar">
-      <label class="search">🔎
+      <label class="search">${ico('buscar')}
         <input id="vi-q" type="search" placeholder="Buscar por escola, responsável, pauta…" autocomplete="off" />
       </label>
       <button id="vi-novo" class="btn-primary" hidden>+ Novo relatório</button>
@@ -55,7 +56,7 @@ export async function render(app, ctx = {}) {
     <div class="toolbar subfiltros">
       <label class="search compacta">De <input id="vi-de" type="date" value="${filtro.de}" /></label>
       <label class="search compacta">Até <input id="vi-ate" type="date" value="${filtro.ate}" /></label>
-      <label class="search compacta">🏫 <select id="vi-uni"><option value="">Todas as escolas</option></select></label>
+      <label class="search compacta">${ico('escola', { tam: 14 })} <select id="vi-uni"><option value="">Todas as escolas</option></select></label>
       <div class="filters" id="vi-status">
         <button class="chip" data-st="">Todos</button>
         ${Object.entries(STATUS).map(([k, v]) => `<button class="chip" data-st="${k}">${esc(v)}</button>`).join('')}
@@ -126,11 +127,11 @@ function pintar() {
 
   const box = document.getElementById('vi-lista');
   if (!lista.length) {
-    box.innerHTML = emptyState('📋', 'Nenhum relatório no período',
+    box.innerHTML = emptyState(ico('visita', { tam: 32 }), 'Nenhum relatório no período',
       perfil?.isAdmin ? 'Ajuste os filtros ou clique em “Novo relatório”.' : 'Ajuste o período ou os filtros.');
     return;
   }
-  box.innerHTML = vis.map(item).join('') || emptyState('🔎', 'Nada encontrado', 'Ajuste a busca.');
+  box.innerHTML = vis.map(item).join('') || emptyState(ico('buscar', { tam: 32 }), 'Nada encontrado', 'Ajuste a busca.');
   box.querySelectorAll('.vi-item').forEach(el => el.addEventListener('click', () => detalhe(el.dataset.id)));
 }
 
@@ -140,7 +141,7 @@ function item(v) {
   return `<div class="solic vi-item" data-id="${esc(v.id)}" tabindex="0">
     <div class="solic-main">
       <div class="di-top">
-        <b>🏫 ${esc(escola)}</b>
+        <b>${ico('escola', { tam: 14 })} ${esc(escola)}</b>
         <span class="tag">${esc(TIPOS[v.tipo] || v.tipo)}</span>
         <span class="tag ${STATUS_TAG[v.status] || ''}">${esc(STATUS[v.status] || v.status)}</span>
         ${atrasado ? '<span class="tag st-negado">prazo vencido</span>' : ''}
@@ -157,12 +158,12 @@ function detalhe(id) {
   const campo = (l, val) => val ? `<div class="field"><div class="lbl">${l}</div><div class="val texto-completo">${val}</div></div>` : '';
   const acoes = perfil?.isAdmin ? `
     <div class="drawer-acoes">
-      <button class="mini-btn" id="vi-edit">✎ Editar</button>
-      <button class="mini-btn no" id="vi-del">🗑 Excluir</button>
+      <button class="mini-btn" id="vi-edit">${ico('editar')} Editar</button>
+      <button class="mini-btn no" id="vi-del">${ico('excluir')} Excluir</button>
     </div>` : '';
 
   abrirDrawer(`
-    ${drawerHead('🏫 ' + esc(v.unidade?.nome || '—'), esc(fmtData(v.data)) + ' · ' + esc(TIPOS[v.tipo] || v.tipo))}
+    ${drawerHead(ico('escola', { tam: 16 }) + ' ' + esc(v.unidade?.nome || '—'), esc(fmtData(v.data)) + ' · ' + esc(TIPOS[v.tipo] || v.tipo))}
     <div class="drawer-body">
       ${acoes}
       <div class="field"><div class="lbl">Situação</div>

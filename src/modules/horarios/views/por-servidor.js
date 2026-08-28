@@ -12,6 +12,7 @@ import { esc } from '../../../shared/dom.js';
 import { loading, emptyState, erroBox } from '../../../shared/ui/feedback.js';
 import { linhaDia } from './por-escola.js';
 import { formBloco } from './bloco.js';
+import { ico } from '../../../shared/ui/icones.js';
 
 let servidores = [], blocos = [];
 let servidorId = '';
@@ -28,7 +29,7 @@ export async function renderPorServidor(box, ctx) {
 
   box.innerHTML = `
     <div class="toolbar">
-      <label class="search">👤
+      <label class="search">${ico('servidor')}
         <select id="hs-servidor"><option value="">Selecione a pessoa…</option></select>
       </label>
     </div>
@@ -59,7 +60,7 @@ function pintarSeletor() {
 }
 
 function limparCorpo() {
-  document.getElementById('hs-corpo').innerHTML = emptyState('👤', 'Escolha uma pessoa',
+  document.getElementById('hs-corpo').innerHTML = emptyState(ico('servidor', { tam: 32 }), 'Escolha uma pessoa',
     'Selecione o servidor acima para ver e editar a jornada dele.');
 }
 
@@ -82,7 +83,7 @@ async function carregar() {
   for (const v of vinculosAbertos(s)) if (v.unidade && !locais.has(v.unidade.id)) locais.set(v.unidade.id, v.unidade);
 
   if (!locais.size) {
-    corpo.innerHTML = emptyState('🏫', 'Sem local de lotação',
+    corpo.innerHTML = emptyState(ico('escola', { tam: 32 }), 'Sem local de lotação',
       `${esc(s.apelido || s.nome)} não tem vínculo aberto em nenhum local.`);
     return;
   }

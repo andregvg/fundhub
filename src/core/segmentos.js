@@ -13,12 +13,16 @@
 
 // Segmentos-base. O `codigo` é o que está em unidade_escolar.segmento
 // (mais 'EJA', que vem da flag tem_eja).
+// `ico` é o NOME do traçado em shared/ui/icones.js, não o desenho -
+// os consumidores envolvem em ico(). CEI e EMEI dividem 'infantil'
+// (não há traçado de bebê/paleta separado) e EJA usa 'escuro' pelo
+// desenho de lua minguante, sem relação com o tema escuro do app.
 export const SEGMENTOS = [
-  { codigo: 'EMEF',       rotulo: 'EMEF',        ico: '📗' },
-  { codigo: 'EJA',        rotulo: 'EJA',         ico: '🌙' },
-  { codigo: 'CEI',        rotulo: 'CEI',         ico: '🧸' },
-  { codigo: 'EMEI',       rotulo: 'EMEI',        ico: '🎨' },
-  { codigo: 'CONVENIADA', rotulo: 'Conveniadas', ico: '🤝' },
+  { codigo: 'EMEF',       rotulo: 'EMEF',        ico: 'escola' },
+  { codigo: 'EJA',        rotulo: 'EJA',         ico: 'escuro' },
+  { codigo: 'CEI',        rotulo: 'CEI',         ico: 'infantil' },
+  { codigo: 'EMEI',       rotulo: 'EMEI',        ico: 'infantil' },
+  { codigo: 'CONVENIADA', rotulo: 'Conveniadas', ico: 'parceria' },
 ];
 
 export const CODIGOS = SEGMENTOS.map(s => s.codigo);

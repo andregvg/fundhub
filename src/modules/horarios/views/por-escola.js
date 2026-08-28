@@ -20,6 +20,7 @@ import { esc } from '../../../shared/dom.js';
 import { loading, emptyState, erroBox } from '../../../shared/ui/feedback.js';
 import { criarFiltroSegmento, indexarUnidades } from '../../../shared/ui/filtro-segmento.js';
 import { formBloco } from './bloco.js';
+import { ico } from '../../../shared/ui/icones.js';
 
 let unidades = [], idxUnidades = {}, seg = null;
 let servidores = [], blocos = [];
@@ -37,7 +38,7 @@ export async function renderPorEscola(box, ctx) {
 
   box.innerHTML = `
     <div class="toolbar">
-      <label class="search">🏫
+      <label class="search">${ico('escola')}
         <select id="h-uni"><option value="">Selecione a escola…</option></select>
       </label>
       <span class="count" id="h-count"></span>
@@ -78,7 +79,7 @@ function pintarSeletor() {
 }
 
 function limparCorpo() {
-  document.getElementById('h-corpo').innerHTML = emptyState('🕒', 'Escolha uma escola',
+  document.getElementById('h-corpo').innerHTML = emptyState(ico('horario', { tam: 32 }), 'Escolha uma escola',
     'Selecione a unidade acima para ver e editar a jornada da equipe gestora.');
   document.getElementById('h-count').textContent = '';
 }
@@ -98,7 +99,7 @@ async function carregar() {
   document.getElementById('h-count').textContent = `${servidores.length} servidor(es) vinculado(s)`;
 
   if (!servidores.length) {
-    corpo.innerHTML = emptyState('👥', 'Nenhum servidor vinculado',
+    corpo.innerHTML = emptyState(ico('equipe', { tam: 32 }), 'Nenhum servidor vinculado',
       `Esta unidade não tem ninguém com vínculo aberto. Cadastre em
        <a href="#/servidores?unidade=${esc(unidadeId)}">Servidores</a>.`);
     return;
@@ -129,7 +130,7 @@ function painelCobertura() {
     }).join('');
 
     const txt = ok
-      ? `<span class="hb-ok">✓ coberto</span>`
+      ? `<span class="hb-ok">${ico('ok', { tam: 12 })} coberto</span>`
       : `<span class="hb-falha">${lacunas.map(l => `${paraHora(l.ini)}–${paraHora(l.fim)}`).join(' · ')}</span>`;
 
     return `<div class="hb-linha">
@@ -143,7 +144,7 @@ function painelCobertura() {
     lacunasCobertura(blocos.filter(b => b.dia_semana === d.n)).length).length;
 
   return `<section class="panel hb-painel">
-    <h2>🏫 Cobertura da escola <small class="hb-sub">${COBERTURA_INICIO} às ${COBERTURA_FIM}</small></h2>
+    <h2>${ico('escola')} Cobertura da escola <small class="hb-sub">${COBERTURA_INICIO} às ${COBERTURA_FIM}</small></h2>
     ${diasComFalha
       ? `<p class="hb-alerta">${diasComFalha} dia(s) da semana com horário descoberto.</p>`
       : `<p class="hb-tudo-ok">Todos os dias cobertos.</p>`}
@@ -186,7 +187,7 @@ export function linhaDia(s, d, doDia, { podeEditar, unidadeId: uni }) {
   }).join('');
 
   const alertas = problemas.map(p =>
-    `<span class="hb-prob ${p.nivel}">${p.nivel === 'erro' ? '⛔' : '⚠️'} ${esc(p.texto)}</span>`).join('');
+    `<span class="hb-prob ${p.nivel}">${ico(p.nivel === 'erro' ? 'erro' : 'atencao', { tam: 12 })} ${esc(p.texto)}</span>`).join('');
 
   const addBtn = podeEditar
     ? `<button type="button" class="hb-add" data-add="${esc(s.id)}:${d.n}:${esc(uni)}" aria-label="Adicionar bloco em ${esc(d.nome)}">+</button>`

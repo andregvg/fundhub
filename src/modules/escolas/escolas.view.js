@@ -10,6 +10,7 @@ import { emptyState, erroBox } from '../../shared/ui/feedback.js';
 import { drawerHtml, montarDrawer } from '../../shared/ui/drawer.js';
 import { criarFiltroSegmento } from '../../shared/ui/filtro-segmento.js';
 import { podeEscrever } from '../../core/permissoes.js';
+import { ico } from '../../shared/ui/icones.js';
 import { detalhe } from './views/detalhe.js';
 import { abrirForm, removerEscola } from './views/formulario.js';
 
@@ -29,7 +30,7 @@ export async function render(app, ctx = {}) {
       <p>Cadastro das unidades escolares da rede.</p>
     </div>
     <div class="toolbar">
-      <label class="search">🔎
+      <label class="search">${ico('buscar')}
         <input id="q" type="search" placeholder="Buscar por nome, apelido, bairro, gestor…" autocomplete="off" />
       </label>
       <span class="count" id="count"></span>
@@ -43,11 +44,11 @@ export async function render(app, ctx = {}) {
         </label>
         <label class="switch">
           <input type="checkbox" id="f-transporte" /><span class="switch-trilho" aria-hidden="true"></span>
-          🚌 Transporte
+          ${ico('transporte', { tam: 14 })} Transporte
         </label>
         <label class="switch">
           <input type="checkbox" id="f-eja" /><span class="switch-trilho" aria-hidden="true"></span>
-          🌙 EJA
+          ${ico('escuro', { tam: 14 })} EJA
         </label>
       </div>
     </div>
@@ -64,7 +65,7 @@ export async function render(app, ctx = {}) {
   }
 
   if (!ALL.length) {
-    document.getElementById('cards').innerHTML = emptyState('🗄️', 'Sem dados carregados',
+    document.getElementById('cards').innerHTML = emptyState(ico('arquivo', { tam: 32 }), 'Sem dados carregados',
       `O FundHub lê as escolas do Supabase. Confira <code>src/core/config.js</code>
        ou adicione <code>data/unidades.local.json</code> para desenvolvimento local.`);
     document.getElementById('count').textContent = '';
@@ -121,7 +122,7 @@ function pintar() {
   const cards = document.getElementById('cards');
   if (ALL.length) {
     cards.innerHTML = lista.map(cardHtml).join('')
-      || emptyState('🔎', 'Nenhuma escola encontrada', 'Ajuste a busca ou os filtros.');
+      || emptyState(ico('buscar', { tam: 32 }), 'Nenhuma escola encontrada', 'Ajuste a busca ou os filtros.');
   }
   cards.querySelectorAll('.card').forEach(c =>
     c.addEventListener('click', () => {
@@ -132,8 +133,8 @@ function pintar() {
 
 function cardHtml(u) {
   const tags = [
-    u.tem_transporte ? `<span class="tag bus">🚌 Transporte</span>` : '',
-    u.tem_eja ? `<span class="tag eja">🌙 EJA</span>` : '',
+    u.tem_transporte ? `<span class="tag bus">${ico('transporte', { tam: 12 })} Transporte</span>` : '',
+    u.tem_eja ? `<span class="tag eja">${ico('escuro', { tam: 12 })} EJA</span>` : '',
     u.oferta ? `<span class="tag">${esc(u.oferta)}</span>` : '',
   ].join('');
   // O card exibe o NOME da escola, em caixa alta — não o apelido. O

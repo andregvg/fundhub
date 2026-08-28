@@ -10,6 +10,7 @@ import { phonesEditorHtml, montarPhonesEditor, lerPhonesEditor } from '../../../
 import { confirmar } from '../../../shared/ui/confirmar.js';
 import { toast } from '../../../shared/ui/toast.js';
 import { formVinculo } from './vinculo.js';
+import { ico } from '../../../shared/ui/icones.js';
 
 // `ctx`: { recarregar } — ver servidores.view.js § ctxAtual().
 export function formServidor(s, ctx, { voltar = null } = {}) {
@@ -19,15 +20,15 @@ export function formServidor(s, ctx, { voltar = null } = {}) {
   const lotacao = s ? lotacaoDe(s) : '';
 
   // Cargo e lotação continuam à vista — são o que identifica a pessoa
-  // — mas não são editáveis aqui: eles vêm do vínculo, que é o único
-  // dono desse dado. O ✎ abre a gaveta do vínculo POR CIMA desta.
+  // - mas não são editáveis aqui: eles vêm do vínculo, que é o único
+  // dono desse dado. O botão de editar abre a gaveta do vínculo POR CIMA desta.
   const derivado = (rotulo, valor, acao) => `
     <label>${rotulo}
       <span class="campo-derivado">
         ${valor ? esc(valor) : '<span class="vazio">Sem vínculo</span>'}
         ${ctx.podeEditar && !novo
           ? `<button type="button" class="mini-btn" data-vinc="${acao}"
-               aria-label="${valor ? 'Editar' : 'Criar'} vínculo">${valor ? '✎' : '+'}</button>`
+               aria-label="${valor ? 'Editar' : 'Criar'} vínculo">${valor ? ico('editar') : ico('adicionar')}</button>`
           : ''}
       </span>
     </label>`;
@@ -93,8 +94,8 @@ export function formServidor(s, ctx, { voltar = null } = {}) {
   mascarar('s-cpf', mascaraCPF);
   mascarar('s-rg', mascaraRG);
 
-  // O ✎ de cargo/lotação abre o vínculo sobre esta gaveta; ao fechar,
-  // volta para cá com o servidor recarregado.
+  // O botão de editar cargo/lotação abre o vínculo sobre esta gaveta;
+  // ao fechar, volta para cá com o servidor recarregado.
   form.querySelectorAll('[data-vinc]').forEach(b => b.addEventListener('click', async () => {
     const c = await ctx.recarregar();
     const atual = c.lista.find(x => x.id === s.id);

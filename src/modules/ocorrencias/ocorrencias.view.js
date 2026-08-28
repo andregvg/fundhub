@@ -15,6 +15,7 @@ import { drawerHtml, drawerHead, montarDrawer, abrirDrawer, fecharDrawer } from 
 import { confirmar } from '../../shared/ui/confirmar.js';
 import { toast } from '../../shared/ui/toast.js';
 import { criarFiltroSegmento, indexarUnidades } from '../../shared/ui/filtro-segmento.js';
+import { ico } from '../../shared/ui/icones.js';
 
 let perfil = null, unidades = [], lista = [], idxUnidades = {};
 let seg = null;
@@ -46,7 +47,7 @@ export async function render(app, ctx = {}) {
       <p>Registro dos atendimentos telefônicos da recepção, ligados às escolas.</p>
     </div>
     <div class="toolbar">
-      <label class="search">🔎
+      <label class="search">${ico('buscar')}
         <input id="oc-q" type="search" placeholder="Buscar por assunto, solicitante, relato ou escola…" autocomplete="off" />
       </label>
       <button id="oc-novo" class="btn-primary" hidden>+ Nova ocorrência</button>
@@ -55,7 +56,7 @@ export async function render(app, ctx = {}) {
     <div class="toolbar subfiltros">
       <label class="search compacta">De <input id="oc-de" type="date" value="${filtro.de}" /></label>
       <label class="search compacta">Até <input id="oc-ate" type="date" value="${filtro.ate}" /></label>
-      <label class="search compacta">🏫 <select id="oc-uni"><option value="">Todas as escolas</option></select></label>
+      <label class="search compacta">${ico('escola', { tam: 14 })} <select id="oc-uni"><option value="">Todas as escolas</option></select></label>
       <div class="filters" id="oc-status">
         <button class="chip" data-st="">Todas</button>
         ${Object.entries(STATUS).map(([k, v]) => `<button class="chip" data-st="${k}">${esc(v)}</button>`).join('')}
@@ -132,12 +133,12 @@ function pintar() {
 
   const box = document.getElementById('oc-lista');
   if (!lista.length) {
-    box.innerHTML = emptyState('📞', 'Nenhuma ocorrência no período',
+    box.innerHTML = emptyState(ico('ocorrencia', { tam: 32 }), 'Nenhuma ocorrência no período',
       perfil?.isAdmin ? 'Ajuste o período/filtros ou clique em “Nova ocorrência”.' : 'Ajuste o período ou os filtros.');
     return;
   }
   box.innerHTML = vis.map(item).join('')
-    || emptyState('🔎', 'Nenhuma ocorrência encontrada', 'Ajuste a busca.');
+    || emptyState(ico('buscar', { tam: 32 }), 'Nenhuma ocorrência encontrada', 'Ajuste a busca.');
   box.querySelectorAll('.solic').forEach(el =>
     el.addEventListener('click', () => detalhe(el.dataset.id)));
 }
@@ -151,7 +152,7 @@ function item(o) {
         <b>${esc(o.assunto)}</b>
         <span class="tag ${STATUS_TAG[o.status] || ''}">${esc(STATUS[o.status] || o.status)}</span>
       </div>
-      <div class="di-meta">${esc(quando)}${escola ? ' · 🏫 ' + esc(escola) : ''}${o.solicitante ? ' · ' + esc(o.solicitante) : ''} · ${esc(CANAIS[o.canal] || o.canal)}</div>
+      <div class="di-meta">${esc(quando)}${escola ? ' · ' + ico('escola', { tam: 12 }) + ' ' + esc(escola) : ''}${o.solicitante ? ' · ' + esc(o.solicitante) : ''} · ${esc(CANAIS[o.canal] || o.canal)}</div>
       ${o.relato ? `<div class="di-meta texto-resumo">${esc(o.relato)}</div>` : ''}
     </div>
   </div>`;
@@ -169,8 +170,8 @@ function detalhe(id) {
     : '';
   const acoes = perfil?.isAdmin ? `
     <div class="drawer-acoes">
-      <button class="mini-btn" id="oc-edit">✎ Editar</button>
-      <button class="mini-btn no" id="oc-del">🗑 Excluir</button>
+      <button class="mini-btn" id="oc-edit">${ico('editar')} Editar</button>
+      <button class="mini-btn no" id="oc-del">${ico('excluir')} Excluir</button>
     </div>` : '';
 
   abrirDrawer(`

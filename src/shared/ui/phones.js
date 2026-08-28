@@ -15,6 +15,7 @@
 //   const telefones = lerPhonesEditor(form);   // no submit
 // ============================================================
 import { esc } from '../dom.js';
+import { ico } from './icones.js';
 
 export const TIPOS_TELEFONE = [['fixo', 'Fixo'], ['celular', 'Celular'], ['whatsapp', 'WhatsApp']];
 
@@ -153,9 +154,11 @@ export function lerPhonesEditor(root) {
   })).filter(t => t.numero);
 }
 
-// Formata a lista para exibição (detalhe): "📱 (16) 9... (principal) · ☎ ...".
+// Formata a lista para exibição (detalhe): ícone de celular, WhatsApp
+// ou fixo (conforme o tipo) + "(16) 9... (principal) · ...".
+const ICO_TEL = { whatsapp: 'whatsapp', celular: 'celular', fixo: 'fixo' };
+
 export function telefonesTexto(lista = []) {
-  const ico = { whatsapp: '💬', celular: '📱', fixo: '☎️' };
   return (lista || [])
     .map(t => {
       // normalizar, não formatar: boa parte da base foi cadastrada sem
@@ -164,7 +167,7 @@ export function telefonesTexto(lista = []) {
       const num = `<a href="tel:${esc(String(t.numero).replace(/\D/g, ''))}">${esc(fmt)}</a>`;
       const rot = t.rotulo ? ` <small>(${esc(t.rotulo)})</small>` : '';
       const pri = t.principal ? ' <small class="pri">principal</small>' : '';
-      return `<span class="tel-item">${ico[t.tipo] || '☎️'} ${num}${rot}${pri}</span>`;
+      return `<span class="tel-item">${ico(ICO_TEL[t.tipo] || 'fixo', { tam: 14 })} ${num}${rot}${pri}</span>`;
     })
     .join(' · ') || '—';
 }

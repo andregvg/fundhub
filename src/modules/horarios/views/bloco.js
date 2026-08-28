@@ -17,6 +17,7 @@ import { esc, falha } from '../../../shared/dom.js';
 import { drawerHead, abrirDrawer, fecharDrawer } from '../../../shared/ui/drawer.js';
 import { confirmar } from '../../../shared/ui/confirmar.js';
 import { toast } from '../../../shared/ui/toast.js';
+import { ico } from '../../../shared/ui/icones.js';
 
 const hhmm = (t) => String(t ?? '').slice(0, 5);
 
@@ -37,7 +38,7 @@ export function formBloco(bloco, { servidorId, unidadeId, dia, nome, recarregar 
           <button type="submit" id="b-save">${novo ? 'Adicionar' : 'Salvar'}</button>
         </div>
       </form>
-      ${novo ? '' : `<button type="button" class="mini-btn no" id="b-del" style="margin-top:16px">🗑 Excluir bloco</button>`}
+      ${novo ? '' : `<button type="button" class="mini-btn no" id="b-del" style="margin-top:16px">${ico('excluir')} Excluir bloco</button>`}
       <p class="form-hint" style="margin-top:16px">
         Para cumprir 8h sem ultrapassar 6h contínuas, divida o dia em dois blocos
         com intervalo entre eles.

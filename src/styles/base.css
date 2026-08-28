@@ -7,7 +7,7 @@
 
    O menu é LATERAL. Até 1100px ele é uma gaveta sobreposta (com
    fundo escurecido); a partir daí vira uma coluna fixa que empurra
-   o conteúdo. O mesmo botão ☰ comanda os dois casos.
+   o conteúdo. O mesmo botão de menu comanda os dois casos.
    ============================================================ */
 
 * { box-sizing: border-box; }
@@ -132,7 +132,7 @@ body.menu-aberto .sidebar { transform: translateX(0); }
   color: var(--brand);
   font-weight: 600;
 }
-.nav-ico { flex: 0 0 auto; width: 20px; text-align: center; font-size: 15px; }
+.nav-ico { flex: 0 0 auto; width: 20px; text-align: center; }
 .nav-txt { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 .pill {
@@ -277,7 +277,7 @@ body.menu-aberto .sidebar { transform: translateX(0); }
        sticky eles viram RESTRIÇÃO de encaixe: a coluna ficava presa
        no canto esquerdo da janela e o margin-left negativo empurrava
        só o conteúdo — o menu não recolhia. Zerar os dois é o que faz
-       o ☰ funcionar no desktop. */
+       o menu funcionar no desktop. */
     left: auto;
     bottom: auto;
     top: var(--topo);

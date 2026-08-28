@@ -11,12 +11,13 @@
 import { signOut } from '../core/auth.js';
 import { limparPerfil } from '../core/perfil.js';
 import { esc } from '../shared/dom.js';
+import { ico } from '../shared/ui/icones.js';
 
 export function renderAcessoPendente(app, email) {
   app.innerHTML = `
     <section class="auth-wrap">
       <div class="auth-card">
-        <div class="auth-mark">⏳</div>
+        <div class="auth-mark">${ico('horario', { tam: 40 })}</div>
         <h1>Acesso pendente</h1>
         <p class="auth-sub">Sua conta foi autenticada, mas ainda não tem acesso
            liberado ao FundHub.</p>

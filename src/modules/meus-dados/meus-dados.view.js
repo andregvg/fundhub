@@ -41,7 +41,7 @@ export async function render(app, ctx = {}) {
     return;
   }
   if (!perfil) {
-    app.innerHTML = emptyState('🪪', 'Perfil não encontrado',
+    app.innerHTML = emptyState(ico('identidade', { tam: 32 }), 'Perfil não encontrado',
       'Seu acesso existe, mas o cadastro não foi localizado. Fale com a Gerência de Ensino Fundamental.');
     return;
   }
@@ -123,7 +123,7 @@ function blocoSemServidor() {
   return `
     <section class="panel" style="margin-top:16px">
       <h2 class="secao-tit">Cadastro funcional</h2>
-      ${emptyState('👥', 'Seu acesso não está ligado a um cadastro de servidor',
+      ${emptyState(ico('equipe', { tam: 32 }), 'Seu acesso não está ligado a um cadastro de servidor',
         `Por isso não há contatos para editar aqui. Se você é servidor da rede, peça a um
          administrador para ligar o seu acesso ao seu cadastro em Servidores.`)}
     </section>`;

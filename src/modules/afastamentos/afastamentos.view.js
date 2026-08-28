@@ -17,6 +17,7 @@ import { MESES, hojeISO } from '../../shared/format.js';
 import { loading, erroBox } from '../../shared/ui/feedback.js';
 import { drawerHtml, montarDrawer } from '../../shared/ui/drawer.js';
 import { criarFiltroSegmento, indexarUnidades } from '../../shared/ui/filtro-segmento.js';
+import { ico } from '../../shared/ui/icones.js';
 import { pintarLista } from './views/lista.js';
 import { pintarCalendario } from './views/calendario.js';
 import { abrirForm } from './views/formulario.js';
@@ -44,11 +45,11 @@ export async function render(app, ctx = {}) {
         <button class="tab" data-modo="lista" role="tab">Lista</button>
         <button class="tab" data-modo="calendario" role="tab">Calendário</button>
       </div>
-      <label class="search">🔎
+      <label class="search">${ico('buscar')}
         <input id="af-q" type="search" placeholder="Buscar por servidor ou escola…" autocomplete="off" value="${esc(filtro.q)}" />
       </label>
       <span class="count" id="af-count"></span>
-      <button id="af-sync" class="mini-btn" hidden>⭱ Sincronizar planilha</button>
+      <button id="af-sync" class="mini-btn" hidden>${ico('atualizar')} Sincronizar planilha</button>
       <button id="af-novo" class="btn-primary" hidden>+ Novo afastamento</button>
     </div>
     <div id="af-seg" class="toolbar-linha"></div>
@@ -112,7 +113,7 @@ function montarFiltros() {
       </div>
       <div class="cal-legenda">
         <span><i class="lg lg-nletivo"></i> não letivo</span>
-        <span>🚫 não conceder afastamentos</span>
+        <span>${ico('erro', { tam: 14 })} não conceder afastamentos</span>
         <span><i class="lg lg-pend"></i> aguardando confirmação</span>
         <small>o texto do dia é o evento do calendário escolar</small>
       </div>

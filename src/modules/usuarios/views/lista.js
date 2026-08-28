@@ -63,7 +63,7 @@ async function carregar() {
 
   document.getElementById('us-count').textContent = `${lista.length} acesso(s) cadastrado(s)`;
   if (!lista.length) {
-    box.innerHTML = emptyState('🔐', 'Nenhum acesso cadastrado', 'Clique em “Adicionar acesso”.');
+    box.innerHTML = emptyState(ico('acesso', { tam: 32 }), 'Nenhum acesso cadastrado', 'Clique em “Adicionar acesso”.');
     return;
   }
   box.innerHTML = lista.map(item).join('');
@@ -89,12 +89,12 @@ function item(p) {
         ${excecoes ? `<span class="tag st-em_analise">${excecoes} exceção(ões)</span>` : ''}
       </div>
       <div class="di-meta">${esc(p.email)}</div>
-      ${p.servidor ? `<div class="di-meta">👥 ${esc(p.servidor.nome)}${p.servidor.cargo ? ` · ${esc(p.servidor.cargo)}` : ''}</div>` : ''}
+      ${p.servidor ? `<div class="di-meta">${ico('equipe', { tam: 14 })} ${esc(p.servidor.nome)}${p.servidor.cargo ? ` · ${esc(p.servidor.cargo)}` : ''}</div>` : ''}
       <div class="di-meta">Último acesso: ${esc(fmtDataHora(p.ultimo_acesso))}</div>
     </div>
     <div class="solic-acoes">
-      <button class="mini-btn" data-edit="${esc(p.email)}" aria-label="Editar">✎</button>
-      <button class="mini-btn no" data-del="${esc(p.email)}" aria-label="Remover">🗑</button>
+      <button class="mini-btn" data-edit="${esc(p.email)}" aria-label="Editar">${ico('editar')}</button>
+      <button class="mini-btn no" data-del="${esc(p.email)}" aria-label="Remover">${ico('excluir')}</button>
     </div>
   </div>`;
 }
@@ -178,7 +178,7 @@ function abrirForm(p) {
       <div class="fseg">
         ${ATALHOS.map(a => `<button type="button" class="chip atalho ${ativo === a.id ? 'on' : ''}" data-atalho="${a.id}">${esc(a.rotulo)}</button>`).join('')}
         <span class="fseg-sep" aria-hidden="true"></span>
-        ${SEGMENTOS.map(s => `<button type="button" class="chip ${segs.includes(s.codigo) ? 'on' : ''}" data-seg="${s.codigo}">${s.ico} ${esc(s.rotulo)}</button>`).join('')}
+        ${SEGMENTOS.map(s => `<button type="button" class="chip ${segs.includes(s.codigo) ? 'on' : ''}" data-seg="${s.codigo}">${ico(s.ico, { tam: 14 })} ${esc(s.rotulo)}</button>`).join('')}
       </div>`;
   };
   boxSegs.addEventListener('click', (e) => {

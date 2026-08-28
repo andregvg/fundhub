@@ -10,6 +10,7 @@ import { fmtData, fmtIdade } from '../../../shared/format.js';
 import { drawerHead, abrirDrawer } from '../../../shared/ui/drawer.js';
 import { telefonesTexto } from '../../../shared/ui/phones.js';
 import { formVinculo, removerVinculo } from './vinculo.js';
+import { ico } from '../../../shared/ui/icones.js';
 
 // `ctx`: { lista, podeEditar, cargos, locais, recarregar, abrirFormServidor, removerServidor }
 // — ver servidores.view.js § ctxAtual(). Os locais do formulário de
@@ -27,18 +28,18 @@ export function detalhe(id, ctx) {
         ${valor ? esc(valor) : '<span class="vazio">Sem vínculo</span>'}
         ${ctx.podeEditar
           ? `<button type="button" class="mini-btn" data-vinc-edit="1"
-               aria-label="${aria}">${valor ? '✎' : '+'}</button>`
+               aria-label="${aria}">${valor ? ico('editar') : ico('adicionar')}</button>`
           : ''}
       </div>
     </div>`;
   const acoes = ctx.podeEditar ? `
     <div class="drawer-acoes">
-      <button class="mini-btn" id="sv-edit">✎ Editar</button>
-      <a class="mini-btn" href="#/horarios?servidor=${esc(s.id)}">🕒 Horário de trabalho</a>
-      <button class="mini-btn no" id="sv-del">🗑 Excluir</button>
+      <button class="mini-btn" id="sv-edit">${ico('editar')} Editar</button>
+      <a class="mini-btn" href="#/horarios?servidor=${esc(s.id)}">${ico('horario')} Horário de trabalho</a>
+      <button class="mini-btn no" id="sv-del">${ico('excluir')} Excluir</button>
     </div>` : `
     <div class="drawer-acoes">
-      <a class="mini-btn" href="#/horarios?servidor=${esc(s.id)}">🕒 Horário de trabalho</a>
+      <a class="mini-btn" href="#/horarios?servidor=${esc(s.id)}">${ico('horario')} Horário de trabalho</a>
     </div>`;
 
   abrirDrawer(`
@@ -97,12 +98,12 @@ function listaVinculos(s, podeEditar) {
     ].filter(Boolean).join(' · ');
     const acoes = podeEditar ? `
       <div class="vinc-acoes">
-        <button class="mini-btn" data-edit-vinc="${esc(v.id)}" aria-label="Editar vínculo">✎</button>
-        <button class="mini-btn no" data-del-vinc="${esc(v.id)}" aria-label="Excluir vínculo">🗑</button>
+        <button class="mini-btn" data-edit-vinc="${esc(v.id)}" aria-label="Editar vínculo">${ico('editar')}</button>
+        <button class="mini-btn no" data-del-vinc="${esc(v.id)}" aria-label="Excluir vínculo">${ico('excluir')}</button>
       </div>` : '';
     return `<div class="person ${encerrado ? 'inativo' : ''}">
       <div class="role">${esc(rotulaCargo(v.papel))}${encerrado ? ' · encerrado' : ''}</div>
-      <div class="pname">${v.unidade?.tipo === 'sede' ? '🏛 ' : ''}${esc(v.unidade?.nome || '—')}</div>
+      <div class="pname">${v.unidade?.tipo === 'sede' ? ico('sede', { tam: 12 }) + ' ' : ''}${esc(v.unidade?.nome || '—')}</div>
       <div class="pmeta">
         ${periodo ? `<span>${esc(periodo)}</span>` : ''}
         ${acoes}

@@ -22,6 +22,7 @@ import { getServidores } from '../servidores/servidores.model.js';
 import { esc } from '../../shared/dom.js';
 import { horaAgora } from '../../shared/format.js';
 import { toast, limparToasts } from '../../shared/ui/toast.js';
+import { ico } from '../../shared/ui/icones.js';
 
 const MAX_EVENTOS = 25;
 
@@ -109,7 +110,7 @@ function montarSino() {
   wrap.className = 'bell-wrap';
   wrap.innerHTML = `
     <button class="bell" id="bell" type="button" title="Notificações" aria-label="Notificações">
-      🔔<span class="bell-badge" id="bell-badge" hidden>0</span>
+      ${ico('sino', { tam: 18 })}<span class="bell-badge" id="bell-badge" hidden>0</span>
     </button>
     <div class="bell-panel" id="bell-panel" hidden>
       <div class="bell-head">Notificações</div>

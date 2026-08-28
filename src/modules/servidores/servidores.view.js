@@ -17,6 +17,7 @@ import { loading, erroBox } from '../../shared/ui/feedback.js';
 import { drawerHtml, montarDrawer } from '../../shared/ui/drawer.js';
 import { criarFiltroSegmento, indexarUnidades } from '../../shared/ui/filtro-segmento.js';
 import { podeEscrever } from '../../core/permissoes.js';
+import { ico } from '../../shared/ui/icones.js';
 import { pintarLista } from './views/lista.js';
 import { detalhe } from './views/detalhe.js';
 import { formServidor, removerServidor } from './views/formulario.js';
@@ -37,7 +38,7 @@ export async function render(app, ctx = {}) {
       <p>Cadastro funcional, lotações e vínculos com as escolas.</p>
     </div>
     <div class="toolbar">
-      <label class="search">🔎
+      <label class="search">${ico('buscar')}
         <input id="sv-q" type="search" placeholder="Buscar por nome, apelido, e-mail, cargo ou escola…" autocomplete="off" />
       </label>
       <span class="count" id="sv-count"></span>

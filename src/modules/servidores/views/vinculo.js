@@ -14,6 +14,7 @@ import { esc, falha } from '../../../shared/dom.js';
 import { drawerHead, abrirDrawer } from '../../../shared/ui/drawer.js';
 import { confirmar } from '../../../shared/ui/confirmar.js';
 import { toast } from '../../../shared/ui/toast.js';
+import { ico } from '../../../shared/ui/icones.js';
 
 const OUTRO = '::outro::';   // sentinela: os dois-pontos garantem que
                              // nenhum cargo digitado colide com ele
@@ -26,7 +27,7 @@ export function formVinculo(s, vinculo, ctx, { voltar = null } = {}) {
 
   const opcoesLocal = ctx.locais.map(l =>
     `<option value="${esc(l.id)}" ${l.id === vinculo?.unidade_id ? 'selected' : ''}>${
-      l.tipo === 'sede' ? '🏛 ' : ''}${esc(l.nome)}</option>`).join('');
+      l.tipo === 'sede' ? '(sede) ' : ''}${esc(l.nome)}</option>`).join('');
 
   // O catálogo é derivado dos vínculos existentes: nasce vazio numa
   // base sem ninguém e ganha o cargo assim que alguém digita um.
@@ -49,7 +50,7 @@ export function formVinculo(s, vinculo, ctx, { voltar = null } = {}) {
               <select id="v-cargo" required>
                 <option value="">Selecione…</option>
                 ${opcoesCargo}
-                <option value="${OUTRO}" ${cargoAtual && !conhecido ? 'selected' : ''}>➕ Outro…</option>
+                <option value="${OUTRO}" ${cargoAtual && !conhecido ? 'selected' : ''}>+ Outro…</option>
               </select>
             </label>
             <label class="col-full" id="v-novo-wrap" ${cargoAtual && !conhecido ? '' : 'hidden'}>
@@ -73,7 +74,7 @@ export function formVinculo(s, vinculo, ctx, { voltar = null } = {}) {
           <button type="submit" id="v-save" class="btn-primary">${novo ? 'Vincular' : 'Salvar'}</button>
         </div>
       </form>
-      ${novo ? '' : `<button type="button" class="mini-btn no" id="v-del" style="margin-top:16px">🗑 Excluir vínculo</button>
+      ${novo ? '' : `<button type="button" class="mini-btn no" id="v-del" style="margin-top:16px">${ico('excluir')} Excluir vínculo</button>
       <p class="form-hint" style="margin-top:10px">Para preservar o histórico, prefira preencher o Término em vez de excluir.</p>`}
     </div>`, { voltar });
 

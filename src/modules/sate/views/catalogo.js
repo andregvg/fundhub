@@ -7,6 +7,7 @@ import { esc, slug, val, checked, falha } from '../../../shared/dom.js';
 import { emptyState } from '../../../shared/ui/feedback.js';
 import { confirmar } from '../../../shared/ui/confirmar.js';
 import { toast } from '../../../shared/ui/toast.js';
+import { ico } from '../../../shared/ui/icones.js';
 
 let ctx = null;
 
@@ -23,7 +24,7 @@ export function render(contexto) {
 
   box.innerHTML = barra + (atividades.length
     ? `<div class="cards">${atividades.map(card).join('')}</div>`
-    : emptyState('🚌', 'Catálogo vazio', perfil?.isAdmin
+    : emptyState(ico('transporte', { tam: 32 }), 'Catálogo vazio', perfil?.isAdmin
         ? 'Clique em “Nova atividade” ou rode o seed no SQL Editor.'
         : 'Peça a um administrador para cadastrar as atividades.'));
 
@@ -38,15 +39,15 @@ export function render(contexto) {
 function card(a) {
   const cor = a.cor || 'var(--brand)';
   const tags = [
-    a.usa_onibus ? `<span class="tag bus">🚌 Usa ônibus</span>` : `<span class="tag">🏫 Na escola</span>`,
+    a.usa_onibus ? `<span class="tag bus">${ico('transporte', { tam: 12 })} Usa ônibus</span>` : `<span class="tag">${ico('escola', { tam: 12 })} Na escola</span>`,
     a.gerida_sme ? `<span class="tag">Gerida pela SME</span>` : `<span class="tag">Definida pela escola</span>`,
-    a.precisa_declaracao ? `<span class="tag eja">📄 Declaração</span>` : '',
+    a.precisa_declaracao ? `<span class="tag eja">${ico('documento', { tam: 12 })} Declaração</span>` : '',
     a.min_participantes ? `<span class="tag">Mín. ${esc(a.min_participantes)}</span>` : '',
   ].join('');
   const admin = ctx.perfil?.isAdmin ? `
     <div class="atv-acoes">
-      <button class="mini-btn" data-edit="${a.id}" aria-label="Editar">✎</button>
-      <button class="mini-btn no" data-del="${a.id}" aria-label="Excluir">🗑</button>
+      <button class="mini-btn" data-edit="${a.id}" aria-label="Editar">${ico('editar')}</button>
+      <button class="mini-btn no" data-del="${a.id}" aria-label="Excluir">${ico('excluir')}</button>
     </div>` : '';
   return `<article class="card atv-card" style="border-top:3px solid ${esc(cor)}">
     <div class="card-top"><h3>${esc(a.nome)}</h3>${admin}</div>

@@ -7,6 +7,7 @@
 import { esc } from '../../../shared/dom.js';
 import { drawerHead, abrirDrawer } from '../../../shared/ui/drawer.js';
 import { telefonesTexto } from '../../../shared/ui/phones.js';
+import { ico } from '../../../shared/ui/icones.js';
 
 // `ctx`: { perfil, podeEditar, recarregar, abrirForm, removerEscola }
 // — ver escolas.view.js § ctxAtual().
@@ -21,8 +22,8 @@ export function detalhe(u, ctx) {
   const chips = [
     u.segmento ? `<span class="seg">${esc(u.segmento)}</span>` : '',
     u.oferta ? `<span class="tag">${esc(u.oferta)}</span>` : '',
-    u.tem_transporte ? `<span class="tag bus">🚌 Transporte</span>` : '',
-    u.tem_eja ? `<span class="tag eja">🌙 EJA</span>` : '',
+    u.tem_transporte ? `<span class="tag bus">${ico('transporte', { tam: 12 })} Transporte</span>` : '',
+    u.tem_eja ? `<span class="tag eja">${ico('escuro', { tam: 12 })} EJA</span>` : '',
   ].filter(Boolean).join('');
 
   const pessoas = (u.pessoas || []).filter(p => p.nome).map(p => `
@@ -30,8 +31,8 @@ export function detalhe(u, ctx) {
       <div class="role">${esc(p.papel)}</div>
       <div class="pname">${esc(p.nome)}${p.apelido ? ` · ${esc(p.apelido)}` : ''}</div>
       <div class="pmeta">
-        ${p.email ? `<span>✉ <a href="mailto:${esc(p.email)}">${esc(p.email)}</a></span>` : ''}
-        ${p.telefone ? `<span>📱 ${esc(p.telefone)}</span>` : ''}
+        ${p.email ? `<span>${ico('email', { tam: 12 })} <a href="mailto:${esc(p.email)}">${esc(p.email)}</a></span>` : ''}
+        ${p.telefone ? `<span>${ico('celular', { tam: 12 })} ${esc(p.telefone)}</span>` : ''}
       </div>
     </div>`).join('') || '<p class="count">Sem pessoas vinculadas.</p>';
 
@@ -42,9 +43,9 @@ export function detalhe(u, ctx) {
     <div class="drawer-body">
       ${chips ? `<div class="tags" style="margin-bottom:14px">${chips}</div>` : ''}
       <div class="drawer-acoes">
-        ${ctx.podeEditar ? `<button class="mini-btn" id="edit-esc">✎ Editar</button>` : ''}
-        <a class="mini-btn" href="#/horarios?unidade=${esc(u.id)}">🕒 Horários da equipe</a>
-        ${ctx.podeEditar ? `<button class="mini-btn no" id="del-esc">🗑 Excluir</button>` : ''}
+        ${ctx.podeEditar ? `<button class="mini-btn" id="edit-esc">${ico('editar')} Editar</button>` : ''}
+        <a class="mini-btn" href="#/horarios?unidade=${esc(u.id)}">${ico('horario')} Horários da equipe</a>
+        ${ctx.podeEditar ? `<button class="mini-btn no" id="del-esc">${ico('excluir')} Excluir</button>` : ''}
       </div>
 
       <h3 class="bloco-tit">Contato e localização</h3>

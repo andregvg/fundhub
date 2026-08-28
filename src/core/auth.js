@@ -6,6 +6,7 @@
 // ============================================================
 import { sb, hasSupabase } from './supabase.js';
 import { CONFIG } from './config.js';
+import { ico } from '../shared/ui/icones.js';
 
 const DOMINIO = CONFIG.dominioInstitucional;
 
@@ -68,7 +69,7 @@ export function renderLogin(app, opts = {}) {
   app.innerHTML = `
     <section class="auth-wrap">
       <div class="auth-card">
-        <div class="auth-mark">🏫</div>
+        <div class="auth-mark">${ico('escola', { tam: 40 })}</div>
         <h1>Fund<span class="hub">Hub</span></h1>
         <p class="auth-sub">Acesso restrito à equipe da Gerência de Ensino Fundamental.</p>
         ${restrito ? `<div class="auth-alert">Este e-mail não pertence ao domínio institucional

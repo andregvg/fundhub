@@ -12,11 +12,12 @@ import { fmtData } from '../../../shared/format.js';
 import { emptyState } from '../../../shared/ui/feedback.js';
 import { confirmar } from '../../../shared/ui/confirmar.js';
 import { toast } from '../../../shared/ui/toast.js';
+import { ico } from '../../../shared/ui/icones.js';
 
 // `ctx`: { perfil, lista, abrirForm, carregar } — ver afastamentos.view.js § ctxAtual().
 export function pintarLista(box, filtrada, ctx) {
   if (!filtrada.length) {
-    box.innerHTML = emptyState('🌴', 'Nenhum afastamento', 'Nada a exibir para o filtro atual.');
+    box.innerHTML = emptyState(ico('afastamento', { tam: 32 }), 'Nenhum afastamento', 'Nada a exibir para o filtro atual.');
     return;
   }
   box.innerHTML = filtrada.map(a => item(a, ctx.perfil)).join('');
@@ -40,12 +41,12 @@ function item(a, perfil) {
   const acoes = perfil?.isAdmin ? `
     <div class="solic-acoes">
       ${cancelado ? `
-        <button class="mini-btn ok" data-reativar="${a.id}" aria-label="Reativar">↺</button>
-        <button class="mini-btn no" data-excluir="${a.id}" aria-label="Excluir definitivamente">🗑</button>`
+        <button class="mini-btn ok" data-reativar="${a.id}" aria-label="Reativar">${ico('atualizar')}</button>
+        <button class="mini-btn no" data-excluir="${a.id}" aria-label="Excluir definitivamente">${ico('excluir')}</button>`
       : `
-        ${importado ? `<button class="mini-btn ok" data-confirmar="${a.id}" aria-label="Confirmar">✓</button>` : ''}
-        <button class="mini-btn" data-edit="${a.id}" aria-label="Editar">✎</button>
-        <button class="mini-btn no" data-cancelar="${a.id}" aria-label="Cancelar">✕</button>`}
+        ${importado ? `<button class="mini-btn ok" data-confirmar="${a.id}" aria-label="Confirmar">${ico('ok')}</button>` : ''}
+        <button class="mini-btn" data-edit="${a.id}" aria-label="Editar">${ico('editar')}</button>
+        <button class="mini-btn no" data-cancelar="${a.id}" aria-label="Cancelar">${ico('fechar')}</button>`}
     </div>` : '';
   return `<div class="solic ${cancelado ? 'inativo' : ''}" style="border-left:3px solid ${esc(cor)}">
     <div class="solic-main">

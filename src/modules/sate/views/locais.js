@@ -9,6 +9,7 @@ import { esc, val, checked, falha } from '../../../shared/dom.js';
 import { emptyState } from '../../../shared/ui/feedback.js';
 import { confirmar } from '../../../shared/ui/confirmar.js';
 import { toast } from '../../../shared/ui/toast.js';
+import { ico } from '../../../shared/ui/icones.js';
 
 let ctx = null;
 
@@ -25,7 +26,7 @@ export function render(contexto) {
 
   box.innerHTML = barra + (locais.length
     ? `<div class="cards">${locais.map(card).join('')}</div>`
-    : emptyState('📍', 'Nenhum local cadastrado', perfil?.isAdmin
+    : emptyState(ico('visita', { tam: 32 }), 'Nenhum local cadastrado', perfil?.isAdmin
         ? 'Clique em “Novo local” para começar. Os destinos das atividades já viram locais no backfill da migration 017.'
         : 'Peça a um administrador para cadastrar os destinos.'));
 
@@ -41,16 +42,16 @@ function card(l) {
   const maps = l.maps_url || linkMaps(l.latitude, l.longitude);
   const admin = ctx.perfil?.isAdmin ? `
     <div class="atv-acoes">
-      <button class="mini-btn" data-edit="${l.id}" aria-label="Editar">✎</button>
-      <button class="mini-btn no" data-del="${l.id}" aria-label="Excluir">🗑</button>
+      <button class="mini-btn" data-edit="${l.id}" aria-label="Editar">${ico('editar')}</button>
+      <button class="mini-btn no" data-del="${l.id}" aria-label="Excluir">${ico('excluir')}</button>
     </div>` : '';
   return `<article class="card atv-card ${l.ativo ? '' : 'inativo'}">
-    <div class="card-top"><h3>📍 ${esc(l.nome)}</h3>${admin}</div>
+    <div class="card-top"><h3>${ico('visita', { tam: 16 })} ${esc(l.nome)}</h3>${admin}</div>
     ${l.endereco ? `<div class="addr">${esc(l.endereco)}</div>` : ''}
     ${l.desembarque ? `<div class="atv-field"><b>Desembarque:</b> ${esc(l.desembarque)}</div>` : ''}
     <div class="tags">
       ${l.ativo ? '' : '<span class="tag eja">Inativo</span>'}
-      ${(l.latitude != null && l.longitude != null) ? '<span class="tag">📌 Geocodado</span>' : ''}
+      ${(l.latitude != null && l.longitude != null) ? `<span class="tag">${ico('visita', { tam: 12 })} Geocodado</span>` : ''}
       ${maps ? `<a class="tag" href="${esc(maps)}" target="_blank" rel="noopener">ver no mapa</a>` : ''}
     </div>
   </article>`;

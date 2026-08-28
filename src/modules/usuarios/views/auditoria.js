@@ -11,6 +11,7 @@ import { esc } from '../../../shared/dom.js';
 import { fmtDataHora, hojeISO, addDias } from '../../../shared/format.js';
 import { loading, emptyState, erroBox } from '../../../shared/ui/feedback.js';
 import { drawerHtml, drawerHead, montarDrawer, abrirDrawer } from '../../../shared/ui/drawer.js';
+import { ico } from '../../../shared/ui/icones.js';
 
 const OP_TAG = { INSERT: 'st-confirmado', UPDATE: 'st-em_analise', DELETE: 'st-negado' };
 
@@ -30,7 +31,7 @@ export async function render(ctx) {
         <option value="">Todas</option>
         ${Object.entries(OPERACOES).map(([k, v]) => `<option value="${k}">${esc(v)}</option>`).join('')}
       </select></label>
-      <label class="search compacta">👤 <input id="au-autor" type="search" placeholder="autor…" /></label>
+      <label class="search compacta">${ico('servidor', { tam: 14 })} <input id="au-autor" type="search" placeholder="autor…" /></label>
       <span class="count" id="au-count"></span>
     </div>
     <div id="au-lista">${loading()}</div>
@@ -62,7 +63,7 @@ async function carregar() {
 
   document.getElementById('au-count').textContent = `${lista.length} registro(s)`;
   if (!lista.length) {
-    box.innerHTML = emptyState('🗂️', 'Nada no período', 'Ajuste os filtros — ou ninguém alterou nada por aqui.');
+    box.innerHTML = emptyState(ico('documento', { tam: 32 }), 'Nada no período', 'Ajuste os filtros — ou ninguém alterou nada por aqui.');
     return;
   }
   box.innerHTML = lista.map(item).join('');
@@ -87,7 +88,7 @@ function item(e) {
         <span class="tag ${OP_TAG[e.operacao] || ''}">${esc(OPERACOES[e.operacao] || e.operacao)}</span>
       </div>
       <div class="di-meta">${esc(resumo(e))}</div>
-      <div class="di-meta">${esc(fmtDataHora(e.criado_em))} · 👤 ${esc(e.autor || '—')}</div>
+      <div class="di-meta">${esc(fmtDataHora(e.criado_em))} · ${ico('servidor', { tam: 12 })} ${esc(e.autor || '—')}</div>
     </div>
   </div>`;
 }

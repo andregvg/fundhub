@@ -10,6 +10,7 @@ import { getViagensDoDia, PERIODOS } from '../sate/sate.model.js';
 import { esc } from '../../shared/dom.js';
 import { hojeISO, fmtData } from '../../shared/format.js';
 import { loading, emptyState, erroBox } from '../../shared/ui/feedback.js';
+import { ico } from '../../shared/ui/icones.js';
 
 let dataSel = hojeISO();
 
@@ -20,11 +21,11 @@ export async function render(app) {
       <p>Viagens confirmadas do dia, prontas para envio à empresa de transporte.</p>
     </div>
     <div class="toolbar no-print">
-      <label class="search compacta">📅
+      <label class="search compacta">${ico('calendario', { tam: 14 })}
         <input id="pv-data" type="date" value="${dataSel}" />
       </label>
       <span class="count" id="pv-count"></span>
-      <button id="pv-print" class="btn-primary">🖨 Imprimir</button>
+      <button id="pv-print" class="btn-primary">${ico('imprimir')} Imprimir</button>
     </div>
     <div id="pv-body">${loading()}</div>`;
 
@@ -42,7 +43,7 @@ async function carregar() {
   document.getElementById('pv-count').textContent = `${lista.length} viagem(ns)`;
 
   if (!lista.length) {
-    body.innerHTML = emptyState('🚌', 'Sem viagens confirmadas',
+    body.innerHTML = emptyState(ico('transporte', { tam: 32 }), 'Sem viagens confirmadas',
       `Nenhuma solicitação confirmada para ${esc(fmtData(dataSel))}.`);
     return;
   }
@@ -77,7 +78,7 @@ function linha(s) {
       <div><span class="pv-lbl">Horários (ida → volta)</span>${esc(horarios)}</div>
       <div><span class="pv-lbl">Turma(s)</span>${esc(s.turmas || '—')}</div>
       <div><span class="pv-lbl">Alunos</span>${esc(s.qtd_alunos ?? '—')}</div>
-      <div><span class="pv-lbl">Ônibus</span>${esc(s.qtd_onibus ?? '—')}${s.qtd_cadeirante > 0 ? ` · ♿ ${esc(s.qtd_cadeirante)}` : ''}</div>
+      <div><span class="pv-lbl">Ônibus</span>${esc(s.qtd_onibus ?? '—')}${s.qtd_cadeirante > 0 ? ` · ${ico('acessibilidade', { tam: 12 })} ${esc(s.qtd_cadeirante)}` : ''}</div>
       <div class="pv-wide"><span class="pv-lbl">Contato</span>${esc(s.contato_professor || '—')}</div>
     </div>
   </div>`;

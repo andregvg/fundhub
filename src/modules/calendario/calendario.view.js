@@ -10,6 +10,7 @@ import { MESES, DOW, hojeISO, fmtData } from '../../shared/format.js';
 import { loading, erroBox } from '../../shared/ui/feedback.js';
 import { drawerHtml, drawerHead, montarDrawer, abrirDrawer, fecharDrawer } from '../../shared/ui/drawer.js';
 import { toast } from '../../shared/ui/toast.js';
+import { ico } from '../../shared/ui/icones.js';
 
 const agora = new Date();
 let ano = agora.getFullYear(), mes = agora.getMonth() + 1;   // mes 1-12
@@ -34,7 +35,7 @@ export async function render(app, ctx = {}) {
         <span><i class="lg lg-evento"></i> evento</span>
         <span><i class="lg lg-bloq"></i> bloqueia extraclasse</span>
       </div>
-      ${perfil?.isAdmin ? `<button class="mini-btn" id="cal-importar">⭱ Importar</button>` : ''}
+      ${perfil?.isAdmin ? `<button class="mini-btn" id="cal-importar">${ico('atualizar')} Importar</button>` : ''}
     </div>
     <div id="cal-grid">${loading()}</div>
     ${drawerHtml()}`;
@@ -83,8 +84,8 @@ function pintar() {
       <div class="cal-num">${dia}</div>
       ${d?.evento ? `<div class="cal-ev">${esc(d.evento)}</div>` : ''}
       <div class="cal-marks">
-        ${d?.bloqueia_extraclasse ? '<span title="Bloqueia extraclasse">🚫</span>' : ''}
-        ${d?.bloqueia_afastamento ? '<span title="Não conceder afastamentos">🌴</span>' : ''}
+        ${d?.bloqueia_extraclasse ? `<span title="Bloqueia extraclasse">${ico('erro', { tam: 12 })}</span>` : ''}
+        ${d?.bloqueia_afastamento ? `<span title="Não conceder afastamentos">${ico('afastamento', { tam: 12 })}</span>` : ''}
       </div>
     </div>`;
   }

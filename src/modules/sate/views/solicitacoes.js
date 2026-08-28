@@ -13,6 +13,7 @@ import { loading, emptyState, erroBox } from '../../../shared/ui/feedback.js';
 import { criarFiltroSegmento, indexarUnidades } from '../../../shared/ui/filtro-segmento.js';
 import { confirmar } from '../../../shared/ui/confirmar.js';
 import { toast } from '../../../shared/ui/toast.js';
+import { ico } from '../../../shared/ui/icones.js';
 
 const FILTROS = ['', 'solicitado', 'em_analise', 'confirmado', 'negado'];
 
@@ -64,11 +65,11 @@ function pintar() {
   const vis = lista.filter(noSegmento);
 
   if (!lista.length) {
-    el.innerHTML = emptyState('📭', 'Nenhuma solicitação', 'Crie uma na aba “Nova solicitação”.');
+    el.innerHTML = emptyState(ico('vazio', { tam: 32 }), 'Nenhuma solicitação', 'Crie uma na aba “Nova solicitação”.');
     return;
   }
   el.innerHTML = vis.map(item).join('')
-    || emptyState('🔎', 'Nenhuma solicitação neste segmento', 'Ajuste o filtro de segmento acima.');
+    || emptyState(ico('buscar', { tam: 32 }), 'Nenhuma solicitação neste segmento', 'Ajuste o filtro de segmento acima.');
   el.querySelectorAll('[data-acao]').forEach(b =>
     b.addEventListener('click', () => mudarStatus(b.dataset.id, b.dataset.acao)));
 }
@@ -86,7 +87,7 @@ function item(s) {
   const acoes = (ctx.perfil?.isAdmin && s.status !== 'cancelado') ? `
     <div class="solic-acoes">
       ${s.status !== 'em_analise' ? botao(s.id, 'em_analise', 'Em análise') : ''}
-      ${s.qtd_cadeirante > 0 && s.status !== 'aguardando_transporte_adaptado' ? botao(s.id, 'aguardando_transporte_adaptado', '♿ Adaptado') : ''}
+      ${s.qtd_cadeirante > 0 && s.status !== 'aguardando_transporte_adaptado' ? botao(s.id, 'aguardando_transporte_adaptado', ico('acessibilidade', { tam: 12 }) + ' Adaptado') : ''}
       ${s.status !== 'confirmado' ? botao(s.id, 'confirmado', 'Confirmar', 'ok') : ''}
       ${s.status !== 'negado' ? botao(s.id, 'negado', 'Negar', 'no') : ''}
     </div>` : '';
@@ -102,7 +103,7 @@ function item(s) {
         ${s.turmas ? '· ' + esc(s.turmas) : ''}
         ${s.qtd_alunos ? '· ' + esc(s.qtd_alunos) + ' alunos' : ''}
         ${s.qtd_onibus ? '· ' + esc(s.qtd_onibus) + ' ônibus' : ''}
-        ${s.qtd_cadeirante > 0 ? '· ♿ ' + esc(s.qtd_cadeirante) : ''}</div>
+        ${s.qtd_cadeirante > 0 ? '· ' + ico('acessibilidade', { tam: 12 }) + ' ' + esc(s.qtd_cadeirante) : ''}</div>
       ${s.destino_nome ? `<div class="di-meta">Destino: ${esc(s.destino_nome)}${s.destino_endereco ? ' — ' + esc(s.destino_endereco) : ''}</div>` : ''}
       ${horarios ? `<div class="di-meta">Horário: ${esc(horarios)}</div>` : ''}
       ${s.contato_professor ? `<div class="di-meta">Contato: ${esc(s.contato_professor)}</div>` : ''}

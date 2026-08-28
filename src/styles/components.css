@@ -398,7 +398,6 @@ a.tile:hover {
   border-radius: var(--radius);
   box-shadow: var(--shadow);
 }
-.stat-ico { font-size: 26px; }
 .stat-num { font-size: 26px; font-weight: 800; line-height: 1; letter-spacing: -.02em; }
 .stat-label { margin-top: 3px; color: var(--muted); font-size: 12.5px; }
 
@@ -523,7 +522,6 @@ input[type="checkbox"] { width: 18px; height: 18px; }
   border-radius: var(--radius);
   box-shadow: var(--shadow);
 }
-.auth-mark { font-size: 40px; }
 .auth-card h1 { margin: 8px 0 2px; font-size: 25px; letter-spacing: -.02em; }
 .auth-card h1 .hub { color: var(--brand); }
 .auth-sub { margin: 0 0 20px; color: var(--muted); font-size: 14px; }

@@ -5,6 +5,7 @@ import { vinculosAbertos, lotacaoDe } from '../servidores.model.js';
 import { rotulaCargo } from '../vinculos.model.js';
 import { esc, norm } from '../../../shared/dom.js';
 import { emptyState } from '../../../shared/ui/feedback.js';
+import { ico } from '../../../shared/ui/icones.js';
 
 function combina(s, ctx) {
   const { filtro, seg, idxUnidades, filtroUnidade } = ctx;
@@ -42,12 +43,12 @@ export function pintarLista(box, lista, ctx) {
   document.getElementById('sv-count').textContent = `${vis.length} de ${lista.length} servidores`;
 
   if (!lista.length) {
-    box.innerHTML = emptyState('👥', 'Nenhum servidor cadastrado',
+    box.innerHTML = emptyState(ico('equipe', { tam: 32 }), 'Nenhum servidor cadastrado',
       ctx.perfil?.isAdmin ? 'Clique em “Novo servidor” para começar.' : 'Peça a um administrador para cadastrar a equipe.');
     return;
   }
   box.innerHTML = vis.map(card).join('')
-    || emptyState('🔎', 'Nenhum servidor encontrado', 'Ajuste a busca ou os filtros.');
+    || emptyState(ico('buscar', { tam: 32 }), 'Nenhum servidor encontrado', 'Ajuste a busca ou os filtros.');
   box.querySelectorAll('.card').forEach(c =>
     c.addEventListener('click', () => ctx.abrirDetalhe(c.dataset.id)));
 }
@@ -58,9 +59,9 @@ function card(s) {
     .map(c => `<span class="seg">${esc(c)}</span>`).join('');
 
   const lugares = abertos.length
-    ? abertos.map(v => `<span class="tag">${v.unidade?.tipo === 'sede' ? '🏛 ' : ''}${
+    ? abertos.map(v => `<span class="tag">${v.unidade?.tipo === 'sede' ? ico('sede', { tam: 12 }) + ' ' : ''}${
         esc(v.unidade?.apelido || v.unidade?.nome || '—')}</span>`).join('')
-    : `<span class="tag eja">⚠️ Sem vínculo</span>`;
+    : `<span class="tag eja">${ico('atencao', { tam: 12 })} Sem vínculo</span>`;
 
   // Nome completo em caixa alta (como nos sistemas oficiais); o
   // apelido logo abaixo, em caixa normal — não precisa de destaque.

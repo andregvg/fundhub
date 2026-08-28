@@ -7,11 +7,12 @@
 // ============================================================
 import { SECOES } from './docs.content.js';
 import { esc } from '../../shared/dom.js';
+import { ico } from '../../shared/ui/icones.js';
 
 export async function render(app, { perfil } = {}) {
   const indice = SECOES.map(s => `
     <a class="doc-toc-item" href="#/docs" data-ir="${s.id}">
-      <span class="doc-toc-ico" aria-hidden="true">${s.ico}</span>
+      <span class="doc-toc-ico" aria-hidden="true">${ico(s.ico, { tam: 16 })}</span>
       <span class="doc-toc-txt">
         <b>${esc(s.titulo)}</b>
         <small>${esc(s.resumo)}</small>
@@ -20,7 +21,7 @@ export async function render(app, { perfil } = {}) {
 
   const secoes = SECOES.map(s => `
     <section class="doc-sec" id="doc-${s.id}">
-      <h2><span aria-hidden="true">${s.ico}</span> ${esc(s.titulo)}</h2>
+      <h2><span aria-hidden="true">${ico(s.ico, { tam: 18 })}</span> ${esc(s.titulo)}</h2>
       ${s.html}
     </section>`).join('');
 
@@ -32,7 +33,7 @@ export async function render(app, { perfil } = {}) {
     </div>
 
     <div class="doc-restrito">
-      🔒 Visível apenas para administradores da SME${perfil?.email ? ` · você está como <b>${esc(perfil.email)}</b>` : ''}.
+      ${ico('restrito', { tam: 14 })} Visível apenas para administradores da SME${perfil?.email ? ` · você está como <b>${esc(perfil.email)}</b>` : ''}.
     </div>
 
     <div class="doc-layout">

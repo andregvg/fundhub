@@ -16,6 +16,7 @@ import { drawerHtml, drawerHead, montarDrawer, abrirDrawer, fecharDrawer } from 
 import { criarFiltroSegmento } from '../../shared/ui/filtro-segmento.js';
 import { confirmar } from '../../shared/ui/confirmar.js';
 import { toast } from '../../shared/ui/toast.js';
+import { ico } from '../../shared/ui/icones.js';
 
 let perfil = null, unidades = [], lista = [];
 let filtro = { status: '', tipo: '', q: '' };
@@ -30,7 +31,7 @@ export async function render(app, ctx = {}) {
       <p>Projetos e pesquisas ofertados às escolas, anuências e manifestação de interesse.</p>
     </div>
     <div class="toolbar">
-      <label class="search">🔎
+      <label class="search">${ico('buscar')}
         <input id="pj-q" type="search" placeholder="Buscar por título, proponente, público-alvo…" autocomplete="off" />
       </label>
       <button id="pj-novo" class="btn-primary" hidden>+ Novo projeto</button>
@@ -93,11 +94,11 @@ function pintar() {
 
   const box = document.getElementById('pj-cards');
   if (!lista.length) {
-    box.innerHTML = emptyState('🔬', 'Nenhum projeto cadastrado',
+    box.innerHTML = emptyState(ico('projeto', { tam: 32 }), 'Nenhum projeto cadastrado',
       perfil?.isAdmin ? 'Clique em “Novo projeto”.' : 'Ainda não há projetos ofertados.');
     return;
   }
-  box.innerHTML = vis.map(card).join('') || emptyState('🔎', 'Nada encontrado', 'Ajuste a busca.');
+  box.innerHTML = vis.map(card).join('') || emptyState(ico('buscar', { tam: 32 }), 'Nada encontrado', 'Ajuste a busca.');
   box.querySelectorAll('.card').forEach(c => c.addEventListener('click', () => detalhe(c.dataset.id)));
 }
 
@@ -111,7 +112,7 @@ function card(p) {
     ${p.proponente ? `<div class="addr">${esc(p.proponente)}</div>` : ''}
     <div class="tags">
       <span class="tag">${esc(TIPOS[p.tipo] || p.tipo)}</span>
-      ${p.anuencia ? '<span class="tag bus">📄 Anuência</span>' : ''}
+      ${p.anuencia ? `<span class="tag bus">${ico('documento', { tam: 12 })} Anuência</span>` : ''}
       ${periodo ? `<span class="tag">${esc(periodo)}</span>` : ''}
     </div>
   </article>`;
@@ -125,8 +126,8 @@ async function detalhe(id) {
   const periodo = [p.inicio, p.fim].filter(Boolean).map(fmtData).join(' – ');
   const acoes = perfil?.isAdmin ? `
     <div class="drawer-acoes">
-      <button class="mini-btn" id="pj-edit">✎ Editar</button>
-      <button class="mini-btn no" id="pj-del">🗑 Excluir</button>
+      <button class="mini-btn" id="pj-edit">${ico('editar')} Editar</button>
+      <button class="mini-btn no" id="pj-del">${ico('excluir')} Excluir</button>
     </div>` : '';
 
   abrirDrawer(`
@@ -171,7 +172,7 @@ async function pintarInteresses(p) {
       <div class="pname">${esc(i.unidade?.apelido || i.unidade?.nome || '—')}</div>
       <div class="pmeta">
         ${i.observacao ? `<span>${esc(i.observacao)}</span>` : ''}
-        ${perfil?.isAdmin ? `<div class="vinc-acoes"><button class="mini-btn no" data-del-int="${i.id}" aria-label="Remover interesse">🗑</button></div>` : ''}
+        ${perfil?.isAdmin ? `<div class="vinc-acoes"><button class="mini-btn no" data-del-int="${i.id}" aria-label="Remover interesse">${ico('excluir')}</button></div>` : ''}
       </div>
     </div>`).join('');
   box.querySelectorAll('[data-del-int]').forEach(b =>
