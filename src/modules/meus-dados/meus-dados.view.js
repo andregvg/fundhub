@@ -24,10 +24,11 @@ import { recarregarPerfil } from '../../core/perfil.js';
 import { mapaAtual, rotulaNivel, OCULTO } from '../../core/permissoes.js';
 import { MODULOS, chavePerm } from '../../core/registry.js';
 import { rotuloSelecao } from '../../core/segmentos.js';
-import { esc, falha } from '../../shared/dom.js';
+import { esc } from '../../shared/dom.js';
 import { fmtData, fmtDataHora } from '../../shared/format.js';
 import { erroBox, emptyState } from '../../shared/ui/feedback.js';
 import { phonesEditorHtml, montarPhonesEditor, lerPhonesEditor } from '../../shared/ui/phones.js';
+import { toast } from '../../shared/ui/toast.js';
 import { ico } from '../../shared/ui/icones.js';
 import { signOut } from '../../core/auth.js';
 
@@ -186,9 +187,10 @@ async function salvarConta(e) {
   try {
     await salvarMeuNome(perfil.email, document.getElementById('md-nome').value.trim());
     await recarregarPerfil();
-    msg.classList.add('ok'); msg.textContent = 'Salvo.';
+    toast({ titulo: 'Dados atualizados', texto: 'Nome de exibição', tipo: 'sucesso' });
   } catch (err) {
-    falha(msg, 'Não foi possível salvar: ' + (err.message || err));
+    // Erro de gravação é resultado da ação, não do campo: vai de toast.
+    toast({ titulo: 'Não foi possível salvar', texto: err.message || String(err), tipo: 'erro' });
   } finally {
     btn.disabled = false; btn.textContent = 'Salvar';
   }
@@ -207,9 +209,10 @@ async function salvarServidor(e) {
     await sincronizarTelefones(
       { servidorId: servidor.id },
       lerPhonesEditor(document.getElementById('md-servidor')));
-    msg.classList.add('ok'); msg.textContent = 'Contatos atualizados.';
+    toast({ titulo: 'Dados atualizados', texto: 'Contatos', tipo: 'sucesso' });
   } catch (err) {
-    falha(msg, 'Não foi possível salvar: ' + (err.message || err));
+    // Erro de gravação é resultado da ação, não do campo: vai de toast.
+    toast({ titulo: 'Não foi possível salvar', texto: err.message || String(err), tipo: 'erro' });
   } finally {
     btn.disabled = false; btn.textContent = 'Salvar contatos';
   }

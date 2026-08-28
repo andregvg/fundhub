@@ -112,8 +112,15 @@ async function salvar(e, s, vinculo, ctx, voltar) {
     // recarregado para quem chamou reconstruir a tela a partir dele,
     // em vez de reabrir com o `s`/`ctx` de antes da edição.
     if (voltar) voltar(novoCtx); else novoCtx.abrirDetalhe(s.id);
+    // "Excluir" o vínculo, neste domínio, é preencher o Término - foi
+    // isso que fechou agora se antes estava em aberto e passou a ter fim.
+    const encerrou = vinculo && !vinculo.fim && fim;
+    const titulo = !vinculo ? 'Vínculo criado' : (encerrou ? 'Vínculo encerrado' : 'Vínculo atualizado');
+    toast({ titulo, texto: s.nome, tipo: 'sucesso' });
   } catch (err) {
-    falha(msg, err.message || String(err));
+    // Erro de gravação é resultado da ação, não do campo: vai de
+    // toast, que sobrevive à gaveta trocar de visão.
+    toast({ titulo: 'Não foi possível salvar', texto: err.message || String(err), tipo: 'erro' });
     btn.disabled = false; btn.textContent = vinculo ? 'Salvar' : 'Vincular';
   }
 }
@@ -128,7 +135,8 @@ export async function removerVinculo(s, vinculoId, ctx) {
     await excluirVinculo(vinculoId);
     const novoCtx = await ctx.recarregar();
     novoCtx.abrirDetalhe(s.id);
+    toast({ titulo: 'Vínculo excluído', texto: s.nome, tipo: 'sucesso' });
   } catch (err) {
-    toast({ titulo: 'Não foi possível excluir', texto: err.message || String(err), tipo: 'no' });
+    toast({ titulo: 'Não foi possível excluir', texto: err.message || String(err), tipo: 'erro' });
   }
 }

@@ -88,8 +88,11 @@ async function salvarBloco(e, bloco, { servidorId, unidadeId, dia, recarregar })
     else await criarBloco(payload);
     fecharDrawer();
     await recarregar();
+    toast({ titulo: bloco ? 'Bloco atualizado' : 'Bloco adicionado', texto: `${inicio}-${fim}`, tipo: 'sucesso' });
   } catch (err) {
-    falha(msg, 'Erro: ' + (err.message || err));
+    // Erro de gravação é resultado da ação, não do campo: vai de
+    // toast, que sobrevive à gaveta fechar.
+    toast({ titulo: 'Não foi possível salvar', texto: err.message || String(err), tipo: 'erro' });
     btn.disabled = false; btn.textContent = bloco ? 'Salvar' : 'Adicionar';
   }
 }
@@ -101,7 +104,8 @@ async function removerBloco(bloco, recarregar) {
     await excluirBloco(bloco.id);
     fecharDrawer();
     await recarregar();
+    toast({ titulo: 'Bloco removido', texto: `${hhmm(bloco.inicio)}-${hhmm(bloco.fim)}`, tipo: 'sucesso' });
   } catch (err) {
-    toast({ titulo: 'Não foi possível excluir', texto: err.message || String(err), tipo: 'no' });
+    toast({ titulo: 'Não foi possível excluir', texto: err.message || String(err), tipo: 'erro' });
   }
 }

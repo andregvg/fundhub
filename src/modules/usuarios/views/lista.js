@@ -250,8 +250,11 @@ async function salvar(e, p, lerSegs, lerExcecoes) {
     if (p) await atualizarPerfil(p.email, payload);
     else await criarPerfil(payload);
     fecharDrawer(); carregar();
+    toast({ titulo: p ? 'Acesso atualizado' : 'Acesso adicionado', texto: email, tipo: 'sucesso' });
   } catch (err) {
-    falha(msg, err.message || String(err));
+    // Erro de gravação é resultado da ação, não do campo: vai de
+    // toast, que sobrevive à gaveta fechar.
+    toast({ titulo: 'Não foi possível salvar', texto: err.message || String(err), tipo: 'erro' });
     btn.disabled = false; btn.textContent = p ? 'Salvar' : 'Adicionar';
   }
 }
@@ -260,6 +263,11 @@ async function remover(p) {
   const ok = await confirmar(`Remover o acesso de "${p.email}"?`,
     { detalhe: 'Ele deixará de conseguir entrar no FundHub.', textoOk: 'Remover acesso', perigo: true });
   if (!ok) return;
-  try { await excluirPerfil(p.email); carregar(); }
-  catch (err) { toast({ titulo: 'Não foi possível remover', texto: err.message || String(err), tipo: 'no' }); }
+  try {
+    await excluirPerfil(p.email);
+    carregar();
+    toast({ titulo: 'Acesso removido', texto: p.email, tipo: 'sucesso' });
+  } catch (err) {
+    toast({ titulo: 'Não foi possível remover', texto: err.message || String(err), tipo: 'erro' });
+  }
 }

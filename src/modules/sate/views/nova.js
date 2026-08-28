@@ -11,6 +11,7 @@ import {
 import { getDiaCalendario } from '../../calendario/calendario.model.js';
 import { esc, val, falha } from '../../../shared/dom.js';
 import { hojeISO, addDias, fmtData, isUuid } from '../../../shared/format.js';
+import { toast } from '../../../shared/ui/toast.js';
 
 let modo = 'catalogo';   // 'catalogo' | 'livre'
 let ctx = null;
@@ -189,12 +190,17 @@ async function enviar(e) {
     observacao: val('f-obs') || null,
   };
 
+  const escola = (ctx.unidades || []).find(u => (u.id || u.numero) === escId)?.nome || '';
+
   const btn = document.getElementById('f-submit'); btn.disabled = true; btn.textContent = 'Enviando…';
   try {
     await criarSolicitacao(payload);
     ctx.irPara('solicitacoes');
+    toast({ titulo: 'Solicitação enviada', texto: escola, tipo: 'sucesso' });
   } catch (err) {
-    falha(msg, 'Não foi possível enviar: ' + (err.message || err));
+    // Erro de gravação é resultado da ação, não do campo: vai de
+    // toast, que sobrevive à troca de aba.
+    toast({ titulo: 'Não foi possível enviar', texto: err.message || String(err), tipo: 'erro' });
     btn.disabled = false; btn.textContent = 'Enviar solicitação';
   }
 }

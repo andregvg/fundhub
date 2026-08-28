@@ -74,30 +74,54 @@ function ligarAcoes(box, ctx) {
 
 async function confirmarImportado(a, ctx) {
   if (!a) return;
-  try { await confirmarAfastamento(a.id); ctx.carregar(); }
-  catch (err) { toast({ titulo: 'Não foi possível confirmar', texto: err.message || String(err), tipo: 'no' }); }
+  const nome = a.servidor?.nome || '';
+  try {
+    await confirmarAfastamento(a.id);
+    ctx.carregar();
+    toast({ titulo: 'Afastamento confirmado', texto: nome, tipo: 'sucesso' });
+  } catch (err) {
+    toast({ titulo: 'Não foi possível confirmar', texto: err.message || String(err), tipo: 'erro' });
+  }
 }
 
 async function cancelar(a, ctx) {
   if (!a) return;
-  const ok = await confirmar(`Cancelar este afastamento de "${a.servidor?.nome || 'servidor'}"?`,
+  const nome = a.servidor?.nome || '';
+  const ok = await confirmar(`Cancelar este afastamento de "${nome || 'servidor'}"?`,
     { detalhe: 'Ele sai das visões ativas, mas o histórico é preservado.', textoOk: 'Cancelar afastamento', perigo: true });
   if (!ok) return;
-  try { await cancelarAfastamento(a.id); ctx.carregar(); }
-  catch (err) { toast({ titulo: 'Não foi possível cancelar', texto: err.message || String(err), tipo: 'no' }); }
+  try {
+    await cancelarAfastamento(a.id);
+    ctx.carregar();
+    toast({ titulo: 'Afastamento cancelado', texto: nome, tipo: 'sucesso' });
+  } catch (err) {
+    toast({ titulo: 'Não foi possível cancelar', texto: err.message || String(err), tipo: 'erro' });
+  }
 }
 
 async function reativar(a, ctx) {
   if (!a) return;
-  try { await reativarAfastamento(a); ctx.carregar(); }
-  catch (err) { toast({ titulo: 'Não foi possível reativar', texto: err.message || String(err), tipo: 'no' }); }
+  const nome = a.servidor?.nome || '';
+  try {
+    await reativarAfastamento(a);
+    ctx.carregar();
+    toast({ titulo: 'Afastamento reativado', texto: nome, tipo: 'sucesso' });
+  } catch (err) {
+    toast({ titulo: 'Não foi possível reativar', texto: err.message || String(err), tipo: 'erro' });
+  }
 }
 
 async function excluir(a, ctx) {
   if (!a) return;
+  const nome = a.servidor?.nome || '';
   const ok = await confirmar('Excluir DEFINITIVAMENTE este afastamento?',
     { detalhe: 'Esta ação não pode ser desfeita (o cancelamento preserva o histórico).', textoOk: 'Excluir', perigo: true });
   if (!ok) return;
-  try { await excluirAfastamento(a.id); ctx.carregar(); }
-  catch (err) { toast({ titulo: 'Não foi possível excluir', texto: err.message || String(err), tipo: 'no' }); }
+  try {
+    await excluirAfastamento(a.id);
+    ctx.carregar();
+    toast({ titulo: 'Afastamento excluído', texto: nome, tipo: 'sucesso' });
+  } catch (err) {
+    toast({ titulo: 'Não foi possível excluir', texto: err.message || String(err), tipo: 'erro' });
+  }
 }

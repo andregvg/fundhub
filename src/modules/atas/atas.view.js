@@ -219,8 +219,11 @@ async function salvar(e, a) {
     if (a) await atualizarAta(a.id, payload);
     else await criarAta(payload);
     fecharDrawer(); carregar();
+    toast({ titulo: a ? 'Ata atualizada' : 'Ata registrada', texto: payload.assunto, tipo: 'sucesso' });
   } catch (err) {
-    falha(msg, 'Erro: ' + (err.message || err));
+    // Erro de gravação é resultado da ação, não do campo: vai de
+    // toast, que sobrevive à gaveta fechar.
+    toast({ titulo: 'Não foi possível salvar', texto: err.message || String(err), tipo: 'erro' });
     btn.disabled = false; btn.textContent = a ? 'Salvar' : 'Registrar';
   }
 }
@@ -229,6 +232,11 @@ async function remover(a) {
   const ok = await confirmar(`Excluir a ata nº ${a.numero}/${a.ano}?`,
     { detalhe: 'Esta ação não pode ser desfeita.', textoOk: 'Excluir', perigo: true });
   if (!ok) return;
-  try { await excluirAta(a.id); fecharDrawer(); carregar(); }
-  catch (err) { toast({ titulo: 'Não foi possível excluir', texto: err.message || String(err), tipo: 'no' }); }
+  try {
+    await excluirAta(a.id);
+    fecharDrawer(); carregar();
+    toast({ titulo: 'Ata removida', texto: a.assunto, tipo: 'sucesso' });
+  } catch (err) {
+    toast({ titulo: 'Não foi possível excluir', texto: err.message || String(err), tipo: 'erro' });
+  }
 }

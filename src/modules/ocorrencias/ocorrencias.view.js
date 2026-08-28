@@ -260,8 +260,11 @@ async function salvar(e, o) {
     if (o) await atualizarOcorrencia(o.id, payload);
     else await criarOcorrencia(payload);
     fecharDrawer(); carregar();
+    toast({ titulo: o ? 'Ocorrência atualizada' : 'Ocorrência registrada', texto: payload.assunto, tipo: 'sucesso' });
   } catch (err) {
-    falha(msg, 'Erro: ' + (err.message || err));
+    // Erro de gravação é resultado da ação, não do campo: vai de
+    // toast, que sobrevive à gaveta fechar.
+    toast({ titulo: 'Não foi possível salvar', texto: err.message || String(err), tipo: 'erro' });
     btn.disabled = false; btn.textContent = o ? 'Salvar' : 'Registrar';
   }
 }
@@ -273,7 +276,8 @@ async function remover(o) {
   try {
     await excluirOcorrencia(o.id);
     fecharDrawer(); carregar();
+    toast({ titulo: 'Ocorrência removida', texto: o.assunto, tipo: 'sucesso' });
   } catch (err) {
-    toast({ titulo: 'Não foi possível excluir', texto: err.message || String(err), tipo: 'no' });
+    toast({ titulo: 'Não foi possível excluir', texto: err.message || String(err), tipo: 'erro' });
   }
 }

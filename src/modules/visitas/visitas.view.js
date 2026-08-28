@@ -235,13 +235,18 @@ async function salvar(e, v) {
   };
   if (!payload.data) return falha(msg, 'Informe a data.');
 
+  const escola = unidades.find(u => (u.id || u.numero) === unidade_id)?.nome || '';
+
   const btn = document.getElementById('f-save'); btn.disabled = true; btn.textContent = 'Salvando…';
   try {
     if (v) await atualizarVisita(v.id, payload);
     else await criarVisita(payload);
     fecharDrawer(); carregar();
+    toast({ titulo: v ? 'Visita atualizada' : 'Visita agendada', texto: escola, tipo: 'sucesso' });
   } catch (err) {
-    falha(msg, 'Erro: ' + (err.message || err));
+    // Erro de gravação é resultado da ação, não do campo: vai de
+    // toast, que sobrevive à gaveta fechar.
+    toast({ titulo: 'Não foi possível salvar', texto: err.message || String(err), tipo: 'erro' });
     btn.disabled = false; btn.textContent = v ? 'Salvar' : 'Registrar';
   }
 }
@@ -250,6 +255,12 @@ async function remover(v) {
   const ok = await confirmar('Excluir este relatório de visita?',
     { detalhe: 'Esta ação não pode ser desfeita.', textoOk: 'Excluir', perigo: true });
   if (!ok) return;
-  try { await excluirVisita(v.id); fecharDrawer(); carregar(); }
-  catch (err) { toast({ titulo: 'Não foi possível excluir', texto: err.message || String(err), tipo: 'no' }); }
+  const escola = v.unidade?.apelido || v.unidade?.nome || '';
+  try {
+    await excluirVisita(v.id);
+    fecharDrawer(); carregar();
+    toast({ titulo: 'Visita cancelada', texto: escola, tipo: 'sucesso' });
+  } catch (err) {
+    toast({ titulo: 'Não foi possível excluir', texto: err.message || String(err), tipo: 'erro' });
+  }
 }

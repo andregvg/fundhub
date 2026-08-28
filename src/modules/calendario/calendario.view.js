@@ -5,7 +5,7 @@
 // Admin edita cada dia; os demais visualizam.
 // ============================================================
 import { getCalendarioMes, upsertDiaCalendario, upsertPeriodo, upsertDias, TIPOS_DIA } from './calendario.model.js';
-import { esc, falha, ok } from '../../shared/dom.js';
+import { esc, falha } from '../../shared/dom.js';
 import { MESES, DOW, hojeISO, fmtData } from '../../shared/format.js';
 import { loading, erroBox } from '../../shared/ui/feedback.js';
 import { drawerHtml, drawerHead, montarDrawer, abrirDrawer, fecharDrawer } from '../../shared/ui/drawer.js';
@@ -138,6 +138,7 @@ function abrirDia(iso) {
 async function salvar(e, iso) {
   e.preventDefault();
   const msg = document.getElementById('d-msg'); msg.className = 'auth-msg';
+  const novo = !dias[iso];
   const dia = {
     data: iso,
     letivo: document.getElementById('d-letivo').checked,
@@ -156,13 +157,17 @@ async function salvar(e, iso) {
       const n = await upsertPeriodo(dia, iso, ate);
       fecharDrawer();
       await carregar();               // recarrega o mês (o intervalo pode passar dele)
-      return void toast({ titulo: 'Intervalo aplicado', texto: `${n} dia(s) atualizado(s).`, tipo: 'ok' });
+      toast({ titulo: 'Intervalo aplicado', texto: `${n} dia(s) atualizado(s).`, tipo: 'sucesso' });
+      return;
     }
     await upsertDiaCalendario(dia);
     dias[iso] = dia;
     fecharDrawer(); pintar();
+    toast({ titulo: novo ? 'Dia gravado' : 'Dia atualizado', texto: fmtData(iso), tipo: 'sucesso' });
   } catch (err) {
-    falha(msg, 'Erro: ' + (err.message || err));
+    // Erro de gravação é resultado da ação, não do campo: vai de
+    // toast, que sobrevive à gaveta fechar.
+    toast({ titulo: 'Não foi possível salvar', texto: err.message || String(err), tipo: 'erro' });
     btn.disabled = false; btn.textContent = 'Salvar';
   }
 }
@@ -249,11 +254,17 @@ async function importar(e) {
   const btn = document.getElementById('imp-save'); btn.disabled = true; btn.textContent = 'Importando…';
   try {
     const n = await upsertDias(rows);
-    ok(msg, `${n} dia(s) importado(s)${erros.length ? ` · ${erros.length} linha(s) ignorada(s)` : ''}.`);
+    fecharDrawer();
     await carregar();
-    setTimeout(fecharDrawer, 1200);
+    toast({
+      titulo: 'Calendário importado',
+      texto: `${n} dia(s) importado(s)${erros.length ? ` · ${erros.length} linha(s) ignorada(s)` : ''}.`,
+      tipo: 'sucesso',
+    });
   } catch (err) {
-    falha(msg, 'Erro: ' + (err.message || err));
+    // Erro de gravação é resultado da ação, não do campo: vai de
+    // toast, que sobrevive à gaveta fechar.
+    toast({ titulo: 'Não foi possível importar', texto: err.message || String(err), tipo: 'erro' });
     btn.disabled = false; btn.textContent = 'Importar';
   }
 }

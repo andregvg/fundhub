@@ -136,7 +136,7 @@ async function salvarServidor(e, s, ctx) {
   ].filter(Boolean);
   if (fora.length) {
     toast({ titulo: `${fora.join(' e ')} fora do padrão`,
-            texto: 'Salvo assim mesmo — confira se está correto.', tipo: 'ok' });
+            texto: 'Salvo assim mesmo - confira se está correto.', tipo: 'atencao' });
   }
 
   const telefones = lerPhonesEditor(document.getElementById('sv-form'));
@@ -147,8 +147,11 @@ async function salvarServidor(e, s, ctx) {
     await sincronizarTelefones({ servidorId: id }, telefones);
     fecharDrawer();
     await ctx.recarregar();
+    toast({ titulo: s ? 'Servidor atualizado' : 'Servidor cadastrado', texto: payload.nome, tipo: 'sucesso' });
   } catch (err) {
-    falha(msg, 'Erro: ' + (err.message || err));
+    // Erro de gravação é resultado da ação, não do campo: vai de
+    // toast, que sobrevive à gaveta fechar.
+    toast({ titulo: 'Não foi possível salvar', texto: err.message || String(err), tipo: 'erro' });
     btn.disabled = false; btn.textContent = s ? 'Salvar' : 'Criar';
   }
 }
@@ -164,7 +167,8 @@ export async function removerServidor(s, ctx) {
     await excluirServidor(s.id);
     fecharDrawer();
     await ctx.recarregar();
+    toast({ titulo: 'Servidor removido', texto: s.nome, tipo: 'sucesso' });
   } catch (err) {
-    toast({ titulo: 'Não foi possível excluir', texto: err.message || String(err), tipo: 'no' });
+    toast({ titulo: 'Não foi possível excluir', texto: err.message || String(err), tipo: 'erro' });
   }
 }

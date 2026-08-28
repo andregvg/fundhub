@@ -10,6 +10,7 @@ import { esc, falha } from '../../../shared/dom.js';
 import { fmtData } from '../../../shared/format.js';
 import { drawerHead, abrirDrawer, fecharDrawer } from '../../../shared/ui/drawer.js';
 import { confirmar } from '../../../shared/ui/confirmar.js';
+import { toast } from '../../../shared/ui/toast.js';
 
 // `ctx`: { servidores, unidades, carregar } — ver afastamentos.view.js § ctxAtual().
 export function abrirForm(a, ctx) {
@@ -82,13 +83,18 @@ async function salvar(e, a, ctx) {
     }
   } catch (_) { /* sem calendário, segue */ }
 
+  const nomeServ = ctx.servidores.find(s => s.id === payload.servidor_id)?.nome || '';
+
   const btn = document.getElementById('f-save'); btn.disabled = true; btn.textContent = 'Salvando…';
   try {
     if (a) await atualizarAfastamento(a.id, payload);
     else await criarAfastamento(payload);
     fecharDrawer(); ctx.carregar();
+    toast({ titulo: a ? 'Afastamento atualizado' : 'Afastamento lançado', texto: nomeServ, tipo: 'sucesso' });
   } catch (err) {
-    falha(msg, 'Erro: ' + (err.message || err));
+    // Erro de gravação é resultado da ação, não do campo: vai de
+    // toast, que sobrevive à gaveta fechar.
+    toast({ titulo: 'Não foi possível salvar', texto: err.message || String(err), tipo: 'erro' });
     btn.disabled = false; btn.textContent = a ? 'Salvar' : 'Criar';
   }
 }

@@ -107,8 +107,11 @@ async function salvar(e, u, ctx) {
     await sincronizarTelefones({ unidadeId: id }, telefones);
     fecharDrawer();
     await ctx.recarregar();
+    toast({ titulo: u ? 'Escola atualizada' : 'Escola cadastrada', texto: payload.nome, tipo: 'sucesso' });
   } catch (err) {
-    falha(msg, 'Erro: ' + (err.message || err));
+    // Erro de gravação é resultado da ação, não do campo: vai de
+    // toast, que sobrevive à gaveta fechar.
+    toast({ titulo: 'Não foi possível salvar', texto: err.message || String(err), tipo: 'erro' });
     btn.disabled = false; btn.textContent = u ? 'Salvar' : 'Criar';
   }
 }
@@ -121,7 +124,8 @@ export async function removerEscola(u, ctx) {
     await excluirUnidade(u.id);
     fecharDrawer();
     await ctx.recarregar();
+    toast({ titulo: 'Escola removida', texto: u.nome, tipo: 'sucesso' });
   } catch (err) {
-    toast({ titulo: 'Não foi possível excluir', texto: err.message || String(err), tipo: 'no' });
+    toast({ titulo: 'Não foi possível excluir', texto: err.message || String(err), tipo: 'erro' });
   }
 }

@@ -177,8 +177,14 @@ async function pintarInteresses(p) {
     </div>`).join('');
   box.querySelectorAll('[data-del-int]').forEach(b =>
     b.addEventListener('click', async () => {
-      try { await removerInteresse(b.dataset.delInt); await pintarInteresses(p); }
-      catch (err) { toast({ titulo: 'Não foi possível remover', texto: err.message || String(err), tipo: 'no' }); }
+      const escola = b.closest('.person')?.querySelector('.pname')?.textContent || '';
+      try {
+        await removerInteresse(b.dataset.delInt);
+        await pintarInteresses(p);
+        toast({ titulo: 'Interesse removido', texto: escola, tipo: 'sucesso' });
+      } catch (err) {
+        toast({ titulo: 'Não foi possível remover', texto: err.message || String(err), tipo: 'erro' });
+      }
     }));
 }
 
@@ -209,14 +215,19 @@ function formInteresse(p) {
   document.getElementById('int-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const msg = document.getElementById('i-msg'); msg.className = 'auth-msg';
-    const unidade_id = document.getElementById('i-uni').value;
+    const sel = document.getElementById('i-uni');
+    const unidade_id = sel.value;
     if (!unidade_id) return falha(msg, 'Selecione a escola.');
+    const escola = sel.selectedOptions[0]?.textContent || '';
     const btn = document.getElementById('i-save'); btn.disabled = true; btn.textContent = 'Salvando…';
     try {
       await adicionarInteresse({ projeto_id: p.id, unidade_id, observacao: val('i-obs') || null });
       detalhe(p.id);   // reabre o detalhe já com o novo interesse
+      toast({ titulo: 'Interesse registrado', texto: escola, tipo: 'sucesso' });
     } catch (err) {
-      falha(msg, err.message || String(err));
+      // Erro de gravação é resultado da ação, não do campo: vai de
+      // toast, que sobrevive à troca de visão da gaveta.
+      toast({ titulo: 'Não foi possível registrar', texto: err.message || String(err), tipo: 'erro' });
       btn.disabled = false; btn.textContent = 'Registrar';
     }
   });
@@ -288,8 +299,11 @@ async function salvar(e, p) {
     if (p) await atualizarProjeto(p.id, payload);
     else await criarProjeto(payload);
     fecharDrawer(); carregar();
+    toast({ titulo: p ? 'Projeto atualizado' : 'Projeto cadastrado', texto: payload.titulo, tipo: 'sucesso' });
   } catch (err) {
-    falha(msg, 'Erro: ' + (err.message || err));
+    // Erro de gravação é resultado da ação, não do campo: vai de
+    // toast, que sobrevive à gaveta fechar.
+    toast({ titulo: 'Não foi possível salvar', texto: err.message || String(err), tipo: 'erro' });
     btn.disabled = false; btn.textContent = p ? 'Salvar' : 'Criar';
   }
 }
@@ -300,6 +314,11 @@ async function remover(p) {
     textoOk: 'Excluir', perigo: true,
   });
   if (!ok) return;
-  try { await excluirProjeto(p.id); fecharDrawer(); carregar(); }
-  catch (err) { toast({ titulo: 'Não foi possível excluir', texto: err.message || String(err), tipo: 'no' }); }
+  try {
+    await excluirProjeto(p.id);
+    fecharDrawer(); carregar();
+    toast({ titulo: 'Projeto removido', texto: p.titulo, tipo: 'sucesso' });
+  } catch (err) {
+    toast({ titulo: 'Não foi possível excluir', texto: err.message || String(err), tipo: 'erro' });
+  }
 }
