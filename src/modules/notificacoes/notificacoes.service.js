@@ -37,22 +37,22 @@ const escolaDe = (row) => nomeUnidade[row.unidade_id] || 'Escola';
 const DESCRITORES = {
   solicitacao_transporte(p, row) {
     const atividade = nomeAtividade[row.atividade_id] || row.atividade_livre || 'atividade';
-    if (p.eventType === 'INSERT') return { titulo: 'Nova solicitação', tipo: 'novo', texto: `${escolaDe(row)} · ${atividade}` };
-    if (p.eventType === 'DELETE') return { titulo: 'Solicitação removida', tipo: 'del', texto: `${escolaDe(row)} · ${atividade}` };
-    const tipo = row.status === 'confirmado' ? 'ok' : (row.status === 'negado' ? 'no' : 'upd');
+    if (p.eventType === 'INSERT') return { titulo: 'Nova solicitação', tipo: 'info', texto: `${escolaDe(row)} · ${atividade}` };
+    if (p.eventType === 'DELETE') return { titulo: 'Solicitação removida', tipo: 'erro', texto: `${escolaDe(row)} · ${atividade}` };
+    const tipo = row.status === 'confirmado' ? 'sucesso' : (row.status === 'negado' ? 'erro' : 'atencao');
     return { titulo: STATUS_SATE[row.status] || 'Solicitação atualizada', tipo, texto: `${escolaDe(row)} · ${atividade}` };
   },
   afastamento(p, row) {
     const servidor = nomeServidor[row.servidor_id] || 'Servidor';
-    if (p.eventType === 'INSERT') return { titulo: 'Novo afastamento', tipo: 'novo', texto: `${servidor} · ${row.tipo || ''}`.trim() };
-    if (p.eventType === 'DELETE') return { titulo: 'Afastamento removido', tipo: 'del', texto: `${servidor} · ${row.tipo || ''}`.trim() };
-    return { titulo: 'Afastamento atualizado', tipo: 'upd', texto: `${servidor} · ${row.tipo || ''}`.trim() };
+    if (p.eventType === 'INSERT') return { titulo: 'Novo afastamento', tipo: 'info', texto: `${servidor} · ${row.tipo || ''}`.trim() };
+    if (p.eventType === 'DELETE') return { titulo: 'Afastamento removido', tipo: 'erro', texto: `${servidor} · ${row.tipo || ''}`.trim() };
+    return { titulo: 'Afastamento atualizado', tipo: 'atencao', texto: `${servidor} · ${row.tipo || ''}`.trim() };
   },
   ocorrencia(p, row) {
     const onde = row.unidade_id ? ` · ${escolaDe(row)}` : '';
-    if (p.eventType === 'INSERT') return { titulo: 'Nova ocorrência', tipo: 'novo', texto: `${row.assunto || 'Atendimento'}${onde}` };
-    if (p.eventType === 'DELETE') return { titulo: 'Ocorrência removida', tipo: 'del', texto: `${row.assunto || 'Atendimento'}${onde}` };
-    const tipo = row.status === 'resolvida' ? 'ok' : 'upd';
+    if (p.eventType === 'INSERT') return { titulo: 'Nova ocorrência', tipo: 'info', texto: `${row.assunto || 'Atendimento'}${onde}` };
+    if (p.eventType === 'DELETE') return { titulo: 'Ocorrência removida', tipo: 'erro', texto: `${row.assunto || 'Atendimento'}${onde}` };
+    const tipo = row.status === 'resolvida' ? 'sucesso' : 'atencao';
     return { titulo: STATUS_OCOR[row.status] || 'Ocorrência atualizada', tipo, texto: `${row.assunto || 'Atendimento'}${onde}` };
   },
 };

@@ -40,6 +40,7 @@ a { color: var(--brand); text-decoration: none; }
   display: flex;
   align-items: center;
   gap: 10px;
+  min-height: var(--topbar-h);
   padding: 8px 14px;
   background: var(--surface);
   border-bottom: 1px solid var(--border);
@@ -301,7 +302,7 @@ body.menu-aberto .sidebar { transform: translateX(0); }
 
 /* ── Impressão ────────────────────────────────────────────── */
 @media print {
-  .topbar, .footer, .sidebar, .sidebar-back, .no-print, #toasts, .bell-wrap { display: none !important; }
+  .topbar, .footer, .sidebar, .sidebar-back, .no-print, .toasts, .bell-wrap { display: none !important; }
   .app { padding: 0; max-width: none; }
   body { background: #fff; }
 }

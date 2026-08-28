@@ -48,6 +48,19 @@
      funciona nos dois temas porque o fundo já é a cor saturada, não a
      superfície da página. */
   --on-cor: #fff;
+
+  /* Altura da barra de cabeçalho. Existe como token porque três
+     coisas precisam concordar sobre ela: a própria topbar, a origem
+     dos toasts e a altura dos botões do canto direito. */
+  --topbar-h: 52px;
+
+  /* Fundo suave das mensagens de sistema. Derivado por color-mix da
+     cor de traço com a superfície, para claro e escuro saírem
+     coerentes sem escolher oito valores à mão. */
+  --sucesso-bg: color-mix(in srgb, var(--ok) 12%, var(--surface));
+  --atencao-bg: color-mix(in srgb, var(--accent) 14%, var(--surface));
+  --erro-bg:    color-mix(in srgb, var(--danger) 12%, var(--surface));
+  --info-bg:    color-mix(in srgb, var(--brand) 12%, var(--surface));
 }
 
 @media (prefers-color-scheme: dark) {
@@ -66,5 +79,12 @@
     --ok: #3fb950;
     --shadow: 0 1px 3px rgba(0, 0, 0, .4), 0 8px 24px rgba(0, 0, 0, .35);
     --shadow-btn: 0 1px 0 rgba(0, 0, 0, .2);
+
+    /* Mesma derivação por color-mix, com percentuais maiores: sobre
+       superfície escura a proporção do tema claro fica invisível. */
+    --sucesso-bg: color-mix(in srgb, var(--ok) 18%, var(--surface));
+    --atencao-bg: color-mix(in srgb, var(--accent) 20%, var(--surface));
+    --erro-bg:    color-mix(in srgb, var(--danger) 18%, var(--surface));
+    --info-bg:    color-mix(in srgb, var(--brand) 18%, var(--surface));
   }
 }

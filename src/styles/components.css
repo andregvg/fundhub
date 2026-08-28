@@ -827,3 +827,64 @@ hr.sep { margin: 20px 0; border: 0; border-top: 1px solid var(--border); }
   .form-grupo .campos.duas { display: grid; grid-template-columns: 1fr 1fr; gap: 13px 18px; }
   .form-grupo .campos.duas .col-2 { grid-column: 1 / -1; }
 }
+
+/* ── Mensagens de sistema (shared/ui/toast.js) ─────────────── */
+/* Ficavam em modules/notificacoes/notificacoes.css: um módulo de
+   fundo era dono do estilo de um componente do kernel. */
+.toasts {
+  position: fixed;
+  top: calc(var(--topbar-h) + 12px);
+  left: 12px;
+  right: 12px;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;          /* a fila não bloqueia a página */
+}
+.toast {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 11px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--brand);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+  opacity: 0;
+  transform: translateX(110%);
+  transition: opacity .25s ease, transform .25s ease;
+  pointer-events: auto;
+}
+.toast.show { opacity: 1; transform: translateX(0); }
+.toast-txt { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.toast b { font-size: 13.5px; }
+.toast span { color: var(--muted); font-size: 12.5px; overflow-wrap: anywhere; }
+.toast-ico { display: inline-flex; padding-top: 1px; }
+.toast-x {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px; height: 22px;
+  border: 0; border-radius: 6px;
+  background: none; color: var(--muted); cursor: pointer;
+}
+.toast-x:hover { background: var(--surface-3); color: var(--text); }
+
+.toast.t-sucesso { border-left-color: var(--ok);     background: var(--sucesso-bg); }
+.toast.t-sucesso .toast-ico { color: var(--ok); }
+.toast.t-atencao { border-left-color: var(--accent); background: var(--atencao-bg); }
+.toast.t-atencao .toast-ico { color: var(--accent); }
+.toast.t-erro    { border-left-color: var(--danger); background: var(--erro-bg); }
+.toast.t-erro .toast-ico { color: var(--danger); }
+.toast.t-info    { border-left-color: var(--brand);  background: var(--info-bg); }
+.toast.t-info .toast-ico { color: var(--brand); }
+
+@media (min-width: 560px) {
+  .toasts { left: auto; right: 18px; width: min(360px, calc(100vw - 36px)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .toast { transition: opacity .15s ease; transform: none; }
+}
