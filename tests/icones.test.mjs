@@ -37,6 +37,13 @@ test('nome desconhecido devolve string vazia, sem lancar', () => {
   assert.equal(TEM_ICONE('escola'), true);
 });
 
+test('nome herdado de Object.prototype nao vaza pro svg', () => {
+  for (const n of ['constructor', 'toString', 'hasOwnProperty', 'valueOf', '__proto__']) {
+    assert.equal(ico(n), '', `ico('${n}') deveria ser string vazia`);
+    assert.equal(TEM_ICONE(n), false, `TEM_ICONE('${n}') deveria ser false`);
+  }
+});
+
 test('todos os icones do conjunto produzem svg', () => {
   const nomes = ['escola', 'sede', 'servidor', 'equipe', 'horario', 'calendario',
     'afastamento', 'transporte', 'dashboard', 'modulos', 'ata', 'ocorrencia',

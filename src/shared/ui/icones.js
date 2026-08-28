@@ -1,19 +1,19 @@
 // ============================================================
 // FundHub - shared/ui/icones.js
-// Conjunto de icones do hub. Tracados do Feather (MIT), grade
-// 24x24, sem preenchimento, traco de 2 e cantos redondos.
+// Conjunto de ícones do hub. Traçados do Feather (MIT), grade
+// 24x24, sem preenchimento, traço de 2 e cantos redondos.
 //
-// Por que SVG e nao emoji: emoji nao alinha (cada glifo tem
-// baseline propria), nao herda cor (e bitmap colorido, e por isso
+// Por que SVG e não emoji: emoji não alinha (cada glifo tem
+// baseline própria), não herda cor (é bitmap colorido, e por isso
 // ignora o tema escuro e a R9) e muda de desenho conforme o
-// sistema operacional - inaceitavel numa rede de 144 escolas com
-// parque heterogeneo.
+// sistema operacional - inaceitável numa rede de 144 escolas com
+// parque heterogêneo.
 //
-// O nome descreve a COISA, nao o desenho: 'excluir', nao 'lixeira'.
-// Assim trocar o tracado depois nao obriga a renomear as chamadas.
+// O nome descreve a COISA, não o desenho: 'excluir', não 'lixeira'.
+// Assim trocar o traçado depois não obriga a renomear as chamadas.
 // ============================================================
 
-// So o miolo do SVG. O envelope e montado por ico().
+// Só o miolo do SVG. O envelope é montado por ico().
 const TRACOS = {
   escola: '<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>',
   sede: '<rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>',
@@ -71,11 +71,15 @@ const TRACOS = {
 
 export const TEM_ICONE = (nome) => Object.hasOwn(TRACOS, nome);
 
-// Icone inexistente devolve string vazia: um nome errado deixa um
-// buraco na tela, nunca um erro de JS que derruba a pagina inteira.
+// Ícone inexistente devolve string vazia: um nome errado deixa um
+// buraco na tela, nunca um erro de JS que derruba a página inteira.
+// Object.hasOwn (não acesso direto TRACOS[nome]) porque nome vem de
+// fora e um nome como 'constructor' ou 'toString' resolveria para a
+// propriedade herdada de Object.prototype - truthy, e a guarda
+// deixaria passar.
 export function ico(nome, { tam = 16, classe = '' } = {}) {
+  if (!TEM_ICONE(nome)) return '';
   const tracos = TRACOS[nome];
-  if (!tracos) return '';
   const cls = classe ? `ico ${classe}` : 'ico';
   return `<svg class="${cls}" width="${tam}" height="${tam}" viewBox="0 0 24 24"`
     + ` fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"`

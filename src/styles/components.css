@@ -39,10 +39,10 @@ a.tile:hover {
 .tile.servico { opacity: .92; }
 .tile .ico { font-size: 26px; }
 
-/* Icones SVG (shared/ui/icones.js). O par flex: 0 0 auto aqui +
-   centro no container e o que faz o alinhamento deixar de ser
+/* Ícones SVG (shared/ui/icones.js). O par flex: 0 0 auto aqui +
+   centro no container é o que faz o alinhamento deixar de ser
    sorte - emoji nunca teve como alinhar, SVG tem. Mesma classe do
-   .ico acima porque um vai substituir o outro: hoje e um emoji num
+   .ico acima porque um vai substituir o outro: hoje é um emoji num
    div, depois vira um <svg class="ico"> no lugar dele. */
 .ico { display: inline-block; vertical-align: -0.125em; flex: 0 0 auto; }
 .tile h3 { margin: 2px 0 0; font-size: 16px; padding-right: 60px; }
