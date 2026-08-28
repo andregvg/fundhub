@@ -1,23 +1,23 @@
 -- ============================================================
--- FundHub — verificar_migrations.sql  (diagnóstico, não altera nada)
+-- FundHub - verificar_migrations.sql  (diagnóstico, não altera nada)
 --
 -- O projeto não tem tabela de controle de migrations: elas são
 -- rodadas à mão no SQL Editor. Este script infere quais rodaram
 -- procurando o ARTEFATO característico de cada uma (a tabela, a
 -- coluna ou a função que ela cria).
 --
--- Rode no SQL Editor do Supabase. É só leitura — pode rodar quantas
+-- Rode no SQL Editor do Supabase. É só leitura - pode rodar quantas
 -- vezes quiser, em qualquer ordem, sem efeito colateral.
 --
 -- Leia o resultado assim:
---   OK        — o artefato existe; a migration rodou.
---   FALTA     — não existe; rode essa migration.
+--   OK        - o artefato existe; a migration rodou.
+--   FALTA     - não existe; rode essa migration.
 -- Se aparecer FALTA no meio de uma sequência de OK, rode da primeira
 -- que falta em diante, na ordem numérica.
 --
 -- CUIDADO ao acrescentar linhas aqui: o critério tem que ser um efeito
 -- que a migration REALMENTE produz. A primeira versão deste arquivo
--- procurava uma coluna `audit_log.diff` para a 019 — coluna que não
+-- procurava uma coluna `audit_log.diff` para a 019 - coluna que não
 -- existe em lugar nenhum, e que a 019 nem tentaria criar (ela só
 -- religa triggers). O resultado era um FALTA permanente e falso.
 -- Confira na migration antes de escrever a checagem.

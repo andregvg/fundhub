@@ -1,5 +1,5 @@
 -- ============================================================
--- 021 — Permissões por módulo, segmentos de atuação e o vínculo
+-- 021 - Permissões por módulo, segmentos de atuação e o vínculo
 --       entre `perfil` (quem entra) e `servidor` (quem é).
 --
 -- Até aqui o FundHub só sabia distinguir ADMIN de NÃO-ADMIN: o
@@ -13,11 +13,11 @@
 --
 -- Então a autorização passa a ser um MAPA módulo → nível:
 --
---   oculto   — o módulo não existe para essa pessoa (nem no menu,
+--   oculto   - o módulo não existe para essa pessoa (nem no menu,
 --              nem na rota, nem no banco).
---   proprios — vê e mexe só no que é da sua escola / seu cadastro.
---   leitura  — vê tudo do módulo, não escreve.
---   escrita  — vê e escreve tudo do módulo.
+--   proprios - vê e mexe só no que é da sua escola / seu cadastro.
+--   leitura  - vê tudo do módulo, não escreve.
+--   escrita  - vê e escreve tudo do módulo.
 --
 -- O mapa vem do PAPEL (preset, em papel_permissao) e pode ser
 -- ajustado pessoa a pessoa (override, em perfil.permissoes). Assim
@@ -25,14 +25,14 @@
 -- individual continua possível.
 --
 -- IMPORTANTE: esconder o módulo no menu é UX. O que realmente barra
--- é o RLS — por isso as policies abaixo passam a consultar o mesmo
+-- é o RLS - por isso as policies abaixo passam a consultar o mesmo
 -- mapa. Interface e banco leem a mesma fonte de verdade.
 -- ============================================================
 
 -- ── 1. Vocabulário ───────────────────────────────────────────
 -- Segmentos-base. As combinações que a interface oferece
 -- ("Ensino Fundamental", "Educação Infantil", "Todas") são atalhos
--- que expandem para estes valores — o banco só conhece os básicos,
+-- que expandem para estes valores - o banco só conhece os básicos,
 -- porque combinação é assunto de tela, não de modelo.
 do $$ begin
   if not exists (select 1 from pg_type where typname = 'nivel_acesso') then
@@ -58,8 +58,8 @@ alter table servidor add column if not exists codigo_funcional text;
 create index if not exists idx_servidor_codigo on servidor(codigo_funcional);
 
 -- O módulo deixou de ser só de gestão (ver modules/servidores/module.js).
--- Um agente administrativo da sede não tem vínculo com escola — o
--- `vinculo` exige unidade_id —, então a lotação precisa de campo
+-- Um agente administrativo da sede não tem vínculo com escola - o
+-- `vinculo` exige unidade_id -, então a lotação precisa de campo
 -- próprio, senão essa gente simplesmente não caberia no cadastro.
 alter table servidor add column if not exists cargo text;
 alter table servidor add column if not exists lotacao text not null default 'escola'
@@ -80,7 +80,7 @@ create table if not exists papel (
 insert into papel (chave, rotulo, descricao, ordem) values
   ('admin_sme',      'Administrador',      'Acesso total ao hub e à gestão de usuários.', 10),
   ('equipe_sme',     'Equipe SME',         'Equipe de acompanhamento e agentes da sede.', 20),
-  ('transporte',     'Transporte',         'Gerência de Transporte — dona do SATE.',      30),
+  ('transporte',     'Transporte',         'Gerência de Transporte - dona do SATE.',      30),
   ('gestor_escolar', 'Gestor(a) escolar',  'Direção e coordenação de uma unidade.',       40),
   ('leitor',         'Leitor',             'Somente leitura do essencial.',               50)
 on conflict (chave) do update
@@ -94,7 +94,7 @@ create table if not exists papel_permissao (
 );
 
 -- Preset por papel. Só o que está aqui é visível: a ausência de uma
--- linha significa OCULTO. É a política mais segura por omissão —
+-- linha significa OCULTO. É a política mais segura por omissão -
 -- módulo novo nasce invisível e você libera conscientemente.
 insert into papel_permissao (papel, modulo, nivel) values
   -- Equipe SME: enxerga a rede toda; escreve no que é do dia a dia.
@@ -121,7 +121,7 @@ insert into papel_permissao (papel, modulo, nivel) values
   ('transporte', 'notificacoes',  'leitura'),
 
   -- Gestor escolar: a própria escola. Afastamentos, ocorrências,
-  -- atas e visitas NÃO aparecem — nem no menu, nem na API.
+  -- atas e visitas NÃO aparecem - nem no menu, nem na API.
   ('gestor_escolar', 'dashboard',    'proprios'),
   ('gestor_escolar', 'escolas',      'proprios'),
   ('gestor_escolar', 'servidores',   'proprios'),
@@ -142,7 +142,7 @@ on conflict (papel, modulo) do update set nivel = excluded.nivel;
 
 -- ── 4. As funções que respondem "pode?" ──────────────────────
 -- SECURITY DEFINER porque leem `perfil` e `papel_permissao`, cujas
--- policies são restritas — sem isso a policy chamaria a si mesma.
+-- policies são restritas - sem isso a policy chamaria a si mesma.
 
 -- O servidor por trás do login (null se o perfil não estiver ligado).
 create or replace function meu_servidor_id() returns uuid
@@ -236,7 +236,7 @@ create or replace function escreve_unidade(p_modulo text, p_unidade uuid)
 -- ── 5. Segmentos ─────────────────────────────────────────────
 -- O segmento de uma unidade não é um campo só: `segmento` diz a
 -- natureza (EMEF/EMEI/CEI/CONVENIADA) e `tem_eja` acrescenta EJA
--- por cima. Uma EMEF com EJA pertence aos DOIS segmentos — por isso
+-- por cima. Uma EMEF com EJA pertence aos DOIS segmentos - por isso
 -- a função devolve um array, não um texto.
 create or replace function unidade_segmentos(p_unidade uuid) returns text[]
   language sql stable security definer set search_path = public as $$
@@ -319,7 +319,7 @@ create policy vinculo_upd on vinculo for update using (pode_escrever('servidores
 create policy vinculo_del on vinculo for delete using (pode_escrever('servidores'));
 
 -- Telefones: seguem o dono. Telefone de escola é do módulo Escolas,
--- telefone de servidor é do módulo Servidores — e o próprio dono
+-- telefone de servidor é do módulo Servidores - e o próprio dono
 -- sempre pode mexer nos seus.
 drop policy if exists telefone_sel on telefone;
 drop policy if exists telefone_ins on telefone;
@@ -348,7 +348,7 @@ create policy telefone_del on telefone for delete using (
 -- Módulos com recorte por unidade ─────────────────────────────
 -- Só entram aqui as tabelas que REALMENTE têm unidade_id. Note que
 -- `oferta_onibus` NÃO entra: a oferta de ônibus é por data+período
--- para a rede toda, não por escola — ela está na lista de baixo.
+-- para a rede toda, não por escola - ela está na lista de baixo.
 -- O guard de coluna abaixo existe para que um engano desses vire um
 -- aviso, e não um erro no meio da migration.
 do $$
@@ -370,7 +370,7 @@ begin
        where table_schema = 'public' and table_name = r.tabela
          and column_name = 'unidade_id'
     ) then
-      raise warning '021: % não tem unidade_id — policy por unidade ignorada', r.tabela;
+      raise warning '021: % não tem unidade_id - policy por unidade ignorada', r.tabela;
       continue;
     end if;
     execute format('drop policy if exists %I_sel on %I', r.tabela, r.tabela);
@@ -394,7 +394,7 @@ end $$;
 
 -- Módulos sem recorte por unidade ─────────────────────────────
 -- Aqui 'proprios' não tem por onde recortar: quem tem o nível vê o
--- módulo inteiro em modo leitura. É deliberado — e é por isso que
+-- módulo inteiro em modo leitura. É deliberado - e é por isso que
 -- gestor_escolar simplesmente NÃO recebe esses módulos no preset.
 do $$
 declare
@@ -428,7 +428,7 @@ begin
 end $$;
 
 -- Afastamentos: o caso mais sensível. Tem unidade_id E servidor_id,
--- e o gestor não deve ver NENHUM — o preset dele não inclui o
+-- e o gestor não deve ver NENHUM - o preset dele não inclui o
 -- módulo, então nivel_modulo devolve 'oculto' e a policy barra tudo.
 -- A pessoa sempre enxerga o próprio afastamento.
 drop policy if exists afastamento_sel on afastamento;
@@ -445,7 +445,7 @@ create policy afastamento_del on afastamento for delete using (pode_escrever('af
 
 -- ── 7. Perfil e papéis: leitura própria, escrita do admin ────
 -- Cada um lê o PRÓPRIO perfil (a tela "Meus dados" depende disso) e
--- pode editar só os campos de contato — papel, segmentos e
+-- pode editar só os campos de contato - papel, segmentos e
 -- permissões continuam privativos do admin, garantido pelo trigger
 -- abaixo, já que policy não sabe restringir por coluna.
 drop policy if exists perfil_all on perfil;

@@ -42,11 +42,18 @@ async function montarApp(user) {
   if (montado) return;
   montado = true;
   montarNav();
-  // O carimbo do botão Atualizar é marcado aqui, não na montagem do
-  // cabeçalho: aoTrocarRota só dispara depois que a view terminou de
-  // renderizar (ver core/router.js), então é o único ponto em que o
-  // carimbo de fato reflete dado que já chegou à tela.
-  startRouter(app, { onRoute: (hash) => { marcarNav(hash); marcarAtualizacao(); } });
+  // O carimbo marca só a PRIMEIRA rota depois do boot - aqui, e mais
+  // nenhuma vez pelo onRoute. onRoute dispara em toda troca de rota,
+  // mas os models têm cache de módulo que sobrevive à navegação: voltar
+  // para uma tela já visitada devolve o cache sem tocar no banco, e
+  // marcar de novo mentiria sobre a idade do dado. Da segunda vez em
+  // diante o carimbo só volta a mudar no clique em Atualizar (ver
+  // shell/chrome.js), o único caminho que de fato limpa os caches.
+  let primeiraRotaMarcada = false;
+  startRouter(app, { onRoute: (hash) => {
+    marcarNav(hash);
+    if (!primeiraRotaMarcada) { marcarAtualizacao(); primeiraRotaMarcada = true; }
+  } });
   iniciarServicos();
 }
 

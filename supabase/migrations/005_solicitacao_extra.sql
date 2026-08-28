@@ -1,5 +1,5 @@
 -- ============================================================
--- 005 — Solicitação: atividade livre, destino, horários e adaptado
+-- 005 - Solicitação: atividade livre, destino, horários e adaptado
 -- Rode no SQL Editor (após 004). Amplia solicitacao_transporte para
 -- cobrir pedidos de ônibus para atividades organizadas pela própria
 -- escola (fora do catálogo) e transporte adaptado (cadeirantes),

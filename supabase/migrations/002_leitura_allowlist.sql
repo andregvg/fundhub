@@ -1,5 +1,5 @@
 -- ============================================================
--- 002 — Leitura por allowlist (rode no SQL Editor do Supabase)
+-- 002 - Leitura por allowlist (rode no SQL Editor do Supabase)
 -- Troca a regra de leitura: em vez de "qualquer e-mail institucional",
 -- passa a exigir estar cadastrado na tabela perfil (ativo).
 -- Você libera acesso inserindo o e-mail em perfil.

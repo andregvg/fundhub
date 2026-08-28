@@ -1,15 +1,15 @@
 -- ============================================================
--- 011 — Auditoria + último acesso
+-- 011 - Auditoria + último acesso
 -- Rode no SQL Editor, depois de todas as anteriores.
 --
 -- DUAS coisas:
---   1. audit_log — histórico de TODA alteração de cadastro, com o
+--   1. audit_log - histórico de TODA alteração de cadastro, com o
 --      valor ANTES, o valor DEPOIS e o diff campo a campo. Feito por
 --      um trigger genérico no Postgres: é automático (nenhuma tela
 --      precisa lembrar de registrar) e à prova de bypass (roda no
---      banco, não no front — quem alterar por SQL direto também fica
+--      banco, não no front - quem alterar por SQL direto também fica
 --      logado). É a resposta ao "o que era antes e o que mudou".
---   2. perfil.ultimo_acesso — carimbo do último login de cada usuário,
+--   2. perfil.ultimo_acesso - carimbo do último login de cada usuário,
 --      atualizado por uma função SECURITY DEFINER que o próprio usuário
 --      pode chamar (sem poder mexer no resto do perfil).
 --
@@ -27,7 +27,7 @@ create table if not exists audit_log (
   autor        text,                     -- auth_email() de quem fez
   dados_antes  jsonb,                    -- linha inteira antes (UPDATE/DELETE)
   dados_depois jsonb,                    -- linha inteira depois (INSERT/UPDATE)
-  alteracoes   jsonb,                    -- { campo: { de, para } } — só UPDATE
+  alteracoes   jsonb,                    -- { campo: { de, para } } - só UPDATE
   criado_em    timestamptz not null default now()
 );
 create index if not exists idx_audit_tabela_reg on audit_log(tabela, registro_id);
@@ -98,7 +98,7 @@ end $$;
 
 -- RLS: só admin LÊ; ninguém escreve direto. O trigger é SECURITY DEFINER
 -- (roda como dono da tabela) e, com RLS habilitado mas NÃO forçado, o dono
--- é isento — então o insert do trigger passa e o usuário comum não escreve.
+-- é isento - então o insert do trigger passa e o usuário comum não escreve.
 alter table audit_log enable row level security;
 drop policy if exists audit_sel on audit_log;
 create policy audit_sel on audit_log for select using (is_admin());
@@ -108,7 +108,7 @@ grant select on audit_log to authenticated;   -- sem insert/update/delete de pro
 alter table perfil add column if not exists ultimo_acesso timestamptz;
 
 -- O usuário atualiza o PRÓPRIO carimbo (e só ele) e recebe de volta o
--- acesso ANTERIOR — que é o que faz sentido exibir ("seu último acesso
+-- acesso ANTERIOR - que é o que faz sentido exibir ("seu último acesso
 -- foi em..."). SECURITY DEFINER porque a policy de escrita do perfil é
 -- só admin; esta função abre uma exceção estreita e controlada.
 create or replace function registrar_acesso() returns timestamptz

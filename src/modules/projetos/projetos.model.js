@@ -82,6 +82,7 @@ export async function adicionarInteresse({ projeto_id, unidade_id, observacao = 
     if (error.code === '23505') {
       const e = new Error('Esta escola já manifestou interesse neste projeto.');
       e.code = error.code;
+      e.amigavel = true;
       throw e;
     }
     throw error;

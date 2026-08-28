@@ -1,5 +1,5 @@
 -- ============================================================
--- FundHub — papel_inspecao.sql
+-- FundHub - papel_inspecao.sql
 -- Cria um papel de banco que enxerga a FORMA do schema (tabelas,
 -- colunas, policies, triggers, funções) e NENHUM dado das tabelas.
 --
@@ -10,9 +10,9 @@
 -- A motivação é concreta. Dois erros reais foram cometidos por não se
 -- conferir a forma do schema:
 --   • uma policy criada sobre `oferta_onibus.unidade_id`, coluna que
---     não existe — a migration 021 abortou no meio;
+--     não existe - a migration 021 abortou no meio;
 --   • um verificador que procurava `audit_log.diff`, coluna que não
---     existe em lugar nenhum — a migration 019 aparecia como pendente
+--     existe em lugar nenhum - a migration 019 aparecia como pendente
 --     mesmo depois de rodada.
 -- Os dois seriam pegos por uma consulta ao information_schema. Nenhum
 -- dos dois exigia ler uma única linha de dado real.
@@ -58,7 +58,7 @@ alter default privileges in schema public
   revoke select on tables from fundhub_inspetor;
 
 -- O catálogo do Postgres (pg_catalog e information_schema) já é
--- legível por qualquer papel — é ele que descreve a forma do schema.
+-- legível por qualquer papel - é ele que descreve a forma do schema.
 -- Não é preciso conceder nada: basta NÃO conceder o resto.
 
 -- ── Conferência ──────────────────────────────────────────────

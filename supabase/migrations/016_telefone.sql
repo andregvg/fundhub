@@ -1,16 +1,16 @@
 -- ============================================================
--- 016 — Telefones (tabela dedicada; multi por escola E por servidor)
+-- 016 - Telefones (tabela dedicada; multi por escola E por servidor)
 -- Rode no SQL Editor, depois de todas as anteriores.
 --
 -- Por que uma tabela dedicada em vez de campo/array por entidade:
 --   • escolas já eram multi (unidade_escolar.telefones text[]), mas
---     servidores tinham UM telefone só — a real limitação. Gestores,
+--     servidores tinham UM telefone só - a real limitação. Gestores,
 --     coordenadores e supervisores SÃO servidores, então herdavam isso.
 --   • Uma tabela única dá multi-telefone rotulado + "principal" a
 --     escolas E pessoas sem duplicar lógica de array por entidade.
 --   • FKs SEPARADAS e nullable (servidor_id | unidade_id) + CHECK de
 --     "exatamente um dono" preservam integridade referencial real e
---     cascade — um par polimórfico (tipo,id) perderia as duas coisas.
+--     cascade - um par polimórfico (tipo,id) perderia as duas coisas.
 --   • A RLS do FundHub é uniforme (ler = is_autorizado, escrever =
 --     is_admin), então a tabela compartilhada NÃO complica a RLS.
 --

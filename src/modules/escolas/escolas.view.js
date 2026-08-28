@@ -146,7 +146,7 @@ function cardHtml(u) {
       ${u.segmento ? `<span class="seg">${esc(u.segmento)}</span>` : ''}
     </div>
     ${u.apelido ? `<div class="apelido">${esc(u.apelido)}</div>` : ''}
-    <div class="addr">${u.endereco ? esc(u.endereco) : vazio('não informado')}</div>
+    <div class="addr">${u.endereco ? esc(u.endereco) : vazio('sem endereço cadastrado')}</div>
     <div class="tags">${tags}</div>
   </article>`;
 }

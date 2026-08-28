@@ -1,5 +1,5 @@
 -- ============================================================
--- 006 — Realtime para notificações de solicitações
+-- 006 - Realtime para notificações de solicitações
 -- Rode no SQL Editor. Habilita broadcast de mudanças na tabela
 -- solicitacao_transporte (o RLS continua valendo: cada usuário só
 -- recebe eventos das linhas que tem permissão de ler).

@@ -1,5 +1,5 @@
 -- ============================================================
--- 007 — Calendário Escolar
+-- 007 - Calendário Escolar
 -- Rode no SQL Editor (após as migrations anteriores). Um registro por
 -- dia: se é letivo, evento, tipo (agenda) e bloqueios que o SATE e os
 -- Afastamentos consultam (ex.: dia de prova bloqueia extraclasse).

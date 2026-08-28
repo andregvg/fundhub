@@ -1,5 +1,5 @@
 -- ============================================================
--- 008 — Afastamentos de servidores (gestores/coordenadores/supervisores)
+-- 008 - Afastamentos de servidores (gestores/coordenadores/supervisores)
 -- Rode no SQL Editor. Leitura por allowlist (is_autorizado), escrita por
 -- admin (is_admin). Integra-se a servidor e unidade_escolar.
 -- ============================================================

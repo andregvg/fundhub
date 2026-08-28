@@ -1,5 +1,5 @@
 -- ============================================================
--- 023 — Servidor, vínculo e a SME como local de lotação
+-- 023 - Servidor, vínculo e a SME como local de lotação
 -- Rode no SQL Editor, depois da 022.
 --
 -- O princípio: o VÍNCULO é a fonte única do "onde" e do "como" de uma
@@ -30,7 +30,7 @@ create index if not exists idx_unidade_tipo on unidade_escolar(tipo);
 
 -- numero = 0 é reservado: acha a linha sem depender do nome exibido.
 insert into unidade_escolar (numero, nome, apelido, tipo, segmento)
-values (0, 'SME — Sede', 'SME', 'sede', null)
+values (0, 'SME - Sede', 'SME', 'sede', null)
 on conflict (numero) do update
   set tipo = 'sede', segmento = null;
 
@@ -50,7 +50,7 @@ begin
 end $$;
 
 -- 3a2. Sob o esquema antigo, "renovar o vínculo" era criar uma linha nova
--- por ano sem fechar a anterior — normal sob unique(...,ano), agora
+-- por ano sem fechar a anterior - normal sob unique(...,ano), agora
 -- colide com o índice único parcial abaixo. Fecha os duplicados abertos,
 -- mantendo aberto só o de ingresso mais recente por (servidor, unidade,
 -- papel); os demais recebem fim = 31/12 do próprio ano, no mesmo padrão
@@ -69,7 +69,7 @@ update vinculo v
  where v.id = d.id and d.rn > 1;
 
 -- 3b. Cargo vira texto livre. Os três papéis fixos viram os rótulos
--- que a tela já exibia — a partir daqui o valor gravado É o rótulo.
+-- que a tela já exibia - a partir daqui o valor gravado É o rótulo.
 update vinculo set papel = 'Gestor(a)'       where papel = 'gestor';
 update vinculo set papel = 'Coordenador(a)'  where papel = 'coordenador';
 update vinculo set papel = 'Supervisor(a)'   where papel = 'supervisor';

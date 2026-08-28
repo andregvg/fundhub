@@ -15,6 +15,7 @@ import { getPerfilAtual } from './perfil.js';
 import { nivel, OCULTO } from './permissoes.js';
 import { loading, emptyState } from '../shared/ui/feedback.js';
 import { ico } from '../shared/ui/icones.js';
+import { esc } from '../shared/dom.js';
 
 const ROTA_INICIAL = '#/dashboard';
 
@@ -76,7 +77,7 @@ export async function route({ manterScroll = false } = {}) {
       await view.render(outlet, { perfil, nivel: nivel(chavePerm(mod)), params });
     }
   } catch (err) {
-    outlet.innerHTML = emptyState(ico('atencao', { tam: 32 }), 'Não foi possível abrir este módulo', String(err?.message || err));
+    outlet.innerHTML = emptyState(ico('atencao', { tam: 32 }), 'Não foi possível abrir este módulo', esc(String(err?.message || err)));
   }
 
   aoTrocarRota(hash);

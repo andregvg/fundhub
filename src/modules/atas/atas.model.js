@@ -32,12 +32,24 @@ function limpar(p) {
   return out;
 }
 
+// Mantém o código e marca amigavel: é o que shared/ui/feedback.js:
+// reportarErro usa para saber que o erro cabe inline e já traduzido.
+function traduzErro(error) {
+  if (error.code === '23505') {
+    const e = new Error('Já existe uma ata com este número neste ano.');
+    e.code = error.code;
+    e.amigavel = true;
+    return e;
+  }
+  return error;
+}
+
 export async function criarAta(payload) {
   if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
   const row = { ...limpar(payload), redator: await emailAtual() };
   if (payload.data) row.ano = Number(payload.data.slice(0, 4));
   const { data, error } = await sb().from('ata_atendimento').insert(row).select().single();
-  if (error) throw error;
+  if (error) throw traduzErro(error);
   return data;
 }
 
@@ -45,7 +57,7 @@ export async function atualizarAta(id, payload) {
   if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
   const patch = { ...limpar(payload), atualizado_em: agoraISO() };
   const { error } = await sb().from('ata_atendimento').update(patch).eq('id', id);
-  if (error) throw error;
+  if (error) throw traduzErro(error);
 }
 
 export async function excluirAta(id) {

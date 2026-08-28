@@ -1,5 +1,5 @@
 -- ============================================================
--- 009 — Horários de trabalho da equipe gestora
+-- 009 - Horários de trabalho da equipe gestora
 -- Rode no SQL Editor, depois de schema.sql (servidor, vinculo e
 -- unidade_escolar já precisam existir). Leitura por allowlist
 -- (is_autorizado), escrita por admin (is_admin).

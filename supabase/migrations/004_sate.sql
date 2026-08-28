@@ -1,5 +1,5 @@
 -- ============================================================
--- 004 — SATE (transporte extraclasse): catálogo, oferta e solicitações
+-- 004 - SATE (transporte extraclasse): catálogo, oferta e solicitações
 -- Rode no SQL Editor do Supabase (após schema.sql + migrations 002/003).
 -- Mantém o padrão: leitura por allowlist (is_autorizado), escrita por
 -- admin (is_admin); solicitações podem ser criadas por qualquer autorizado.

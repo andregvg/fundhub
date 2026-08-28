@@ -1,10 +1,10 @@
 -- ============================================================
--- 022 — Controle de migrations
+-- 022 - Controle de migrations
 -- Rode no SQL Editor, depois da 021.
 --
 -- Até aqui não havia registro de quais migrations tinham sido
 -- aplicadas. A única forma de saber era inspecionar o schema e
--- inferir — o que já custou caro duas vezes:
+-- inferir - o que já custou caro duas vezes:
 --
 --   • a 019 apareceu como "FALTA" por semanas porque o critério de
 --     verificação procurava uma coluna que ela não cria (e que não
@@ -63,7 +63,7 @@ grant select on schema_migrations to authenticated;
 grant execute on function registrar_migration(text, text) to authenticated;
 
 -- ── Backfill ─────────────────────────────────────────────────
--- As migrations abaixo já estão aplicadas neste banco — confirmado
+-- As migrations abaixo já estão aplicadas neste banco - confirmado
 -- pelo verificar_migrations.sql, que checou o artefato de cada uma e
 -- devolveu OK nas 19. O carimbo de data é o de AGORA, não o da
 -- aplicação real (essa informação se perdeu, e inventá-la seria pior
@@ -72,22 +72,22 @@ grant execute on function registrar_migration(text, text) to authenticated;
 -- 001 e 003 não constam: o schema inicial vive em supabase/schema.sql
 -- e a 003 é só grants. Registrados aqui para a sequência ficar honesta.
 insert into schema_migrations (versao, descricao, aplicada_por) values
-  ('000', 'schema.sql — schema inicial (perfil, servidor, unidade_escolar, vinculo)', 'backfill'),
-  ('002', 'Leitura por allowlist — is_autorizado()',                'backfill'),
+  ('000', 'schema.sql - schema inicial (perfil, servidor, unidade_escolar, vinculo)', 'backfill'),
+  ('002', 'Leitura por allowlist - is_autorizado()',                'backfill'),
   ('003', 'Grants',                                                  'backfill'),
-  ('004', 'SATE — atividades, oferta de ônibus, solicitações',       'backfill'),
+  ('004', 'SATE - atividades, oferta de ônibus, solicitações',       'backfill'),
   ('005', 'Solicitação: campos extras de destino e horário',         'backfill'),
   ('006', 'Realtime para solicitacao_transporte',                    'backfill'),
   ('007', 'Calendário escolar',                                      'backfill'),
   ('008', 'Afastamentos',                                            'backfill'),
   ('009', 'Horários de trabalho',                                    'backfill'),
   ('010', 'Ocorrências',                                             'backfill'),
-  ('011', 'Auditoria — audit_log, fn_audit(), registrar_acesso()',   'backfill'),
+  ('011', 'Auditoria - audit_log, fn_audit(), registrar_acesso()',   'backfill'),
   ('012', 'Relatórios de visita',                                    'backfill'),
   ('013', 'Atas de atendimento',                                     'backfill'),
   ('014', 'Realtime para afastamento e ocorrencia',                  'backfill'),
   ('015', 'Projetos e interesse das escolas',                        'backfill'),
-  ('016', 'Telefones — tabela dedicada para escolas e servidores',   'backfill'),
+  ('016', 'Telefones - tabela dedicada para escolas e servidores',   'backfill'),
   ('017', 'Locais / destinos do SATE',                               'backfill'),
   ('018', 'Afastamento: status e processo',                          'backfill'),
   ('019', 'Auditoria: religa trg_audit em todas as tabelas',         'backfill'),
@@ -95,7 +95,7 @@ insert into schema_migrations (versao, descricao, aplicada_por) values
   ('021', 'Permissões por módulo, segmentos e perfil↔servidor',      'backfill')
 on conflict (versao) do nothing;
 
--- Esta migration se registra por último — é o padrão a seguir daqui
+-- Esta migration se registra por último - é o padrão a seguir daqui
 -- em diante, e serve de exemplo vivo.
 select registrar_migration('022', 'Controle de migrations (schema_migrations)');
 
@@ -105,5 +105,5 @@ select registrar_migration('022', 'Controle de migrations (schema_migrations)');
 --
 -- O que falta rodar: compare com os arquivos de supabase/migrations/.
 -- O verificar_migrations.sql continua útil como AUDITORIA independente
--- — ele checa o efeito no schema, não o que o banco diz de si mesmo.
+-- - ele checa o efeito no schema, não o que o banco diz de si mesmo.
 -- Os dois discordarem é sinal de que alguém mexeu à mão.

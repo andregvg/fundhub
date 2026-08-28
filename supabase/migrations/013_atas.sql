@@ -1,10 +1,10 @@
 -- ============================================================
--- 013 — Atas de Atendimento
+-- 013 - Atas de Atendimento
 -- Rode no SQL Editor. Leitura por allowlist, escrita por admin.
 -- Auditada pelo trigger da 011 (religado no fim).
 --
 -- `numero` é uma sequência anual legível (ex.: 12/2026), gerada no
--- insert por trigger — cada ano recomeça em 1. É o número que vai
+-- insert por trigger - cada ano recomeça em 1. É o número que vai
 -- impresso no papel timbrado.
 -- ============================================================
 

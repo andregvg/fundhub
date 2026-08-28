@@ -3,7 +3,7 @@ node_modules/
 *.log
 .env
 
-# Dados sensiveis e seeds — NUNCA versionar (repo publico)
+# Dados sensiveis e seeds - NUNCA versionar (repo publico)
 _private/
 data/*.json
 !data/exemplo.json

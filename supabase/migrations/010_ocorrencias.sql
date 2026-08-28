@@ -1,10 +1,10 @@
 -- ============================================================
--- 010 — Ocorrências (atendimentos telefônicos das recepcionistas)
+-- 010 - Ocorrências (atendimentos telefônicos das recepcionistas)
 -- Rode no SQL Editor, depois de schema.sql (precisa de unidade_escolar).
 -- Leitura por allowlist (is_autorizado), escrita por admin (is_admin).
 --
 -- Diferente dos outros módulos, a ESCRITA aqui é o dia a dia das
--- recepcionistas — não é uma tarefa administrativa esporádica. Ainda
+-- recepcionistas - não é uma tarefa administrativa esporádica. Ainda
 -- assim mantemos escrita = is_admin() por ora (a equipe de recepção
 -- entra na allowlist como admin_sme); quando existir um papel
 -- intermediário ("recepcao"), é aqui que a policy de insert muda.

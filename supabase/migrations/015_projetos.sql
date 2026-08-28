@@ -1,12 +1,12 @@
 -- ============================================================
--- 015 — Projetos & Pesquisas (parte interna)
+-- 015 - Projetos & Pesquisas (parte interna)
 -- Rode no SQL Editor. Leitura por allowlist, escrita por admin.
 -- Auditada pelo trigger da 011 (religado no fim).
 --
 -- Escopo desta migration: o cadastro interno dos projetos/pesquisas
 -- e a manifestação de interesse das escolas. O PORTAL EXTERNO do
 -- proponente (envio e acompanhamento por token, sem login) fica para
--- uma etapa futura — depende de Edge Function (service role) validando
+-- uma etapa futura - depende de Edge Function (service role) validando
 -- o token fora do gate. Ver docs/HANDOFF.md § C.
 -- ============================================================
 

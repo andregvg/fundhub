@@ -1,7 +1,7 @@
 -- ============================================================
--- 003 — Privilégios de tabela (rode no SQL Editor do Supabase)
+-- 003 - Privilégios de tabela (rode no SQL Editor do Supabase)
 -- Corrige "permission denied for table ...": o papel `authenticated`
--- precisa de GRANT nas tabelas. O RLS continua no comando —
+-- precisa de GRANT nas tabelas. O RLS continua no comando -
 -- leitura por is_autorizado(), escrita por is_admin().
 -- O papel `anon` permanece SEM privilégios: deslogado não acessa nada.
 -- ============================================================

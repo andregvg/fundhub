@@ -117,7 +117,7 @@ export function setChrome(logado, user, perfil) {
   const right = document.querySelector('.topbar-right');
   let menu = right.querySelector('.user-menu');
 
-  if (!logado) { menu?.remove(); fecharMenu({ lembrar: false }); return; }
+  if (!logado) { menu?.remove(); right.querySelector('.atualizar-wrap')?.remove(); fecharMenu({ lembrar: false }); return; }
 
   montarAtualizar(right);
 
@@ -187,7 +187,9 @@ export function setChrome(logado, user, perfil) {
 // de renderizar (ver o onRoute passado a startRouter, em main.js).
 // Chamar aqui gravaria a hora do relógio antes de qualquer dado ter
 // chegado - a mentira que o comentário de marcarAtualizacao() abaixo
-// descreve.
+// descreve. Da segunda navegação em diante o onRoute não marca mais
+// (cache de módulo sobrevive à troca de rota); só o clique abaixo
+// volta a marcar, porque é o único caminho que chama limparCaches().
 function montarAtualizar(right) {
   if (right.querySelector('.atualizar-wrap')) return;
   const wrap = document.createElement('div');
@@ -205,8 +207,10 @@ function montarAtualizar(right) {
     try {
       limparCaches();
       await recarregarRota();
-      // Sem chamada a marcarAtualizacao() aqui: recarregarRota() só
-      // termina depois que route() chama aoTrocarRota, que já marcou.
+      // Chamada explícita: o onRoute do roteador só marca a primeira
+      // rota depois do boot (ver main.js). Daqui em diante este clique
+      // é o único caminho que volta a atualizar o carimbo.
+      marcarAtualizacao();
     } catch (err) {
       toast({ titulo: 'Não foi possível atualizar', texto: err.message || String(err), tipo: 'erro' });
     } finally {

@@ -85,6 +85,16 @@ export async function getAfastamentos({ vigentesEm, status } = {}) {
   return data || [];
 }
 
+// Mesmo código e amigavel dos erros que os models de vínculo/usuários/
+// projetos usam: é o contrato que shared/ui/feedback.js:reportarErro
+// lê para mostrar a mensagem inline, já traduzida, no formulário aberto.
+function duplicata(msg) {
+  const e = new Error(msg);
+  e.code = '23505';
+  e.amigavel = true;
+  return e;
+}
+
 // Barra duplicata: mesmo servidor + mesma data de início, ou mesmo processo
 // (ignorando cancelados e, na edição, o próprio registro). Inspirado no
 // saveAfastamento do Apps Script afastamentos-gestores.
@@ -96,7 +106,7 @@ async function checarDuplicata({ servidor_id, inicio, processo }, ignorarId = nu
   const { data: d1, error: e1 } = await q1;
   if (e1?.code === SEM_COLUNA) return;   // sem a 018 não há como checar; segue
   if (e1) throw e1;
-  if (d1?.length) throw new Error('Já existe um afastamento ativo para este servidor com esta data de início.');
+  if (d1?.length) throw duplicata('Já existe um afastamento ativo para este servidor com esta data de início.');
 
   const proc = processo?.trim();
   if (proc) {
@@ -104,7 +114,7 @@ async function checarDuplicata({ servidor_id, inicio, processo }, ignorarId = nu
     if (ignorarId) q2 = q2.neq('id', ignorarId);
     const { data: d2, error: e2 } = await q2;
     if (e2) throw e2;
-    if (d2?.length) throw new Error(`O processo ${proc} já está vinculado a outro afastamento.`);
+    if (d2?.length) throw duplicata(`O processo ${proc} já está vinculado a outro afastamento.`);
   }
 }
 

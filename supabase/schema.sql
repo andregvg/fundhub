@@ -1,11 +1,11 @@
 -- ============================================================
--- FundHub — schema.sql  (Fase 1: Cadastros núcleo) — SEGURO
+-- FundHub - schema.sql  (Fase 1: Cadastros núcleo) - SEGURO
 -- Postgres / Supabase. Rode este arquivo antes de seed_unidades.sql
 -- (no SQL Editor do Supabase). Todas as tabelas com RLS default-deny:
 --   • Leitura: SOMENTE usuários logados com e-mail institucional
 --     (@educacao.pmrp.sp.gov.br). Anônimo não enxerga NADA.
 --   • Escrita: SOMENTE admin (definido na tabela perfil).
--- A anon key é pública por design — quem protege os dados é o RLS.
+-- A anon key é pública por design - quem protege os dados é o RLS.
 -- ============================================================
 
 create extension if not exists pgcrypto;
@@ -40,7 +40,7 @@ create or replace function is_admin() returns boolean
   $$;
 
 -- Allowlist de LEITURA: só lê quem está cadastrado em perfil (ativo).
--- Não basta ter e-mail institucional — o acesso é liberado manualmente
+-- Não basta ter e-mail institucional - o acesso é liberado manualmente
 -- inserindo o e-mail na tabela perfil.
 create or replace function is_autorizado() returns boolean
   language sql stable security definer set search_path = public as $$

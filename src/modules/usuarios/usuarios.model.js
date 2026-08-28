@@ -9,6 +9,7 @@
 // consegue ler no banco, não só o que ela vê na tela.
 // ============================================================
 import { sb, hasSupabase } from '../../core/supabase.js';
+import { registrarCache } from '../../shared/cache.js';
 
 // Fallback caso a tabela `papel` não responda (banco antigo, offline).
 // A fonte de verdade é o banco - isto é só para a tela não quebrar.
@@ -21,19 +22,21 @@ const PAPEIS_FALLBACK = {
 };
 
 let _papeis = null;
+export function limparCachePapeis() { _papeis = null; }
+registrarCache(limparCachePapeis);
+
+const papeisFallback = () =>
+  Object.entries(PAPEIS_FALLBACK).map(([chave, rotulo], i) => ({ chave, rotulo, ordem: i }));
 
 // Catálogo de papéis, do banco. [{ chave, rotulo, descricao, ordem }]
+// O fallback NUNCA é gravado em _papeis: uma falha de rede transitória
+// não pode congelar os cinco papéis embutidos pelo resto da sessão -
+// a próxima chamada tem que voltar a tentar o banco.
 export async function getPapeis() {
   if (_papeis) return _papeis;
-  if (!hasSupabase()) {
-    _papeis = Object.entries(PAPEIS_FALLBACK).map(([chave, rotulo], i) => ({ chave, rotulo, ordem: i }));
-    return _papeis;
-  }
+  if (!hasSupabase()) return papeisFallback();
   const { data, error } = await sb().from('papel').select('*').order('ordem');
-  if (error || !data?.length) {
-    _papeis = Object.entries(PAPEIS_FALLBACK).map(([chave, rotulo], i) => ({ chave, rotulo, ordem: i }));
-    return _papeis;
-  }
+  if (error || !data?.length) return papeisFallback();
   _papeis = data;
   return _papeis;
 }
@@ -84,6 +87,7 @@ export async function criarPerfil(payload) {
     if (error.code === '23505') {
       const e = new Error('Este e-mail já está na lista.');
       e.code = error.code;
+      e.amigavel = true;
       throw e;
     }
     throw error;
@@ -100,6 +104,7 @@ export async function atualizarPerfil(email, payload) {
     if (error.code === '23505') {
       const e = new Error('Este servidor já está vinculado a outro acesso.');
       e.code = error.code;
+      e.amigavel = true;
       throw e;
     }
     throw error;

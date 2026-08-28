@@ -1,10 +1,10 @@
 -- ============================================================
--- 019 — Auditoria: religa o trigger em TODAS as tabelas auditáveis
+-- 019 - Auditoria: religa o trigger em TODAS as tabelas auditáveis
 -- Rode no SQL Editor, depois da 018.
 --
 -- Não introduz nada novo: cada migration já religa o trigger da sua
 -- própria tabela (011 no lote inicial, 012/013/015/016/017 nas suas).
--- Esta é a REDE DE SEGURANÇA e a lista canônica num lugar só — pega
+-- Esta é a REDE DE SEGURANÇA e a lista canônica num lugar só - pega
 -- qualquer tabela que tenha nascido sem trigger (ou perdido o dele) e
 -- é idempotente: pode rodar quantas vezes quiser.
 --

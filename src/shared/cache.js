@@ -9,8 +9,8 @@
 // conhece manifestos e este não conhece nada - só guarda funções
 // anônimas. Assim a R1 (kernel nunca importa modules/) fica intacta.
 //
-// Hoje são cinco models com cache: escolas, locais, servidores,
-// vinculos (cargos) e sate/atividades.
+// Hoje são seis models com cache: escolas, locais, servidores,
+// vinculos (cargos), sate/atividades e usuarios (papéis).
 // ============================================================
 
 const registrados = new Set();

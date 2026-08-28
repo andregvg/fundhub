@@ -1,5 +1,5 @@
 -- ============================================================
--- 017 — Catálogo de Locais (destinos das atividades/solicitações)
+-- 017 - Catálogo de Locais (destinos das atividades/solicitações)
 -- Rode no SQL Editor, depois da 016.
 --
 -- Por que um catálogo em vez de texto livre por atividade/solicitação:
@@ -8,12 +8,12 @@
 --     (destino_nome/destino_endereco). O MESMO lugar (Theatro Pedro II,
 --     Biblioteca Sinhá Junqueira) é redigitado e não pode ser geocodado
 --     uma vez só.
---   • Um `local` é entidade COMPARTILHADA e geocodável — é a fundação do
+--   • Um `local` é entidade COMPARTILHADA e geocodável - é a fundação do
 --     cálculo de rota/tempo (backlog): geocoda cada destino uma vez.
 --   • É o mesmo padrão do agendamentos-fil (Locais.js): fonte única do
 --     endereço + ponto de desembarque, apontado por id.
 --   • O endereço da ESCOLA continua inline em unidade_escolar (é 1:1,
---     atributo intrínseco — extrair só somaria join sem ganho).
+--     atributo intrínseco - extrair só somaria join sem ganho).
 --
 -- atividade_extraclasse.local_id e solicitacao_transporte.local_id
 -- apontam para local (nullable). Os campos de texto legados ficam como

@@ -1,8 +1,8 @@
 -- ============================================================
--- 012 — Relatórios de Visita Técnica
+-- 012 - Relatórios de Visita Técnica
 -- Rode no SQL Editor, depois de schema.sql (precisa de unidade_escolar).
 -- Leitura por allowlist, escrita por admin. Auditado pelo trigger da
--- migration 011 (após rodar esta, religue o trigger — ver o fim).
+-- migration 011 (após rodar esta, religue o trigger - ver o fim).
 -- ============================================================
 
 create table if not exists relatorio_visita (

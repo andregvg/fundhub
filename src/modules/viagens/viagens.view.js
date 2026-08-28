@@ -73,13 +73,13 @@ function linha(s) {
   return `<div class="pv-viagem">
     <div class="pv-tit">${esc(nome)}</div>
     <div class="pv-grid">
-      <div><span class="pv-lbl">Origem</span>${origem ? esc(origem) : vazio('não informado')}</div>
-      <div><span class="pv-lbl">Destino</span>${destino ? esc(destino) : vazio('não informado')}</div>
-      <div><span class="pv-lbl">Horários (ida → volta)</span>${horarios ? esc(horarios) : vazio('não informado')}</div>
-      <div><span class="pv-lbl">Turma(s)</span>${s.turmas ? esc(s.turmas) : vazio('não informado')}</div>
-      <div><span class="pv-lbl">Alunos</span>${s.qtd_alunos != null ? esc(s.qtd_alunos) : vazio('não informado')}</div>
-      <div><span class="pv-lbl">Ônibus</span>${s.qtd_onibus != null ? esc(s.qtd_onibus) : vazio('não informado')}${s.qtd_cadeirante > 0 ? ` · ${ico('acessibilidade', { tam: 12 })} ${esc(s.qtd_cadeirante)}` : ''}</div>
-      <div class="pv-wide"><span class="pv-lbl">Contato</span>${s.contato_professor ? esc(s.contato_professor) : vazio('não informado')}</div>
+      <div><span class="pv-lbl">Origem</span>${origem ? esc(origem) : vazio('sem origem informada')}</div>
+      <div><span class="pv-lbl">Destino</span>${destino ? esc(destino) : vazio('sem destino informado')}</div>
+      <div><span class="pv-lbl">Horários (ida → volta)</span>${horarios ? esc(horarios) : vazio('sem horário informado')}</div>
+      <div><span class="pv-lbl">Turma(s)</span>${s.turmas ? esc(s.turmas) : vazio('sem turma informada')}</div>
+      <div><span class="pv-lbl">Alunos</span>${s.qtd_alunos != null ? esc(s.qtd_alunos) : vazio('sem número de alunos')}</div>
+      <div><span class="pv-lbl">Ônibus</span>${s.qtd_onibus != null ? esc(s.qtd_onibus) : vazio('sem número de ônibus')}${s.qtd_cadeirante > 0 ? ` · ${ico('acessibilidade', { tam: 12 })} ${esc(s.qtd_cadeirante)}` : ''}</div>
+      <div class="pv-wide"><span class="pv-lbl">Contato</span>${s.contato_professor ? esc(s.contato_professor) : vazio('sem contato informado')}</div>
     </div>
   </div>`;
 }
