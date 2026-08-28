@@ -9,6 +9,7 @@
 // ============================================================
 import { sb, hasSupabase } from '../../core/supabase.js';
 import { agoraISO } from '../../shared/format.js';
+import { registrarCache } from '../../shared/cache.js';
 // Telefones agora vêm da tabela dedicada (fonte única) - model → model.
 import { getTelefonesMapas } from '../telefones/telefones.model.js';
 
@@ -82,6 +83,11 @@ export async function getUnidades() {
 // continua sendo só escola (getUnidades). A sede vem primeiro porque
 // procurá-la no meio de 144 nomes seria absurdo.
 let _locais = null;
+
+// Um único registro cobre os dois caches deste model: getUnidades()
+// e getLocais() são leituras independentes, mas o botão Atualizar
+// invalida as duas de uma vez.
+registrarCache(() => { _cache = null; _locais = null; });
 
 export async function getLocais() {
   if (_locais) return _locais;

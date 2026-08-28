@@ -12,6 +12,7 @@
 // novo entra ao ser digitado; cargo cujo último vínculo acabou some.
 // ============================================================
 import { sb, hasSupabase } from '../../core/supabase.js';
+import { registrarCache } from '../../shared/cache.js';
 import { limparCacheServidores } from './servidores.model.js';
 
 // Traduz os três papéis fixos que existiam antes da 023. A migration
@@ -29,6 +30,7 @@ export const normalizaCargo = (p) => String(p ?? '').trim().replace(/\s+/g, ' ')
 
 let _cargos = null;
 export function limparCacheCargos() { _cargos = null; }
+registrarCache(limparCacheCargos);
 
 // Catálogo: os cargos hoje em uso, em ordem alfabética.
 export async function getCargos() {

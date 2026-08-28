@@ -14,13 +14,16 @@
 // e-mail, papel, último acesso, origem dos dados e o botão Sair.
 // ============================================================
 import { navPorGrupo, caminhoDaRota } from '../core/registry.js';
+import { recarregarRota } from '../core/router.js';
 import { CONFIG } from '../core/config.js';
 import { source } from '../core/supabase.js';
 import { signOut } from '../core/auth.js';
 import { limparPerfil, ultimoAcessoAnterior } from '../core/perfil.js';
 import { esc } from '../shared/dom.js';
-import { fmtDataHora, fmtData, hojeISO } from '../shared/format.js';
+import { fmtDataHora, fmtData, hojeISO, agoraISO } from '../shared/format.js';
 import { ico } from '../shared/ui/icones.js';
+import { limparCaches } from '../shared/cache.js';
+import { toast } from '../shared/ui/toast.js';
 
 const CHAVE_MENU = 'fundhub:menu-aberto';
 const consultaDesktop = () => window.matchMedia('(min-width: 1100px)');
@@ -116,6 +119,8 @@ export function setChrome(logado, user, perfil) {
 
   if (!logado) { menu?.remove(); fecharMenu({ lembrar: false }); return; }
 
+  montarAtualizar(right);
+
   const email = user?.email || perfil?.email || '';
   const papel = PAPEL_ROTULO[perfil?.papel] || 'Leitor';
   const acessoAnterior = ultimoAcessoAnterior();
@@ -170,6 +175,45 @@ export function setChrome(logado, user, perfil) {
   org.classList.toggle('live', s === 'supabase');
   org.classList.toggle('local', s !== 'supabase');
   menu.querySelector('.user-btn').classList.toggle('is-admin', Boolean(perfil?.isAdmin));
+}
+
+// ── Botão Atualizar ──────────────────────────────────────────
+// Limpa os caches dos models e re-renderiza a rota atual - não é
+// location.reload(): login, aba e filtro sobrevivem. O carimbo diz
+// quando os dados vieram do banco pela última vez.
+function montarAtualizar(right) {
+  if (right.querySelector('.atualizar-wrap')) return;
+  const wrap = document.createElement('div');
+  wrap.className = 'atualizar-wrap';
+  wrap.innerHTML = `
+    <span class="atualizado" id="atualizado"></span>
+    <button class="topbar-acao" id="btn-atualizar" type="button"
+            aria-label="Atualizar os dados desta tela">${ico('atualizar', { tam: 18 })}</button>`;
+  right.appendChild(wrap);
+
+  wrap.querySelector('#btn-atualizar').addEventListener('click', async (e) => {
+    const btn = e.currentTarget;
+    btn.classList.add('girando');
+    btn.disabled = true;
+    try {
+      limparCaches();
+      await recarregarRota();
+      marcarAtualizacao();
+    } catch (err) {
+      toast({ titulo: 'Não foi possível atualizar', texto: err.message || String(err), tipo: 'erro' });
+    } finally {
+      btn.classList.remove('girando');
+      btn.disabled = false;
+    }
+  });
+  marcarAtualizacao();
+}
+
+// O carimbo diz quando estes dados vieram do banco. Se ele mostrasse
+// a hora do relógio sem os caches terem sido invalidados, mentiria.
+export function marcarAtualizacao() {
+  const el = document.getElementById('atualizado');
+  if (el) el.textContent = `atualizado ${fmtDataHora(agoraISO())}`;
 }
 
 export function carimboRodape() {

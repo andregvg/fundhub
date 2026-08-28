@@ -71,3 +71,10 @@ export async function route() {
   aoTrocarRota(hash);
   window.scrollTo(0, 0);
 }
+
+// Reexecuta a rota atual sem tocar no hash - o scroll, a aba e o
+// filtro em que a pessoa estava sobrevivem. É o que o botão
+// Atualizar faz depois de invalidar os caches.
+export async function recarregarRota() {
+  await route();
+}

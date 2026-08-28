@@ -8,11 +8,13 @@
 // por id, não redigitado a cada atividade/solicitação.
 // ============================================================
 import { sb, hasSupabase } from '../../core/supabase.js';
+import { registrarCache } from '../../shared/cache.js';
 
 const COLS = 'id, nome, endereco, desembarque, latitude, longitude, maps_url, ativo, obs';
 
 let _cache = null;
 export function limparCacheLocais() { _cache = null; }
+registrarCache(limparCacheLocais);
 
 // Lista os locais (por padrão todos; { somenteAtivos:true } filtra).
 // Degrada em silêncio se a tabela ainda não existe (migration 017).

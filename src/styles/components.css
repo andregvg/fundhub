@@ -892,3 +892,41 @@ hr.sep { margin: 20px 0; border: 0; border-top: 1px solid var(--border); }
 @media (prefers-reduced-motion: reduce) {
   .toast { transition: opacity .15s ease; transform: none; }
 }
+
+/* Cabeçalho: os três controles do canto direito compartilham altura
+   e centro, que é o que os alinha entre si.
+
+   A ORDEM vem daqui, não da ordem de inserção no DOM: o sino se
+   insere como primeiro filho (notificacoes.service.js) e o menu de
+   usuário é anexado por setChrome, então sem `order` o botão de
+   atualizar acabaria à direita do sino. */
+.topbar-right > .atualizar-wrap { order: 1; }
+.topbar-right > .bell-wrap      { order: 2; }
+.topbar-right > .user-menu      { order: 3; }
+
+.atualizar-wrap { display: inline-flex; align-items: center; gap: 8px; }
+
+/* Mobile-first: o carimbo some por padrão (não cabe em tela estreita)
+   e só aparece a partir do corte de 720px - o botão fica sempre. */
+.atualizado { display: none; color: var(--muted); font-size: 12px; white-space: nowrap; }
+@media (min-width: 720px) {
+  .atualizado { display: inline; }
+}
+
+.topbar-acao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--toque);
+  height: var(--toque);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-2);
+  color: var(--text);
+  cursor: pointer;
+}
+.topbar-acao:hover { border-color: color-mix(in srgb, var(--brand) 40%, var(--border)); }
+.topbar-acao:disabled { opacity: .6; cursor: default; }
+.topbar-acao.girando .ico { animation: girar .8s linear infinite; }
+@keyframes girar { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .topbar-acao.girando .ico { animation: none; } }

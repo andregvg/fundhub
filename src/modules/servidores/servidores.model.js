@@ -13,6 +13,7 @@
 // ============================================================
 import { sb, hasSupabase } from '../../core/supabase.js';
 import { slug } from '../../shared/dom.js';
+import { registrarCache } from '../../shared/cache.js';
 // Telefones vêm da tabela dedicada (fonte única) - model → model.
 import { getTelefonesMapas } from '../telefones/telefones.model.js';
 
@@ -23,6 +24,7 @@ const SEL = `*, vinculos:vinculo(
 
 let _cache = null;
 export function limparCacheServidores() { _cache = null; }
+registrarCache(limparCacheServidores);
 
 export async function getServidores() {
   if (_cache) return _cache;

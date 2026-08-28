@@ -5,8 +5,10 @@
 // é o catálogo que alimenta as solicitações de transporte.
 // ============================================================
 import { sb, hasSupabase } from '../../core/supabase.js';
+import { registrarCache } from '../../shared/cache.js';
 
 let _cache = null;
+registrarCache(() => { _cache = null; });
 
 export async function getAtividades() {
   if (_cache) return _cache;
