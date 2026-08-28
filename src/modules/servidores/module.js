@@ -11,7 +11,7 @@
 // REDIRECIONAMENTOS em core/registry.js.
 export default {
   id: 'servidores',
-  ico: '👥',
+  ico: 'equipe',
   nome: 'Servidores',
   desc: 'Cadastro funcional, lotações e contatos.',
   navNome: 'Servidores',

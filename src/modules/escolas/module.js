@@ -1,7 +1,7 @@
 // Manifesto do módulo Escolas.
 export default {
   id: 'escolas',
-  ico: '🏫',
+  ico: 'escola',
   nome: 'Escolas',
   desc: 'Cadastro das 144 unidades escolares.',
   rota: '#/escolas',

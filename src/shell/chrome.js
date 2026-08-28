@@ -20,6 +20,7 @@ import { signOut } from '../core/auth.js';
 import { limparPerfil, ultimoAcessoAnterior } from '../core/perfil.js';
 import { esc } from '../shared/dom.js';
 import { fmtDataHora, fmtData, hojeISO } from '../shared/format.js';
+import { ico } from '../shared/ui/icones.js';
 
 const CHAVE_MENU = 'fundhub:menu-aberto';
 const consultaDesktop = () => window.matchMedia('(min-width: 1100px)');
@@ -38,11 +39,6 @@ const PAPEL_ROTULO = {
   leitor: 'Leitor',
 };
 
-// Ícone de usuário (Feather "user").
-const USER_SVG = `<svg viewBox="0 0 24 24" width="20" height="20" fill="none"
-  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
-
 // ── Menu lateral ─────────────────────────────────────────────
 export function montarNav() {
   const grupos = navPorGrupo();
@@ -51,6 +47,8 @@ export function montarNav() {
       ${g.rotulo ? `<div class="nav-tit">${esc(g.rotulo)}</div>` : ''}
       ${g.itens.map(item).join('')}
     </div>`).join('');
+
+  toggle().innerHTML = ico('menu', { tam: 20 });
 
   // Só no celular o clique num link fecha o menu: no desktop ele é
   // parte do layout e fechar a cada navegação seria irritante.
@@ -82,7 +80,7 @@ export function montarNav() {
 
 function item(m) {
   return `<a href="${m.rota}" data-rota="${m.rota}">
-    <span class="nav-ico" aria-hidden="true">${m.ico}</span>
+    <span class="nav-ico">${ico(m.ico, { tam: 18 })}</span>
     <span class="nav-txt">${esc(m.navNome || m.nome)}</span>
   </a>`;
 }
@@ -128,10 +126,10 @@ export function setChrome(logado, user, perfil) {
     menu.className = 'user-menu';
     menu.innerHTML = `
       <button class="user-btn" id="user-btn" type="button" aria-label="Menu do usuário"
-              aria-haspopup="true" aria-expanded="false">${USER_SVG}</button>
+              aria-haspopup="true" aria-expanded="false">${ico('servidor', { tam: 20 })}</button>
       <div class="user-panel" id="user-panel" hidden>
         <div class="um-head">
-          <span class="um-avatar">${USER_SVG}</span>
+          <span class="um-avatar">${ico('servidor', { tam: 20 })}</span>
           <div class="um-id">
             <b class="um-email"></b>
             <span class="um-papel badge"></span>

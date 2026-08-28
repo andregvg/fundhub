@@ -1,7 +1,7 @@
 // Manifesto do módulo Atas de Atendimento.
 export default {
   id: 'atas',
-  ico: '📝',
+  ico: 'ata',
   nome: 'Atas de Atendimento',
   desc: 'Redação e impressão em papel timbrado.',
   navNome: 'Atas',

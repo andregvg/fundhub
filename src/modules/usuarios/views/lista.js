@@ -25,6 +25,7 @@ import { loading, emptyState, erroBox } from '../../../shared/ui/feedback.js';
 import { drawerHtml, drawerHead, montarDrawer, abrirDrawer, fecharDrawer } from '../../../shared/ui/drawer.js';
 import { confirmar } from '../../../shared/ui/confirmar.js';
 import { toast } from '../../../shared/ui/toast.js';
+import { ico } from '../../../shared/ui/icones.js';
 import { isInstitucional } from '../../../core/auth.js';
 
 let lista = [], papeis = [], presets = {}, servidores = [];
@@ -207,7 +208,7 @@ function abrirForm(p) {
           const herdado = preset[chavePerm(m)] || OCULTO;
           const atual = excecoes[chavePerm(m)] ?? '';
           return `<div class="perm-linha">
-            <span class="perm-nome">${m.ico} ${esc(m.navNome || m.nome)}</span>
+            <span class="perm-nome">${ico(m.ico, { tam: 14 })} ${esc(m.navNome || m.nome)}</span>
             <select class="perm-sel" data-mod="${esc(chavePerm(m))}">
               <option value="" ${atual === '' ? 'selected' : ''}>Padrão do papel (${esc(rotulaNivel(herdado))})</option>
               ${NIVEIS.map(n => `<option value="${n.valor}" ${atual === n.valor ? 'selected' : ''}>${esc(n.rotulo)}</option>`).join('')}

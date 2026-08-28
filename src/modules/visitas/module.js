@@ -1,7 +1,7 @@
 // Manifesto do módulo Relatórios de Visita Técnica.
 export default {
   id: 'visitas',
-  ico: '📋',
+  ico: 'visita',
   nome: 'Relatórios de Visita',
   desc: 'Visitas técnicas às escolas.',
   navNome: 'Visitas',

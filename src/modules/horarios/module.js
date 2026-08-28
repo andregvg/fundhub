@@ -1,7 +1,7 @@
 // Manifesto do módulo Horários de Trabalho.
 export default {
   id: 'horarios',
-  ico: '🕒',
+  ico: 'horario',
   nome: 'Horários de Trabalho',
   desc: 'Jornada da equipe gestora, validada por regra.',
   navNome: 'Horários',

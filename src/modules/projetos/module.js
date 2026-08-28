@@ -3,7 +3,7 @@
 // externo do proponente por token depende de Edge Function — backlog.
 export default {
   id: 'projetos',
-  ico: '🔬',
+  ico: 'projeto',
   nome: 'Projetos & Pesquisas',
   desc: 'Ofertas às escolas, anuências e interesse.',
   navNome: 'Projetos',

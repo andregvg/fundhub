@@ -1,7 +1,7 @@
 // Manifesto do módulo Dashboard do dia.
 export default {
   id: 'dashboard',
-  ico: '📊',
+  ico: 'dashboard',
   nome: 'Dashboard do dia',
   desc: 'Acompanhamento em tempo real.',
   navNome: 'Dashboard',

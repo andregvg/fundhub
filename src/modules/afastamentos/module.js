@@ -1,7 +1,7 @@
 // Manifesto do módulo Afastamentos.
 export default {
   id: 'afastamentos',
-  ico: '🌴',
+  ico: 'afastamento',
   nome: 'Afastamentos',
   desc: 'Férias, licenças e afastamentos.',
   rota: '#/afastamentos',

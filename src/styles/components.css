@@ -37,13 +37,13 @@ a.tile:hover {
 }
 .tile.soon { opacity: .62; }
 .tile.servico { opacity: .92; }
-.tile .ico { font-size: 26px; }
 
 /* Ícones SVG (shared/ui/icones.js). O par flex: 0 0 auto aqui +
    centro no container é o que faz o alinhamento deixar de ser
-   sorte - emoji nunca teve como alinhar, SVG tem. Mesma classe do
-   .ico acima porque um vai substituir o outro: hoje é um emoji num
-   div, depois vira um <svg class="ico"> no lugar dele. */
+   sorte - emoji nunca teve como alinhar, SVG tem. O tamanho vem do
+   atributo width/height do próprio <svg> (parâmetro tam de ico()),
+   não de font-size - por isso não existe mais uma regra de tamanho
+   aqui como havia quando o tile mostrava um emoji num div.ico. */
 .ico { display: inline-block; vertical-align: -0.125em; flex: 0 0 auto; }
 .tile h3 { margin: 2px 0 0; font-size: 16px; padding-right: 60px; }
 .tile p { margin: 0; color: var(--muted); font-size: 13px; }

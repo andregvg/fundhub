@@ -2,7 +2,7 @@
 // Registro dos atendimentos telefônicos das recepcionistas, ligado à escola.
 export default {
   id: 'ocorrencias',
-  ico: '📞',
+  ico: 'ocorrencia',
   nome: 'Ocorrências',
   desc: 'Registro de atendimentos telefônicos.',
   navNome: 'Ocorrências',

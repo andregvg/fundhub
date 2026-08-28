@@ -28,6 +28,7 @@ import { esc, falha } from '../../shared/dom.js';
 import { fmtData, fmtDataHora } from '../../shared/format.js';
 import { erroBox, emptyState } from '../../shared/ui/feedback.js';
 import { phonesEditorHtml, montarPhonesEditor, lerPhonesEditor } from '../../shared/ui/phones.js';
+import { ico } from '../../shared/ui/icones.js';
 import { signOut } from '../../core/auth.js';
 
 let perfil = null, servidor = null, telefones = [];
@@ -102,7 +103,7 @@ function blocoAcesso() {
   const mapa = mapaAtual();
   const visiveis = MODULOS
     .filter(m => m.rota && (mapa[chavePerm(m)] || OCULTO) !== OCULTO)
-    .map(m => `<span class="tag">${m.ico} ${esc(m.navNome || m.nome)} · ${esc(rotulaNivel(mapa[chavePerm(m)]))}</span>`)
+    .map(m => `<span class="tag">${ico(m.ico, { tam: 14 })} ${esc(m.navNome || m.nome)} · ${esc(rotulaNivel(mapa[chavePerm(m)]))}</span>`)
     .join('');
 
   return `

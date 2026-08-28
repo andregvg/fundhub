@@ -3,7 +3,7 @@
 // logo após o login e vive no topo (sino) e nos toasts.
 export default {
   id: 'notificacoes',
-  ico: '🔔',
+  ico: 'sino',
   nome: 'Notificações',
   desc: 'Alertas em tempo real, no sino do topo.',
   ativo: true,

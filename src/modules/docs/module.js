@@ -4,7 +4,7 @@
 // não contém dado pessoal, mas também não interessa a quem só consulta.
 export default {
   id: 'docs',
-  ico: '📖',
+  ico: 'docs',
   nome: 'Documentação',
   desc: 'Como o FundHub funciona por dentro.',
   navNome: 'Docs',

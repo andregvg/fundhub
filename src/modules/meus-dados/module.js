@@ -8,7 +8,7 @@
 // próprios dados de contato e a sessão.
 export default {
   id: 'meus_dados',
-  ico: '🪪',
+  ico: 'identidade',
   nome: 'Meus dados',
   desc: 'Seus dados de cadastro, contatos e sessão.',
   navNome: 'Meus dados',

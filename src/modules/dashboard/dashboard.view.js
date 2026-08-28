@@ -13,6 +13,7 @@ import { getOcorrencias, CANAIS, STATUS as STATUS_OCOR, STATUS_TAG as TAG_OCOR }
 import { esc } from '../../shared/dom.js';
 import { hojeISO, fmtExtenso, fmtData } from '../../shared/format.js';
 import { loading, emptyState } from '../../shared/ui/feedback.js';
+import { ico } from '../../shared/ui/icones.js';
 
 export async function render(app) {
   const hoje = hojeISO();
@@ -25,19 +26,19 @@ export async function render(app) {
     <div class="stat-row" id="stats"></div>
     <div class="dash-grid">
       <section class="panel">
-        <h2>🚌 Extraclasse hoje</h2>
+        <h2>${ico('transporte', { tam: 16 })} Extraclasse hoje</h2>
         <div id="p-extraclasse">${loading()}</div>
       </section>
       <section class="panel">
-        <h2>🌴 Afastamentos hoje</h2>
+        <h2>${ico('afastamento', { tam: 16 })} Afastamentos hoje</h2>
         <div id="p-afastamentos">${loading()}</div>
       </section>
       <section class="panel">
-        <h2>📅 Calendário hoje</h2>
+        <h2>${ico('calendario', { tam: 16 })} Calendário hoje</h2>
         <div id="p-calendario">${loading()}</div>
       </section>
       <section class="panel">
-        <h2>📞 Ocorrências de hoje</h2>
+        <h2>${ico('ocorrencia', { tam: 16 })} Ocorrências de hoje</h2>
         <div id="p-ocorrencias">${loading()}</div>
       </section>
     </div>`;
@@ -55,7 +56,7 @@ async function painelOcorrencias(hoje) {
   const box = document.getElementById('p-ocorrencias');
   let lista;
   try { lista = await getOcorrencias({ de: hoje, ate: hoje }); }
-  catch (err) { box.innerHTML = emptyState('⚠️', 'Não foi possível carregar', esc(err.message || err)); return; }
+  catch (err) { box.innerHTML = emptyState(ico('atencao', { tam: 32 }), 'Não foi possível carregar', esc(err.message || err)); return; }
 
   if (!lista.length) {
     box.innerHTML = emptyState('—', 'Sem registros', 'Nenhum atendimento registrado hoje.');
@@ -73,9 +74,9 @@ async function painelOcorrencias(hoje) {
   }).join('');
 }
 
-const statTile = (ico, num, label, extra = '') => `
+const statTile = (svgIco, num, label, extra = '') => `
   <div class="stat-tile ${extra}">
-    <div class="stat-ico" aria-hidden="true">${ico}</div>
+    <div class="stat-ico" aria-hidden="true">${svgIco}</div>
     <div>
       <div class="stat-num">${esc(num)}</div>
       <div class="stat-label">${esc(label)}</div>
@@ -90,16 +91,16 @@ async function painelStats() {
   const el = document.getElementById('stats');
   if (!el) return;
   el.innerHTML =
-    statTile('🏫', unidades.length, 'escolas')
-    + statTile('🎯', atividades.length, 'atividades no catálogo')
-    + statTile('🚌', '—', 'extraclasse hoje', 'stat-hoje');
+    statTile(ico('escola', { tam: 26 }), unidades.length, 'escolas')
+    + statTile(ico('meta', { tam: 26 }), atividades.length, 'atividades no catálogo')
+    + statTile(ico('transporte', { tam: 26 }), '-', 'extraclasse hoje', 'stat-hoje');
 }
 
 async function painelExtraclasse(hoje) {
   const box = document.getElementById('p-extraclasse');
   let solics;
   try { solics = await getSolicitacoesDoDia(hoje); }
-  catch (err) { box.innerHTML = emptyState('⚠️', 'Não foi possível carregar', esc(err.message || err)); return; }
+  catch (err) { box.innerHTML = emptyState(ico('atencao', { tam: 32 }), 'Não foi possível carregar', esc(err.message || err)); return; }
 
   const tile = document.querySelector('.stat-hoje .stat-num');
   if (tile) tile.textContent = String(solics.length);
@@ -127,7 +128,7 @@ async function painelAfastamentos(hoje) {
   const box = document.getElementById('p-afastamentos');
   let afs;
   try { afs = await getAfastamentos({ vigentesEm: hoje }); }
-  catch (err) { box.innerHTML = emptyState('⚠️', 'Não foi possível carregar', esc(err.message || err)); return; }
+  catch (err) { box.innerHTML = emptyState(ico('atencao', { tam: 32 }), 'Não foi possível carregar', esc(err.message || err)); return; }
 
   if (!afs.length) {
     box.innerHTML = emptyState('—', 'Equipe completa', 'Nenhum afastamento vigente hoje.');
@@ -146,7 +147,7 @@ async function painelCalendario(hoje) {
   const box = document.getElementById('p-calendario');
   let dia;
   try { dia = await getDiaCalendario(hoje); }
-  catch (err) { box.innerHTML = emptyState('⚠️', 'Não foi possível carregar', esc(err.message || err)); return; }
+  catch (err) { box.innerHTML = emptyState(ico('atencao', { tam: 32 }), 'Não foi possível carregar', esc(err.message || err)); return; }
 
   if (!dia) {
     box.innerHTML = emptyState('—', 'Dia comum', 'Sem evento no calendário escolar.');
@@ -154,8 +155,8 @@ async function painelCalendario(hoje) {
   }
   const marcas = [
     dia.letivo === false ? '<span class="tag">Não letivo</span>' : '',
-    dia.bloqueia_extraclasse ? '<span class="tag st-negado">🚫 Bloqueia extraclasse</span>' : '',
-    dia.bloqueia_afastamento ? '<span class="tag st-em_analise">🌴 Não conceder afastamentos</span>' : '',
+    dia.bloqueia_extraclasse ? `<span class="tag st-negado">${ico('erro', { tam: 14 })} Bloqueia extraclasse</span>` : '',
+    dia.bloqueia_afastamento ? `<span class="tag st-em_analise">${ico('afastamento', { tam: 14 })} Não conceder afastamentos</span>` : '',
   ].join('');
   box.innerHTML = `<div class="dash-item">
     <div class="di-top"><b>${esc(dia.evento || dia.tipo || 'Dia letivo')}</b></div>

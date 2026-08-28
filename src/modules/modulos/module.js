@@ -4,7 +4,7 @@
 // saem do registro, então módulo novo aparece aqui sozinho.
 export default {
   id: 'modulos',
-  ico: '🧩',
+  ico: 'modulos',
   nome: 'Todos os Módulos',
   desc: 'Índice das ferramentas do hub.',
   navNome: 'Todos os Módulos',

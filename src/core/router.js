@@ -14,6 +14,7 @@ import { moduloPorRota, caminhoDaRota, chavePerm, REDIRECIONAMENTOS } from './re
 import { getPerfilAtual } from './perfil.js';
 import { nivel, OCULTO } from './permissoes.js';
 import { loading, emptyState } from '../shared/ui/feedback.js';
+import { ico } from '../shared/ui/icones.js';
 
 const ROTA_INICIAL = '#/dashboard';
 
@@ -52,19 +53,19 @@ export async function route() {
 
   try {
     if (!mod || !mod.ativo) {
-      outlet.innerHTML = emptyState('🧭', 'Página não encontrada',
+      outlet.innerHTML = emptyState(ico('perdido', { tam: 32 }), 'Página não encontrada',
         'O endereço não corresponde a nenhum módulo. Use o menu à esquerda para navegar.');
     } else if (nivel(chavePerm(mod)) === OCULTO) {
       // Mesma mensagem para "não existe" e "não pode": confirmar que o
       // módulo existe já é informação a mais para quem não tem acesso.
-      outlet.innerHTML = emptyState('🔒', 'Acesso restrito',
+      outlet.innerHTML = emptyState(ico('restrito', { tam: 32 }), 'Acesso restrito',
         'Você não tem permissão para este módulo. Se precisa de acesso, fale com a Gerência de Ensino Fundamental.');
     } else {
       const view = await mod.load();   // import() dinâmico: só agora a view é baixada
       await view.render(outlet, { perfil, nivel: nivel(chavePerm(mod)), params });
     }
   } catch (err) {
-    outlet.innerHTML = emptyState('⚠️', 'Não foi possível abrir este módulo', String(err?.message || err));
+    outlet.innerHTML = emptyState(ico('atencao', { tam: 32 }), 'Não foi possível abrir este módulo', String(err?.message || err));
   }
 
   aoTrocarRota(hash);

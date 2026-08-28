@@ -5,7 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>FundHub — Gerência de Ensino Fundamental</title>
   <meta name="description" content="Hub de aplicações gerenciais da Gerência de Ensino Fundamental — SME Ribeirão Preto." />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8F%AB%3C/text%3E%3C/svg%3E" />
+  <!-- O #1d4ed8 aqui é a única cor literal aceitável do projeto: um data:
+       URI de favicon não é src/modules/** e não tem como referenciar um
+       token CSS de tokens.css. -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231d4ed8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z'/%3E%3Cpolyline points='9 22 9 12 15 12 15 22'/%3E%3C/svg%3E" />
   <link rel="stylesheet" href="src/styles/main.css" />
   <!-- supabase-js (UMD): fonte de dados do FundHub (RLS). Nenhum dado real versionado. -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
@@ -13,10 +16,19 @@
 <body>
   <header class="topbar anon">
     <button class="nav-toggle" id="nav-toggle" type="button" aria-label="Menu"
-            aria-expanded="false" aria-controls="sidebar">☰</button>
+            aria-expanded="false" aria-controls="sidebar"></button>
 
     <a class="brand" href="#/">
-      <span class="brand-mark" aria-hidden="true">🏫</span>
+      <!-- Marca inline (e não via icones.js) para o logotipo aparecer na tela
+           de login, antes de qualquer JS rodar. Se o traçado de `escola` mudar
+           em shared/ui/icones.js, mude aqui também. -->
+      <span class="brand-mark" aria-hidden="true">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+          <polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+      </span>
       <span class="brand-text">
         <strong>Fund<span class="hub">Hub</span></strong>
         <small>Ferramentas do Ensino Fundamental · SME Ribeirão Preto</small>

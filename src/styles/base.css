@@ -67,7 +67,7 @@ body.sem-menu .sidebar,
 body.sem-menu .sidebar-back { display: none; }
 
 .brand { display: flex; align-items: center; gap: 10px; color: var(--text); min-width: 0; }
-.brand-mark { font-size: 22px; }
+.brand-mark { display: inline-flex; color: var(--brand); }
 .brand-text { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; }
 .brand-text strong { font-size: 17px; letter-spacing: -.02em; }
 .brand-text .hub { color: var(--brand); }

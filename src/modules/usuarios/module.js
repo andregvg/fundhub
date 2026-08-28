@@ -2,7 +2,7 @@
 // Gestão da allowlist (perfil) + o visualizador de auditoria.
 export default {
   id: 'usuarios',
-  ico: '🔐',
+  ico: 'acesso',
   nome: 'Usuários & Acessos',
   desc: 'Gestão de perfis, permissões e auditoria.',
   navNome: 'Usuários',

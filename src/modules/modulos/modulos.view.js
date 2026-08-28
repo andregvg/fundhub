@@ -7,6 +7,7 @@
 import { modulosVisiveis, GRUPOS, chavePerm } from '../../core/registry.js';
 import { nivel, rotulaNivel, ESCRITA } from '../../core/permissoes.js';
 import { esc } from '../../shared/dom.js';
+import { ico } from '../../shared/ui/icones.js';
 
 export async function render(app) {
   const visiveis = modulosVisiveis().filter(m => m.id !== 'modulos');
@@ -39,7 +40,7 @@ function tile(m) {
       : `<span class="badge nivel">${esc(rotulaNivel(n))}</span>`;
 
   const inner = `${badge}
-    <div class="ico" aria-hidden="true">${m.ico}</div>
+    ${ico(m.ico, { tam: 26 })}
     <h3>${esc(m.nome)}</h3>
     <p>${esc(m.desc)}</p>`;
 

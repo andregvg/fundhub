@@ -1,7 +1,7 @@
 // Manifesto do módulo SATE (Sistema de Agendamento de Transporte Extraclasse).
 export default {
   id: 'sate',
-  ico: '🚌',
+  ico: 'transporte',
   nome: 'SATE · Transporte',
   desc: 'Agendamento de transporte extraclasse.',
   navNome: 'SATE',
