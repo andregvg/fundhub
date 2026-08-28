@@ -316,8 +316,8 @@ hash.
 | `shell/chrome.js` | botão Atualizar + carimbo; `USER_SVG` sai para `icones.js` |
 | `core/router.js` | ganha `recarregarRota()` |
 | `styles/components.css` | `.ico`, `.vazio`, `.switch.radio`, toast (vindo de notificações) |
-| `styles/tokens.css` | `--sucesso-bg`, `--atencao-bg`, `--erro-bg`, `--info-bg`, `--topbar-h` |
-| `styles/base.css` | `.topbar` ganha `min-height: var(--topbar-h)` |
+| `styles/tokens.css` | `--sucesso-bg`, `--atencao-bg`, `--erro-bg`, `--info-bg`; recebe `--topo`, vindo de `base.css` |
+| `styles/base.css` | `.topbar` ganha `min-height: var(--topo)`; `--topo` sai daqui para `tokens.css` |
 | `modules/notificacoes/notificacoes.css` | perde o bloco de toast |
 | `modules/*/module.js` (17) | `ico` passa a ser nome, não emoji |
 | `modules/**` | emojis → `ico()`; travessões; vazios; toasts de sucesso |
