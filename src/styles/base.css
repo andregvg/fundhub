@@ -27,11 +27,8 @@ a { color: var(--brand); text-decoration: none; }
 :focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
 
 /* ── Topo ─────────────────────────────────────────────────── */
-/* Altura da barra de topo a partir de 720px, que é onde o menu
-   lateral vira coluna e precisa grudar logo abaixo dela. Estava
-   escrito 49px em dois lugares e desatualizou quando o topo ganhou
-   padding maior — por isso virou token. */
-:root { --topo: 55px; }
+/* --topo mora em tokens.css - é onde token vive, e aqui teria só um
+   consumidor local em vez dos três que precisam concordar sobre ela. */
 
 .topbar {
   position: sticky;
@@ -40,7 +37,7 @@ a { color: var(--brand); text-decoration: none; }
   display: flex;
   align-items: center;
   gap: 10px;
-  min-height: var(--topbar-h);
+  min-height: var(--topo);
   padding: 8px 14px;
   background: var(--surface);
   border-bottom: 1px solid var(--border);
