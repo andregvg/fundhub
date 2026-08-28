@@ -21,6 +21,7 @@
 - **O kernel (`core/` + `shared/`) nunca importa `modules/` nem `shell/`.**
 - **Ícones sempre `aria-hidden="true"`** - o significado vem do texto ao lado ou do `aria-label` do botão.
 - **Antes de cada commit:** `python .claude/scripts/verificar_arquitetura.py` sem novas violações, e `git diff --cached` lido à procura de dado real.
+- **Nenhum código novo nasce com `—`.** Ao transcrever os blocos deste plano, escreva `-` em todo comentário e string, inclusive nos blocos das Tasks 8 e 9, que rodam DEPOIS da varredura da Task 7. Se elas reintroduzirem travessão, a verificação final falha.
 - **Cortes responsivos:** 560 · 720 · 900 · 1100px. Base é o celular; `@media (min-width: …)` acrescenta, nunca subtrai.
 - **Testes:** `node --test tests/` roda tudo. Arquivo por assunto, `.test.mjs`, só `node:test` e `node:assert/strict`.
 - **Só lógica pura é testada por `node`.** Os models importam limpo fora do navegador (`core/supabase.js` só toca em `window` dentro de `sb()`, nunca na carga) - isso foi verificado antes deste plano ser escrito e **precisa continuar valendo**: nenhum módulo pode passar a tocar em `window` ou `document` em tempo de carga. O que depende de DOM é verificado no navegador, com o patch de dev-local, e o patch é **revertido antes de commitar**.
@@ -343,10 +344,26 @@ O `aria-hidden` sai do `<span>` - agora vive no próprio SVG.
 
 O `#1d4ed8` no favicon é a única cor literal aceitável do projeto: `data:` URI em `index.html` não é `src/modules/**` e não tem como referenciar um token CSS. Registrar isso em comentário HTML ao lado.
 
-O `brand-mark` e o `nav-toggle` recebem o SVG por JS, em `montarNav()`, para não duplicar traçado no HTML:
+**A marca vai inline no HTML, o `☰` vem do JS.** `montarNav()` só roda depois do login (`main.js`, `montarApp`), então preencher `.brand-mark` por JS deixaria a tela de login e a de acesso pendente sem logotipo. O `nav-toggle` pode vir do JS porque já é escondido quando anônimo (`.topbar.anon .nav-toggle { display: none }`).
+
+No `index.html`, dentro do `<span class="brand-mark">`, o mesmo traçado de `escola` do conjunto:
+
+```html
+    <!-- Marca inline (e não via icones.js) para o logotipo aparecer na tela
+         de login, antes de qualquer JS rodar. Se o traçado de `escola` mudar
+         em shared/ui/icones.js, mude aqui também. -->
+    <span class="brand-mark" aria-hidden="true">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+        <polyline points="9 22 9 12 15 12 15 22"/>
+      </svg>
+    </span>
+```
+
+Em `montarNav()`, só o botão de menu:
 
 ```js
-document.querySelector('.brand-mark').innerHTML = ico('escola', { tam: 22 });
 toggle().innerHTML = ico('menu', { tam: 20 });
 ```
 
@@ -575,17 +592,16 @@ export function normalizarTipo(tipo) {
 
 export const duracaoPadrao = (tipo) => DURACAO[normalizarTipo(tipo)];
 
-// Dois containers: 'polite' não interrompe quem está digitando;
-// 'assertive' é só para erro, que não pode esperar.
-function caixa(assertivo) {
-  const id = assertivo ? 'toasts-erro' : 'toasts';
-  let box = document.getElementById(id);
+// UM container. Dois containers fixos no mesmo `top` se sobreporiam na
+// tela. O papel vai em cada toast, não na caixa: role="alert" para erro
+// (assertivo por definição) e role="status" para os demais — que é o
+// padrão ARIA para notificação transitória.
+function caixa() {
+  let box = document.getElementById('toasts');
   if (!box) {
     box = document.createElement('div');
-    box.id = id;
+    box.id = 'toasts';
     box.className = 'toasts';
-    box.setAttribute('role', 'status');
-    box.setAttribute('aria-live', assertivo ? 'assertive' : 'polite');
     document.body.appendChild(box);
   }
   return box;
@@ -593,11 +609,12 @@ function caixa(assertivo) {
 
 export function toast({ titulo, texto = '', tipo = 'info', duracao } = {}) {
   const t = normalizarTipo(tipo);
-  const box = caixa(t === 'erro');
+  const box = caixa();
   const ms = duracao ?? DURACAO[t];
 
   const el = document.createElement('div');
   el.className = `toast t-${t}`;
+  el.setAttribute('role', t === 'erro' ? 'alert' : 'status');
   el.innerHTML = `
     <span class="toast-ico">${ico(ICO_TIPO[t], { tam: 18 })}</span>
     <div class="toast-txt">
@@ -625,7 +642,6 @@ export function toast({ titulo, texto = '', tipo = 'info', duracao } = {}) {
 
 export function limparToasts() {
   document.getElementById('toasts')?.remove();
-  document.getElementById('toasts-erro')?.remove();
 }
 ```
 
@@ -694,7 +710,6 @@ Apagar de `src/modules/notificacoes/notificacoes.css` o bloco `#toasts` / `.toas
   gap: 10px;
   pointer-events: none;          /* a fila não bloqueia a página */
 }
-#toasts-erro { top: calc(var(--topbar-h) + 12px); }
 .toast {
   display: flex;
   align-items: flex-start;
@@ -1182,7 +1197,9 @@ export async function recarregarRota() {
 
 - [ ] **Step 7: Botão e carimbo em `shell/chrome.js`**
 
-Numa função nova, chamada por `setChrome` quando logado, antes de inserir o menu de usuário (para o botão ficar à esquerda do sino - o sino é inserido pelo serviço de notificações, que roda depois):
+**A ordem dos três controles é decidida por CSS, não por ordem de inserção.** `notificacoes.service.js:118` insere o sino com `right.insertBefore(wrap, right.firstChild)`, então o sino sempre vira o primeiro filho; qualquer coisa que `setChrome` anexe cai à direita dele. Como `.topbar-right` já é `display: flex` (`base.css:76`), a propriedade `order` resolve isso de forma determinística, sem coordenar quem monta primeiro.
+
+Numa função nova, chamada por `setChrome` quando logado:
 
 ```js
 import { limparCaches } from '../shared/cache.js';
@@ -1234,7 +1251,16 @@ export function marcarAtualizacao() {
 
 ```css
 /* Cabeçalho: os três controles do canto direito compartilham altura
-   e centro, que é o que os alinha entre si. */
+   e centro, que é o que os alinha entre si.
+
+   A ORDEM vem daqui, não da ordem de inserção no DOM: o sino se
+   insere como primeiro filho (notificacoes.service.js) e o menu de
+   usuário é anexado por setChrome, então sem `order` o botão de
+   atualizar acabaria à direita do sino. */
+.topbar-right > .atualizar-wrap { order: 1; }
+.topbar-right > .bell-wrap      { order: 2; }
+.topbar-right > .user-menu      { order: 3; }
+
 .atualizar-wrap { display: inline-flex; align-items: center; gap: 8px; }
 .atualizado { color: var(--muted); font-size: 12px; white-space: nowrap; }
 .topbar-acao {
@@ -1283,11 +1309,36 @@ git commit -m "feat(ui): botao de atualizar no cabecalho com carimbo da ultima c
 - Modify: `CHANGELOG.md`
 - Modify: `src/modules/docs/docs.content.js` (se descrever ícones ou mensagens)
 
-- [ ] **Step 1: Rodar tudo**
+- [ ] **Step 1: Rodar tudo, incluindo a re-varredura de travessão**
 
 ```bash
 node --test tests/
 python .claude/scripts/verificar_arquitetura.py
+```
+
+As Tasks 8 e 9 criaram código depois da varredura da Task 7. Re-varrer:
+
+```bash
+grep -rn "—" src/ docs/ .claude/ index.html CHANGELOG.md CLAUDE.md README.md   | grep -v "2026-08-27-sistema-visual-design.md" || echo "limpo"
+```
+
+Esperado: `limpo`. Se aparecer algo, trocar por `-` antes de seguir.
+
+E a varredura de emoji da Task 3, pelo mesmo motivo:
+
+```bash
+python -c "
+import re, os, sys
+pat = re.compile('[🀀-🫿☀-➿⬀-⯿]')
+n = 0
+for root, _, fs in os.walk('src'):
+    for f in fs:
+        p = os.path.join(root, f)
+        t = open(p, encoding='utf-8').read()
+        m = pat.findall(t)
+        if m: n += len(m); print(p, len(m))
+print('TOTAL', n); sys.exit(1 if n else 0)
+"
 ```
 
 - [ ] **Step 2: Subir a versão**
