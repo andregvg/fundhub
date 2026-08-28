@@ -63,3 +63,8 @@
 }
 .perm-nome { font-size: 13px; font-weight: 500; text-transform: none; letter-spacing: 0; }
 .perm-sel { flex: 0 0 auto; max-width: 210px; }
+
+/* Papel e "acesso ativo" na mesma linha: `end` alinha o trilho com a
+   base do select, não com o topo do rótulo. */
+.acesso-row { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: end; }
+@media (max-width: 559px) { .acesso-row { grid-template-columns: 1fr; align-items: start; } }

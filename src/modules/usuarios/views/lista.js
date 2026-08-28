@@ -137,9 +137,15 @@ function abrirForm(p) {
         <fieldset class="form-grupo">
           <legend>Acesso</legend>
           <div class="campos">
-            <label>Papel <select id="f-papel">${optsPapel}</select>
-              <small class="form-hint" id="f-papel-desc"></small></label>
-            <label class="inline"><input type="checkbox" id="f-ativo" ${(p ? p.ativo : true) ? 'checked' : ''} /> Acesso ativo</label>
+            <div class="esc-row acesso-row">
+              <label>Papel <select id="f-papel">${optsPapel}</select></label>
+              <label class="switch">
+                <input type="checkbox" id="f-ativo" ${(p ? p.ativo : true) ? 'checked' : ''} />
+                <span class="switch-trilho" aria-hidden="true"></span>
+                <span class="switch-txt">Acesso ativo</span>
+              </label>
+            </div>
+            <small class="form-hint" id="f-papel-desc"></small>
           </div>
         </fieldset>
 

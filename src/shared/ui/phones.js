@@ -78,8 +78,10 @@ function rowHtml(t = {}) {
       <input class="phone-num" type="tel" inputmode="tel" maxlength="16"
              placeholder="(16) 00000-0000" value="${esc(normalizarTelefone(t.numero) || '')}" />
       <input class="phone-rot" type="text" placeholder="rótulo (opcional)" value="${esc(t.rotulo || '')}" />
-      <label class="phone-pri" title="Telefone principal">
-        <input type="radio" name="phone-pri" ${t.principal ? 'checked' : ''} /> principal
+      <label class="switch radio phone-pri" title="Telefone principal">
+        <input type="radio" name="phone-pri" ${t.principal ? 'checked' : ''} />
+        <span class="switch-trilho" aria-hidden="true"></span>
+        <span class="switch-txt">principal</span>
       </label>
       <button type="button" class="phone-del" aria-label="Remover telefone">×</button>
     </div>`;
@@ -91,14 +93,22 @@ export function montarPhonesEditor(root) {
   if (!box) return;
   const rows = box.querySelector('.phone-rows');
 
+  // Uma lista de telefones sem principal não ajuda ninguém a decidir
+  // para qual ligar. Se ninguém marcou, o primeiro assume.
+  function garantirPrincipal() {
+    const radios = [...box.querySelectorAll('.phone-pri input')];
+    if (radios.length && !radios.some(r => r.checked)) radios[0].checked = true;
+  }
+
   box.querySelector('.phone-add')?.addEventListener('click', () => {
     rows.insertAdjacentHTML('beforeend', rowHtml({ tipo: 'fixo' }));
     rows.querySelector('.phone-row:last-child .phone-num')?.focus();
+    garantirPrincipal();
   });
 
   box.addEventListener('click', (e) => {
     const del = e.target.closest('.phone-del');
-    if (del) del.closest('.phone-row')?.remove();
+    if (del) { del.closest('.phone-row')?.remove(); garantirPrincipal(); }
   });
 
   // Delegação: pega também as linhas criadas depois deste momento.
@@ -118,6 +128,9 @@ export function montarPhonesEditor(root) {
     const campo = e.target.closest('.phone-num');
     if (campo && campo.value.trim()) campo.value = normalizarTelefone(campo.value);
   });
+
+  // A lista pode vir do banco sem nenhum principal marcado.
+  garantirPrincipal();
 }
 
 // Reaplica a máscara preservando a posição do cursor — sem isto, o
