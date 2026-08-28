@@ -16,7 +16,7 @@ import { getUser, onAuthChange, renderLogin, isInstitucional, signOut } from './
 import { getPerfilAtual, limparPerfil, registrarAcesso } from './core/perfil.js';
 import { startRouter } from './core/router.js';
 import { servicos } from './core/registry.js';
-import { montarNav, marcarNav, setChrome, carimboRodape } from './shell/chrome.js';
+import { montarNav, marcarNav, setChrome, carimboRodape, marcarAtualizacao } from './shell/chrome.js';
 import { renderAcessoPendente } from './shell/pendente.js';
 import { limparToasts } from './shared/ui/toast.js';
 
@@ -42,7 +42,11 @@ async function montarApp(user) {
   if (montado) return;
   montado = true;
   montarNav();
-  startRouter(app, { onRoute: marcarNav });
+  // O carimbo do botão Atualizar é marcado aqui, não na montagem do
+  // cabeçalho: aoTrocarRota só dispara depois que a view terminou de
+  // renderizar (ver core/router.js), então é o único ponto em que o
+  // carimbo de fato reflete dado que já chegou à tela.
+  startRouter(app, { onRoute: (hash) => { marcarNav(hash); marcarAtualizacao(); } });
   iniciarServicos();
 }
 

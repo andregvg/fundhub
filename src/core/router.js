@@ -21,15 +21,26 @@ const ROTA_INICIAL = '#/dashboard';
 let outlet = null;
 let aoTrocarRota = () => {};
 
+// Ouvinte NOMEADO, module-level, e sempre a MESMA referência no
+// remove e no add: se virasse uma arrow function recriada aqui
+// dentro, o removeEventListener não casaria com o addEventListener
+// anterior e o listener se acumularia a cada startRouter (cada troca
+// de sessão). Também existe para não repassar o Event do hashchange
+// para route() - route() nunca recebe scroll preservado por engano.
+function aoHashChange() { route(); }
+
 export function startRouter(el, { onRoute } = {}) {
   outlet = el;
   if (onRoute) aoTrocarRota = onRoute;
-  window.removeEventListener('hashchange', route);
-  window.addEventListener('hashchange', route);
+  window.removeEventListener('hashchange', aoHashChange);
+  window.addEventListener('hashchange', aoHashChange);
   route();
 }
 
-export async function route() {
+// `manterScroll` existe só para o botão Atualizar: navegar por link
+// (hashchange) sempre volta ao topo, que é o comportamento certo ao
+// trocar de página. Só recarregarRota() pede para preservar.
+export async function route({ manterScroll = false } = {}) {
   let hash = location.hash || '#/';
   const caminho = caminhoDaRota(hash);
 
@@ -69,12 +80,12 @@ export async function route() {
   }
 
   aoTrocarRota(hash);
-  window.scrollTo(0, 0);
+  if (!manterScroll) window.scrollTo(0, 0);
 }
 
 // Reexecuta a rota atual sem tocar no hash - o scroll, a aba e o
 // filtro em que a pessoa estava sobrevivem. É o que o botão
 // Atualizar faz depois de invalidar os caches.
 export async function recarregarRota() {
-  await route();
+  await route({ manterScroll: true });
 }

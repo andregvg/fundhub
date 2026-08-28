@@ -181,6 +181,13 @@ export function setChrome(logado, user, perfil) {
 // Limpa os caches dos models e re-renderiza a rota atual - não é
 // location.reload(): login, aba e filtro sobrevivem. O carimbo diz
 // quando os dados vieram do banco pela última vez.
+//
+// marcarAtualizacao() NÃO é chamada aqui na montagem: o carimbo
+// nasce vazio e só é preenchido depois que a primeira rota termina
+// de renderizar (ver o onRoute passado a startRouter, em main.js).
+// Chamar aqui gravaria a hora do relógio antes de qualquer dado ter
+// chegado - a mentira que o comentário de marcarAtualizacao() abaixo
+// descreve.
 function montarAtualizar(right) {
   if (right.querySelector('.atualizar-wrap')) return;
   const wrap = document.createElement('div');
@@ -198,7 +205,8 @@ function montarAtualizar(right) {
     try {
       limparCaches();
       await recarregarRota();
-      marcarAtualizacao();
+      // Sem chamada a marcarAtualizacao() aqui: recarregarRota() só
+      // termina depois que route() chama aoTrocarRota, que já marcou.
     } catch (err) {
       toast({ titulo: 'Não foi possível atualizar', texto: err.message || String(err), tipo: 'erro' });
     } finally {
@@ -206,11 +214,12 @@ function montarAtualizar(right) {
       btn.disabled = false;
     }
   });
-  marcarAtualizacao();
 }
 
 // O carimbo diz quando estes dados vieram do banco. Se ele mostrasse
 // a hora do relógio sem os caches terem sido invalidados, mentiria.
+// Por isso só é chamada de um único lugar: o onRoute do roteador,
+// depois que a view terminou de renderizar (ver main.js).
 export function marcarAtualizacao() {
   const el = document.getElementById('atualizado');
   if (el) el.textContent = `atualizado ${fmtDataHora(agoraISO())}`;
