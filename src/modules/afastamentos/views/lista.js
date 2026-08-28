@@ -9,7 +9,7 @@ import {
 } from '../afastamentos.model.js';
 import { esc } from '../../../shared/dom.js';
 import { fmtData } from '../../../shared/format.js';
-import { emptyState } from '../../../shared/ui/feedback.js';
+import { emptyState, reportarErro } from '../../../shared/ui/feedback.js';
 import { confirmar } from '../../../shared/ui/confirmar.js';
 import { toast } from '../../../shared/ui/toast.js';
 import { ico } from '../../../shared/ui/icones.js';
@@ -80,7 +80,7 @@ async function confirmarImportado(a, ctx) {
     ctx.carregar();
     toast({ titulo: 'Afastamento confirmado', texto: nome, tipo: 'sucesso' });
   } catch (err) {
-    toast({ titulo: 'Não foi possível confirmar', texto: err.message || String(err), tipo: 'erro' });
+    reportarErro(err, { titulo: 'Não foi possível confirmar' });
   }
 }
 
@@ -95,7 +95,7 @@ async function cancelar(a, ctx) {
     ctx.carregar();
     toast({ titulo: 'Afastamento cancelado', texto: nome, tipo: 'sucesso' });
   } catch (err) {
-    toast({ titulo: 'Não foi possível cancelar', texto: err.message || String(err), tipo: 'erro' });
+    reportarErro(err, { titulo: 'Não foi possível cancelar' });
   }
 }
 
@@ -107,7 +107,7 @@ async function reativar(a, ctx) {
     ctx.carregar();
     toast({ titulo: 'Afastamento reativado', texto: nome, tipo: 'sucesso' });
   } catch (err) {
-    toast({ titulo: 'Não foi possível reativar', texto: err.message || String(err), tipo: 'erro' });
+    reportarErro(err, { titulo: 'Não foi possível reativar' });
   }
 }
 
@@ -122,6 +122,6 @@ async function excluir(a, ctx) {
     ctx.carregar();
     toast({ titulo: 'Afastamento excluído', texto: nome, tipo: 'sucesso' });
   } catch (err) {
-    toast({ titulo: 'Não foi possível excluir', texto: err.message || String(err), tipo: 'erro' });
+    reportarErro(err, { titulo: 'Não foi possível excluir' });
   }
 }

@@ -7,7 +7,7 @@
 import { TIPOS, getAtas, criarAta, atualizarAta, excluirAta } from './atas.model.js';
 import { esc, norm, val, falha } from '../../shared/dom.js';
 import { hojeISO, fmtData, fmtExtenso, addDias } from '../../shared/format.js';
-import { loading, emptyState, erroBox } from '../../shared/ui/feedback.js';
+import { loading, emptyState, erroBox, reportarErro } from '../../shared/ui/feedback.js';
 import { drawerHtml, drawerHead, montarDrawer, abrirDrawer, fecharDrawer } from '../../shared/ui/drawer.js';
 import { confirmar } from '../../shared/ui/confirmar.js';
 import { toast } from '../../shared/ui/toast.js';
@@ -221,9 +221,9 @@ async function salvar(e, a) {
     fecharDrawer(); carregar();
     toast({ titulo: a ? 'Ata atualizada' : 'Ata registrada', texto: payload.assunto, tipo: 'sucesso' });
   } catch (err) {
-    // Erro de gravação é resultado da ação, não do campo: vai de
-    // toast, que sobrevive à gaveta fechar.
-    toast({ titulo: 'Não foi possível salvar', texto: err.message || String(err), tipo: 'erro' });
+    // Erro de gravação: inline quando dá para corrigir no formulário
+    // aberto, toast quando não dá - reportarErro decide pelo código.
+    reportarErro(err, { msg, titulo: 'Não foi possível salvar' });
     btn.disabled = false; btn.textContent = a ? 'Salvar' : 'Registrar';
   }
 }
@@ -237,6 +237,6 @@ async function remover(a) {
     fecharDrawer(); carregar();
     toast({ titulo: 'Ata removida', texto: a.assunto, tipo: 'sucesso' });
   } catch (err) {
-    toast({ titulo: 'Não foi possível excluir', texto: err.message || String(err), tipo: 'erro' });
+    reportarErro(err, { titulo: 'Não foi possível excluir' });
   }
 }

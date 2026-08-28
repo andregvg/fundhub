@@ -14,6 +14,7 @@ import { esc, falha } from '../../../shared/dom.js';
 import { drawerHead, abrirDrawer } from '../../../shared/ui/drawer.js';
 import { confirmar } from '../../../shared/ui/confirmar.js';
 import { toast } from '../../../shared/ui/toast.js';
+import { reportarErro } from '../../../shared/ui/feedback.js';
 import { ico } from '../../../shared/ui/icones.js';
 
 const OUTRO = '::outro::';   // sentinela: os dois-pontos garantem que
@@ -118,9 +119,11 @@ async function salvar(e, s, vinculo, ctx, voltar) {
     const titulo = !vinculo ? 'Vínculo criado' : (encerrou ? 'Vínculo encerrado' : 'Vínculo atualizado');
     toast({ titulo, texto: s.nome, tipo: 'sucesso' });
   } catch (err) {
-    // Erro de gravação é resultado da ação, não do campo: vai de
-    // toast, que sobrevive à gaveta trocar de visão.
-    toast({ titulo: 'Não foi possível salvar', texto: err.message || String(err), tipo: 'erro' });
+    // Erro de gravação: inline quando dá para corrigir no formulário
+    // aberto, toast quando não dá - reportarErro decide pelo código.
+    // vinculo_aberto_unico (023) recusa um segundo vínculo em aberto:
+    // 23505, volta pro formulário ainda aberto aqui.
+    reportarErro(err, { msg, titulo: 'Não foi possível salvar' });
     btn.disabled = false; btn.textContent = vinculo ? 'Salvar' : 'Vincular';
   }
 }
@@ -137,6 +140,6 @@ export async function removerVinculo(s, vinculoId, ctx) {
     novoCtx.abrirDetalhe(s.id);
     toast({ titulo: 'Vínculo excluído', texto: s.nome, tipo: 'sucesso' });
   } catch (err) {
-    toast({ titulo: 'Não foi possível excluir', texto: err.message || String(err), tipo: 'erro' });
+    reportarErro(err, { titulo: 'Não foi possível excluir' });
   }
 }

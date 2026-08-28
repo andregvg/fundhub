@@ -9,7 +9,7 @@ import {
 } from '../sate.model.js';
 import { esc } from '../../../shared/dom.js';
 import { fmtData } from '../../../shared/format.js';
-import { loading, emptyState, erroBox } from '../../../shared/ui/feedback.js';
+import { loading, emptyState, erroBox, reportarErro } from '../../../shared/ui/feedback.js';
 import { criarFiltroSegmento, indexarUnidades } from '../../../shared/ui/filtro-segmento.js';
 import { confirmar } from '../../../shared/ui/confirmar.js';
 import { toast } from '../../../shared/ui/toast.js';
@@ -112,10 +112,28 @@ function item(s) {
   </div>`;
 }
 
+// As quatro transições que os botões da lista disparam. Confirmar é
+// sucesso pleno; negar não é erro do sistema, é uma decisão (aviso);
+// as demais só movem a solicitação de fase, sem fechar o assunto.
+const RESULTADO_STATUS = {
+  em_analise: { titulo: 'Solicitação em análise', tipo: 'info' },
+  aguardando_transporte_adaptado: { titulo: 'Solicitação adaptada', tipo: 'info' },
+  confirmado: { titulo: 'Solicitação confirmada', tipo: 'sucesso' },
+  negado: { titulo: 'Solicitação negada', tipo: 'atencao' },
+};
+
 async function mudarStatus(id, status) {
   if (status === 'confirmado' && !(await frotaLibera(id))) return;
-  try { await atualizarStatusSolicitacao(id, status); render(ctx); }
-  catch (err) { toast({ titulo: 'Não foi possível atualizar', texto: err.message || String(err), tipo: 'no' }); }
+  const s = lista.find(x => x.id === id);
+  const identificador = s?.unidade?.apelido || s?.unidade?.nome || s?.atividade?.nome || s?.atividade_livre || '';
+  try {
+    await atualizarStatusSolicitacao(id, status);
+    render(ctx);
+    const { titulo, tipo } = RESULTADO_STATUS[status] || { titulo: 'Solicitação atualizada', tipo: 'sucesso' };
+    toast({ titulo, texto: identificador, tipo });
+  } catch (err) {
+    reportarErro(err, { titulo: 'Não foi possível atualizar' });
+  }
 }
 
 // Confere o saldo de ônibus do dia/período. Não bloqueia: avisa e deixa o

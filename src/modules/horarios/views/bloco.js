@@ -17,6 +17,7 @@ import { esc, falha } from '../../../shared/dom.js';
 import { drawerHead, abrirDrawer, fecharDrawer } from '../../../shared/ui/drawer.js';
 import { confirmar } from '../../../shared/ui/confirmar.js';
 import { toast } from '../../../shared/ui/toast.js';
+import { reportarErro } from '../../../shared/ui/feedback.js';
 import { ico } from '../../../shared/ui/icones.js';
 
 const hhmm = (t) => String(t ?? '').slice(0, 5);
@@ -90,9 +91,9 @@ async function salvarBloco(e, bloco, { servidorId, unidadeId, dia, recarregar })
     await recarregar();
     toast({ titulo: bloco ? 'Bloco atualizado' : 'Bloco adicionado', texto: `${inicio}-${fim}`, tipo: 'sucesso' });
   } catch (err) {
-    // Erro de gravação é resultado da ação, não do campo: vai de
-    // toast, que sobrevive à gaveta fechar.
-    toast({ titulo: 'Não foi possível salvar', texto: err.message || String(err), tipo: 'erro' });
+    // Erro de gravação: inline quando dá para corrigir no formulário
+    // aberto, toast quando não dá - reportarErro decide pelo código.
+    reportarErro(err, { msg, titulo: 'Não foi possível salvar' });
     btn.disabled = false; btn.textContent = bloco ? 'Salvar' : 'Adicionar';
   }
 }
@@ -106,6 +107,6 @@ async function removerBloco(bloco, recarregar) {
     await recarregar();
     toast({ titulo: 'Bloco removido', texto: `${hhmm(bloco.inicio)}-${hhmm(bloco.fim)}`, tipo: 'sucesso' });
   } catch (err) {
-    toast({ titulo: 'Não foi possível excluir', texto: err.message || String(err), tipo: 'erro' });
+    reportarErro(err, { titulo: 'Não foi possível excluir' });
   }
 }

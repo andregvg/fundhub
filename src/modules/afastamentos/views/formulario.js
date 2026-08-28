@@ -11,6 +11,7 @@ import { fmtData } from '../../../shared/format.js';
 import { drawerHead, abrirDrawer, fecharDrawer } from '../../../shared/ui/drawer.js';
 import { confirmar } from '../../../shared/ui/confirmar.js';
 import { toast } from '../../../shared/ui/toast.js';
+import { reportarErro } from '../../../shared/ui/feedback.js';
 
 // `ctx`: { servidores, unidades, carregar } — ver afastamentos.view.js § ctxAtual().
 export function abrirForm(a, ctx) {
@@ -92,9 +93,9 @@ async function salvar(e, a, ctx) {
     fecharDrawer(); ctx.carregar();
     toast({ titulo: a ? 'Afastamento atualizado' : 'Afastamento lançado', texto: nomeServ, tipo: 'sucesso' });
   } catch (err) {
-    // Erro de gravação é resultado da ação, não do campo: vai de
-    // toast, que sobrevive à gaveta fechar.
-    toast({ titulo: 'Não foi possível salvar', texto: err.message || String(err), tipo: 'erro' });
+    // Erro de gravação: inline quando dá para corrigir no formulário
+    // aberto, toast quando não dá - reportarErro decide pelo código.
+    reportarErro(err, { msg, titulo: 'Não foi possível salvar' });
     btn.disabled = false; btn.textContent = a ? 'Salvar' : 'Criar';
   }
 }

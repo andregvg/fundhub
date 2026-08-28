@@ -70,7 +70,11 @@ export async function criarVinculo({ servidor_id, unidade_id, papel, ingresso = 
   const { data, error } = await sb().from('vinculo').insert(row).select().single();
   if (error) {
     if (error.code === '23505') {
-      throw new Error('Este servidor já tem um vínculo aberto com esse cargo neste local.');
+      // Mantém o código: é o que shared/ui/feedback.js:reportarErro usa
+      // para saber se o erro cabe inline (a pessoa ainda está no formulário).
+      const e = new Error('Este servidor já tem um vínculo aberto com esse cargo neste local.');
+      e.code = error.code;
+      throw e;
     }
     throw error;
   }
@@ -87,7 +91,11 @@ export async function atualizarVinculo(id, { unidade_id, papel, ingresso = null,
   const { error } = await sb().from('vinculo').update(patch).eq('id', id);
   if (error) {
     if (error.code === '23505') {
-      throw new Error('Este servidor já tem um vínculo aberto com esse cargo neste local.');
+      // Mantém o código: é o que shared/ui/feedback.js:reportarErro usa
+      // para saber se o erro cabe inline (a pessoa ainda está no formulário).
+      const e = new Error('Este servidor já tem um vínculo aberto com esse cargo neste local.');
+      e.code = error.code;
+      throw e;
     }
     throw error;
   }

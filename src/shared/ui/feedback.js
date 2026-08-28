@@ -3,7 +3,8 @@
 // Estados de carregamento, vazio e erro. Um único visual para todos
 // os módulos: se mudar aqui, muda no hub inteiro.
 // ============================================================
-import { esc } from '../dom.js';
+import { esc, falha } from '../dom.js';
+import { toast } from './toast.js';
 
 export const loading = (txt = 'Carregando…') => `<div class="loading">${esc(txt)}</div>`;
 
@@ -17,3 +18,21 @@ export const emptyState = (ico, titulo, msg = '') => `
 // Erro amigável (a mensagem crua do Supabase entra escapada).
 export const erroBox = (err) =>
   `<p class="count">Não foi possível carregar: ${esc(err?.message || err)}</p>`;
+
+// Erros que a pessoa consegue corrigir no formulário que está aberto na
+// frente dela. Códigos do Postgres, no mesmo idioma que escolas.model.js
+// e afastamentos.model.js já usam para 42P01/42703.
+const CORRIGIVEL = new Set([
+  '23505',   // unique_violation   - número de ata repetido, segundo vínculo aberto
+  '23514',   // check_violation    - valor fora do domínio permitido
+  '23502',   // not_null_violation - campo obrigatório vazio
+]);
+
+// Erro de gravação: inline quando dá para consertar ali, toast quando não dá.
+// Rede, chave estrangeira (23503) e permissão negada pelo RLS (42501) não se
+// consertam no formulário - e a gaveta pode fechar antes de a pessoa ler.
+export function reportarErro(err, { msg, titulo = 'Não foi possível salvar' } = {}) {
+  const texto = err?.message || String(err);
+  if (msg && CORRIGIVEL.has(err?.code)) { falha(msg, texto); return; }
+  toast({ titulo, texto, tipo: 'erro' });
+}

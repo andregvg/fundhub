@@ -77,7 +77,13 @@ export async function adicionarInteresse({ projeto_id, unidade_id, observacao = 
   const row = { projeto_id, unidade_id, observacao, interesse: true, criado_por: await emailAtual() };
   const { error } = await sb().from('projeto_interesse').insert(row);
   if (error) {
-    if (error.code === '23505') throw new Error('Esta escola já manifestou interesse neste projeto.');
+    // Mantém o código: é o que shared/ui/feedback.js:reportarErro usa
+    // para saber se o erro cabe inline (a pessoa ainda está no formulário).
+    if (error.code === '23505') {
+      const e = new Error('Esta escola já manifestou interesse neste projeto.');
+      e.code = error.code;
+      throw e;
+    }
     throw error;
   }
 }

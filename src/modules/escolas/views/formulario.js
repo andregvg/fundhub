@@ -8,6 +8,7 @@ import { drawerHead, abrirDrawer, fecharDrawer } from '../../../shared/ui/drawer
 import { phonesEditorHtml, montarPhonesEditor, lerPhonesEditor } from '../../../shared/ui/phones.js';
 import { confirmar } from '../../../shared/ui/confirmar.js';
 import { toast } from '../../../shared/ui/toast.js';
+import { reportarErro } from '../../../shared/ui/feedback.js';
 
 // `ctx`: { recarregar } — ver escolas.view.js § ctxAtual().
 export function abrirForm(u, ctx) {
@@ -109,9 +110,9 @@ async function salvar(e, u, ctx) {
     await ctx.recarregar();
     toast({ titulo: u ? 'Escola atualizada' : 'Escola cadastrada', texto: payload.nome, tipo: 'sucesso' });
   } catch (err) {
-    // Erro de gravação é resultado da ação, não do campo: vai de
-    // toast, que sobrevive à gaveta fechar.
-    toast({ titulo: 'Não foi possível salvar', texto: err.message || String(err), tipo: 'erro' });
+    // Erro de gravação: inline quando dá para corrigir no formulário
+    // aberto, toast quando não dá - reportarErro decide pelo código.
+    reportarErro(err, { msg, titulo: 'Não foi possível salvar' });
     btn.disabled = false; btn.textContent = u ? 'Salvar' : 'Criar';
   }
 }
@@ -126,6 +127,6 @@ export async function removerEscola(u, ctx) {
     await ctx.recarregar();
     toast({ titulo: 'Escola removida', texto: u.nome, tipo: 'sucesso' });
   } catch (err) {
-    toast({ titulo: 'Não foi possível excluir', texto: err.message || String(err), tipo: 'erro' });
+    reportarErro(err, { titulo: 'Não foi possível excluir' });
   }
 }

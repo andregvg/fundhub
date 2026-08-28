@@ -9,6 +9,7 @@ import { drawerHead, abrirDrawer, fecharDrawer } from '../../../shared/ui/drawer
 import { phonesEditorHtml, montarPhonesEditor, lerPhonesEditor } from '../../../shared/ui/phones.js';
 import { confirmar } from '../../../shared/ui/confirmar.js';
 import { toast } from '../../../shared/ui/toast.js';
+import { reportarErro } from '../../../shared/ui/feedback.js';
 import { formVinculo } from './vinculo.js';
 import { ico } from '../../../shared/ui/icones.js';
 
@@ -149,9 +150,9 @@ async function salvarServidor(e, s, ctx) {
     await ctx.recarregar();
     toast({ titulo: s ? 'Servidor atualizado' : 'Servidor cadastrado', texto: payload.nome, tipo: 'sucesso' });
   } catch (err) {
-    // Erro de gravação é resultado da ação, não do campo: vai de
-    // toast, que sobrevive à gaveta fechar.
-    toast({ titulo: 'Não foi possível salvar', texto: err.message || String(err), tipo: 'erro' });
+    // Erro de gravação: inline quando dá para corrigir no formulário
+    // aberto, toast quando não dá - reportarErro decide pelo código.
+    reportarErro(err, { msg, titulo: 'Não foi possível salvar' });
     btn.disabled = false; btn.textContent = s ? 'Salvar' : 'Criar';
   }
 }
@@ -169,6 +170,6 @@ export async function removerServidor(s, ctx) {
     await ctx.recarregar();
     toast({ titulo: 'Servidor removido', texto: s.nome, tipo: 'sucesso' });
   } catch (err) {
-    toast({ titulo: 'Não foi possível excluir', texto: err.message || String(err), tipo: 'erro' });
+    reportarErro(err, { titulo: 'Não foi possível excluir' });
   }
 }

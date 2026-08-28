@@ -122,6 +122,6 @@ async function remover(l) {
     await ctx.recarregarLocais();
     render(ctx);
   } catch (err) {
-    toast({ titulo: 'Não foi possível excluir', texto: err.message || String(err), tipo: 'no' });
+    toast({ titulo: 'Não foi possível excluir', texto: err.message || String(err), tipo: 'erro' });
   }
 }

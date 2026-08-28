@@ -79,7 +79,13 @@ export async function criarPerfil(payload) {
   row.email = String(row.email || '').trim().toLowerCase();
   const { data, error } = await sb().from('perfil').insert(row).select().single();
   if (error) {
-    if (error.code === '23505') throw new Error('Este e-mail já está na lista.');
+    // Mantém o código: é o que shared/ui/feedback.js:reportarErro usa
+    // para saber se o erro cabe inline (a pessoa ainda está no formulário).
+    if (error.code === '23505') {
+      const e = new Error('Este e-mail já está na lista.');
+      e.code = error.code;
+      throw e;
+    }
     throw error;
   }
   return data;
@@ -91,7 +97,11 @@ export async function atualizarPerfil(email, payload) {
   const patch = limpar(payload); delete patch.email;
   const { error } = await sb().from('perfil').update(patch).eq('email', email);
   if (error) {
-    if (error.code === '23505') throw new Error('Este servidor já está vinculado a outro acesso.');
+    if (error.code === '23505') {
+      const e = new Error('Este servidor já está vinculado a outro acesso.');
+      e.code = error.code;
+      throw e;
+    }
     throw error;
   }
 }

@@ -152,6 +152,6 @@ async function remover(a) {
     await ctx.recarregarAtividades();
     render(ctx);
   } catch (err) {
-    toast({ titulo: 'Não foi possível excluir', texto: err.message || String(err), tipo: 'no' });
+    toast({ titulo: 'Não foi possível excluir', texto: err.message || String(err), tipo: 'erro' });
   }
 }

@@ -26,7 +26,7 @@ import { MODULOS, chavePerm } from '../../core/registry.js';
 import { rotuloSelecao } from '../../core/segmentos.js';
 import { esc } from '../../shared/dom.js';
 import { fmtData, fmtDataHora } from '../../shared/format.js';
-import { erroBox, emptyState } from '../../shared/ui/feedback.js';
+import { erroBox, emptyState, reportarErro } from '../../shared/ui/feedback.js';
 import { phonesEditorHtml, montarPhonesEditor, lerPhonesEditor } from '../../shared/ui/phones.js';
 import { toast } from '../../shared/ui/toast.js';
 import { ico } from '../../shared/ui/icones.js';
@@ -189,8 +189,9 @@ async function salvarConta(e) {
     await recarregarPerfil();
     toast({ titulo: 'Dados atualizados', texto: 'Nome de exibição', tipo: 'sucesso' });
   } catch (err) {
-    // Erro de gravação é resultado da ação, não do campo: vai de toast.
-    toast({ titulo: 'Não foi possível salvar', texto: err.message || String(err), tipo: 'erro' });
+    // Erro de gravação: inline quando dá para corrigir no formulário
+    // aberto, toast quando não dá - reportarErro decide pelo código.
+    reportarErro(err, { msg, titulo: 'Não foi possível salvar' });
   } finally {
     btn.disabled = false; btn.textContent = 'Salvar';
   }
@@ -211,8 +212,9 @@ async function salvarServidor(e) {
       lerPhonesEditor(document.getElementById('md-servidor')));
     toast({ titulo: 'Dados atualizados', texto: 'Contatos', tipo: 'sucesso' });
   } catch (err) {
-    // Erro de gravação é resultado da ação, não do campo: vai de toast.
-    toast({ titulo: 'Não foi possível salvar', texto: err.message || String(err), tipo: 'erro' });
+    // Erro de gravação: inline quando dá para corrigir no formulário
+    // aberto, toast quando não dá - reportarErro decide pelo código.
+    reportarErro(err, { msg, titulo: 'Não foi possível salvar' });
   } finally {
     btn.disabled = false; btn.textContent = 'Salvar contatos';
   }

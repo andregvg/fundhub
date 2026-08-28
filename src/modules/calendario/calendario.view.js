@@ -7,7 +7,7 @@
 import { getCalendarioMes, upsertDiaCalendario, upsertPeriodo, upsertDias, TIPOS_DIA } from './calendario.model.js';
 import { esc, falha } from '../../shared/dom.js';
 import { MESES, DOW, hojeISO, fmtData } from '../../shared/format.js';
-import { loading, erroBox } from '../../shared/ui/feedback.js';
+import { loading, erroBox, reportarErro } from '../../shared/ui/feedback.js';
 import { drawerHtml, drawerHead, montarDrawer, abrirDrawer, fecharDrawer } from '../../shared/ui/drawer.js';
 import { toast } from '../../shared/ui/toast.js';
 import { ico } from '../../shared/ui/icones.js';
@@ -165,9 +165,9 @@ async function salvar(e, iso) {
     fecharDrawer(); pintar();
     toast({ titulo: novo ? 'Dia gravado' : 'Dia atualizado', texto: fmtData(iso), tipo: 'sucesso' });
   } catch (err) {
-    // Erro de gravação é resultado da ação, não do campo: vai de
-    // toast, que sobrevive à gaveta fechar.
-    toast({ titulo: 'Não foi possível salvar', texto: err.message || String(err), tipo: 'erro' });
+    // Erro de gravação: inline quando dá para corrigir no formulário
+    // aberto, toast quando não dá - reportarErro decide pelo código.
+    reportarErro(err, { msg, titulo: 'Não foi possível salvar' });
     btn.disabled = false; btn.textContent = 'Salvar';
   }
 }
@@ -262,9 +262,9 @@ async function importar(e) {
       tipo: 'sucesso',
     });
   } catch (err) {
-    // Erro de gravação é resultado da ação, não do campo: vai de
-    // toast, que sobrevive à gaveta fechar.
-    toast({ titulo: 'Não foi possível importar', texto: err.message || String(err), tipo: 'erro' });
+    // Erro de gravação: inline quando dá para corrigir no formulário
+    // aberto, toast quando não dá - reportarErro decide pelo código.
+    reportarErro(err, { msg, titulo: 'Não foi possível importar' });
     btn.disabled = false; btn.textContent = 'Importar';
   }
 }
