@@ -27,9 +27,6 @@ a { color: var(--brand); text-decoration: none; }
 :focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
 
 /* ── Topo ─────────────────────────────────────────────────── */
-/* --topo mora em tokens.css - é onde token vive, e aqui teria só um
-   consumidor local em vez dos três que precisam concordar sobre ela. */
-
 .topbar {
   position: sticky;
   top: 0;
@@ -42,6 +39,9 @@ a { color: var(--brand); text-decoration: none; }
   background: var(--surface);
   border-bottom: 1px solid var(--border);
 }
+/* Este padding determina --topo em tokens.css (mobile-first: 57px).
+   Acima de 720px muda para 10px e --topo muda para 61px. Se mexer
+   no padding, atualize o token também. */
 
 .nav-toggle {
   flex: 0 0 auto;
@@ -261,13 +261,6 @@ body.menu-aberto .sidebar { transform: translateX(0); }
 }
 
 @media (min-width: 720px) {
-  /* --topo (tokens.css) tem que acompanhar este padding - é o mesmo
-     valor em três lugares (.topbar, .sidebar, .toasts) e já desatualizou
-     duas vezes por estar longe da regra que o determina. Redefinido bem
-     aqui, ao lado do padding que muda, para quem mexer num ver o outro.
-     Medido por getBoundingClientRect: botão (--toque, 40px) + padding
-     (10px x2) + borda inferior (1px) = 61px. */
-  :root { --topo: 61px; }
   .topbar { padding: 10px 20px; gap: 16px; }
   .app { padding: 24px 22px 48px; }
   .footer { padding: 14px 22px; }

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { ico, TEM_ICONE } from '../src/shared/ui/icones.js';
+import { ico, TEM_ICONE, NOMES } from '../src/shared/ui/icones.js';
 
 test('devolve um svg com o tamanho pedido', () => {
   const svg = ico('escola', { tam: 20 });
@@ -56,4 +56,7 @@ test('todos os icones do conjunto produzem svg', () => {
   for (const n of nomes) {
     assert.ok(ico(n).startsWith('<svg '), `icone ausente: ${n}`);
   }
+  // Verifica se ha tracados orfaos nao consumidos pela lista.
+  const extras = NOMES.filter(n => !nomes.includes(n));
+  assert.deepEqual(extras, [], `tracado sem consumidor no conjunto: ${extras.join(', ')}`);
 });

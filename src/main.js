@@ -19,6 +19,7 @@ import { servicos } from './core/registry.js';
 import { montarNav, marcarNav, setChrome, carimboRodape, marcarAtualizacao } from './shell/chrome.js';
 import { renderAcessoPendente } from './shell/pendente.js';
 import { limparToasts } from './shared/ui/toast.js';
+import { limparCaches } from './shared/cache.js';
 
 const app = document.getElementById('app');
 let montado = false;
@@ -60,6 +61,7 @@ async function montarApp(user) {
 function desmontarApp({ restrito = false } = {}) {
   montado = false;
   pararServicos();
+  limparCaches();  // Dados de outro usuario nao podem atravessar o logout.
   limparPerfil();
   setChrome(false);
   renderLogin(app, { restrito });

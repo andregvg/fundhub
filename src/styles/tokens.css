@@ -57,17 +57,15 @@
      token único. Se o padding da .topbar mudar, este valor precisa
      acompanhar - E MUDA NO CORTE DE 720px: o padding da .topbar não é
      o mesmo em toda largura (base.css), então --topo também não pode
-     ser. A redefinição para telas largas fica dentro do PRÓPRIO
-     @media (min-width: 720px) de base.css que muda o padding - não
-     aqui - assim quem editar um vê o outro ao lado. Já desatualizou
-     duas vezes por estar longe da regra que o determina; não crie um
-     terceiro lugar para este número.
+     ser. A redefinição para telas largas fica bem aqui, no próprio
+     @media (min-width: 720px) abaixo, assim quem editar um vê o outro
+     ao lado.
      Este valor base (mobile-first, padding 8px) medido por
      getBoundingClientRect em tela estreita: botão do Atualizar
      (--toque, 40px) + padding (8px x2) + borda inferior (1px) = 57px -
      o valor antigo (55px) datava de quando o maior controle do topo
      tinha --controle (32px), não --toque. Acima de 720px (padding
-     10px) o mesmo cálculo dá 61px - ver base.css. */
+     10px) o mesmo cálculo dá 61px. */
   --topo: 57px;
 
   /* Fundo suave das mensagens de sistema. Derivado por color-mix da
@@ -102,5 +100,15 @@
     --atencao-bg: color-mix(in srgb, var(--accent) 20%, var(--surface));
     --erro-bg:    color-mix(in srgb, var(--danger) 18%, var(--surface));
     --info-bg:    color-mix(in srgb, var(--brand) 18%, var(--surface));
+  }
+}
+
+@media (min-width: 720px) {
+  :root {
+    /* Redefinição de --topo acima de 720px. Padding da .topbar
+       (10px x2) + botao (--toque, 40px) + borda inferior (1px) = 61px.
+       Quem mexer no padding da .topbar em base.css precisa atualizar
+       este valor também. */
+    --topo: 61px;
   }
 }
