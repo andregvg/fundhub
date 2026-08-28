@@ -1225,10 +1225,19 @@ registrarCache(() => { _cache = null; });
 // Reexecuta a rota atual sem tocar no hash - o scroll, a aba e o
 // filtro em que a pessoa estava sobrevivem. É o que o botão
 // Atualizar faz depois de invalidar os caches.
-export async function recarregarRota() {
-  await route();
-}
+export const recarregarRota = () => route({ preservarScroll: true });
 ```
+
+**`preservarScroll` não é enfeite.** `route()` termina com `window.scrollTo(0, 0)`,
+que é o certo ao trocar de página e o errado ao recarregar a mesma. Sem a opção,
+apertar Atualizar no meio de uma lista longa devolve a pessoa ao topo - e o botão
+reproduz metade do defeito que existe para evitar.
+
+**Armadilha ao mexer nisso:** `route` é registrada diretamente como ouvinte de
+`hashchange` (`router.js:27-28`), com `removeEventListener` e `addEventListener`
+sobre a mesma referência. Trocá-la por uma função anônima faz o
+`removeEventListener` deixar de casar, e o ouvinte se acumula a cada
+`startRouter`. Use uma função nomeada, e diga isso num comentário curto.
 
 - [ ] **Step 7: Botão e carimbo em `shell/chrome.js`**
 
@@ -1258,8 +1267,7 @@ function montarAtualizar(right) {
     btn.disabled = true;
     try {
       limparCaches();
-      await recarregarRota();
-      marcarAtualizacao();
+      await recarregarRota();   // o onRoute marca o carimbo ao terminar
     } catch (err) {
       toast({ titulo: 'Não foi possível atualizar', texto: err.message || String(err), tipo: 'erro' });
     } finally {
@@ -1267,7 +1275,11 @@ function montarAtualizar(right) {
       btn.disabled = false;
     }
   });
-  marcarAtualizacao();
+  // Sem marcarAtualizacao() aqui. `setChrome` roda ANTES de `startRouter`
+  // (main.js), entao marcar na montagem afirmaria uma carga que ainda
+  // nao aconteceu, e o valor errado ficaria na tela ate alguem clicar.
+  // Quem marca e o `onRoute`, que o roteador chama depois do
+  // `await view.render(...)`.
 }
 
 // O carimbo diz quando estes dados vieram do banco. Se ele mostrasse
