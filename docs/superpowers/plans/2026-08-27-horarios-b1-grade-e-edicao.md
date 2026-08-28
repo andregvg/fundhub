@@ -26,7 +26,8 @@
 - **Degradar sem a migration:** capturar `42P01` (tabela ausente) e `42703` (coluna ausente) e seguir com estado vazio, avisando o que falta.
 - **Erro barra, aviso marca.** Sobreposição de blocos do mesmo servidor é **erro** e impede o salvamento. Mais de 8h/dia, mais de 6h contínuas e lacuna de cobertura são **avisos**: deixam salvar e ficam marcados na grade.
 - **Limites de arquivo:** view > 400 linhas ou model > 250 linhas → dividir por superfície de UI, em `views/`.
-- **Antes de cada commit:** `node --test tests/`, `python .claude/scripts/verificar_arquitetura.py`, e `git diff --cached` lido.
+- **Testes:** `node --test` (sem argumento) roda tudo - o Node varre a partir do diretorio corrente. **Nao** use `node --test tests/`: nesta maquina (Node 24, Windows) o Node trata o caminho como modulo e falha com `MODULE_NOT_FOUND`. Rodar um arquivo so continua valendo: `node --test tests/horarios.test.mjs`.
+- **Antes de cada commit:** `node --test`, `python .claude/scripts/verificar_arquitetura.py`, e `git diff --cached` lido.
 
 ---
 
@@ -1110,7 +1111,7 @@ Se passou, extrair a matemática de grade para `src/modules/horarios/grade.model
 - [ ] **Step 3: Commitar**
 
 ```bash
-node --test tests/
+node --test
 python .claude/scripts/verificar_arquitetura.py
 git add -A && git diff --cached --stat
 git commit -m "feat(horarios): exibicao e cobertura configuraveis por escola"
@@ -1432,7 +1433,7 @@ Com dev-local e fixtures de blocos (inventar 3 servidores e blocos que se sobrep
 - [ ] **Step 6: Commitar**
 
 ```bash
-node --test tests/
+node --test
 python .claude/scripts/verificar_arquitetura.py
 wc -l src/modules/horarios/views/*.js
 git add -A && git diff --cached --stat
@@ -1806,7 +1807,7 @@ Mesmo padrão. Em `por-servidor.js`, **o rótulo é o nome completo**, nunca o a
 - [ ] **Step 3: Rodar tudo**
 
 ```bash
-node --test tests/
+node --test
 python .claude/scripts/verificar_arquitetura.py
 wc -l src/modules/horarios/*.js src/modules/horarios/views/*.js
 ```
@@ -1852,7 +1853,7 @@ git commit -m "chore: versao 0.13.0 e fecha a rodada da grade de horarios"
 
 ## Verificação final
 
-- [ ] `node --test tests/` verde (icones, toast, cache, horarios, busca).
+- [ ] `node --test` verde (icones, toast, cache, horarios, busca).
 - [ ] `python .claude/scripts/verificar_arquitetura.py` sem novas violações - conferir R4 (o import Horários → Servidores é novo) e R11 (tamanho de `horarios.model.js` e `por-escola.js`).
 - [ ] Migration 024 rodada duas vezes sem erro.
 - [ ] RLS conferida nas três tabelas novas; nenhuma policy para `anon`.

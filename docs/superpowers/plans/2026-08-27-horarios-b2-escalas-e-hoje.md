@@ -25,7 +25,8 @@
 - **Fallback obrigatório:** servidor sem bloco na escala do dia usa os blocos `normal`. É isso que faz os ~140 gestores sem jornada alternativa não sentirem nada.
 - **A proposta do gerador nunca grava direto.** É sempre uma tabela que o admin edita e da qual pode descartar linhas.
 - **Degradar sem a migration:** `42P01` e `42703` viram estado vazio com aviso.
-- **Antes de cada commit:** `node --test tests/`, `python .claude/scripts/verificar_arquitetura.py`, `git diff --cached` lido.
+- **Testes:** `node --test` (sem argumento) roda tudo - o Node varre a partir do diretorio corrente. **Nao** use `node --test tests/`: nesta maquina (Node 24, Windows) o Node trata o caminho como modulo e falha com `MODULE_NOT_FOUND`. Rodar um arquivo so continua valendo: `node --test tests/horarios.test.mjs`.
+- **Antes de cada commit:** `node --test`, `python .claude/scripts/verificar_arquitetura.py`, `git diff --cached` lido.
 
 ---
 
@@ -637,7 +638,7 @@ Com dev-local: gerar a proposta de 2026, conferir 24 datas alternando A e B, des
 - [ ] **Step 5: Commitar**
 
 ```bash
-node --test tests/
+node --test
 python .claude/scripts/verificar_arquitetura.py
 wc -l src/modules/calendario/*.js src/modules/calendario/views/*.js
 git add -A && git diff --cached --stat
@@ -877,7 +878,7 @@ git commit -m "feat(dashboard): cartao com a escala da data e quem esta afastado
 - [ ] **Step 1: Rodar tudo**
 
 ```bash
-node --test tests/
+node --test
 python .claude/scripts/verificar_arquitetura.py
 wc -l src/modules/horarios/*.js src/modules/horarios/views/*.js src/modules/calendario/*.js src/modules/calendario/views/*.js
 ```
@@ -922,7 +923,7 @@ git commit -m "chore: versao 0.14.0 e fecha a rodada de escalas de horario"
 
 ## Verificação final
 
-- [ ] `node --test tests/` verde.
+- [ ] `node --test` verde.
 - [ ] `python .claude/scripts/verificar_arquitetura.py` sem novas violações - conferir R8 (nenhum `toISOString`, `toLocaleDateString` ou `toLocaleString` fora de `format.js`) e R11 (tamanho dos arquivos).
 - [ ] Servidor com blocos em `tdc-a` e sem blocos em `tdc-b`: o TDC B cai no normal.
 - [ ] Data em que a escola remarcou o TDC, e data em que a escola o cancelou: os três estados se comportam como a tabela da spec.

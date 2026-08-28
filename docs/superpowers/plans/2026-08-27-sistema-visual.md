@@ -23,7 +23,7 @@
 - **Antes de cada commit:** `python .claude/scripts/verificar_arquitetura.py` sem novas violações, e `git diff --cached` lido à procura de dado real.
 - **Nenhum código novo nasce com `—`.** Ao transcrever os blocos deste plano, escreva `-` em todo comentário e string, inclusive nos blocos das Tasks 8 e 9, que rodam DEPOIS da varredura da Task 7. Se elas reintroduzirem travessão, a verificação final falha.
 - **Cortes responsivos:** 560 · 720 · 900 · 1100px. Base é o celular; `@media (min-width: …)` acrescenta, nunca subtrai.
-- **Testes:** `node --test tests/` roda tudo. Arquivo por assunto, `.test.mjs`, só `node:test` e `node:assert/strict`.
+- **Testes:** `node --test` (sem argumento) roda tudo - o Node varre a partir do diretorio corrente. **Nao** use `node --test`: nesta maquina (Node 24, Windows) o Node trata o caminho como modulo e falha com `MODULE_NOT_FOUND`. Rodar um arquivo so continua valendo: `node --test tests/icones.test.mjs`. Arquivo por assunto, `.test.mjs`, só `node:test` e `node:assert/strict`.
 - **Só lógica pura é testada por `node`.** Os models importam limpo fora do navegador (`core/supabase.js` só toca em `window` dentro de `sb()`, nunca na carga) - isso foi verificado antes deste plano ser escrito e **precisa continuar valendo**: nenhum módulo pode passar a tocar em `window` ou `document` em tempo de carga. O que depende de DOM é verificado no navegador, com o patch de dev-local, e o patch é **revertido antes de commitar**.
 
 ---
@@ -1294,7 +1294,7 @@ Com dev-local: o carimbo aparece à esquerda do botão, os três controles do ca
 - [ ] **Step 10: Commitar**
 
 ```bash
-node --test tests/
+node --test
 python .claude/scripts/verificar_arquitetura.py
 git add -A && git diff --cached --stat
 git commit -m "feat(ui): botao de atualizar no cabecalho com carimbo da ultima carga"
@@ -1312,7 +1312,7 @@ git commit -m "feat(ui): botao de atualizar no cabecalho com carimbo da ultima c
 - [ ] **Step 1: Rodar tudo, incluindo a re-varredura de travessão**
 
 ```bash
-node --test tests/
+node --test
 python .claude/scripts/verificar_arquitetura.py
 ```
 
@@ -1380,7 +1380,7 @@ git commit -m "chore: versao 0.12.0 e fecha a rodada do sistema visual"
 
 ## Verificação final
 
-- [ ] `node --test tests/` verde.
+- [ ] `node --test` verde.
 - [ ] `python .claude/scripts/verificar_arquitetura.py` sem novas violações.
 - [ ] Zero emojis em `src/` (varredura da Task 3, Step 3).
 - [ ] Zero `—` no repositório, exceto a spec do sistema visual.
