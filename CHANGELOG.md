@@ -9,6 +9,35 @@ versionamento **MINOR** = módulo novo ou mudança de modelo de dados, **PATCH**
 
 ---
 
+## [0.12.0] - 2026-08-28
+
+Rodada de **sistema visual**: um vocabulário só de ícone, aviso e campo vazio
+para o hub inteiro - mais fácil de reconhecer em qualquer tela, clara ou
+escura.
+
+### Adicionado
+- Ao salvar um formulário, o sistema avisa o que aconteceu: um aviso verde
+  aparece no canto superior direito e some sozinho; erro aparece em vermelho
+  e fica mais tempo na tela.
+- As ações do SATE que mudam o status de uma solicitação (confirmar, negar,
+  colocar em análise, marcar como adaptado) agora avisam o que aconteceu -
+  antes eram silenciosas.
+- Um botão de atualizar foi acrescentado ao topo da tela, com a informação de
+  quando os dados foram carregados pela última vez. Ele mantém você no mesmo
+  ponto da página - antes, só dava para atualizar recarregando a página
+  inteira, o que sempre levava de volta ao topo.
+
+### Alterado
+- Os ícones do sistema foram redesenhados. Agora acompanham a cor do texto,
+  ficam alinhados e têm o mesmo desenho em qualquer computador ou celular.
+- Um erro que dá para corrigir ali mesmo (como um número de ata repetido)
+  passou a aparecer junto do campo, em vez de um aviso passageiro que podia
+  sumir antes de a pessoa terminar de ler.
+- O telefone principal e o acesso ativo agora são chaves de liga e desliga,
+  no lugar das caixinhas de marcar.
+- Campos sem informação passam a dizer o que está faltando - "nunca
+  acessou", "sem telefone cadastrado" - no lugar de um traço.
+
 ## [0.11.0] - 2026-08-25
 
 Rodada de **cadastro de pessoas**: onde alguém trabalha, com que cargo e

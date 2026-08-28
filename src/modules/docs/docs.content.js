@@ -122,13 +122,15 @@ export const SECOES = [
 │   │   ├── registry.js       registro dos módulos (fonte única de tiles/nav/rotas)
 │   │   └── router.js         roteador por hash + checa o nível + carga sob demanda
 │   ├── shell/              ← MOLDURA
-│   │   ├── chrome.js         topo, menu lateral, menu de usuário
+│   │   ├── chrome.js         topo, menu lateral, botão Atualizar, menu de usuário
 │   │   └── pendente.js       tela de quem autenticou mas não está na allowlist
 │   ├── shared/             ← COMPARTILHADO (sem domínio)
 │   │   ├── dom.js            esc(), norm(), slug(), val()…
 │   │   ├── format.js         datas em pt-BR, hojeISO(), fmtDataHora()…
 │   │   ├── realtime.js       assinatura de mudanças via Supabase Realtime
-│   │   └── ui/               drawer.js · toast.js · feedback.js · phones.js · filtro-segmento.js
+│   │   ├── cache.js          registro de invalidação de cache, usado pelo botão Atualizar
+│   │   └── ui/               drawer.js · toast.js · feedback.js · phones.js · filtro-segmento.js ·
+│   │                         icones.js · confirmar.js
 │   ├── modules/            ← UMA PASTA POR FERRAMENTA
 │   │   └── &lt;modulo&gt;/
 │   │       ├── module.js         manifesto (id, ícone, rota, permissão)
@@ -576,8 +578,12 @@ export async function render(app, { perfil } = {}) {
           <tr><td>Item de lista com ações</td><td><code>.solic</code> + <code>.solic-acoes</code> + <code>.mini-btn</code></td></tr>
           <tr><td>Detalhe / formulário lateral</td><td><code>shared/ui/drawer.js</code></td></tr>
           <tr><td>Formulário em grade</td><td><code>.form-grid</code> (1 coluna no celular, 2 a partir de 560px)</td></tr>
-          <tr><td>Vazio, erro, carregando</td><td><code>shared/ui/feedback.js</code></td></tr>
-          <tr><td>Aviso passageiro</td><td><code>shared/ui/toast.js</code></td></tr>
+          <tr><td>Vazio, carregando</td><td><code>shared/ui/feedback.js</code></td></tr>
+          <tr><td>Aviso passageiro (resultado de uma ação)</td><td><code>shared/ui/toast.js</code></td></tr>
+          <tr><td>Erro que a pessoa consegue corrigir no formulário aberto</td><td><code>reportarErro()</code>, em <code>shared/ui/feedback.js</code> - fica junto do campo, não some sozinho</td></tr>
+          <tr><td>Confirmação (nunca <code>confirm()</code>/<code>alert()</code> nativos)</td><td><code>shared/ui/confirmar.js</code></td></tr>
+          <tr><td>Ícone</td><td><code>ico()</code>, em <code>shared/ui/icones.js</code> - SVG que herda a cor do texto, nunca emoji</td></tr>
+          <tr><td>Campo liga/desliga</td><td><code>.switch</code> (ver <code>components.css</code>)</td></tr>
           <tr><td>Abas</td><td><code>.tabbar</code> + <code>.tab</code></td></tr>
         </tbody>
       </table>
