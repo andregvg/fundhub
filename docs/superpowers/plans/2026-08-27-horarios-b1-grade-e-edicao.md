@@ -57,7 +57,9 @@ em vez da sua. Ver `servidores/vinculos.model.js` como referência.
 | `supabase/migrations/024_horarios_escalas.sql` | **novo.** As quatro mudanças de dado, escritas inteiras aqui (B-2 só passa a ler as colunas de escala). |
 | `src/shared/ui/busca-selecao.js` | **novo.** Combobox por palavras-chave. Tem estado, teclado e foco → componente JS (R12). |
 | `src/modules/servidores/vinculos.model.js` | Ganha `cargo_gestao`: leitura, escrita e o predicado `ehGestao`. |
-| `src/modules/horarios/horarios.model.js` | Ganha intervalos na validação, empilhamento em faixas e a API de exibição. Vigiar o limite de 250 linhas. |
+| `src/modules/horarios/horarios.model.js` | Jornada e validação. Vigiar o limite de 250 linhas. |
+| `src/modules/horarios/grade.model.js` | Matemática pura de grade (faixas, ordenação) - sem acesso a banco. Criado na Task 3. |
+| `src/modules/horarios/exibicao.model.js` | **novo (Task 6).** CRUD de `horario_exibicao` - quem aparece na grade, em que ordem, quem conta na cobertura. Terceiro model do módulo, arquivo-folha (só importa o kernel, sem ciclo com os outros dois). |
 | `src/modules/horarios/views/por-escola.js` | Reescrita: a grade única. |
 | `src/modules/horarios/views/grade.js` | **novo.** O desenho da grade (faixas, eixo, hachura, seleção). Extraído para `por-escola.js` não passar de 400 linhas. |
 | `src/modules/horarios/views/jornada.js` | **novo.** A gaveta da semana inteira. Substitui `bloco.js`. |
@@ -1050,7 +1052,9 @@ git commit -m "feat(ui): componente de busca por palavras-chave"
 ## Task 6: Model de exibição por escola
 
 **Files:**
+- Create: `src/modules/horarios/exibicao.model.js` (executado: nasceu na rodada de correção, quando a exclusão de linha em `salvarOrdem` empurrou `horarios.model.js` de volta acima de 250 linhas - R11 exigiu o terceiro model do módulo. Ver `progress.md`, Ruling 13.)
 - Modify: `src/modules/horarios/horarios.model.js`
+- Modify: `tests/horarios.test.mjs` (se o model dividir)
 
 **Interfaces:**
 - Consumes: `sb()`, `hasSupabase()`, `emailAtual()`.
@@ -1323,8 +1327,13 @@ A view fica responsável só por: escolher a escola (agora por busca), carregar,
 //
 // A cobertura é regra de ESCOLA - a sede da SME não entra nela.
 // ============================================================
-import { DIAS, getBlocos, getExibicao, salvarOrdem, definirCobertura,
-  limparExibicao, ordenarParaGrade, COBERTURA_INICIO, COBERTURA_FIM } from '../horarios.model.js';
+import { DIAS, getBlocos, COBERTURA_INICIO, COBERTURA_FIM } from '../horarios.model.js';
+// getExibicao/salvarOrdem/definirCobertura/limparExibicao migraram para
+// exibicao.model.js e ordenarParaGrade para grade.model.js na Task 6
+// (dividido de novo por R11 - o model ultrapassou 250 linhas na correção
+// que fez salvarOrdem apagar quem sai da lista). Ver progress.md, Ruling 13.
+import { getExibicao, salvarOrdem, definirCobertura, limparExibicao } from '../exibicao.model.js';
+import { ordenarParaGrade } from '../grade.model.js';
 import { getServidoresDaUnidade } from '../../servidores/servidores.model.js';
 import { getCargosGestao, rotulaCargo } from '../../servidores/vinculos.model.js';
 import { vinculosAbertos } from '../../servidores/servidores.model.js';
