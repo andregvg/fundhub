@@ -8,6 +8,14 @@
    vira uma linha só, com o dia à esquerda e o total à direita.
    ============================================================ */
 
+/* Barra de abas + botão de admin fora do tablist (acessibilidade: só
+   aba é filha de role="tablist"). */
+.h-topo { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+.h-topo .tabbar { margin-bottom: 0; flex: 1 1 auto; }
+
+/* Gaveta "Equipe gestora": uma linha por cargo. */
+.cg-linhas { display: grid; gap: 8px; }
+
 .hb-painel { margin-bottom: 16px; }
 .hb-painel h2 { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
 .hb-sub { color: var(--muted); font-size: 12.5px; font-weight: 400; }

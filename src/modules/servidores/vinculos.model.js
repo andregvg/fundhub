@@ -85,7 +85,7 @@ export async function getCargosGestao() {
 
 export async function definirCargoGestao(cargo, eGestao) {
   if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
-  const c = normalizaCargo(cargo);
+  const c = await cargoCanonico(cargo);
   if (!c) throw new Error('Informe o cargo.');
   const { error } = eGestao
     ? await sb().from('cargo_gestao').upsert({ cargo: c }, { onConflict: 'cargo' })
