@@ -1516,6 +1516,27 @@ Ao terminar o Step 2, três coisas em `por-escola.js`:
 2. Trocar a chamada do lápis (`data-editar`) para `abrirJornada({ servidor, unidadeId, blocos: blocosDe(servidor.id), recarregar: carregar })` (ajuste os nomes exatos conforme o estado atual do arquivo).
 3. Apagar o import de `formBloco`/`bloco.js` e, se nada mais em `por-escola.js` os usar, o de `drawerHead, abrirDrawer`.
 
+**Achado extra da re-revisão da correção da Task 7 (Ruling 18, não bloqueia,
+mas é barato e mora na mesma função que esta tarefa já toca):**
+`reaplicarSelecao(root)` (`views/grade.js`) liga `tem-selecao` a "`sel`
+existe", não a "algum filho casou com `sel`". Selecionar alguém na escola X e
+trocar de unidade pelo seletor deixa a grade da escola Y inteira esmaecida,
+porque o `sel` antigo não casa com ninguém novo e nada acorda a classe.
+Enquanto mexer em `carregar()`/`abrirJornada` (que também terminam chamando
+`reaplicarSelecao` via `recarregar`), troque a implementação para:
+
+```js
+export function reaplicarSelecao(root) {
+  let achou = false;
+  root.querySelectorAll('[data-servidor]').forEach(el => {
+    const casa = el.dataset.servidor === sel;
+    if (casa) achou = true;
+    el.classList.toggle('sel', casa);
+  });
+  root.classList.toggle('tem-selecao', achou);
+}
+```
+
 E o destino de `linhaDia`/`eixoHb`/`hhmm`: **mova as três de `por-escola.js`
 para `por-servidor.js`**, que continua sendo a única leitora depois desta
 tarefa (ela desenha a semana de UM servidor em cada escola onde ele atua,
