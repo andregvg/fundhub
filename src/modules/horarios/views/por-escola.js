@@ -11,7 +11,7 @@ import { DIAS, getBlocos, COBERTURA_INICIO, COBERTURA_FIM } from '../horarios.mo
 // getExibicao/definirCobertura moram em exibicao.model.js e
 // ordenarParaGrade em grade.model.js desde a divisão da Task 6
 // (R11 - horarios.model.js estourou 250 linhas). Ver progress.md, Ruling 13.
-import { getExibicao, definirCobertura } from '../exibicao.model.js';
+import { getExibicao, definirCobertura, salvarOrdem, limparExibicao } from '../exibicao.model.js';
 import { ordenarParaGrade } from '../grade.model.js';
 import { getServidoresDaUnidade, vinculosAbertos } from '../../servidores/servidores.model.js';
 import { getCargosGestao, rotulaCargo } from '../../servidores/vinculos.model.js';
@@ -19,6 +19,7 @@ import { getUnidades } from '../../escolas/escolas.model.js';
 import { esc } from '../../../shared/dom.js';
 import { ico } from '../../../shared/ui/icones.js';
 import { toast } from '../../../shared/ui/toast.js';
+import { confirmar } from '../../../shared/ui/confirmar.js';
 import { loading, emptyState, erroBox, reportarErro } from '../../../shared/ui/feedback.js';
 import { criarBuscaSelecao } from '../../../shared/ui/busca-selecao.js';
 import { criarFiltroSegmento, indexarUnidades } from '../../../shared/ui/filtro-segmento.js';
@@ -141,6 +142,7 @@ async function carregar() {
 
   corpo.innerHTML =
     (mostrarCobertura ? `<p class="form-hint">Cobertura da escola: ${esc(COBERTURA_INICIO)} às ${esc(COBERTURA_FIM)}.</p>` : '')
+    + resetHtml()
     + legendaHtml(linhas, { podeEditar: ctxAtual.podeEditar })
     + gradeHtml(DIAS, { linhas, blocosDe, mostrarCobertura })
     + naoExibidosHtml(fora);
@@ -153,6 +155,15 @@ async function carregar() {
 
 const blocosDe = (servidorId, dia) =>
   blocos.filter(b => b.servidor_id === servidorId && b.dia_semana === dia);
+
+// "Voltar à ordem padrão" só faz sentido quando há o que voltar: sem
+// linha em `horario_exibicao`, a grade já está no padrão alfabético.
+function resetHtml() {
+  if (!ctxAtual.podeEditar || !exibicao.length) return '';
+  return `<div class="toolbar-linha">
+    <button type="button" class="mini-btn" id="hg-reset">${ico('atualizar', { tam: 14 })} Voltar à ordem padrão</button>
+  </div>`;
+}
 
 // Servidor com vínculo aberto que não entra na grade por padrão
 // (cargo comum, sem linha em horario_exibicao). Fica recolhido para
@@ -170,7 +181,16 @@ function naoExibidosHtml(fora) {
   </details>`;
 }
 
+// Chip que está sendo arrastado no momento - guardado fora do handler
+// porque `dragover`/`drop` disparam de novo a cada pixel e precisam
+// achar o mesmo elemento que `dragstart` marcou.
+let origemArrasto = null;
+
 // ── Eventos delegados no corpo (ligados uma vez, em renderPorEscola) ──
+// #h-corpo não é recriado por `carregar()` (só o innerHTML muda), então
+// tudo aqui é ligado UMA vez só - inclusive arrasto e cobertura, que a
+// Task 7 deixou desenhados mas desligados. Delegar por seletor evita
+// religar (e empilhar) listener a cada reordenação.
 function ligarEventosCorpo(root) {
   root.addEventListener('click', async (e) => {
     const incluir = e.target.closest('[data-incluir]');
@@ -183,8 +203,111 @@ function ligarEventosCorpo(root) {
       return;
     }
     const editar = e.target.closest('[data-editar]');
-    if (editar) abrirEdicaoJornada(editar.dataset.editar);
+    if (editar) { abrirEdicaoJornada(editar.dataset.editar); return; }
+
+    const mover = e.target.closest('[data-mover]');
+    if (mover) { await moverServidor(mover.dataset.mover); return; }
+
+    if (e.target.closest('#hg-reset')) await voltarPadrao();
   });
+
+  // O checkbox de cobertura é recriado a cada `carregar()`, mas o
+  // listener mora aqui, no container estável - `change` borbulha, então
+  // ligar uma vez só já cobre os checkboxes futuros.
+  root.addEventListener('change', async (e) => {
+    const inp = e.target.closest('[data-cobertura]');
+    if (!inp) return;
+    inp.disabled = true;
+    try {
+      await definirCobertura(unidadeId, inp.dataset.cobertura, inp.checked);
+      await carregar();
+    } catch (err) {
+      inp.checked = !inp.checked;
+      reportarErro(err, { titulo: 'Não foi possível salvar' });
+    } finally { inp.disabled = false; }
+  });
+
+  // Arrasto na LEGENDA, não nas barras: arrastar uma barra moveria o
+  // horário, que é outra coisa. Reordenar a legenda reordena as faixas
+  // e as cores. Os eventos de drag borbulham como qualquer outro, então
+  // delegar aqui (em vez de religar em cada `#hg-legenda` recriado)
+  // segue o mesmo padrão dos demais listeners deste corpo.
+  root.addEventListener('dragstart', (e) => {
+    const chip = e.target.closest('.hg-chip');
+    if (!chip || !chip.draggable) return;
+    origemArrasto = chip;
+    chip.classList.add('arrastando');
+    e.dataTransfer.effectAllowed = 'move';
+    // Firefox só inicia o arrasto se houver dado no dataTransfer.
+    e.dataTransfer.setData('text/plain', chip.dataset.servidor);
+  });
+
+  root.addEventListener('dragend', () => {
+    origemArrasto?.classList.remove('arrastando');
+    origemArrasto = null;
+  });
+
+  root.addEventListener('dragover', (e) => {
+    if (!origemArrasto) return;
+    const legenda = e.target.closest('#hg-legenda');
+    if (!legenda) return;
+    e.preventDefault();      // exigido pela API nativa para o drop disparar
+    const alvo = e.target.closest('.hg-chip');
+    if (!alvo || alvo === origemArrasto) return;
+    const r = alvo.getBoundingClientRect();
+    const depois = (e.clientX - r.left) > r.width / 2;
+    legenda.insertBefore(origemArrasto, depois ? alvo.nextSibling : alvo);
+  });
+
+  root.addEventListener('drop', async (e) => {
+    const legenda = e.target.closest('#hg-legenda');
+    if (!origemArrasto || !legenda) return;
+    e.preventDefault();
+    const ids = [...legenda.querySelectorAll('.hg-chip')].map(c => c.dataset.servidor);
+    await salvarNovaOrdem(ids);
+  });
+}
+
+// Grava a ordem inteira (drag e setas caem aqui) - `salvarOrdem` grava
+// de uma vez, não linha a linha. `carregar()` sempre roda depois: em
+// sucesso, reflete o que o banco gravou; em erro, desfaz na tela o que
+// o banco recusou.
+async function salvarNovaOrdem(ids) {
+  try {
+    await salvarOrdem(unidadeId, ids);
+    toast({ titulo: 'Ordem salva', tipo: 'sucesso' });
+  } catch (err) {
+    reportarErro(err, { titulo: 'Não foi possível salvar a ordem' });
+  } finally {
+    await carregar();
+  }
+}
+
+// Alternativa por teclado ao arrasto: `valor` é "<servidorId>:-1" ou
+// "<servidorId>:1", vindo do data-mover das setas da legenda.
+async function moverServidor(valor) {
+  const [servidorId, delta] = valor.split(':');
+  const ids = linhas.map(l => l.servidor.id);
+  const i = ids.indexOf(servidorId);
+  const j = i + Number(delta);
+  if (i < 0 || j < 0 || j >= ids.length) return;
+  [ids[i], ids[j]] = [ids[j], ids[i]];
+  await salvarNovaOrdem(ids);
+}
+
+async function voltarPadrao() {
+  const ok = await confirmar('Voltar à ordem padrão desta escola?', {
+    detalhe: 'A grade volta a mostrar só os cargos de equipe gestora, em ordem alfabética, todos contando na cobertura.',
+    textoOk: 'Voltar ao padrão',
+  });
+  if (!ok) return;
+  try {
+    await limparExibicao(unidadeId);
+    toast({ titulo: 'Ordem restaurada', tipo: 'sucesso' });
+    await carregar();
+  } catch (err) {
+    reportarErro(err, { titulo: 'Não foi possível restaurar' });
+  }
 }
 
 // Abre a gaveta da jornada semanal (views/jornada.js) para o servidor

@@ -26,24 +26,33 @@ export const selecionado = () => sel;
 const posDoIntervalo = (ini, fim) =>
   posicaoNaBarra({ inicio: paraHora(ini), fim: paraHora(fim) });
 
-// `podeEditar` só libera o lápis por enquanto. Arrastar para reordenar
-// e o checkbox de cobertura são Task 9 - renderizar `draggable`/
-// `.arrastavel` ou o checkbox habilitado antes de existir handler
-// seria affordance sem comportamento (o checkbox é o pior caso: a
-// pessoa desmarca, a UI confirma, nada é gravado). Ver rodada de
-// correção 1 da Task 7.
+// `podeEditar` libera o lápis, o arrasto e o checkbox de cobertura.
+// A Task 7 desenhou `draggable`/`.arrastavel` e o checkbox mas os
+// deixou desligados (chip sem `draggable`, checkbox sempre `disabled`)
+// porque nenhum handler existia ainda - o checkbox era o pior caso:
+// a pessoa desmarcava, a UI confirmava, nada era gravado. A Task 9
+// liga os dois: o arrasto e as setas gravam com `salvarOrdem`, o
+// checkbox com `definirCobertura` - os dois em por-escola.js, que é
+// quem sabe salvar. As setas são a alternativa por teclado: arrasto
+// nativo não é utilizável sem mouse.
 export function legendaHtml(linhas, { podeEditar }) {
   return `<div class="hg-legenda" id="hg-legenda">
-    ${linhas.map(l => `
-      <div class="hg-chip serie-${l.serie + 1}" data-servidor="${esc(l.servidor.id)}">
+    ${linhas.map((l, i) => `
+      <div class="hg-chip serie-${l.serie + 1}${podeEditar ? ' arrastavel' : ''}"
+           data-servidor="${esc(l.servidor.id)}" ${podeEditar ? 'draggable="true"' : ''}>
         <span class="hg-cor" aria-hidden="true"></span>
         <span class="hg-nome">${esc(l.servidor.nome)}</span>
         <span class="hg-cargo">${esc(l.cargo)}</span>
-        ${podeEditar ? `<button type="button" class="mini-btn" data-editar="${esc(l.servidor.id)}"
+        ${podeEditar ? `
+          <button type="button" class="mini-btn hg-mover" data-mover="${esc(l.servidor.id)}:-1"
+             ${i === 0 ? 'disabled' : ''} aria-label="Mover ${esc(l.servidor.nome)} para a esquerda">${ico('chevron', { tam: 12, classe: 'gira-90' })}</button>
+          <button type="button" class="mini-btn hg-mover" data-mover="${esc(l.servidor.id)}:1"
+             ${i === linhas.length - 1 ? 'disabled' : ''} aria-label="Mover ${esc(l.servidor.nome)} para a direita">${ico('chevron', { tam: 12, classe: 'gira-menos90' })}</button>
+          <button type="button" class="mini-btn" data-editar="${esc(l.servidor.id)}"
              aria-label="Editar jornada de ${esc(l.servidor.nome)}">${ico('editar', { tam: 14 })}</button>` : ''}
         <label class="switch radio hg-cob" title="Conta na cobertura da escola">
           <input type="checkbox" data-cobertura="${esc(l.servidor.id)}"
-                 ${l.contaCobertura ? 'checked' : ''} disabled />
+                 ${l.contaCobertura ? 'checked' : ''} ${podeEditar ? '' : 'disabled'} />
           <span class="switch-trilho" aria-hidden="true"></span>
           <span class="switch-txt">cobertura</span>
         </label>
@@ -118,9 +127,9 @@ function eixo() {
 // distinguir quando alguém está procurando alguém.
 export function ligarSelecao(root) {
   root.addEventListener('click', (e) => {
-    // O lápis e o checkbox moram dentro do .hg-chip - sem esta guarda,
-    // clicar neles também selecionaria o servidor de carona.
-    if (e.target.closest('[data-editar],[data-cobertura]')) return;
+    // O lápis, as setas e o checkbox moram dentro do .hg-chip - sem
+    // esta guarda, clicar neles também selecionaria o servidor de carona.
+    if (e.target.closest('[data-editar],[data-cobertura],[data-mover]')) return;
     const barra = e.target.closest('.hg-bloco');
     const chip = e.target.closest('.hg-chip');
     const alvo = barra?.dataset.servidor || chip?.dataset.servidor || null;

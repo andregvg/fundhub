@@ -168,6 +168,13 @@
 .hg-chip .hg-cargo { color: var(--muted); font-size: 12px; }
 .hg-chip.sel { border-color: var(--serie); box-shadow: 0 0 0 2px color-mix(in srgb, var(--serie) 30%, transparent); }
 
+/* Setas de mover: alternativa por teclado ao arrasto (arrasto nativo
+   não é utilizável sem mouse). O chevron (aponta para baixo) gira para
+   apontar para o lado que a seta move o chip. */
+.hg-mover { padding: 3px 6px; }
+.hg-mover .ico.gira-90 { transform: rotate(90deg); }
+.hg-mover .ico.gira-menos90 { transform: rotate(-90deg); }
+
 .serie-1 { --serie: var(--serie-1); }
 .serie-2 { --serie: var(--serie-2); }
 .serie-3 { --serie: var(--serie-3); }
