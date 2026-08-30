@@ -107,44 +107,76 @@ function unir(intervalos) {
 
 const paraIntervalo = (b) => ({ ini: paraMin(b.inicio), fim: paraMin(b.fim) });
 
-// Problemas da jornada de UM servidor em UM dia.
+// Problemas da jornada de UM servidor em UM dia, cada um com o
+// INTERVALO em que ele acontece - para a grade poder marcar onde
+// está o problema em vez de só escrever o que ele é.
 // Devolve [] quando está tudo certo.
+//
+// Só a sobreposição barra o salvamento: ela descreve algo impossível
+// (a pessoa em dois lugares). Carga e trecho contínuo descrevem algo
+// indesejável mas às vezes necessário, e a SME precisa poder
+// registrar. Ver .claude/rules/dados.md - "erro barra, aviso não".
 export function validarDia(blocosDoDia) {
   const problemas = [];
-  if (!blocosDoDia.length) return problemas;
+  if (!blocosDoDia?.length) return problemas;
 
   const ivs = blocosDoDia.map(paraIntervalo).sort((a, b) => a.ini - b.ini);
 
-  // Sobreposição (erro: a pessoa não pode estar em dois lugares).
+  // ── Sobreposição (erro) ──
   for (let i = 1; i < ivs.length; i++) {
     if (ivs[i].ini < ivs[i - 1].fim) {
+      const ini = ivs[i].ini;
+      const fim = Math.min(ivs[i - 1].fim, ivs[i].fim);
       problemas.push({
-        nivel: 'erro',
-        texto: `Blocos sobrepostos (${paraHora(ivs[i].ini)} começa antes de ${paraHora(ivs[i - 1].fim)}).`,
+        nivel: 'erro', codigo: 'sobreposicao', ini, fim,
+        texto: `Blocos sobrepostos entre ${paraHora(ini)} e ${paraHora(fim)}.`,
       });
       break;
     }
   }
 
-  // Carga do dia.
+  const unidos = unir(ivs);
+
+  // ── Carga do dia (aviso) ──
   const total = ivs.reduce((s, iv) => s + (iv.fim - iv.ini), 0);
   if (total > MAX_DIA_MIN) {
+    const excesso = total - MAX_DIA_MIN;
+    const trecho = ultimosMinutos(unidos, excesso);
     problemas.push({
-      nivel: 'erro',
-      texto: `${duracao(total)} no dia - o limite é ${duracao(MAX_DIA_MIN)}.`,
+      nivel: 'aviso', codigo: 'carga-dia', ini: trecho.ini, fim: trecho.fim,
+      texto: `${duracao(total)} no dia - ${duracao(excesso)} além do limite de ${duracao(MAX_DIA_MIN)}.`,
     });
   }
 
-  // Trecho contínuo (blocos colados contam junto).
-  const maior = unir(ivs).reduce((m, iv) => Math.max(m, iv.fim - iv.ini), 0);
-  if (maior > MAX_CONTINUO_MIN) {
-    problemas.push({
-      nivel: 'aviso',
-      texto: `${duracao(maior)} contínuas - o limite é ${duracao(MAX_CONTINUO_MIN)}. Inclua um intervalo.`,
-    });
+  // ── Trecho contínuo (aviso; blocos colados contam junto) ──
+  for (const trecho of unidos) {
+    if (trecho.fim - trecho.ini > MAX_CONTINUO_MIN) {
+      problemas.push({
+        nivel: 'aviso', codigo: 'continuo',
+        ini: trecho.ini + MAX_CONTINUO_MIN, fim: trecho.fim,
+        texto: `${duracao(trecho.fim - trecho.ini)} contínuas a partir de ${paraHora(trecho.ini)} - o limite é ${duracao(MAX_CONTINUO_MIN)}. Inclua um intervalo.`,
+      });
+      break;
+    }
   }
 
   return problemas;
+}
+
+// Os últimos `minutos` de tempo TRABALHADO, caminhando de trás para
+// frente pelos trechos unidos. O intervalo devolvido pode atravessar
+// uma pausa: se o excesso é maior que o último trecho, ele continua
+// no anterior - e a marcação na grade cobre os dois.
+function ultimosMinutos(unidos, minutos) {
+  const fim = unidos[unidos.length - 1].fim;
+  let ini = fim;
+  let faltam = minutos;
+  for (let i = unidos.length - 1; i >= 0 && faltam > 0; i--) {
+    const dura = unidos[i].fim - unidos[i].ini;
+    if (dura >= faltam) { ini = unidos[i].fim - faltam; faltam = 0; }
+    else { ini = unidos[i].ini; faltam -= dura; }
+  }
+  return { ini, fim };
 }
 
 export const totalDoDia = (blocosDoDia) =>
