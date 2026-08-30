@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { validarDia, paraMin, ordenarParaGrade } from '../src/modules/horarios/horarios.model.js';
+import { validarDia, paraMin, ordenarParaGrade, SERIES } from '../src/modules/horarios/horarios.model.js';
 import { empilhar, contarFaixas } from '../src/modules/horarios/grade.model.js';
 
 const b = (inicio, fim) => ({ inicio, fim });
@@ -146,13 +146,13 @@ test('lista vazia tem uma faixa, para a linha do dia nao colapsar', () => {
 });
 
 // -- ordenarParaGrade --
-const CARGOS = new Set(['Diretor(a)', 'Coordenador(a)']);
+const CARGOS = new Set(['Gestor(a)', 'Coordenador(a)']);
 const cargoDe = (s) => s.cargo;
 const S = (id, nome, cargo) => ({ id, nome, cargo });
 
 test('sem configuracao, so cargos de gestao aparecem, em ordem alfabetica de cargo e nome', () => {
   const r = ordenarParaGrade(
-    [S('3', 'Gestor C', 'Coordenador(a)'), S('1', 'Gestor A', 'Diretor(a)'),
+    [S('3', 'Gestor C', 'Coordenador(a)'), S('1', 'Gestor A', 'Gestor(a)'),
      S('2', 'Gestor B', 'Coordenador(a)'), S('4', 'Servidor D', 'Agente Escolar')],
     { exibicao: [], cargosGestao: CARGOS, cargoDe });
   assert.deepEqual(r.filter(x => x.exibir).map(x => x.servidor.id), ['2', '3', '1']);
@@ -168,7 +168,7 @@ test('quem tem linha de exibicao aparece mesmo sem cargo de gestao', () => {
 
 test('a ordem gravada vence a alfabetica', () => {
   const r = ordenarParaGrade(
-    [S('1', 'Gestor A', 'Diretor(a)'), S('2', 'Gestor B', 'Coordenador(a)')],
+    [S('1', 'Gestor A', 'Gestor(a)'), S('2', 'Gestor B', 'Coordenador(a)')],
     { exibicao: [{ servidor_id: '2', ordem: 0, conta_cobertura: true },
                  { servidor_id: '1', ordem: 1, conta_cobertura: true }],
       cargosGestao: CARGOS, cargoDe });
@@ -177,7 +177,7 @@ test('a ordem gravada vence a alfabetica', () => {
 
 test('conta_cobertura false e respeitado; sem linha, o padrao e contar', () => {
   const r = ordenarParaGrade(
-    [S('1', 'Gestor A', 'Diretor(a)'), S('2', 'Gestor B', 'Coordenador(a)')],
+    [S('1', 'Gestor A', 'Gestor(a)'), S('2', 'Gestor B', 'Coordenador(a)')],
     { exibicao: [{ servidor_id: '1', ordem: 0, conta_cobertura: false }],
       cargosGestao: CARGOS, cargoDe });
   assert.equal(r.find(x => x.servidor.id === '1').contaCobertura, false);
@@ -185,8 +185,30 @@ test('conta_cobertura false e respeitado; sem linha, o padrao e contar', () => {
 });
 
 test('a serie e a posicao modulo 6, para a cor repetir sem confundir', () => {
-  const servidores = Array.from({ length: 8 }, (_, i) => S(String(i), `Gestor ${i}`, 'Diretor(a)'));
+  const servidores = Array.from({ length: 8 }, (_, i) => S(String(i), `Gestor ${i}`, 'Gestor(a)'));
   const exibicao = servidores.map((s, i) => ({ servidor_id: s.id, ordem: i, conta_cobertura: true }));
   const r = ordenarParaGrade(servidores, { exibicao, cargosGestao: CARGOS, cargoDe });
   assert.deepEqual(r.map(x => x.serie), [0, 1, 2, 3, 4, 5, 0, 1]);
+});
+
+test('a serie conta so quem e exibido; quem fica oculto nao consome cor', () => {
+  // Intercala gestores (exibidos) com servidores de cargo comum (ocultos).
+  // A serie de quem aparece precisa seguir 0,1,2,... sem pular nem repetir
+  // por causa de quem esta escondido no meio.
+  const cargosGestao = new Set(['Gestor(a)', 'Coordenador(a)', 'Supervisor(a)']);
+  const servidores = [
+    S('1', 'Gestor A', 'Gestor(a)'),
+    S('2', 'Servidor Oculto B', 'Agente Escolar'),
+    S('3', 'Gestor C', 'Coordenador(a)'),
+    S('4', 'Servidor Oculto D', 'Agente Escolar'),
+    S('5', 'Gestor E', 'Supervisor(a)'),
+    S('6', 'Servidor Oculto F', 'Agente Escolar'),
+  ];
+  const r = ordenarParaGrade(servidores, { exibicao: [], cargosGestao, cargoDe });
+
+  for (const it of r) {
+    if (!it.exibir) assert.equal(it.serie, null);
+  }
+  const visiveis = r.filter(x => x.exibir);
+  assert.deepEqual(visiveis.map(x => x.serie), visiveis.map((_, i) => i % SERIES));
 });

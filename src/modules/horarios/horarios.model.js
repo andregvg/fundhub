@@ -228,12 +228,19 @@ export function ordenarParaGrade(servidores, { exibicao = [], cargosGestao = new
   });
 
   itens.sort((a, b) => {
-    if (a.ordem !== null && b.ordem !== null) return a.ordem - b.ordem;
+    if (a.ordem !== null && b.ordem !== null) {
+      return (a.ordem - b.ordem)
+        || a.cargo.localeCompare(b.cargo, 'pt')
+        || a.servidor.nome.localeCompare(b.servidor.nome, 'pt');
+    }
     if (a.ordem !== null) return -1;
     if (b.ordem !== null) return 1;
     return a.cargo.localeCompare(b.cargo, 'pt')
       || a.servidor.nome.localeCompare(b.servidor.nome, 'pt');
   });
 
-  return itens.map((it, i) => ({ ...it, serie: i % SERIES }));
+  // A série conta só sobre quem é EXIBIDO - quem fica de fora da grade
+  // não deve consumir uma cor que a linha seguinte visível precisaria.
+  let serie = 0;
+  return itens.map(it => ({ ...it, serie: it.exibir ? (serie++) % SERIES : null }));
 }
