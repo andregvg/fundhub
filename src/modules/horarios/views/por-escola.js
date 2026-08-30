@@ -7,31 +7,23 @@
 //
 // A cobertura é regra de ESCOLA - a sede da SME não entra nela.
 // ============================================================
-import {
-  DIAS, getBlocos, COBERTURA_INICIO, COBERTURA_FIM,
-  validarDia, totalDoDia, duracao,
-} from '../horarios.model.js';
+import { DIAS, getBlocos, COBERTURA_INICIO, COBERTURA_FIM } from '../horarios.model.js';
 // getExibicao/definirCobertura moram em exibicao.model.js e
-// ordenarParaGrade/posicaoNaBarra/marcasDaBarra em grade.model.js
-// desde a divisão da Task 6 (R11 - horarios.model.js estourou 250
-// linhas). Ver progress.md, Ruling 13.
+// ordenarParaGrade em grade.model.js desde a divisão da Task 6
+// (R11 - horarios.model.js estourou 250 linhas). Ver progress.md, Ruling 13.
 import { getExibicao, definirCobertura } from '../exibicao.model.js';
-import { ordenarParaGrade, posicaoNaBarra, marcasDaBarra } from '../grade.model.js';
+import { ordenarParaGrade } from '../grade.model.js';
 import { getServidoresDaUnidade, vinculosAbertos } from '../../servidores/servidores.model.js';
 import { getCargosGestao, rotulaCargo } from '../../servidores/vinculos.model.js';
 import { getUnidades } from '../../escolas/escolas.model.js';
-import { esc, vazio } from '../../../shared/dom.js';
+import { esc } from '../../../shared/dom.js';
 import { ico } from '../../../shared/ui/icones.js';
 import { toast } from '../../../shared/ui/toast.js';
 import { loading, emptyState, erroBox, reportarErro } from '../../../shared/ui/feedback.js';
 import { criarBuscaSelecao } from '../../../shared/ui/busca-selecao.js';
 import { criarFiltroSegmento, indexarUnidades } from '../../../shared/ui/filtro-segmento.js';
-import { drawerHead, abrirDrawer } from '../../../shared/ui/drawer.js';
 import { gradeHtml, legendaHtml, ligarSelecao, reaplicarSelecao } from './grade.js';
-// abrirJornada (Task 8, views/jornada.js) ainda não existe - o lápis
-// do chip abre um editor provisório que reaproveita formBloco/linhaDia
-// (abaixo). Task 8 troca abrirEdicaoServidor por abrirJornada.
-import { formBloco } from './bloco.js';
+import { abrirJornada } from './jornada.js';
 
 let unidades = [], idxUnidades = {}, seg = null, busca = null;
 let servidores = [], blocos = [], exibicao = [], cargosGestao = new Set();
@@ -191,83 +183,15 @@ function ligarEventosCorpo(root) {
       return;
     }
     const editar = e.target.closest('[data-editar]');
-    if (editar) abrirEdicaoServidor(editar.dataset.editar);
+    if (editar) abrirEdicaoJornada(editar.dataset.editar);
   });
 }
 
-// ── Editor provisório da semana de UM servidor (ver nota de import) ──
-function abrirEdicaoServidor(servidorId) {
+// Abre a gaveta da jornada semanal (views/jornada.js) para o servidor
+// clicado nesta escola - `blocos` já é a lista inteira da unidade;
+// `abrirJornada` filtra por servidor e dia internamente.
+function abrirEdicaoJornada(servidorId) {
   const linha = linhas.find(l => l.servidor.id === servidorId);
   if (!linha) return;
-  const { servidor } = linha;
-  const totalSemana = DIAS.reduce((acc, d) => acc + totalDoDia(blocosDe(servidor.id, d.n)), 0);
-  const semana = DIAS.map(d => linhaDia(servidor, d, blocosDe(servidor.id, d.n),
-    { podeEditar: ctxAtual.podeEditar, unidadeId })).join('');
-
-  abrirDrawer(`
-    ${drawerHead('Jornada da semana', `${esc(servidor.nome)} · ${esc(duracao(totalSemana))} na semana`)}
-    <div class="drawer-body"><div class="hb-grade" id="hg-edicao">${semana}</div></div>`);
-
-  const box = document.getElementById('hg-edicao');
-  box.querySelectorAll('[data-add]').forEach(b => b.addEventListener('click', () => {
-    const [sid, diaStr, uni] = b.dataset.add.split(':');
-    const dia = parseInt(diaStr, 10);
-    const nome = DIAS.find(d => d.n === dia)?.nome || '';
-    formBloco(null, { servidorId: sid, unidadeId: uni, dia, nome, recarregar: carregar });
-  }));
-  box.querySelectorAll('[data-bloco]').forEach(b => b.addEventListener('click', () => {
-    const bloco = blocos.find(x => x.id === b.dataset.bloco);
-    if (!bloco) return;
-    const nome = DIAS.find(d => d.n === bloco.dia_semana)?.nome || '';
-    formBloco(bloco, {
-      servidorId: bloco.servidor_id, unidadeId: bloco.unidade_id, dia: bloco.dia_semana, nome,
-      recarregar: carregar,
-    });
-  }));
-}
-
-// A semana de UM servidor em UM local, num dia (marcação .hb-*, a da
-// tela antiga). Reaproveitada pela aba "Por servidor" e pelo editor
-// provisório acima - por isso não lê nenhum estado de módulo: recebe
-// os blocos do dia prontos e onde editar.
-export function linhaDia(s, d, doDia, { podeEditar, unidadeId: uni }) {
-  const problemas = validarDia(doDia);
-  const total = totalDoDia(doDia);
-
-  const barras = doDia.map(b => {
-    const p = posicaoNaBarra(b);
-    const rotulo = `${hhmm(b.inicio)}–${hhmm(b.fim)}`;
-    return `<button type="button" class="hb-bloco ${podeEditar ? 'editavel' : ''}"
-      style="left:${p.esquerda}%;width:${p.largura}%"
-      data-bloco="${esc(b.id)}"
-      title="${esc(rotulo)}${b.obs ? ' · ' + esc(b.obs) : ''}">
-      <span>${esc(rotulo)}</span>
-    </button>`;
-  }).join('');
-
-  const alertas = problemas.map(p =>
-    `<span class="hb-prob ${p.nivel}">${ico(p.nivel === 'erro' ? 'erro' : 'atencao', { tam: 12 })} ${esc(p.texto)}</span>`).join('');
-
-  const addBtn = podeEditar
-    ? `<button type="button" class="hb-add" data-add="${esc(s.id)}:${d.n}:${esc(uni)}" aria-label="Adicionar bloco em ${esc(d.nome)}">+</button>`
-    : '';
-
-  return `<div class="hb-linha ${problemas.some(p => p.nivel === 'erro') ? 'tem-erro' : ''}">
-    <div class="hb-dia">${d.curto}</div>
-    <div class="hb-track">${eixoHb()}${barras || `<span class="hb-vazio">sem jornada</span>`}</div>
-    <div class="hb-info">
-      ${total ? `<b>${duracao(total)}</b>` : vazio('sem jornada')}
-      ${addBtn}
-    </div>
-    ${alertas ? `<div class="hb-alertas">${alertas}</div>` : ''}
-  </div>`;
-}
-
-// O Postgres devolve `time` como '07:00:00' - a tela mostra '07:00'.
-const hhmm = (t) => String(t ?? '').slice(0, 5);
-
-// Eixo de horas ao fundo da barra .hb- (só desenhado uma vez por linha).
-function eixoHb() {
-  return marcasDaBarra().map(m =>
-    `<span class="hb-marca" style="left:${m.pos}%"><i></i><em>${m.hora.slice(0, 2)}</em></span>`).join('');
+  abrirJornada({ servidor: linha.servidor, unidadeId, blocos, recarregar: carregar });
 }

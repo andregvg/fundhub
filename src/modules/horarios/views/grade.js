@@ -142,7 +142,11 @@ function aplicar(root, id) {
 // ninguém destacado. Chamar depois de repintar; nunca limpar aqui -
 // preserva quem a pessoa estava procurando através da recarga.
 export function reaplicarSelecao(root) {
-  root.classList.toggle('tem-selecao', Boolean(sel));
-  root.querySelectorAll('[data-servidor]').forEach(el =>
-    el.classList.toggle('sel', el.dataset.servidor === sel));
+  let achou = false;
+  root.querySelectorAll('[data-servidor]').forEach(el => {
+    const casa = el.dataset.servidor === sel;
+    if (casa) achou = true;
+    el.classList.toggle('sel', casa);
+  });
+  root.classList.toggle('tem-selecao', achou);
 }

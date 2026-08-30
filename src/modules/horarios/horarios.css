@@ -240,3 +240,23 @@
   .hg-info { grid-column: auto; text-align: right; }
   .hg-grade { overflow-x: visible; }
 }
+
+/* Gaveta da jornada semanal (views/jornada.js). */
+.hj-dia legend { display: flex; align-items: baseline; gap: 8px; }
+.hj-total { color: var(--muted); font-size: 12px; font-weight: 400; }
+.hj-linhas { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
+.hj-linha { display: grid; grid-template-columns: 1fr 1fr auto; align-items: center; gap: 6px; }
+.hj-ate { color: var(--muted); font-size: 12px; }
+.hj-prob { display: flex; align-items: center; gap: 6px; margin: 6px 0 0; font-size: 12.5px; }
+.hj-prob.n-erro { color: var(--danger); }
+.hj-prob.n-aviso { color: var(--accent); }
+/* Base = celular: inicio e fim lado a lado, o "as" escondido e a
+   observacao numa linha propria. A partir de 560px tudo cabe em uma. */
+.hj-ate { display: none; }
+.hj-obs { grid-column: 1 / -1; }
+
+@media (min-width: 560px) {
+  .hj-linha { grid-template-columns: auto auto auto 1fr auto; }
+  .hj-ate { display: inline; }
+  .hj-obs { grid-column: auto; }
+}

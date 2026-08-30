@@ -5,13 +5,13 @@
 // escolhendo primeiro a escola, e quem procurava pela pessoa não
 // encontrava onde cadastrar.
 // ============================================================
-import { DIAS, getBlocosDoServidor, totalDoDia, duracao } from '../horarios.model.js';
+import { DIAS, getBlocosDoServidor, validarDia, totalDoDia, duracao } from '../horarios.model.js';
+import { posicaoNaBarra, marcasDaBarra } from '../grade.model.js';
 import { getServidores, vinculosAbertos } from '../../servidores/servidores.model.js';
 import { rotulaCargo } from '../../servidores/vinculos.model.js';
-import { esc } from '../../../shared/dom.js';
+import { esc, vazio } from '../../../shared/dom.js';
 import { loading, emptyState, erroBox } from '../../../shared/ui/feedback.js';
-import { linhaDia } from './por-escola.js';
-import { formBloco } from './bloco.js';
+import { abrirJornada } from './jornada.js';
 import { ico } from '../../../shared/ui/icones.js';
 
 let servidores = [], blocos = [];
@@ -116,18 +116,72 @@ function ligarEventos() {
   if (!ctxAtual.podeEditar) return;
 
   corpo.querySelectorAll('[data-add]').forEach(b => b.addEventListener('click', () => {
-    const [sid, diaStr, uni] = b.dataset.add.split(':');
-    const dia = parseInt(diaStr, 10);
-    const nome = DIAS.find(d => d.n === dia)?.nome || '';
-    formBloco(null, { servidorId: sid, unidadeId: uni, dia, nome, recarregar: carregar });
+    const [, , uni] = b.dataset.add.split(':');
+    abrirJornadaLocal(uni);
   }));
   corpo.querySelectorAll('[data-bloco]').forEach(b => b.addEventListener('click', () => {
     const bloco = blocos.find(x => x.id === b.dataset.bloco);
     if (!bloco) return;
-    const nome = DIAS.find(d => d.n === bloco.dia_semana)?.nome || '';
-    formBloco(bloco, {
-      servidorId: bloco.servidor_id, unidadeId: bloco.unidade_id, dia: bloco.dia_semana, nome,
-      recarregar: carregar,
-    });
+    abrirJornadaLocal(bloco.unidade_id);
   }));
+}
+
+// A gaveta edita a semana inteira de UM servidor em UMA escola - aqui
+// o servidor já é fixo (o selecionado no topo da tela), só o local
+// varia conforme o painel clicado.
+function abrirJornadaLocal(unidadeId) {
+  const s = servidores.find(x => x.id === servidorId);
+  if (!s) return;
+  abrirJornada({
+    servidor: s, unidadeId,
+    blocos: blocos.filter(b => b.unidade_id === unidadeId),
+    recarregar: carregar,
+  });
+}
+
+// A semana de UM servidor em UM local, num dia (marcação .hb-*).
+// Movida de por-escola.js na Task 8: esta é a única leitora depois
+// que o lápis da grade passou a abrir a gaveta (views/jornada.js) em
+// vez de montar esta marcação para edição. Continua privada - não lê
+// nenhum estado de módulo, recebe os blocos do dia prontos.
+function linhaDia(s, d, doDia, { podeEditar, unidadeId: uni }) {
+  const problemas = validarDia(doDia);
+  const total = totalDoDia(doDia);
+
+  const barras = doDia.map(b => {
+    const p = posicaoNaBarra(b);
+    const rotulo = `${hhmm(b.inicio)}–${hhmm(b.fim)}`;
+    return `<button type="button" class="hb-bloco ${podeEditar ? 'editavel' : ''}"
+      style="left:${p.esquerda}%;width:${p.largura}%"
+      data-bloco="${esc(b.id)}"
+      title="${esc(rotulo)}${b.obs ? ' · ' + esc(b.obs) : ''}">
+      <span>${esc(rotulo)}</span>
+    </button>`;
+  }).join('');
+
+  const alertas = problemas.map(p =>
+    `<span class="hb-prob ${p.nivel}">${ico(p.nivel === 'erro' ? 'erro' : 'atencao', { tam: 12 })} ${esc(p.texto)}</span>`).join('');
+
+  const addBtn = podeEditar
+    ? `<button type="button" class="hb-add" data-add="${esc(s.id)}:${d.n}:${esc(uni)}" aria-label="Adicionar bloco em ${esc(d.nome)}">+</button>`
+    : '';
+
+  return `<div class="hb-linha ${problemas.some(p => p.nivel === 'erro') ? 'tem-erro' : ''}">
+    <div class="hb-dia">${d.curto}</div>
+    <div class="hb-track">${eixoHb()}${barras || `<span class="hb-vazio">sem jornada</span>`}</div>
+    <div class="hb-info">
+      ${total ? `<b>${duracao(total)}</b>` : vazio('sem jornada')}
+      ${addBtn}
+    </div>
+    ${alertas ? `<div class="hb-alertas">${alertas}</div>` : ''}
+  </div>`;
+}
+
+// O Postgres devolve `time` como '07:00:00' - a tela mostra '07:00'.
+const hhmm = (t) => String(t ?? '').slice(0, 5);
+
+// Eixo de horas ao fundo da barra .hb- (só desenhado uma vez por linha).
+function eixoHb() {
+  return marcasDaBarra().map(m =>
+    `<span class="hb-marca" style="left:${m.pos}%"><i></i><em>${m.hora.slice(0, 2)}</em></span>`).join('');
 }
