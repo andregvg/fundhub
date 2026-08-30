@@ -138,7 +138,11 @@ export function validarDia(blocosDoDia) {
   const unidos = unir(ivs);
 
   // ── Carga do dia (aviso) ──
-  const total = ivs.reduce((s, iv) => s + (iv.fim - iv.ini), 0);
+  // Medida sobre os trechos UNIDOS, não sobre a soma dos blocos: uma hora
+  // em que a pessoa aparece em dois blocos ao mesmo tempo é uma hora, não
+  // duas. A grade desenha dado já gravado, então sobreposição chega aqui
+  // sem ninguém ter barrado nada - e somar bruto inflaria o aviso.
+  const total = unidos.reduce((s, iv) => s + (iv.fim - iv.ini), 0);
   if (total > MAX_DIA_MIN) {
     const excesso = total - MAX_DIA_MIN;
     const trecho = ultimosMinutos(unidos, excesso);

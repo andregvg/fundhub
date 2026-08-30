@@ -79,6 +79,20 @@ test('exatamente 8h no dia nao acusa', () => {
   assert.equal(acha(validarDia([b('07:00', '11:00'), b('12:00', '16:00')]), 'carga-dia'), undefined);
 });
 
+test('com sobreposicao, a carga conta o tempo TRABALHADO, nao a soma dos blocos', () => {
+  // 07:00-15:00 (8h) + 14:00-18:00 (4h) somam 12h de bloco, mas a pessoa
+  // trabalhou 11h: das 14:00 as 15:00 ela esta em dois blocos ao mesmo tempo,
+  // e isso e uma hora, nao duas. Excesso real: 3h, e nao 4h.
+  // A grade desenha dado ja gravado, entao a sobreposicao chega aqui sem
+  // ninguem ter barrado nada.
+  const p = acha(validarDia([b('07:00', '15:00'), b('14:00', '18:00')]), 'carga-dia');
+  assert.match(p.texto, /^11h no dia/, `carga inflada: ${p.texto}`);
+  assert.match(p.texto, /- 3h /, `excesso inflado: ${p.texto}`);
+  // 3h contadas de tras para frente a partir das 18:00.
+  assert.equal(p.ini, paraMin('15:00'));
+  assert.equal(p.fim, paraMin('18:00'));
+});
+
 test('todo problema traz intervalo utilizavel', () => {
   const probs = validarDia([b('07:00', '15:00'), b('14:00', '18:00')]);
   assert.ok(probs.length);
