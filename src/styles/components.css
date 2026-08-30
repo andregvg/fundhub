@@ -930,3 +930,28 @@ hr.sep { margin: 20px 0; border: 0; border-top: 1px solid var(--border); }
 .topbar-acao.girando .ico { animation: girar .8s linear infinite; }
 @keyframes girar { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .topbar-acao.girando .ico { animation: none; } }
+
+/* ── Busca com seleção (shared/ui/busca-selecao.js) ────────── */
+.bs { position: relative; flex: 1 1 260px; }
+.bs-campo { width: 100%; }
+.bs-limpar {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px; border: 0; border-radius: 6px;
+  background: none; color: var(--muted); cursor: pointer;
+}
+.bs-limpar:hover { background: var(--surface-3); color: var(--text); }
+.bs-lista {
+  position: absolute; z-index: 60; top: calc(100% + 4px); left: 0; right: 0;
+  max-height: 300px; overflow-y: auto; margin: 0; padding: 4px; list-style: none;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 11px; box-shadow: var(--shadow);
+}
+.bs-item {
+  display: flex; align-items: baseline; gap: 8px;
+  padding: 8px 10px; border-radius: 8px; cursor: pointer;
+}
+.bs-item.on { background: var(--surface-3); }
+.bs-rot { font-size: 14px; }
+.bs-det { margin-left: auto; color: var(--muted); font-size: 12px; }
+.bs-nada { padding: 14px 10px; color: var(--muted); font-size: 13px; text-align: center; }
+@media (pointer: coarse) { .bs-item { min-height: var(--toque); align-items: center; } }
