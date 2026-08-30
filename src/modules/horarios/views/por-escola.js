@@ -10,10 +10,10 @@
 // ============================================================
 import {
   DIAS, COBERTURA_INICIO, COBERTURA_FIM,
-  getBlocos, validarDia, totalDoDia, lacunasCobertura,
+  getBlocos, validarDia, totalDoDia,
   paraHora, duracao,
 } from '../horarios.model.js';
-import { posicaoNaBarra, marcasDaBarra } from '../grade.model.js';
+import { posicaoNaBarra, marcasDaBarra, lacunasCobertura } from '../grade.model.js';
 import { getServidoresDaUnidade, vinculosAbertos } from '../../servidores/servidores.model.js';
 import { rotulaCargo } from '../../servidores/vinculos.model.js';
 import { getUnidades } from '../../escolas/escolas.model.js';

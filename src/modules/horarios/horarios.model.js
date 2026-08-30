@@ -43,9 +43,6 @@ export const duracao = (min) => {
   return m ? `${h}h${String(m).padStart(2, '0')}` : `${h}h`;
 };
 
-const INI = paraMin(COBERTURA_INICIO);   // 420
-const FIM = paraMin(COBERTURA_FIM);      // 1100
-
 // ── Acesso a dados ───────────────────────────────────────────
 const SEL = '*, servidor:servidor(id, nome, apelido)';
 
@@ -94,7 +91,8 @@ export async function excluirBloco(id) {
 // ── Regras ───────────────────────────────────────────────────
 // Une intervalos que se sobrepõem OU que se encostam (fim == início):
 // dois blocos colados são, na prática, um trecho contínuo de trabalho.
-function unir(intervalos) {
+// Exportada: grade.model.js reaproveita para lacunasCobertura.
+export function unir(intervalos) {
   const ord = [...intervalos].sort((a, b) => a.ini - b.ini);
   const out = [];
   for (const iv of ord) {
@@ -186,61 +184,63 @@ function ultimosMinutos(unidos, minutos) {
 export const totalDoDia = (blocosDoDia) =>
   blocosDoDia.reduce((s, b) => s + (paraMin(b.fim) - paraMin(b.inicio)), 0);
 
-// Lacunas na cobertura da UNIDADE num dia: os trechos de 7h00–18h20
-// em que nenhum servidor está presente. Devolve [{ ini, fim }] em minutos.
-export function lacunasCobertura(blocosDoDiaDaUnidade) {
-  const cobertos = unir(blocosDoDiaDaUnidade.map(paraIntervalo))
-    .filter(iv => iv.fim > INI && iv.ini < FIM);   // só o que toca a janela
-
-  const lacunas = [];
-  let cursor = INI;
-  for (const iv of cobertos) {
-    if (iv.ini > cursor) lacunas.push({ ini: cursor, fim: Math.min(iv.ini, FIM) });
-    cursor = Math.max(cursor, iv.fim);
-    if (cursor >= FIM) break;
+// ── Exibição e cobertura por escola ──────────────────────────
+// Sem linha = padrão (exibe se for cargo de gestão, conta na
+// cobertura, ordem alfabética). Ver ordenarParaGrade.
+export async function getExibicao(unidadeId) {
+  if (!hasSupabase() || !unidadeId) return [];
+  const { data, error } = await sb().from('horario_exibicao')
+    .select('servidor_id, ordem, conta_cobertura')
+    .eq('unidade_id', unidadeId).order('ordem');
+  if (error) {
+    if (error.code === '42P01') return [];      // migration 024 ainda não rodou
+    throw error;
   }
-  if (cursor < FIM) lacunas.push({ ini: cursor, fim: FIM });
-  return lacunas;
+  return data || [];
 }
 
-// ── Grade: ordenação de servidores ──────────────────────────
-export const SERIES = 6;   // quantidade de cores da paleta (tokens --serie-1..6)
+// Grava a ordem inteira de uma vez. As duas armadilhas do upsert em
+// lote do PostgREST valem aqui: todas as linhas precisam ter as
+// MESMAS chaves (nada de `undefined`, que some do JSON e quebra o
+// lote), e onConflict só infere índice único simples.
+export async function salvarOrdem(unidadeId, servidorIds) {
+  if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
+  const atual = await getExibicao(unidadeId);
+  const cobertura = new Map(atual.map(e => [e.servidor_id, e.conta_cobertura]));
+  const quem = await emailAtual();
+  const rows = servidorIds.map((servidor_id, ordem) => ({
+    unidade_id: unidadeId,
+    servidor_id,
+    ordem,
+    conta_cobertura: cobertura.has(servidor_id) ? cobertura.get(servidor_id) : true,
+    atualizado_por: quem,
+  }));
+  if (!rows.length) return;
+  const { error } = await sb().from('horario_exibicao')
+    .upsert(rows, { onConflict: 'unidade_id,servidor_id' });
+  if (error) throw error;
+}
 
-// Quem aparece na grade, em que ordem, com que cor e contando ou não
-// na cobertura.
-//
-// Sem linha em horario_exibicao vale o padrão: aparece se o cargo for
-// de gestão, conta na cobertura, ordenado por cargo e depois por nome.
-// Quem tem linha aparece de qualquer jeito - foi decisão de alguém.
-export function ordenarParaGrade(servidores, { exibicao = [], cargosGestao = new Set(), cargoDe }) {
-  const porId = new Map((exibicao || []).map(e => [e.servidor_id, e]));
+export async function definirCobertura(unidadeId, servidorId, conta) {
+  if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
+  const atual = await getExibicao(unidadeId);
+  const linha = atual.find(e => e.servidor_id === servidorId);
+  const row = {
+    unidade_id: unidadeId,
+    servidor_id: servidorId,
+    ordem: linha ? linha.ordem : atual.length,
+    conta_cobertura: Boolean(conta),
+    atualizado_por: await emailAtual(),
+  };
+  const { error } = await sb().from('horario_exibicao')
+    .upsert(row, { onConflict: 'unidade_id,servidor_id' });
+  if (error) throw error;
+}
 
-  const itens = (servidores || []).map(servidor => {
-    const cfg = porId.get(servidor.id);
-    const cargo = cargoDe(servidor) || '';
-    return {
-      servidor,
-      cargo,
-      exibir: Boolean(cfg) || cargosGestao.has(cargo),
-      contaCobertura: cfg ? cfg.conta_cobertura : true,
-      ordem: cfg ? cfg.ordem : null,
-    };
-  });
-
-  itens.sort((a, b) => {
-    if (a.ordem !== null && b.ordem !== null) {
-      return (a.ordem - b.ordem)
-        || a.cargo.localeCompare(b.cargo, 'pt')
-        || a.servidor.nome.localeCompare(b.servidor.nome, 'pt');
-    }
-    if (a.ordem !== null) return -1;
-    if (b.ordem !== null) return 1;
-    return a.cargo.localeCompare(b.cargo, 'pt')
-      || a.servidor.nome.localeCompare(b.servidor.nome, 'pt');
-  });
-
-  // A série conta só sobre quem é EXIBIDO - quem fica de fora da grade
-  // não deve consumir uma cor que a linha seguinte visível precisaria.
-  let serie = 0;
-  return itens.map(it => ({ ...it, serie: it.exibir ? (serie++) % SERIES : null }));
+// "Voltar à ordem padrão": apaga as linhas da unidade e a grade
+// recai no alfabético por cargo e nome.
+export async function limparExibicao(unidadeId) {
+  if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
+  const { error } = await sb().from('horario_exibicao').delete().eq('unidade_id', unidadeId);
+  if (error) throw error;
 }

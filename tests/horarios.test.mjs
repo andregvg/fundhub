@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { validarDia, paraMin, ordenarParaGrade, SERIES } from '../src/modules/horarios/horarios.model.js';
-import { empilhar, contarFaixas } from '../src/modules/horarios/grade.model.js';
+import { validarDia, paraMin } from '../src/modules/horarios/horarios.model.js';
+import { empilhar, contarFaixas, ordenarParaGrade, SERIES } from '../src/modules/horarios/grade.model.js';
 
 const b = (inicio, fim) => ({ inicio, fim });
 const acha = (probs, codigo) => probs.find(p => p.codigo === codigo);
