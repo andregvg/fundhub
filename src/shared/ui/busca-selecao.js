@@ -34,7 +34,9 @@ export function criarBuscaSelecao(el, {
   vazioTexto = 'Nada encontrado', onChange = () => {},
 } = {}) {
   let todas = [...opcoes];
-  let escolhido = valor || '';
+  // Mesma guarda de definirValor: um valor inicial que não está em
+  // `opcoes` não vira escolha (a mesma porta de entrada, o construtor).
+  let escolhido = todas.some(o => o.id === valor) ? (valor || '') : '';
   let destaque = -1;
   let visiveis = [];
 
@@ -114,13 +116,23 @@ export function criarBuscaSelecao(el, {
     escolher(li.dataset.id);
   });
   limpar.addEventListener('click', () => escolher(''));
-  document.addEventListener('click', (e) => { if (!el.contains(e.target)) fechar(); });
+  // Nomeada (não inline) para poder ser removida em destruir() - um
+  // listener de document por instância que nunca sai retém `el` (e a
+  // subárvore inteira) para sempre numa SPA que repinta a cada rota.
+  function aoClicarFora(e) { if (!el.contains(e.target)) fechar(); }
+  document.addEventListener('click', aoClicarFora);
 
   pintarCampo();
 
   return {
     definirOpcoes(lst) { todas = [...(lst || [])]; if (!todas.some(o => o.id === escolhido)) escolhido = ''; pintarCampo(); },
-    definirValor(id) { escolhido = id || ''; pintarCampo(); },
+    // Mesma simetria de definirOpcoes: um id que não está na lista
+    // atual não vira escolha - senão o campo mostra "nada selecionado"
+    // enquanto valorAtual() ainda devolve um id fantasma.
+    definirValor(id) { escolhido = todas.some(o => o.id === id) ? (id || '') : ''; pintarCampo(); },
     valorAtual() { return escolhido; },
+    // Chamar ao descartar a instância (troca de aba/rota) - sem isso o
+    // listener de document acima sobrevive ao componente.
+    destruir() { document.removeEventListener('click', aoClicarFora); },
   };
 }

@@ -939,6 +939,7 @@ hr.sep { margin: 20px 0; border: 0; border-top: 1px solid var(--border); }
   width: 22px; height: 22px; border: 0; border-radius: 6px;
   background: none; color: var(--muted); cursor: pointer;
 }
+.bs-limpar[hidden] { display: none; }
 .bs-limpar:hover { background: var(--surface-3); color: var(--text); }
 .bs-lista {
   position: absolute; z-index: 60; top: calc(100% + 4px); left: 0; right: 0;
