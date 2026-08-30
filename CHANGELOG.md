@@ -9,14 +9,6 @@ versionamento **MINOR** = módulo novo ou mudança de modelo de dados, **PATCH**
 
 ---
 
-## [0.13.0] - 2026-08-30
-
-### Alterado
-- Em Horários, o lápis de cada pessoa na grade agora abre a semana inteira
-  para editar de uma vez, em vez de um horário por vez. Os campos de início e
-  fim começam vazios - preencher é sempre uma escolha, nunca uma resposta já
-  marcada.
-
 ## [0.12.0] - 2026-08-28
 
 Rodada de **sistema visual**: um vocabulário só de ícone, aviso e campo vazio

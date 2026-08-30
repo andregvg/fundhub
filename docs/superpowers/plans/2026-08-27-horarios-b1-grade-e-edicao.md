@@ -1926,28 +1926,47 @@ wc -l src/modules/horarios/*.js src/modules/horarios/views/*.js
 
 - [ ] **Step 4: Subir a versão e escrever o CHANGELOG**
 
-`CONFIG.versao` → `0.13.0` (MINOR: mudança de modelo).
+`CONFIG.versao` → `0.13.0` (MINOR: mudança de modelo - a migration 024 é o que
+justifica o MINOR; nenhuma tarefa do B-1 sozinha teria mudado a versão).
+
+**Nota de handoff (Ruling 22, achado na revisão da Task 8):** a Task 8 tinha
+subido a versão e escrito CHANGELOG por conta própria, fora do escopo dela -
+já foi revertido (`CONFIG.versao` de volta a `0.12.0`, a seção saiu do
+`CHANGELOG.md`) e a redação boa dela está incorporada no bloco abaixo (era o
+6º marcador de `Alterado`). Esta é a única vez que a versão sobe nesta rodada.
+
+Formato do arquivo real (`## [X.Y.Z] - data`, `### Adicionado`/`### Alterado`
+- confira `CHANGELOG.md` antes de escrever, o texto abaixo já segue o padrão:
 
 ```markdown
-## 0.13.0
+## [0.13.0] - <data de hoje>
 
-- A tela de horários por escola foi refeita. Agora a semana inteira aparece numa
-  grade só, com os horários de todos os servidores lado a lado. Quando dois
-  horários acontecem ao mesmo tempo, eles ficam em linhas separadas em vez de um
-  cobrir o outro.
-- Clicando num horário, o sistema destaca todos os blocos daquela pessoa no dia
-  e mostra o nome dela.
-- Quando um horário passa dos limites, o pedaço problemático fica marcado sobre
-  o próprio horário, em vez de um aviso solto embaixo.
-- Passar de 8 horas num dia deixou de impedir o lançamento: agora fica marcado
-  como aviso. Horários sobrepostos da mesma pessoa continuam bloqueados.
+Rodada de **grade de horários**: a jornada da equipe gestora passa a ser
+vista e editada numa grade só, por escola, em vez de painéis separados.
+
+### Adicionado
+- Clicando num horário, o sistema destaca todos os blocos daquela pessoa no
+  dia e mostra o nome dela.
 - É possível escolher quais servidores aparecem na grade da escola e quais
-  entram no cálculo da cobertura, e arrastar para mudar a ordem. A escolha vale
-  para todo mundo que abrir aquela escola.
-- Ao cadastrar horários, a semana inteira é editada de uma vez, e os campos de
-  hora não vêm mais preenchidos.
-- Escolher escola ou servidor passou a ser por busca: digite parte do nome.
+  entram no cálculo da cobertura, e arrastar para mudar a ordem. A escolha
+  vale para todo mundo que abrir aquela escola.
 - Uma tela de administração define quais cargos compõem a equipe gestora.
+
+### Alterado
+- A tela de horários por escola foi refeita. Agora a semana inteira aparece
+  numa grade só, com os horários de todos os servidores lado a lado. Quando
+  dois horários acontecem ao mesmo tempo, eles ficam em linhas separadas em
+  vez de um cobrir o outro.
+- Quando um horário passa dos limites, o pedaço problemático fica marcado
+  sobre o próprio horário, em vez de um aviso solto embaixo.
+- Passar de 8 horas num dia deixou de impedir o lançamento: agora fica
+  marcado como aviso. Horários sobrepostos da mesma pessoa continuam
+  bloqueados.
+- Em Horários, o lápis de cada pessoa na grade agora abre a semana inteira
+  para editar de uma vez, em vez de um horário por vez. Os campos de início
+  e fim começam vazios - preencher é sempre uma escolha, nunca uma resposta
+  já marcada.
+- Escolher escola ou servidor passou a ser por busca: digite parte do nome.
 ```
 
 - [ ] **Step 5: Teste final em tela estreita e console**
