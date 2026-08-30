@@ -61,6 +61,39 @@ function invalidar() {
   limparCacheServidores();
 }
 
+let _gestao = null;
+export function limparCacheCargosGestao() { _gestao = null; }
+registrarCache(limparCacheCargosGestao);
+
+// Quais cargos compõem a equipe gestora. Vive aqui porque este model
+// é o dono do domínio "cargo"; quem consome é o módulo Horários.
+//
+// Degrada sem a migration 024: sem a tabela, devolve conjunto vazio e
+// a grade cai no comportamento "ninguém é gestão por omissão", que a
+// tela explica ao usuário em vez de quebrar.
+export async function getCargosGestao() {
+  if (_gestao) return _gestao;
+  if (!hasSupabase()) { _gestao = new Set(); return _gestao; }
+  const { data, error } = await sb().from('cargo_gestao').select('cargo');
+  if (error) {
+    if (error.code === '42P01') { _gestao = new Set(); return _gestao; }
+    throw error;
+  }
+  _gestao = new Set((data || []).map(r => r.cargo));
+  return _gestao;
+}
+
+export async function definirCargoGestao(cargo, eGestao) {
+  if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
+  const c = normalizaCargo(cargo);
+  if (!c) throw new Error('Informe o cargo.');
+  const { error } = eGestao
+    ? await sb().from('cargo_gestao').upsert({ cargo: c }, { onConflict: 'cargo' })
+    : await sb().from('cargo_gestao').delete().eq('cargo', c);
+  if (error) throw error;
+  _gestao = null;                          // escreveu, invalidou
+}
+
 export async function criarVinculo({ servidor_id, unidade_id, papel, ingresso = null, fim = null }) {
   if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
   const cargo = await cargoCanonico(papel);

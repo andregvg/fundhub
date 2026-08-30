@@ -40,6 +40,8 @@ export async function render(app, { perfil, params } = {}) {
               aria-selected="${aba === 'escola'}" data-aba="escola">${ico('escola')} Por escola</button>
       <button class="tab ${aba === 'servidor' ? 'on' : ''}" role="tab"
               aria-selected="${aba === 'servidor'}" data-aba="servidor">${ico('servidor')} Por servidor</button>
+      ${podeEditar ? `<button type="button" class="mini-btn" id="h-cargos" style="margin-left:auto"
+          title="Quais cargos são equipe gestora">${ico('equipe')} Equipe gestora</button>` : ''}
     </div>
     <div id="h-tab-body"></div>
     ${drawerHtml()}`;
@@ -57,6 +59,11 @@ export async function render(app, { perfil, params } = {}) {
     aba = b.dataset.aba;
     pintarAbas();
     renderAba();
+  });
+
+  document.getElementById('h-cargos')?.addEventListener('click', async () => {
+    const { abrirCargos } = await import('./views/cargos.js');
+    abrirCargos({ recarregar: renderAba });
   });
 
   pintarAbas();
