@@ -12,6 +12,7 @@
 import { criarVinculo, atualizarVinculo, excluirVinculo, rotulaCargo } from '../vinculos.model.js';
 import { esc, falha } from '../../../shared/dom.js';
 import { drawerHead, abrirDrawer } from '../../../shared/ui/drawer.js';
+import { criarBuscaSelecao } from '../../../shared/ui/busca-selecao.js';
 import { confirmar } from '../../../shared/ui/confirmar.js';
 import { toast } from '../../../shared/ui/toast.js';
 import { reportarErro } from '../../../shared/ui/feedback.js';
@@ -20,15 +21,24 @@ import { ico } from '../../../shared/ui/icones.js';
 const OUTRO = '::outro::';   // sentinela: os dois-pontos garantem que
                              // nenhum cargo digitado colide com ele
 
+// Uma instância por gaveta aberta - "Novo vínculo"/"Editar" repetidos
+// na mesma ficha do servidor criam uma instância a cada chamada; sem
+// destruir a de antes, cada uma deixa um listener de document vivo
+// (mesma armadilha de por-escola.js).
+let buscaLocal = null;
+
 // `ctx`: { locais, cargos, recarregar } - ver servidores.view.js § ctxAtual().
 export function formVinculo(s, vinculo, ctx, { voltar = null } = {}) {
   const novo = !vinculo;
   const cargoAtual = rotulaCargo(vinculo?.papel || '');
   const conhecido = !cargoAtual || ctx.cargos.includes(cargoAtual);
 
-  const opcoesLocal = ctx.locais.map(l =>
-    `<option value="${esc(l.id)}" ${l.id === vinculo?.unidade_id ? 'selected' : ''}>${
-      l.tipo === 'sede' ? '(sede) ' : ''}${esc(l.nome)}</option>`).join('');
+  // A instância anterior (se veio de outro "Novo vínculo"/"Editar"
+  // nesta mesma ficha) sai antes da gaveta nova reconstruir o DOM -
+  // senão o listener de document dela sobrevive apontando para um nó
+  // já solto.
+  buscaLocal?.destruir();
+  buscaLocal = null;
 
   // O catálogo é derivado dos vínculos existentes: nasce vazio numa
   // base sem ninguém e ganha o cargo assim que alguém digita um.
@@ -43,9 +53,7 @@ export function formVinculo(s, vinculo, ctx, { voltar = null } = {}) {
           <legend>Designação</legend>
           <div class="campos auto">
             <label class="col-full">Local
-              <select id="v-local" required>
-                <option value="">Selecione…</option>${opcoesLocal}
-              </select>
+              <div id="v-local-box"></div>
             </label>
             <label class="col-full">Cargo / função
               <select id="v-cargo" required>
@@ -79,6 +87,18 @@ export function formVinculo(s, vinculo, ctx, { voltar = null } = {}) {
       <p class="form-hint" style="margin-top:10px">Para preservar o histórico, prefira preencher o Término em vez de excluir.</p>`}
     </div>`, { voltar });
 
+  // Busca por nome no lugar do <select> com as 144 escolas -
+  // definirOpcoes antes de definirValor (aqui, dentro do próprio
+  // construtor): `ctx.locais` já veio pronto de quem chamou.
+  buscaLocal = criarBuscaSelecao(document.getElementById('v-local-box'), {
+    opcoes: [...ctx.locais]
+      .sort((a, b) => a.nome.localeCompare(b.nome, 'pt'))
+      .map(l => ({ id: l.id, rotulo: l.nome, detalhe: l.tipo === 'sede' ? 'SME' : '' })),
+    valor: vinculo?.unidade_id || '',
+    placeholder: 'Buscar escola…',
+    vazioTexto: 'Nenhuma escola com esse nome',
+  });
+
   const sel = document.getElementById('v-cargo');
   sel.addEventListener('change', () => {
     const outro = sel.value === OUTRO;
@@ -86,14 +106,14 @@ export function formVinculo(s, vinculo, ctx, { voltar = null } = {}) {
     if (outro) document.getElementById('v-novo').focus();
   });
 
-  document.getElementById('vc-form').addEventListener('submit', (e) => salvar(e, s, vinculo, ctx, voltar));
+  document.getElementById('vc-form').addEventListener('submit', (e) => salvar(e, s, vinculo, ctx, voltar, buscaLocal));
   document.getElementById('v-del')?.addEventListener('click', () => removerVinculo(s, vinculo.id, ctx));
 }
 
-async function salvar(e, s, vinculo, ctx, voltar) {
+async function salvar(e, s, vinculo, ctx, voltar, buscaLocal) {
   e.preventDefault();
   const msg = document.getElementById('v-msg'); msg.className = 'auth-msg';
-  const unidade_id = document.getElementById('v-local').value;
+  const unidade_id = buscaLocal.valorAtual();
   const escolhido = document.getElementById('v-cargo').value;
   const papel = escolhido === OUTRO ? document.getElementById('v-novo').value : escolhido;
   const ingresso = document.getElementById('v-ini').value || null;

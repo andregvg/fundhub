@@ -23,6 +23,7 @@ import { esc, val, checked, falha, vazio } from '../../../shared/dom.js';
 import { fmtDataHora } from '../../../shared/format.js';
 import { loading, emptyState, erroBox, reportarErro } from '../../../shared/ui/feedback.js';
 import { drawerHtml, drawerHead, montarDrawer, abrirDrawer, fecharDrawer } from '../../../shared/ui/drawer.js';
+import { criarBuscaSelecao } from '../../../shared/ui/busca-selecao.js';
 import { confirmar } from '../../../shared/ui/confirmar.js';
 import { toast } from '../../../shared/ui/toast.js';
 import { ico } from '../../../shared/ui/icones.js';
@@ -30,6 +31,10 @@ import { isInstitucional } from '../../../core/auth.js';
 
 let lista = [], papeis = [], presets = {}, servidores = [];
 let rotulos = {};
+// Uma instância por gaveta aberta - "Editar" de duas pessoas seguidas
+// cria duas se ninguém destruir a de antes, e cada uma deixa um
+// listener de document vivo (mesma armadilha de por-escola.js).
+let buscaServidor = null;
 
 // Módulos que aceitam permissão configurável (os serviços de fundo e
 // as páginas universais ficam de fora - não há o que decidir neles).
@@ -109,11 +114,11 @@ function abrirForm(p) {
     .map(x => `<option value="${esc(x.chave)}" ${papelAtual === x.chave ? 'selected' : ''}>${esc(x.rotulo)}</option>`)
     .join('');
 
-  const optsServidor = [`<option value="">- sem vínculo com cadastro funcional -</option>`]
-    .concat([...servidores]
-      .sort((a, b) => a.nome.localeCompare(b.nome, 'pt'))
-      .map(s => `<option value="${esc(s.id)}" ${p?.servidor_id === s.id ? 'selected' : ''}>${esc(s.nome)}</option>`))
-    .join('');
+  // A instância anterior (se veio de outro "Editar" nesta mesma
+  // sessão) sai antes da gaveta nova reconstruir o DOM - senão o
+  // listener de document dela sobrevive apontando para um nó já solto.
+  buscaServidor?.destruir();
+  buscaServidor = null;
 
   abrirDrawer(`
     ${drawerHead(novo ? 'Adicionar acesso' : 'Editar acesso', esc(p?.email || ''))}
@@ -128,7 +133,7 @@ function abrirForm(p) {
                      placeholder="nome@educacao.pmrp.sp.gov.br" /></label>
             <label>Nome de exibição <input id="f-nome" value="${esc(p?.nome || '')}" /></label>
             <label>Cadastro funcional (servidor)
-              <select id="f-servidor">${optsServidor}</select>
+              <div id="f-servidor-box"></div>
               <small class="form-hint">Ligar ao servidor permite que a pessoa edite os
                 próprios contatos em “Meus dados”.</small></label>
           </div>
@@ -174,6 +179,19 @@ function abrirForm(p) {
         </div>
       </form>
     </div>`);
+
+  // Busca por nome no lugar do <select> com o cadastro inteiro da
+  // rede - definirOpcoes ANTES de definirValor (aqui, dentro do
+  // próprio construtor): a lista já está pronta, `servidores` veio do
+  // Promise.all em render().
+  buscaServidor = criarBuscaSelecao(document.getElementById('f-servidor-box'), {
+    opcoes: [...servidores]
+      .sort((a, b) => a.nome.localeCompare(b.nome, 'pt'))
+      .map(s => ({ id: s.id, rotulo: s.nome, detalhe: s.cargo || '', busca: s.apelido || '' })),
+    valor: p?.servidor_id || '',
+    placeholder: 'Buscar servidor pelo nome…',
+    vazioTexto: 'Nenhum servidor com esse nome',
+  });
 
   // ── Segmentos: atalhos + básicos, no mesmo desenho do filtro ──
   let segs = [...segsAtuais];
@@ -231,10 +249,10 @@ function abrirForm(p) {
   pintarPerms();
 
   document.getElementById('us-form')
-    .addEventListener('submit', (e) => salvar(e, p, () => segs, () => excecoes));
+    .addEventListener('submit', (e) => salvar(e, p, () => segs, () => excecoes, buscaServidor));
 }
 
-async function salvar(e, p, lerSegs, lerExcecoes) {
+async function salvar(e, p, lerSegs, lerExcecoes, buscaServidor) {
   e.preventDefault();
   const msg = document.getElementById('f-msg'); msg.className = 'auth-msg';
   const email = val('f-email').toLowerCase();
@@ -248,7 +266,7 @@ async function salvar(e, p, lerSegs, lerExcecoes) {
     ativo: checked('f-ativo'),
     segmentos: lerSegs(),
     permissoes: lerExcecoes(),
-    servidor_id: document.getElementById('f-servidor').value || null,
+    servidor_id: buscaServidor.valorAtual() || null,
   };
 
   const btn = document.getElementById('f-save'); btn.disabled = true; btn.textContent = 'Salvando…';

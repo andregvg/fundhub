@@ -11,10 +11,11 @@ import { getServidores, vinculosAbertos } from '../../servidores/servidores.mode
 import { rotulaCargo } from '../../servidores/vinculos.model.js';
 import { esc, vazio } from '../../../shared/dom.js';
 import { loading, emptyState, erroBox } from '../../../shared/ui/feedback.js';
+import { criarBuscaSelecao } from '../../../shared/ui/busca-selecao.js';
 import { abrirJornada } from './jornada.js';
 import { ico } from '../../../shared/ui/icones.js';
 
-let servidores = [], blocos = [];
+let servidores = [], blocos = [], busca = null;
 let servidorId = '';
 let ultimoParam;   // mesma lógica de por-escola.js: distingue navegação
                     // nova (deep link mudou) de troca de aba (mesmo ctx).
@@ -27,11 +28,16 @@ export async function renderPorServidor(box, ctx) {
     ultimoParam = ctx.servidorId;
   }
 
+  // `destruir()` só remove o listener de `document` da instância -
+  // sem zerar aqui, `pintarSeletor()` acharia `busca` "verdadeiro" e
+  // pintaria a árvore ANTIGA (já desanexada) em vez de montar uma
+  // instância nova no `#hs-servidor-box` recém-criado abaixo (mesma
+  // armadilha de por-escola.js).
+  busca?.destruir();
+  busca = null;
   box.innerHTML = `
     <div class="toolbar">
-      <label class="search">${ico('servidor')}
-        <select id="hs-servidor"><option value="">Selecione a pessoa…</option></select>
-      </label>
+      <div id="hs-servidor-box"></div>
     </div>
     <div id="hs-corpo"></div>`;
 
@@ -40,23 +46,25 @@ export async function renderPorServidor(box, ctx) {
 
   pintarSeletor();
 
-  document.getElementById('hs-servidor').addEventListener('change', e => {
-    servidorId = e.target.value; carregar();
-  });
-
   if (servidorId) carregar(); else limparCorpo();
 }
 
 // Só entra no seletor quem tem vínculo aberto - vínculo encerrado não
-// tem onde lançar jornada nova.
+// tem onde lançar jornada nova. O rótulo é sempre o nome completo -
+// é o que consta do ofício; o apelido vai para `busca`, para continuar
+// encontrando quem só é conhecido por ele.
 function pintarSeletor() {
-  const sel = document.getElementById('hs-servidor');
-  const comVinculo = servidores.filter(s => vinculosAbertos(s).length)
-    .sort((a, b) => (a.apelido || a.nome).localeCompare(b.apelido || b.nome, 'pt'));
-  sel.innerHTML = `<option value="">Selecione a pessoa…</option>` +
-    comVinculo.map(s => `<option value="${esc(s.id)}">${esc(s.apelido || s.nome)}</option>`).join('');
-  if (servidorId && !sel.querySelector(`option[value="${CSS.escape(servidorId)}"]`)) servidorId = '';
-  sel.value = servidorId;
+  const comVinculo = servidores.filter(s => vinculosAbertos(s).length);
+  if (servidorId && !comVinculo.some(s => s.id === servidorId)) servidorId = '';
+  busca = criarBuscaSelecao(document.getElementById('hs-servidor-box'), {
+    opcoes: [...comVinculo]
+      .sort((a, b) => a.nome.localeCompare(b.nome, 'pt'))
+      .map(s => ({ id: s.id, rotulo: s.nome, busca: s.apelido || '' })),
+    valor: servidorId,
+    placeholder: 'Buscar servidor pelo nome…',
+    vazioTexto: 'Nenhum servidor com esse nome',
+    onChange: (id) => { servidorId = id; carregar(); },
+  });
 }
 
 function limparCorpo() {

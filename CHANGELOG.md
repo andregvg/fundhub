@@ -9,6 +9,37 @@ versionamento **MINOR** = módulo novo ou mudança de modelo de dados, **PATCH**
 
 ---
 
+## [0.13.0] - 2026-08-30
+
+Rodada de **grade de horários**: a jornada da equipe gestora passa a ser
+vista e editada numa grade só, por escola, em vez de painéis separados.
+
+### Adicionado
+- Clicando num horário, o sistema destaca todos os blocos daquela pessoa no
+  dia e mostra o nome dela.
+- É possível escolher quais servidores aparecem na grade da escola e quais
+  entram no cálculo da cobertura, e arrastar para mudar a ordem. A escolha
+  vale para todo mundo que abrir aquela escola.
+- Uma tela de administração define quais cargos compõem a equipe gestora.
+
+### Alterado
+- A tela de horários por escola foi refeita. Agora a semana inteira aparece
+  numa grade só, com os horários de todos os servidores lado a lado. Quando
+  dois horários acontecem ao mesmo tempo, eles ficam em linhas separadas em
+  vez de um cobrir o outro.
+- Quando um horário passa dos limites, o pedaço problemático fica marcado
+  sobre o próprio horário, em vez de um aviso solto embaixo.
+- Passar de 8 horas num dia deixou de impedir o lançamento: agora fica
+  marcado como aviso. Horários sobrepostos da mesma pessoa continuam
+  bloqueados.
+- Em Horários, o lápis de cada pessoa na grade agora abre a semana inteira
+  para editar de uma vez, em vez de um horário por vez. Os campos de início
+  e fim começam vazios - preencher é sempre uma escolha, nunca uma resposta
+  já marcada.
+- Escolher escola ou servidor passou a ser por busca: digite parte do nome.
+
+---
+
 ## [0.12.0] - 2026-08-28
 
 Rodada de **sistema visual**: um vocabulário só de ícone, aviso e campo vazio
