@@ -1493,11 +1493,36 @@ git commit -m "feat(horarios): grade unica por escola com faixas, series e diver
 **Files:**
 - Create: `src/modules/horarios/views/jornada.js`
 - Delete: `src/modules/horarios/views/bloco.js`
-- Modify: `src/modules/horarios/views/por-servidor.js` (usa a gaveta nova)
+- Modify: `src/modules/horarios/views/por-servidor.js` (usa a gaveta nova; herda `linhaDia`/`eixoHb`/`hhmm`)
+- Modify: `src/modules/horarios/views/por-escola.js` (remove o editor provisório)
 
 **Interfaces:**
 - Consumes: `DIAS`, `getBlocos`, `criarBloco`, `atualizarBloco`, `excluirBloco`, `validarDia`, `totalDoDia`, `duracao`; `drawer.js`; `confirmar`; `toast`; `ico`.
 - Produces: `abrirJornada({ servidor, unidadeId, blocos, recarregar }) => void`.
+
+**Nota de handoff (achado da revisão da Task 7, Ruling 17):** como esta tarefa
+ainda não existia quando a Task 7 rodou, o lápis do chip em `por-escola.js`
+hoje abre um editor **provisório** (`abrirEdicaoServidor`, marcado 3x no
+código como temporário) que reaproveita `formBloco` de `bloco.js` e a função
+`linhaDia`/`eixoHb`/`hhmm` (privadas de `por-escola.js`, hoje também
+importadas por `por-servidor.js` para o próprio desenho da semana). **A
+lista de `Files` acima não é a original do plano** - ela ganhou
+`por-escola.js`, que faltava. Sem esse arquivo na lista, `git rm bloco.js`
+(Step 2) derruba o `import { formBloco } from './bloco.js'` que
+`por-escola.js` ainda tem, e o módulo Horários inteiro para de carregar.
+
+Ao terminar o Step 2, três coisas em `por-escola.js`:
+1. Apagar `abrirEdicaoServidor` inteira e o comentário que a introduz.
+2. Trocar a chamada do lápis (`data-editar`) para `abrirJornada({ servidor, unidadeId, blocos: blocosDe(servidor.id), recarregar: carregar })` (ajuste os nomes exatos conforme o estado atual do arquivo).
+3. Apagar o import de `formBloco`/`bloco.js` e, se nada mais em `por-escola.js` os usar, o de `drawerHead, abrirDrawer`.
+
+E o destino de `linhaDia`/`eixoHb`/`hhmm`: **mova as três de `por-escola.js`
+para `por-servidor.js`**, que continua sendo a única leitora depois desta
+tarefa (ela desenha a semana de UM servidor em cada escola onde ele atua,
+visual `.hb-*`, e isso não muda nesta tarefa - só o *clique* de editar troca
+de `formBloco` para `abrirJornada`). Torná-las privadas de `por-servidor.js`
+fecha o acoplamento entre as duas views que a Task 7 deixou aberto de
+propósito (documentado como aceitável só até esta tarefa).
 
 **Mudança de comportamento:** a gaveta deixa de editar um bloco e passa a editar a **semana inteira** daquele servidor naquela escola. Início e fim nascem **vazios**. Sobreposição impede o salvamento; o resto marca.
 
@@ -1708,11 +1733,26 @@ git commit -m "feat(horarios): gaveta edita a semana inteira, com campos de hora
 
 **Files:**
 - Modify: `src/modules/horarios/views/por-escola.js`
+- Modify: `src/modules/horarios/views/grade.js` (habilitar as afordances que a Task 7 deixou desligadas)
 - Modify: `src/modules/horarios/horarios.css`
 
 **Interfaces:**
 - Consumes: `salvarOrdem`, `limparExibicao`, `definirCobertura`; `toast`; `confirmar`.
 - Produces: nenhuma API nova.
+
+**Nota de handoff (achado da revisão da Task 7):** a Task 7 já renderiza o
+`draggable="true"`/`.arrastavel` nos chips e o checkbox `data-cobertura` -
+mas na correção da própria Task 7, os dois foram deliberadamente desligados
+(chip sem `draggable`, checkbox `disabled`) até esta tarefa ligar o
+comportamento de verdade. **Não recrie o markup do zero** - reative o que já
+existe em `legendaHtml` (`views/grade.js`) e ligue os handlers.
+
+Além disso, `views/grade.js` já estabeleceu o padrão de **ligar os listeners
+uma vez só, no container estável** (`#h-corpo`, que `carregar()` nunca
+recria - só troca o `innerHTML`), delegando por seletor em vez de religar a
+cada repintura. Os snippets abaixo, se ligarem evento a cada `carregar()`
+sem remover o anterior, empilham listener a cada reordenação. Siga o mesmo
+padrão de delegação de `ligarSelecao`/`ligarEventosCorpo`.
 
 - [ ] **Step 1: Arrasto na legenda**
 
