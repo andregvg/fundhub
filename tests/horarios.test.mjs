@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { validarDia, paraMin } from '../src/modules/horarios/horarios.model.js';
+import { validarDia, paraMin, ordenarParaGrade } from '../src/modules/horarios/horarios.model.js';
+import { empilhar, contarFaixas } from '../src/modules/horarios/grade.model.js';
 
 const b = (inicio, fim) => ({ inicio, fim });
 const acha = (probs, codigo) => probs.find(p => p.codigo === codigo);
@@ -102,4 +103,90 @@ test('todo problema traz intervalo utilizavel', () => {
     assert.ok(p.fim > p.ini, `intervalo vazio em ${p.codigo}`);
     assert.ok(p.texto.length > 0);
   }
+});
+
+// -- empilhar / contarFaixas --
+const bl = (inicio, fim, id) => ({ id, inicio, fim });
+
+test('blocos que nao se sobrepoem cabem todos na faixa 0', () => {
+  const r = empilhar([bl('07:00', '11:00', 'a'), bl('12:00', '16:00', 'b')]);
+  assert.deepEqual(r.map(x => x.faixa), [0, 0]);
+  assert.equal(contarFaixas([bl('07:00', '11:00', 'a'), bl('12:00', '16:00', 'b')]), 1);
+});
+
+test('blocos sobrepostos vao para faixas diferentes', () => {
+  const b2 = [bl('07:00', '12:00', 'a'), bl('11:00', '15:00', 'b')];
+  const r = empilhar(b2);
+  assert.equal(r.find(x => x.bloco.id === 'a').faixa, 0);
+  assert.equal(r.find(x => x.bloco.id === 'b').faixa, 1);
+  assert.equal(contarFaixas(b2), 2);
+});
+
+test('a faixa e reaproveitada assim que ela vaga', () => {
+  // a 07-12 (faixa 0), b 11-15 (faixa 1), c 13-18 cabe na faixa 0 de novo.
+  const b2 = [bl('07:00', '12:00', 'a'), bl('11:00', '15:00', 'b'), bl('13:00', '18:00', 'c')];
+  const r = empilhar(b2);
+  assert.equal(r.find(x => x.bloco.id === 'c').faixa, 0);
+  assert.equal(contarFaixas(b2), 2);
+});
+
+test('blocos encostados dividem a mesma faixa', () => {
+  const b2 = [bl('07:00', '11:00', 'a'), bl('11:00', '15:00', 'b')];
+  assert.equal(contarFaixas(b2), 1);
+});
+
+test('tres sobrepostos ocupam tres faixas', () => {
+  const b2 = [bl('07:00', '18:00', 'a'), bl('08:00', '17:00', 'b'), bl('09:00', '16:00', 'c')];
+  assert.equal(contarFaixas(b2), 3);
+});
+
+test('lista vazia tem uma faixa, para a linha do dia nao colapsar', () => {
+  assert.equal(contarFaixas([]), 1);
+  assert.deepEqual(empilhar([]), []);
+});
+
+// -- ordenarParaGrade --
+const CARGOS = new Set(['Diretor(a)', 'Coordenador(a)']);
+const cargoDe = (s) => s.cargo;
+const S = (id, nome, cargo) => ({ id, nome, cargo });
+
+test('sem configuracao, so cargos de gestao aparecem, em ordem alfabetica de cargo e nome', () => {
+  const r = ordenarParaGrade(
+    [S('3', 'Gestor C', 'Coordenador(a)'), S('1', 'Gestor A', 'Diretor(a)'),
+     S('2', 'Gestor B', 'Coordenador(a)'), S('4', 'Servidor D', 'Agente Escolar')],
+    { exibicao: [], cargosGestao: CARGOS, cargoDe });
+  assert.deepEqual(r.filter(x => x.exibir).map(x => x.servidor.id), ['2', '3', '1']);
+  assert.equal(r.find(x => x.servidor.id === '4').exibir, false);
+});
+
+test('quem tem linha de exibicao aparece mesmo sem cargo de gestao', () => {
+  const r = ordenarParaGrade(
+    [S('4', 'Servidor D', 'Agente Escolar')],
+    { exibicao: [{ servidor_id: '4', ordem: 0, conta_cobertura: true }], cargosGestao: CARGOS, cargoDe });
+  assert.equal(r[0].exibir, true);
+});
+
+test('a ordem gravada vence a alfabetica', () => {
+  const r = ordenarParaGrade(
+    [S('1', 'Gestor A', 'Diretor(a)'), S('2', 'Gestor B', 'Coordenador(a)')],
+    { exibicao: [{ servidor_id: '2', ordem: 0, conta_cobertura: true },
+                 { servidor_id: '1', ordem: 1, conta_cobertura: true }],
+      cargosGestao: CARGOS, cargoDe });
+  assert.deepEqual(r.map(x => x.servidor.id), ['2', '1']);
+});
+
+test('conta_cobertura false e respeitado; sem linha, o padrao e contar', () => {
+  const r = ordenarParaGrade(
+    [S('1', 'Gestor A', 'Diretor(a)'), S('2', 'Gestor B', 'Coordenador(a)')],
+    { exibicao: [{ servidor_id: '1', ordem: 0, conta_cobertura: false }],
+      cargosGestao: CARGOS, cargoDe });
+  assert.equal(r.find(x => x.servidor.id === '1').contaCobertura, false);
+  assert.equal(r.find(x => x.servidor.id === '2').contaCobertura, true);
+});
+
+test('a serie e a posicao modulo 6, para a cor repetir sem confundir', () => {
+  const servidores = Array.from({ length: 8 }, (_, i) => S(String(i), `Gestor ${i}`, 'Diretor(a)'));
+  const exibicao = servidores.map((s, i) => ({ servidor_id: s.id, ordem: i, conta_cobertura: true }));
+  const r = ordenarParaGrade(servidores, { exibicao, cargosGestao: CARGOS, cargoDe });
+  assert.deepEqual(r.map(x => x.serie), [0, 1, 2, 3, 4, 5, 0, 1]);
 });

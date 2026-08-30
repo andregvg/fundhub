@@ -203,25 +203,37 @@ export function lacunasCobertura(blocosDoDiaDaUnidade) {
   return lacunas;
 }
 
-// Posição de um bloco na barra gráfica, em % da janela 7h00–18h20.
-// Blocos fora da janela são recortados para não vazarem da barra.
-export function posicaoNaBarra(bloco) {
-  const janela = FIM - INI;
-  const ini = Math.max(paraMin(bloco.inicio), INI);
-  const fim = Math.min(paraMin(bloco.fim), FIM);
-  return {
-    esquerda: ((ini - INI) / janela) * 100,
-    largura: (Math.max(fim - ini, 0) / janela) * 100,
-    forade: paraMin(bloco.inicio) < INI || paraMin(bloco.fim) > FIM,
-  };
-}
+// ── Grade: ordenação de servidores ──────────────────────────
+export const SERIES = 6;   // quantidade de cores da paleta (tokens --serie-1..6)
 
-// Marcas de hora cheia para o eixo da barra.
-export function marcasDaBarra() {
-  const janela = FIM - INI;
-  const marcas = [];
-  for (let m = Math.ceil(INI / 60) * 60; m <= FIM; m += 60) {
-    marcas.push({ hora: paraHora(m), pos: ((m - INI) / janela) * 100 });
-  }
-  return marcas;
+// Quem aparece na grade, em que ordem, com que cor e contando ou não
+// na cobertura.
+//
+// Sem linha em horario_exibicao vale o padrão: aparece se o cargo for
+// de gestão, conta na cobertura, ordenado por cargo e depois por nome.
+// Quem tem linha aparece de qualquer jeito - foi decisão de alguém.
+export function ordenarParaGrade(servidores, { exibicao = [], cargosGestao = new Set(), cargoDe }) {
+  const porId = new Map((exibicao || []).map(e => [e.servidor_id, e]));
+
+  const itens = (servidores || []).map(servidor => {
+    const cfg = porId.get(servidor.id);
+    const cargo = cargoDe(servidor) || '';
+    return {
+      servidor,
+      cargo,
+      exibir: Boolean(cfg) || cargosGestao.has(cargo),
+      contaCobertura: cfg ? cfg.conta_cobertura : true,
+      ordem: cfg ? cfg.ordem : null,
+    };
+  });
+
+  itens.sort((a, b) => {
+    if (a.ordem !== null && b.ordem !== null) return a.ordem - b.ordem;
+    if (a.ordem !== null) return -1;
+    if (b.ordem !== null) return 1;
+    return a.cargo.localeCompare(b.cargo, 'pt')
+      || a.servidor.nome.localeCompare(b.servidor.nome, 'pt');
+  });
+
+  return itens.map((it, i) => ({ ...it, serie: i % SERIES }));
 }
