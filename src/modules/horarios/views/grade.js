@@ -127,9 +127,15 @@ function eixo() {
 // distinguir quando alguém está procurando alguém.
 export function ligarSelecao(root) {
   root.addEventListener('click', (e) => {
-    // O lápis, as setas e o checkbox moram dentro do .hg-chip - sem
-    // esta guarda, clicar neles também selecionaria o servidor de carona.
-    if (e.target.closest('[data-editar],[data-cobertura],[data-mover]')) return;
+    // O lápis, as setas e o switch de cobertura moram dentro do .hg-chip -
+    // sem esta guarda, clicar neles também selecionaria o servidor de
+    // carona. `.hg-cob` (o <label>), não `[data-cobertura]` (o <input>):
+    // o que a pessoa clica de fato é o `.switch-trilho`, IRMÃO do input
+    // dentro do label - `closest()` nunca atravessa irmãos, só ancestrais,
+    // então `[data-cobertura]` nunca encontrava esse clique (achado da
+    // revisão da Task 9, rodada 1: inofensivo enquanto o checkbox era
+    // sempre `disabled`, alcançável assim que a Task 9 o liberou).
+    if (e.target.closest('[data-editar],[data-mover],.hg-cob')) return;
     const barra = e.target.closest('.hg-bloco');
     const chip = e.target.closest('.hg-chip');
     const alvo = barra?.dataset.servidor || chip?.dataset.servidor || null;

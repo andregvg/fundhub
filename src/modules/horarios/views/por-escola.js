@@ -242,9 +242,17 @@ function ligarEventosCorpo(root) {
     e.dataTransfer.setData('text/plain', chip.dataset.servidor);
   });
 
-  root.addEventListener('dragend', () => {
+  root.addEventListener('dragend', (e) => {
     origemArrasto?.classList.remove('arrastando');
     origemArrasto = null;
+    // Soltar FORA de #hg-legenda: `drop` não roda (ou roda sem achar a
+    // legenda) e ninguém desfez o `insertBefore` que o `dragover` já
+    // aplicou ao vivo - a legenda ficaria mostrando uma ordem que não
+    // foi gravada e nem bate com as cores das barras abaixo, sem toast
+    // nem erro (achado da revisão da Task 9, rodada 1). `dropEffect`
+    // só vira algo diferente de 'none' quando um `dragover` válido
+    // (dentro da legenda) chamou `preventDefault()` antes do drop.
+    if (e.dataTransfer?.dropEffect === 'none') carregar();
   });
 
   root.addEventListener('dragover', (e) => {
@@ -291,8 +299,20 @@ async function moverServidor(valor) {
   const i = ids.indexOf(servidorId);
   const j = i + Number(delta);
   if (i < 0 || j < 0 || j >= ids.length) return;
+  // As duas setas DESTE servidor ficam desabilitadas durante a gravação -
+  // sem isso, dois cliques rápidos disparam duas gravações calculadas
+  // sobre o mesmo `linhas` desatualizado (achado da revisão, rodada 1).
+  // `carregar()`, no fim de `salvarNovaOrdem`, repinta a legenda inteira
+  // com botões novos e já habilitados - não precisa reabilitar à mão.
+  document.querySelectorAll(`[data-mover^="${servidorId}:"]`).forEach(b => b.disabled = true);
   [ids[i], ids[j]] = [ids[j], ids[i]];
   await salvarNovaOrdem(ids);
+  // `carregar()` destruiu o botão que estava focado - sem refocar quem
+  // moveu o mesmo servidor na mesma direção, mover alguém 3 posições
+  // exige 3 travessias da legenda procurando o botão de novo. É a ÚNICA
+  // via de reordenar em touch (arrasto nativo não existe lá). Se a seta
+  // não existir mais (chegou na ponta), `?.` deixa falhar em silêncio.
+  document.querySelector(`[data-mover="${servidorId}:${delta}"]`)?.focus();
 }
 
 async function voltarPadrao() {

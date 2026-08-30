@@ -288,6 +288,7 @@ a.tile:hover {
 .btn-primary:hover,
 .form-foot button[type="submit"]:hover { filter: brightness(1.08); }
 .btn-primary:disabled,
+.mini-btn:disabled,
 .form-foot button[type="submit"]:disabled { opacity: .6; cursor: default; filter: none; }
 
 .btn-secundario,
