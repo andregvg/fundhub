@@ -22,7 +22,9 @@ begin
     'atividade_extraclasse','solicitacao_transporte','oferta_onibus','local',
     -- rotina da gerência
     'dia_calendario','afastamento','horario_bloco','ocorrencia',
-    'relatorio_visita','ata_atendimento','projeto','projeto_interesse'
+    'relatorio_visita','ata_atendimento','projeto','projeto_interesse',
+    -- horários: escalas, cargos de gestão e exibição (024)
+    'escala_unidade','cargo_gestao','horario_exibicao'
   ] loop
     -- só age se a tabela existir (o banco pode estar em migration parcial)
     if to_regclass('public.' || t) is not null then
