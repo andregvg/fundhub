@@ -1,30 +1,41 @@
 // ============================================================
 // FundHub - horarios/views/por-escola.js
-// Aba "Por escola": escolhida a unidade, a tela mostra a COBERTURA
-// (7h00–18h20, com as lacunas em vermelho) e, abaixo, a semana de
-// cada servidor vinculado, em barras. A cobertura é regra de ESCOLA
-// - a sede da SME não entra nela (Step 5 do brief).
+// Aba "Por escola": escolhida a unidade, UMA grade com a semana de
+// todos os servidores exibidos, faixas para os blocos que se
+// sobrepõem, tira de cobertura sob cada dia e a divergência marcada
+// no minuto exato.
 //
-// `linhaDia` é exportada para a aba "Por servidor" reaproveitar a
-// mesma barra gráfica sem duplicar 30 linhas de desenho.
+// A cobertura é regra de ESCOLA - a sede da SME não entra nela.
 // ============================================================
 import {
-  DIAS, COBERTURA_INICIO, COBERTURA_FIM,
-  getBlocos, validarDia, totalDoDia,
-  paraHora, duracao,
+  DIAS, getBlocos, COBERTURA_INICIO, COBERTURA_FIM,
+  validarDia, totalDoDia, duracao,
 } from '../horarios.model.js';
-import { posicaoNaBarra, marcasDaBarra, lacunasCobertura } from '../grade.model.js';
+// getExibicao/definirCobertura moram em exibicao.model.js e
+// ordenarParaGrade/posicaoNaBarra/marcasDaBarra em grade.model.js
+// desde a divisão da Task 6 (R11 - horarios.model.js estourou 250
+// linhas). Ver progress.md, Ruling 13.
+import { getExibicao, definirCobertura } from '../exibicao.model.js';
+import { ordenarParaGrade, posicaoNaBarra, marcasDaBarra } from '../grade.model.js';
 import { getServidoresDaUnidade, vinculosAbertos } from '../../servidores/servidores.model.js';
-import { rotulaCargo } from '../../servidores/vinculos.model.js';
+import { getCargosGestao, rotulaCargo } from '../../servidores/vinculos.model.js';
 import { getUnidades } from '../../escolas/escolas.model.js';
 import { esc, vazio } from '../../../shared/dom.js';
-import { loading, emptyState, erroBox } from '../../../shared/ui/feedback.js';
-import { criarFiltroSegmento, indexarUnidades } from '../../../shared/ui/filtro-segmento.js';
-import { formBloco } from './bloco.js';
 import { ico } from '../../../shared/ui/icones.js';
+import { toast } from '../../../shared/ui/toast.js';
+import { loading, emptyState, erroBox, reportarErro } from '../../../shared/ui/feedback.js';
+import { criarBuscaSelecao } from '../../../shared/ui/busca-selecao.js';
+import { criarFiltroSegmento, indexarUnidades } from '../../../shared/ui/filtro-segmento.js';
+import { drawerHead, abrirDrawer } from '../../../shared/ui/drawer.js';
+import { gradeHtml, legendaHtml, ligarSelecao } from './grade.js';
+// abrirJornada (Task 8, views/jornada.js) ainda não existe - o lápis
+// do chip abre um editor provisório que reaproveita formBloco/linhaDia
+// (abaixo). Task 8 troca abrirEdicaoServidor por abrirJornada.
+import { formBloco } from './bloco.js';
 
-let unidades = [], idxUnidades = {}, seg = null;
-let servidores = [], blocos = [];
+let unidades = [], idxUnidades = {}, seg = null, busca = null;
+let servidores = [], blocos = [], exibicao = [], cargosGestao = new Set();
+let linhas = [];           // saída de ordenarParaGrade já filtrada por exibir
 let unidadeId = '';
 let ultimoParam;   // valor de ctx.unidadeId visto no último render - distingue
                     // navegação nova (deep link mudou) de troca de aba (mesmo ctx).
@@ -37,46 +48,56 @@ export async function renderPorEscola(box, ctx) {
     ultimoParam = ctx.unidadeId;
   }
 
+  busca?.destruir();
   box.innerHTML = `
     <div class="toolbar">
-      <label class="search">${ico('escola')}
-        <select id="h-uni"><option value="">Selecione a escola…</option></select>
-      </label>
+      <div id="h-uni-box"></div>
       <span class="count" id="h-count"></span>
     </div>
     <div id="h-seg" class="toolbar-linha"></div>
     <div id="h-corpo"></div>`;
 
+  // Delegados no container ESTÁVEL (#h-corpo não é recriado por
+  // `carregar()`, só o innerHTML muda) - ligar uma vez só aqui evita
+  // empilhar listener a cada recarga.
+  const corpo = document.getElementById('h-corpo');
+  ligarSelecao(corpo);
+  ligarEventosCorpo(corpo);
+
   try {
     unidades = await getUnidades();
     idxUnidades = indexarUnidades(unidades);
-  } catch (err) { document.getElementById('h-corpo').innerHTML = erroBox(err); return; }
+  } catch (err) { corpo.innerHTML = erroBox(err); return; }
 
   // O seletor respeita o segmento: quem cuida da Educação Infantil não
   // precisa rolar por 90 EMEFs para achar o seu CEI. A sede não tem
   // segmento - fica sempre visível, filtro nenhum a esconde.
   seg = criarFiltroSegmento(document.getElementById('h-seg'), {
     perfil: ctx.perfil, chaveMemoria: 'fundhub:seg:horarios',
-    onChange: () => { pintarSeletor(); if (!unidadeId) limparCorpo(); },
+    onChange: () => { montarBusca(); if (!unidadeId) limparCorpo(); },
   });
-  pintarSeletor();
-
-  document.getElementById('h-uni').addEventListener('change', e => {
-    unidadeId = e.target.value; carregar();
-  });
+  montarBusca();
 
   if (unidadeId) carregar(); else limparCorpo();
 }
 
-function pintarSeletor() {
-  const sel = document.getElementById('h-uni');
+function opcoesUnidade() {
   const lista = ctxAtual.locais.filter(l =>
     l.tipo === 'sede' || seg.combinaPorUnidade(l.id, idxUnidades));
-  sel.innerHTML = `<option value="">Selecione a escola…</option>` +
-    [...lista].sort((a, b) => a.nome.localeCompare(b.nome, 'pt'))
-      .map(l => `<option value="${esc(l.id)}">${esc(l.nome)}</option>`).join('');
-  if (unidadeId && !sel.querySelector(`option[value="${CSS.escape(unidadeId)}"]`)) unidadeId = '';
-  sel.value = unidadeId;
+  return [...lista].sort((a, b) => a.nome.localeCompare(b.nome, 'pt'))
+    .map(l => ({ id: l.id, rotulo: l.nome, detalhe: l.tipo === 'sede' ? 'SME' : '', busca: l.apelido || '' }));
+}
+
+function montarBusca() {
+  const opcoes = opcoesUnidade();
+  if (unidadeId && !opcoes.some(o => o.id === unidadeId)) unidadeId = '';
+
+  if (busca) { busca.definirOpcoes(opcoes); busca.definirValor(unidadeId); return; }
+  busca = criarBuscaSelecao(document.getElementById('h-uni-box'), {
+    opcoes, valor: unidadeId, placeholder: 'Buscar escola…',
+    vazioTexto: 'Nenhuma escola com esse nome',
+    onChange: (id) => { unidadeId = id; carregar(); },
+  });
 }
 
 function limparCorpo() {
@@ -91,9 +112,11 @@ async function carregar() {
   corpo.innerHTML = loading();
 
   try {
-    [servidores, blocos] = await Promise.all([
+    [servidores, blocos, exibicao, cargosGestao] = await Promise.all([
       getServidoresDaUnidade(unidadeId),
       getBlocos(unidadeId),
+      getExibicao(unidadeId),
+      getCargosGestao(),
     ]);
   } catch (err) { corpo.innerHTML = erroBox(err); return; }
 
@@ -106,72 +129,96 @@ async function carregar() {
     return;
   }
 
+  // Cargo NESTA unidade, não a união de todos os vínculos da pessoa -
+  // é o que decide se ela é equipe gestora aqui.
+  const cargoDe = (s) => rotulaCargo(vinculosAbertos(s).find(v => v.unidade_id === unidadeId)?.papel || '');
+  const itens = ordenarParaGrade(servidores, { exibicao, cargosGestao, cargoDe });
+  linhas = itens.filter(it => it.exibir);
+  const fora = itens.filter(it => !it.exibir);
+
   // A janela 7h00–18h20 é regra de ESCOLA: é o horário em que precisa
   // haver alguém da equipe gestora na unidade. Não se aplica à sede.
   const local = ctxAtual.locais.find(l => l.id === unidadeId);
-  corpo.innerHTML = (local?.tipo === 'sede' ? '' : painelCobertura())
-    + servidores.map(cartaoServidor).join('');
-  ligarEventos();
+  const mostrarCobertura = local?.tipo !== 'sede';
+
+  corpo.innerHTML =
+    (mostrarCobertura ? `<p class="form-hint">Cobertura da escola: ${esc(COBERTURA_INICIO)} às ${esc(COBERTURA_FIM)}.</p>` : '')
+    + legendaHtml(linhas, { podeEditar: ctxAtual.podeEditar })
+    + gradeHtml(DIAS, { linhas, blocosDe, mostrarCobertura })
+    + naoExibidosHtml(fora);
 }
 
 const blocosDe = (servidorId, dia) =>
   blocos.filter(b => b.servidor_id === servidorId && b.dia_semana === dia);
 
-// ── Cobertura da unidade ─────────────────────────────────────
-function painelCobertura() {
-  const linhas = DIAS.map(d => {
-    const doDia = blocos.filter(b => b.dia_semana === d.n);
-    const lacunas = lacunasCobertura(doDia);
-    const ok = lacunas.length === 0;
-
-    // A barra desenha o que ESTÁ coberto; as lacunas ficam como fundo.
-    const barras = doDia.map(b => {
-      const p = posicaoNaBarra(b);
-      return `<div class="hb-bloco cobertura" style="left:${p.esquerda}%;width:${p.largura}%"></div>`;
-    }).join('');
-
-    const txt = ok
-      ? `<span class="hb-ok">${ico('ok', { tam: 12 })} coberto</span>`
-      : `<span class="hb-falha">${lacunas.map(l => `${paraHora(l.ini)}–${paraHora(l.fim)}`).join(' · ')}</span>`;
-
-    return `<div class="hb-linha">
-      <div class="hb-dia">${d.curto}</div>
-      <div class="hb-track">${eixo()}${barras}</div>
-      <div class="hb-info">${txt}</div>
-    </div>`;
-  }).join('');
-
-  const diasComFalha = DIAS.filter(d =>
-    lacunasCobertura(blocos.filter(b => b.dia_semana === d.n)).length).length;
-
-  return `<section class="panel hb-painel">
-    <h2>${ico('escola')} Cobertura da escola <small class="hb-sub">${COBERTURA_INICIO} às ${COBERTURA_FIM}</small></h2>
-    ${diasComFalha
-      ? `<p class="hb-alerta">${diasComFalha} dia(s) da semana com horário descoberto.</p>`
-      : `<p class="hb-tudo-ok">Todos os dias cobertos.</p>`}
-    <div class="hb-grade">${linhas}</div>
-  </section>`;
+// Servidor com vínculo aberto que não entra na grade por padrão
+// (cargo comum, sem linha em horario_exibicao). Fica recolhido para
+// não afogar a grade, com um jeito explícito de acrescentar.
+function naoExibidosHtml(fora) {
+  if (!fora.length) return '';
+  return `<details class="hg-fora">
+    <summary>${fora.length} servidor(es) vinculado(s) fora da grade</summary>
+    ${fora.map(l => `<div class="hg-fora-item">
+      <span>${esc(l.servidor.nome)}</span>
+      <span class="hg-cargo">${esc(l.cargo)}</span>
+      ${ctxAtual.podeEditar ? `<button type="button" class="mini-btn" data-incluir="${esc(l.servidor.id)}">
+        ${ico('adicionar')} Incluir na grade</button>` : ''}
+    </div>`).join('')}
+  </details>`;
 }
 
-// ── Semana de um servidor ────────────────────────────────────
-function cartaoServidor(s) {
-  const vinc = vinculosAbertos(s).find(v => v.unidade_id === unidadeId);
-  const semana = DIAS.map(d => linhaDia(s, d, blocosDe(s.id, d.n),
+// ── Eventos delegados no corpo (ligados uma vez, em renderPorEscola) ──
+function ligarEventosCorpo(root) {
+  root.addEventListener('click', async (e) => {
+    const incluir = e.target.closest('[data-incluir]');
+    if (incluir) {
+      try {
+        await definirCobertura(unidadeId, incluir.dataset.incluir, true);
+        toast({ titulo: 'Servidor incluído na grade', tipo: 'sucesso' });
+        await carregar();
+      } catch (err) { reportarErro(err, { titulo: 'Não foi possível incluir na grade' }); }
+      return;
+    }
+    const editar = e.target.closest('[data-editar]');
+    if (editar) abrirEdicaoServidor(editar.dataset.editar);
+  });
+}
+
+// ── Editor provisório da semana de UM servidor (ver nota de import) ──
+function abrirEdicaoServidor(servidorId) {
+  const linha = linhas.find(l => l.servidor.id === servidorId);
+  if (!linha) return;
+  const { servidor } = linha;
+  const totalSemana = DIAS.reduce((acc, d) => acc + totalDoDia(blocosDe(servidor.id, d.n)), 0);
+  const semana = DIAS.map(d => linhaDia(servidor, d, blocosDe(servidor.id, d.n),
     { podeEditar: ctxAtual.podeEditar, unidadeId })).join('');
-  const totalSemana = DIAS.reduce((acc, d) => acc + totalDoDia(blocosDe(s.id, d.n)), 0);
 
-  return `<section class="panel hb-painel">
-    <h2>
-      ${esc(s.apelido || s.nome)}
-      <small class="hb-sub">${esc(rotulaCargo(vinc?.papel || ''))} · ${duracao(totalSemana)} na semana</small>
-    </h2>
-    <div class="hb-grade">${semana}</div>
-  </section>`;
+  abrirDrawer(`
+    ${drawerHead('Jornada da semana', `${esc(servidor.nome)} · ${esc(duracao(totalSemana))} na semana`)}
+    <div class="drawer-body"><div class="hb-grade" id="hg-edicao">${semana}</div></div>`);
+
+  const box = document.getElementById('hg-edicao');
+  box.querySelectorAll('[data-add]').forEach(b => b.addEventListener('click', () => {
+    const [sid, diaStr, uni] = b.dataset.add.split(':');
+    const dia = parseInt(diaStr, 10);
+    const nome = DIAS.find(d => d.n === dia)?.nome || '';
+    formBloco(null, { servidorId: sid, unidadeId: uni, dia, nome, recarregar: carregar });
+  }));
+  box.querySelectorAll('[data-bloco]').forEach(b => b.addEventListener('click', () => {
+    const bloco = blocos.find(x => x.id === b.dataset.bloco);
+    if (!bloco) return;
+    const nome = DIAS.find(d => d.n === bloco.dia_semana)?.nome || '';
+    formBloco(bloco, {
+      servidorId: bloco.servidor_id, unidadeId: bloco.unidade_id, dia: bloco.dia_semana, nome,
+      recarregar: carregar,
+    });
+  }));
 }
 
-// A semana de UM servidor em UM local, num dia. Reaproveitada pela
-// aba "Por servidor" - por isso não lê nenhum estado de módulo:
-// recebe os blocos do dia prontos e onde editar.
+// A semana de UM servidor em UM local, num dia (marcação .hb-*, a da
+// tela antiga). Reaproveitada pela aba "Por servidor" e pelo editor
+// provisório acima - por isso não lê nenhum estado de módulo: recebe
+// os blocos do dia prontos e onde editar.
 export function linhaDia(s, d, doDia, { podeEditar, unidadeId: uni }) {
   const problemas = validarDia(doDia);
   const total = totalDoDia(doDia);
@@ -196,7 +243,7 @@ export function linhaDia(s, d, doDia, { podeEditar, unidadeId: uni }) {
 
   return `<div class="hb-linha ${problemas.some(p => p.nivel === 'erro') ? 'tem-erro' : ''}">
     <div class="hb-dia">${d.curto}</div>
-    <div class="hb-track">${eixo()}${barras || `<span class="hb-vazio">sem jornada</span>`}</div>
+    <div class="hb-track">${eixoHb()}${barras || `<span class="hb-vazio">sem jornada</span>`}</div>
     <div class="hb-info">
       ${total ? `<b>${duracao(total)}</b>` : vazio('sem jornada')}
       ${addBtn}
@@ -208,30 +255,8 @@ export function linhaDia(s, d, doDia, { podeEditar, unidadeId: uni }) {
 // O Postgres devolve `time` como '07:00:00' - a tela mostra '07:00'.
 const hhmm = (t) => String(t ?? '').slice(0, 5);
 
-// Eixo de horas ao fundo da barra (só desenhado uma vez por linha).
-function eixo() {
+// Eixo de horas ao fundo da barra .hb- (só desenhado uma vez por linha).
+function eixoHb() {
   return marcasDaBarra().map(m =>
     `<span class="hb-marca" style="left:${m.pos}%"><i></i><em>${m.hora.slice(0, 2)}</em></span>`).join('');
-}
-
-// ── Eventos ──────────────────────────────────────────────────
-function ligarEventos() {
-  const corpo = document.getElementById('h-corpo');
-  if (!ctxAtual.podeEditar) return;
-
-  corpo.querySelectorAll('[data-add]').forEach(b => b.addEventListener('click', () => {
-    const [sid, diaStr, uni] = b.dataset.add.split(':');
-    const dia = parseInt(diaStr, 10);
-    const nome = DIAS.find(d => d.n === dia)?.nome || '';
-    formBloco(null, { servidorId: sid, unidadeId: uni, dia, nome, recarregar: carregar });
-  }));
-  corpo.querySelectorAll('[data-bloco]').forEach(b => b.addEventListener('click', () => {
-    const bloco = blocos.find(x => x.id === b.dataset.bloco);
-    if (!bloco) return;
-    const nome = DIAS.find(d => d.n === bloco.dia_semana)?.nome || '';
-    formBloco(bloco, {
-      servidorId: bloco.servidor_id, unidadeId: bloco.unidade_id, dia: bloco.dia_semana, nome,
-      recarregar: carregar,
-    });
-  }));
 }

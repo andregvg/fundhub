@@ -154,3 +154,89 @@
   .hb-bloco { font-size: 11px; }
   .hb-marca em { font-size: 9px; }
 }
+
+/* ── Grade única (views/grade.js) ─────────────────────────── */
+.hg-legenda { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.hg-chip {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 10px; border: 1px solid var(--border); border-radius: 999px;
+  background: var(--surface-2); font-size: 13px;
+}
+.hg-chip.arrastavel { cursor: grab; }
+.hg-chip.arrastando { opacity: .4; }
+.hg-chip .hg-cor { width: 10px; height: 10px; border-radius: 50%; background: var(--serie); }
+.hg-chip .hg-cargo { color: var(--muted); font-size: 12px; }
+.hg-chip.sel { border-color: var(--serie); box-shadow: 0 0 0 2px color-mix(in srgb, var(--serie) 30%, transparent); }
+
+.serie-1 { --serie: var(--serie-1); }
+.serie-2 { --serie: var(--serie-2); }
+.serie-3 { --serie: var(--serie-3); }
+.serie-4 { --serie: var(--serie-4); }
+.serie-5 { --serie: var(--serie-5); }
+.serie-6 { --serie: var(--serie-6); }
+
+.hg-grade { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+.hg-linha { display: grid; grid-template-columns: 30px 1fr; align-items: start; gap: 8px; }
+.hg-dia { padding-top: 4px; color: var(--muted); font-size: 12px; font-weight: 700; }
+.hg-track { position: relative; border-radius: 8px; background: var(--surface-2); }
+.hg-bloco {
+  position: absolute; height: 22px; padding: 0 6px;
+  border: 0; border-radius: 6px;
+  /* Em repouso a cor é fraca: a grade fica quase monocromática e só
+     ganha cor quando alguém é selecionado. */
+  background: color-mix(in srgb, var(--serie) 45%, var(--surface));
+  color: var(--text); font-size: 11px; line-height: 22px;
+  overflow: hidden; white-space: nowrap; text-align: left; cursor: pointer;
+}
+.hg-bloco:hover { background: color-mix(in srgb, var(--serie) 65%, var(--surface)); }
+.tem-selecao .hg-bloco { opacity: .25; }
+.tem-selecao .hg-bloco.sel { opacity: 1; background: var(--serie); color: var(--on-cor); }
+.tem-selecao .hg-chip { opacity: .45; }
+.tem-selecao .hg-chip.sel { opacity: 1; }
+
+/* Divergência: hachura sobre os minutos exatos, não texto embaixo. */
+.hg-falha {
+  position: absolute; top: 0; bottom: 0; pointer-events: none; border-radius: 4px;
+}
+.hg-falha.n-aviso {
+  background: repeating-linear-gradient(45deg,
+    color-mix(in srgb, var(--accent) 40%, transparent) 0 5px, transparent 5px 10px);
+  border-top: 2px solid var(--accent);
+}
+.hg-falha.n-erro {
+  background: repeating-linear-gradient(45deg,
+    color-mix(in srgb, var(--danger) 45%, transparent) 0 5px, transparent 5px 10px);
+  border-top: 2px solid var(--danger);
+}
+
+.hg-cobertura { grid-column: 2; position: relative; height: 6px; margin-top: 2px;
+  border-radius: 3px; background: color-mix(in srgb, var(--ok) 45%, var(--surface-3)); }
+.hg-lacuna { position: absolute; top: 0; bottom: 0; background: var(--danger); border-radius: 3px; }
+.hg-info { text-align: right; font-size: 12px; }
+
+.hg-marca { position: absolute; top: 0; bottom: 0; }
+.hg-marca i { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--border); }
+.hg-marca em { position: absolute; top: -14px; color: var(--muted); font-size: 10px; font-style: normal; }
+
+/* Fora da grade: lista recolhida de quem tem vínculo mas não aparece. */
+.hg-fora { margin-top: 14px; font-size: 13px; }
+.hg-fora summary { cursor: pointer; color: var(--muted); padding: 6px 0; }
+.hg-fora-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 6px 0; border-top: 1px solid var(--border);
+}
+.hg-fora-item span:first-child { flex: 1 1 auto; }
+
+/* Base = celular: duas colunas, o total desce para baixo da barra e a
+   grade rola na horizontal. A partir de 720px cabe a terceira coluna.
+   Mobile-first de verdade (.claude/rules/ui.md): `min-width` ACRESCENTA.
+   Nao existe nenhuma `@media (max-width:)` em todo o src/ - nao crie a
+   primeira. */
+.hg-info { grid-column: 2; text-align: left; }
+.hg-grade { overflow-x: auto; }
+
+@media (min-width: 720px) {
+  .hg-linha { grid-template-columns: 38px 1fr 92px; }
+  .hg-info { grid-column: auto; text-align: right; }
+  .hg-grade { overflow-x: visible; }
+}

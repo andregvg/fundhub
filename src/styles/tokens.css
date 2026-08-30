@@ -75,6 +75,17 @@
   --atencao-bg: color-mix(in srgb, var(--accent) 14%, var(--surface));
   --erro-bg:    color-mix(in srgb, var(--danger) 12%, var(--surface));
   --info-bg:    color-mix(in srgb, var(--brand) 12%, var(--surface));
+
+  /* Série da grade de horários. Dessaturadas de propósito: em repouso
+     a grade é quase monocromática e a cor só aparece quando alguém é
+     selecionado. Cor aqui AGRUPA, não identifica - quem identifica é
+     a legenda. */
+  --serie-1: #6d8fd6;
+  --serie-2: #6fb3a4;
+  --serie-3: #c9a15f;
+  --serie-4: #a98cc4;
+  --serie-5: #d18f8f;
+  --serie-6: #7fa06b;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -100,6 +111,14 @@
     --atencao-bg: color-mix(in srgb, var(--accent) 20%, var(--surface));
     --erro-bg:    color-mix(in srgb, var(--danger) 18%, var(--surface));
     --info-bg:    color-mix(in srgb, var(--brand) 18%, var(--surface));
+
+    /* Mesmas seis séries, um pouco mais claras - ainda dessaturadas. */
+    --serie-1: #7f9fe0;
+    --serie-2: #7fc4b4;
+    --serie-3: #d7b070;
+    --serie-4: #b99cd4;
+    --serie-5: #dd9f9f;
+    --serie-6: #8fb07b;
   }
 }
 
