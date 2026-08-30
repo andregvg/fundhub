@@ -1195,8 +1195,12 @@ E no bloco escuro, os mesmos seis um pouco mais claros e ainda dessaturados (`#7
 // Faixa existe porque dois blocos sobrepostos na mesma trilha se
 // cobrem, e a grade passa a mentir sobre quem está presente.
 // ============================================================
-import { empilhar, contarFaixas, validarDia, lacunasCobertura,
-  posicaoNaBarra, marcasDaBarra, totalDoDia, paraHora, duracao } from '../horarios.model.js';
+import { validarDia, totalDoDia, paraHora, duracao } from '../horarios.model.js';
+// empilhar/contarFaixas/posicaoNaBarra/marcasDaBarra vieram da Task 3;
+// lacunasCobertura, da divisão da Task 6 - as quatro moram em
+// grade.model.js, não em horarios.model.js. Ver progress.md, Ruling 13.
+import { empilhar, contarFaixas, lacunasCobertura,
+  posicaoNaBarra, marcasDaBarra } from '../grade.model.js';
 import { esc, vazio } from '../../../shared/dom.js';
 import { ico } from '../../../shared/ui/icones.js';
 
