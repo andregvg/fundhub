@@ -93,7 +93,7 @@ export function formVinculo(s, vinculo, ctx, { voltar = null } = {}) {
   buscaLocal = criarBuscaSelecao(document.getElementById('v-local-box'), {
     opcoes: [...ctx.locais]
       .sort((a, b) => a.nome.localeCompare(b.nome, 'pt'))
-      .map(l => ({ id: l.id, rotulo: l.nome, detalhe: l.tipo === 'sede' ? 'SME' : '' })),
+      .map(l => ({ id: l.id, rotulo: l.nome, detalhe: l.tipo === 'sede' ? 'SME' : '', busca: l.apelido || '' })),
     valor: vinculo?.unidade_id || '',
     placeholder: 'Buscar escola…',
     vazioTexto: 'Nenhuma escola com esse nome',
