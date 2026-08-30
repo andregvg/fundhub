@@ -11,13 +11,13 @@
 // Sobreposição impede o salvamento; carga acima de 8h e mais de 6h
 // contínuas ficam marcados e deixam salvar. Ver .claude/rules/dados.md.
 // ============================================================
-import { DIAS, criarBloco, atualizarBloco, excluirBloco, getBlocos,
+import { DIAS, criarBloco, atualizarBloco, excluirBloco,
   validarDia, totalDoDia, duracao } from '../horarios.model.js';
-import { esc } from '../../../shared/dom.js';
+import { esc, falha } from '../../../shared/dom.js';
 import { ico } from '../../../shared/ui/icones.js';
 import { drawerHead, abrirDrawer, fecharDrawer } from '../../../shared/ui/drawer.js';
-import { confirmar } from '../../../shared/ui/confirmar.js';
 import { toast } from '../../../shared/ui/toast.js';
+import { reportarErro } from '../../../shared/ui/feedback.js';
 
 const hhmm = (t) => String(t ?? '').slice(0, 5);
 let estado = null;   // { servidor, unidadeId, dias: { [n]: linhas[] }, recarregar }
@@ -45,7 +45,24 @@ export function abrirJornada({ servidor, unidadeId, blocos, recarregar }) {
     </div>`);
 
   pintar();
+  // Ligados uma vez só, aqui - o `<form>` é recriado a cada abertura da
+  // gaveta, então não acumula. Ligar dentro de `pintar()` (que o próprio
+  // handler chama de novo) dobrava o listener a cada campo confirmado:
+  // 1, 2, 4, 8... por volta do 14º a gaveta travava em repintes síncronos
+  // empilhados (achado da rodada de correção 1).
+  document.getElementById('hj-dias').addEventListener('change', aoMudarCampo);
   document.getElementById('hj-form').addEventListener('submit', salvar);
+}
+
+// Redesenha ao mudar a hora para os avisos acompanharem o que se digita.
+function aoMudarCampo(e) {
+  const linha = e.target.closest('.hj-linha'); if (!linha) return;
+  const dia = Number(linha.dataset.dia);
+  const alvo = estado.dias[dia].filter(l => !l.excluir)[Number(linha.dataset.i)];
+  alvo.inicio = linha.querySelector('.hj-ini').value;
+  alvo.fim = linha.querySelector('.hj-fim').value;
+  alvo.obs = linha.querySelector('.hj-obs').value;
+  pintar();
 }
 
 function pintar() {
@@ -62,7 +79,7 @@ function pintar() {
             <input type="time" class="hj-ini" value="${esc(l.inicio)}" aria-label="Início" />
             <span class="hj-ate">às</span>
             <input type="time" class="hj-fim" value="${esc(l.fim)}" aria-label="Fim" />
-            <input type="text" class="hj-obs" value="${esc(l.obs)}" placeholder="observação (opcional)" />
+            <input type="text" class="hj-obs" value="${esc(l.obs)}" placeholder="observação (opcional)" aria-label="Observação" />
             <button type="button" class="mini-btn no hj-del" aria-label="Remover bloco">${ico('excluir', { tam: 14 })}</button>
           </div>`).join('')
           || `<p class="form-hint">Sem jornada nesta ${esc(d.nome.toLowerCase())}.</p>`}
@@ -86,16 +103,6 @@ function pintar() {
     else estado.dias[dia] = estado.dias[dia].filter(l => l !== alvo);
     pintar();
   }));
-  // Redesenha ao mudar a hora para os avisos acompanharem o que se digita.
-  box.addEventListener('change', (e) => {
-    const linha = e.target.closest('.hj-linha'); if (!linha) return;
-    const dia = Number(linha.dataset.dia);
-    const alvo = estado.dias[dia].filter(l => !l.excluir)[Number(linha.dataset.i)];
-    alvo.inicio = linha.querySelector('.hj-ini').value;
-    alvo.fim = linha.querySelector('.hj-fim').value;
-    alvo.obs = linha.querySelector('.hj-obs').value;
-    pintar();
-  });
 }
 
 async function salvar(e) {
@@ -107,26 +114,24 @@ async function salvar(e) {
   for (const d of DIAS) {
     const linhas = estado.dias[d.n].filter(l => !l.excluir);
     for (const l of linhas) {
-      if (!l.inicio || !l.fim) {
-        msg.classList.add('err');
-        msg.textContent = `${d.nome}: informe início e fim de todos os blocos.`;
-        return;
-      }
-      if (l.fim <= l.inicio) {
-        msg.classList.add('err');
-        msg.textContent = `${d.nome}: o fim precisa ser depois do início.`;
-        return;
-      }
+      if (!l.inicio || !l.fim) return falha(msg, `${d.nome}: informe início e fim de todos os blocos.`);
+      if (l.fim <= l.inicio) return falha(msg, `${d.nome}: o fim precisa ser depois do início.`);
     }
     const erro = validarDia(linhas).find(p => p.nivel === 'erro');
-    if (erro) { msg.classList.add('err'); msg.textContent = `${d.nome}: ${erro.texto}`; return; }
+    if (erro) return falha(msg, `${d.nome}: ${erro.texto}`);
   }
 
   const btn = document.getElementById('hj-save');
   btn.disabled = true; btn.textContent = 'Salvando…';
   try {
+    // O lote grava sequencialmente - se um item no meio falhar, uma nova
+    // tentativa não pode repetir o que já foi gravado. Por isso cada
+    // sucesso atualiza o estado EM MEMÓRIA na hora: o excluído sai da
+    // lista (senão a retentativa tentaria excluir de novo), e o criado
+    // ganha o `id` que o banco devolveu (senão a retentativa criaria
+    // duplicado em vez de atualizar).
     for (const d of DIAS) {
-      for (const l of estado.dias[d.n]) {
+      for (const l of [...estado.dias[d.n]]) {
         const payload = {
           servidor_id: estado.servidor.id,
           unidade_id: estado.unidadeId,
@@ -135,16 +140,22 @@ async function salvar(e) {
           fim: l.fim,
           obs: l.obs.trim() || null,
         };
-        if (l.excluir && l.id) await excluirBloco(l.id);
-        else if (l.id) await atualizarBloco(l.id, payload);
-        else if (!l.excluir) await criarBloco(payload);
+        if (l.excluir && l.id) {
+          await excluirBloco(l.id);
+          estado.dias[d.n] = estado.dias[d.n].filter(x => x !== l);
+        } else if (l.id) {
+          await atualizarBloco(l.id, payload);
+        } else if (!l.excluir) {
+          const novo = await criarBloco(payload);
+          l.id = novo.id;
+        }
       }
     }
     fecharDrawer();
     await estado.recarregar();
     toast({ titulo: 'Jornada salva', texto: estado.servidor.nome, tipo: 'sucesso' });
   } catch (err) {
-    toast({ titulo: 'Não foi possível salvar a jornada', texto: err.message || String(err), tipo: 'erro' });
+    reportarErro(err, { msg, titulo: 'Não foi possível salvar a jornada' });
     btn.disabled = false; btn.textContent = 'Salvar jornada';
   }
 }
