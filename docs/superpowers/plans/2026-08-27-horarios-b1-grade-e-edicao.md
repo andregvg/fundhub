@@ -137,8 +137,14 @@ create table if not exists cargo_gestao (
   criado_em  timestamptz not null default now()
 );
 
+-- Os TRES rotulos canonicos, e so eles. Sao os que a migration 023
+-- produz (linhas 73-75) e que vinculos.model.js espelha. Nao semear
+-- 'Diretor(a)' nem 'Vice-diretor(a)': nenhuma migration os produz, e
+-- semear rotulo que o banco nao gera pre-aprova cargo que talvez nao
+-- exista. Cargo livre digitado por uma escola e ligado a mao na tela
+-- de equipe gestora (Task 4).
 insert into cargo_gestao (cargo) values
-  ('Diretor(a)'), ('Vice-diretor(a)'), ('Coordenador(a)'), ('Supervisor(a)')
+  ('Gestor(a)'), ('Coordenador(a)'), ('Supervisor(a)')
 on conflict (cargo) do nothing;
 
 -- ── Exibição e cobertura por escola ──────────────────────────
