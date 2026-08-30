@@ -452,7 +452,7 @@ git commit -m "feat(horarios): validacao devolve o intervalo da divergencia"
 - Produces:
   - `empilhar(blocos) => Array<{ bloco, faixa: number }>` - `faixa` é 0-based;
   - `contarFaixas(blocos) => number`;
-  - `ordenarParaGrade(servidores, { exibicao, cargosGestao, cargoDe }) => Array<{ servidor, ordem, contaCobertura, exibir, serie }>` - `serie` é 0..5, a posição módulo 6.
+  - `ordenarParaGrade(servidores, { exibicao, cargosGestao, cargoDe }) => Array<{ servidor, ordem, contaCobertura, exibir, serie }>` - `serie` é `number | null`: 0..5 (posição módulo 6, só entre quem tem `exibir: true`) para quem aparece na grade, `null` para quem não aparece - contar sobre a lista inteira daria cor errada a gente visível quando houvesse gente oculta entre elas (achado da revisão da Task 3).
 
 - [ ] **Step 1: Escrever os testes que falham**
 
