@@ -36,7 +36,9 @@ days*, *rotation days*, *day patterns*:
 > O horário não é escrito contra **datas**. É escrito contra **nomes de dia**.
 > E o **calendário** é quem diz, para cada data real, qual nome ela tem.
 
-Aqui esses nomes se chamam **escalas**: `normal`, `tdc-a`, `tdc-b`. Resolver a
+Aqui esses nomes se chamam **escalas**. `normal` é fixo no código (é o fallback);
+as escalas de TDC nascem como `tdc-presencial`/`tdc-virtual`, mas são um catálogo
+editável, não uma lista travada - ver D2. Resolver a
 jornada de uma data vira consulta, não inferência:
 
 ```
@@ -117,14 +119,49 @@ Um `boolean` ou um simples `null` não distinguiria "não decidiram nada" de
 "decidiram que não tem". Essa distinção é o que permite uma escola cancelar seu
 TDC sem que o calendário da rede a arraste de volta.
 
-**Vocabulário:** `normal`, `tdc-a`, `tdc-b`. É coluna `text` e não `enum` porque
-o vocabulário vai crescer (recesso, plantão, sábado letivo) e migrar `enum` no
-Postgres é caro. A validação do conjunto vive na aplicação, onde é barata de
-mudar; o banco garante só que a coluna existe e não é nula em `horario_bloco`.
+**Vocabulário:** coluna `text`, não `enum`, nas três tabelas de escala - decisão
+que já vinha da migration 024 e que se provou certa antes mesmo do plano B-2
+começar: dos seis ofícios reais de horário de gestão lidos para este projeto,
+cinco seguem o mesmo padrão de rede (1ª quarta do mês = TDC presencial, 3ª
+quarta = TDC virtual, com um gestor em jornada quase normal e o outro em
+jornada estendida), mas o **sexto** já é diferente - uma escola sem a segunda
+quarta, tratada pelo mecanismo de cancelamento que a `escala_unidade` já
+provê (ver acima), sem precisar de nenhuma mudança de modelo. Se o schema
+tivesse travado em `enum('tdc-a','tdc-b')`, esse sexto caso teria custado uma
+migração; sendo `text`, custou zero.
+
+**Os RÓTULOS são um catálogo editável, não uma lista no código** -
+`escala_tipo(chave, rotulo, ordem)`, migration 025. A razão é a mesma dos
+ofícios: o formato de TDC muda a cada calendário escolar (a Secretaria pode
+decidir, ano que vem, chamar de outra coisa, ou ter uma terceira variante),
+e travar os rótulos no código obrigaria a um deploy toda vez que isso
+acontecesse. `normal` nasce semeado e é a única chave que o **código**
+depende do valor literal (`escolherBlocos`/`resolverEscala` usam a string
+`'normal'` como fallback) - por isso a tela de admin não oferece excluí-la,
+embora o rótulo dela, como o de qualquer outra, possa ser editado. **A chave
+em si é imutável depois de criada** - é o que fica gravado em
+`horario_bloco.escala`, sem FK e sem cascata de renomeação; só o rótulo e a
+ordem mudam. Adicionar uma variante nova (uma terceira escala de TDC, por
+exemplo) é só uma linha nova no catálogo.
 
 **Fallback para `normal`** é o que torna a mudança invisível para quem não
 precisa dela: os ~140 gestores sem jornada alternativa não ganham nenhum
 registro novo e continuam com a jornada de sempre em dia de TDC.
+
+### D2b - Fora de escopo, por decisão explícita: revezamento semanal
+
+Um dos seis ofícios mostra um terceiro tipo de variação que o modelo de
+escala **não cobre**: em semanas sem TDC, a divisão de horário entre os dois
+gestores alterna **toda semana**, independente de qualquer data de TDC. Isso
+não é "que dia é hoje" (o que `escala` resolve) - é "de quem é a vez esta
+semana", um eixo diferente que o calendário não tem como expressar hoje.
+
+Decisão do André (30/08/2026): fica de fora do B-2. Construir revezamento
+semana-a-semana para uma escola, sem saber se é prática isolada ou algo que a
+Secretaria vai querer generalizar, é gastar complexidade num caso que a
+própria formalização da Portaria SME nº 05/2024 (citada em todos os seis
+ofícios) pode acabar eliminando por norma. Fica registrado aqui para quando
+a pergunta voltar - e se voltar, é modelo novo, não extensão de `escala`.
 
 ### D3 - Exibição e cobertura por escola
 
