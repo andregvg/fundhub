@@ -34,6 +34,9 @@ create table if not exists escala_unidade (
   criado_em  timestamptz not null default now(),
   primary key (unidade_id, data)
 );
+-- A PK já serve "o que esta escola remarcou"; falta o outro sentido da
+-- pergunta: "quais escolas remarcaram o TDC nesta data".
+create index if not exists idx_escala_unidade_data on escala_unidade(data);
 
 -- ── Escala de um bloco de jornada ────────────────────────────
 alter table horario_bloco add column if not exists escala text not null default 'normal';
@@ -52,8 +55,14 @@ create table if not exists cargo_gestao (
   criado_em  timestamptz not null default now()
 );
 
+-- Os TRÊS rótulos canônicos, e só eles. São os que a migration 023
+-- produz (linhas 73-75) e que vinculos.model.js espelha. Não semear
+-- 'Diretor(a)' nem 'Vice-diretor(a)': nenhuma migration os produz, e
+-- semear rótulo que o banco não gera pré-aprova cargo que talvez não
+-- exista. Cargo livre digitado por uma escola é ligado à mão na tela
+-- de equipe gestora.
 insert into cargo_gestao (cargo) values
-  ('Diretor(a)'), ('Vice-diretor(a)'), ('Coordenador(a)'), ('Supervisor(a)')
+  ('Gestor(a)'), ('Coordenador(a)'), ('Supervisor(a)')
 on conflict (cargo) do nothing;
 
 -- ── Exibição e cobertura por escola ──────────────────────────
@@ -73,6 +82,10 @@ create table if not exists horario_exibicao (
   primary key (unidade_id, servidor_id)
 );
 create index if not exists idx_horario_exibicao_uni on horario_exibicao(unidade_id, ordem);
+-- FK com `on delete cascade` sem índice faz varredura sequencial a cada
+-- servidor apagado; e é este o caminho de "em que escolas este servidor
+-- aparece".
+create index if not exists idx_horario_exibicao_srv on horario_exibicao(servidor_id);
 
 -- ── RLS ──────────────────────────────────────────────────────
 alter table escala_unidade   enable row level security;
