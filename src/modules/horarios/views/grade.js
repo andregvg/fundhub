@@ -26,12 +26,16 @@ export const selecionado = () => sel;
 const posDoIntervalo = (ini, fim) =>
   posicaoNaBarra({ inicio: paraHora(ini), fim: paraHora(fim) });
 
+// `podeEditar` só libera o lápis por enquanto. Arrastar para reordenar
+// e o checkbox de cobertura são Task 9 - renderizar `draggable`/
+// `.arrastavel` ou o checkbox habilitado antes de existir handler
+// seria affordance sem comportamento (o checkbox é o pior caso: a
+// pessoa desmarca, a UI confirma, nada é gravado). Ver rodada de
+// correção 1 da Task 7.
 export function legendaHtml(linhas, { podeEditar }) {
   return `<div class="hg-legenda" id="hg-legenda">
     ${linhas.map(l => `
-      <div class="hg-chip serie-${l.serie + 1} ${podeEditar ? 'arrastavel' : ''}"
-           data-servidor="${esc(l.servidor.id)}" ${podeEditar ? 'draggable="true"' : ''}>
-        ${podeEditar ? `<span class="hg-pega" aria-hidden="true">${ico('arrastar', { tam: 14 })}</span>` : ''}
+      <div class="hg-chip serie-${l.serie + 1}" data-servidor="${esc(l.servidor.id)}">
         <span class="hg-cor" aria-hidden="true"></span>
         <span class="hg-nome">${esc(l.servidor.nome)}</span>
         <span class="hg-cargo">${esc(l.cargo)}</span>
@@ -39,7 +43,7 @@ export function legendaHtml(linhas, { podeEditar }) {
              aria-label="Editar jornada de ${esc(l.servidor.nome)}">${ico('editar', { tam: 14 })}</button>` : ''}
         <label class="switch radio hg-cob" title="Conta na cobertura da escola">
           <input type="checkbox" data-cobertura="${esc(l.servidor.id)}"
-                 ${l.contaCobertura ? 'checked' : ''} ${podeEditar ? '' : 'disabled'} />
+                 ${l.contaCobertura ? 'checked' : ''} disabled />
           <span class="switch-trilho" aria-hidden="true"></span>
           <span class="switch-txt">cobertura</span>
         </label>
@@ -87,7 +91,7 @@ export function gradeHtml(dias, { linhas, blocosDe, mostrarCobertura }) {
       ? `<div class="hg-cobertura">${lacunas.map(l => {
           const pos = posDoIntervalo(l.ini, l.fim);
           return `<span class="hg-lacuna" style="left:${pos.esquerda}%;width:${pos.largura}%"
-            title="Sem ninguém entre ${paraHora(l.ini)} e ${paraHora(l.fim)}"></span>`;
+            title="Sem ninguém entre ${esc(paraHora(l.ini))} e ${esc(paraHora(l.fim))}"></span>`;
         }).join('')}</div>`
       : '';
 
@@ -114,6 +118,9 @@ function eixo() {
 // distinguir quando alguém está procurando alguém.
 export function ligarSelecao(root) {
   root.addEventListener('click', (e) => {
+    // O lápis e o checkbox moram dentro do .hg-chip - sem esta guarda,
+    // clicar neles também selecionaria o servidor de carona.
+    if (e.target.closest('[data-editar],[data-cobertura]')) return;
     const barra = e.target.closest('.hg-bloco');
     const chip = e.target.closest('.hg-chip');
     const alvo = barra?.dataset.servidor || chip?.dataset.servidor || null;
@@ -125,7 +132,17 @@ export function ligarSelecao(root) {
 
 function aplicar(root, id) {
   sel = id;
-  root.classList.toggle('tem-selecao', Boolean(id));
+  reaplicarSelecao(root);
+}
+
+// `corpo.innerHTML` é reconstruído a cada `carregar()`, mas `sel`
+// (module-level) sobrevive - sem reaplicar depois de repintar, a
+// classe `tem-selecao` fica na raiz sem nenhum `.sel` correspondente
+// nos filhos recém-criados, e a grade inteira fica esmaecida sem
+// ninguém destacado. Chamar depois de repintar; nunca limpar aqui -
+// preserva quem a pessoa estava procurando através da recarga.
+export function reaplicarSelecao(root) {
+  root.classList.toggle('tem-selecao', Boolean(sel));
   root.querySelectorAll('[data-servidor]').forEach(el =>
-    el.classList.toggle('sel', el.dataset.servidor === id));
+    el.classList.toggle('sel', el.dataset.servidor === sel));
 }

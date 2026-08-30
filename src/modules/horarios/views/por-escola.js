@@ -27,7 +27,7 @@ import { loading, emptyState, erroBox, reportarErro } from '../../../shared/ui/f
 import { criarBuscaSelecao } from '../../../shared/ui/busca-selecao.js';
 import { criarFiltroSegmento, indexarUnidades } from '../../../shared/ui/filtro-segmento.js';
 import { drawerHead, abrirDrawer } from '../../../shared/ui/drawer.js';
-import { gradeHtml, legendaHtml, ligarSelecao } from './grade.js';
+import { gradeHtml, legendaHtml, ligarSelecao, reaplicarSelecao } from './grade.js';
 // abrirJornada (Task 8, views/jornada.js) ainda não existe - o lápis
 // do chip abre um editor provisório que reaproveita formBloco/linhaDia
 // (abaixo). Task 8 troca abrirEdicaoServidor por abrirJornada.
@@ -48,7 +48,13 @@ export async function renderPorEscola(box, ctx) {
     ultimoParam = ctx.unidadeId;
   }
 
+  // `destruir()` só remove o listener de `document` da instância -
+  // não invalida a variável. Sem zerar aqui, `montarBusca()` acha
+  // `busca` "verdadeiro" e pinta a árvore ANTIGA (já desanexada) em
+  // vez de montar uma instância nova no `#h-uni-box` recém-criado
+  // abaixo. É o que quebrava o seletor ao trocar de aba e voltar.
   busca?.destruir();
+  busca = null;
   box.innerHTML = `
     <div class="toolbar">
       <div id="h-uni-box"></div>
@@ -146,6 +152,11 @@ async function carregar() {
     + legendaHtml(linhas, { podeEditar: ctxAtual.podeEditar })
     + gradeHtml(DIAS, { linhas, blocosDe, mostrarCobertura })
     + naoExibidosHtml(fora);
+  // `corpo.innerHTML` acabou de ser reconstruído - sem isto, quem
+  // estava selecionado (ex.: editou a jornada pelo lápis, que seleciona
+  // de carona) fica com `tem-selecao` na raiz e nenhum `.sel` nos
+  // filhos novos, e a grade inteira aparece esmaecida.
+  reaplicarSelecao(corpo);
 }
 
 const blocosDe = (servidorId, dia) =>
