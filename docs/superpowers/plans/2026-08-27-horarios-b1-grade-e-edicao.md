@@ -10,7 +10,26 @@
 
 **Spec:** [`docs/superpowers/specs/2026-08-27-horarios-escalas-grade-design.md`](../specs/2026-08-27-horarios-escalas-grade-design.md)
 
-**Depende de:** o plano `2026-08-27-sistema-visual.md`, concluído. Este plano usa `ico()`, `toast()`, `vazio()` e `.switch` como se já existissem.
+**Depende de:** o plano `2026-08-27-sistema-visual.md`, **concluído e entregue (v0.12.0)**.
+
+## O vocabulário que o plano visual deixou pronto - use, não reinvente
+
+Este plano foi escrito antes daquele rodar, e a varredura de pré-voo corrigiu
+dois conflitos (as duas `@media (max-width:)` e o erro de gravação indo de
+`toast`). O que existe hoje e que você **deve** usar:
+
+| Em vez de | Use | De onde |
+|---|---|---|
+| emoji | `ico(nome, { tam })` | `shared/ui/icones.js` - 52 traçados; nome inexistente devolve string vazia **em silêncio**, então confira o objeto `TRACOS` antes de inventar nome |
+| `toast(...)` para erro de gravação | `reportarErro(err, { msg, titulo })` | `shared/ui/feedback.js` - decide inline vs. toast pelo código do Postgres |
+| `'—'` como campo vazio | `vazio('mensagem específica')` | `shared/dom.js` - e a mensagem **não** pode ser "não informado", que é a genérica que a spec proíbe |
+| `checkbox`/`radio` cru | `.switch` (e `.switch.radio`) | `styles/components.css` |
+| cache solto no model | `registrarCache(limpar)` | `shared/cache.js` - senão o botão Atualizar não alcança |
+| `toast({ tipo: 'no' })` | `tipo: 'erro'` | vocabulário semântico: `sucesso`/`atencao`/`erro`/`info` |
+
+Model que traduz erro do Postgres para português marca `err.code` **e**
+`err.amigavel = true` - sem o segundo, `reportarErro` mostra a frase genérica
+em vez da sua. Ver `servidores/vinculos.model.js` como referência.
 
 ## Global Constraints
 
@@ -734,7 +753,7 @@ export async function abrirCargos({ recarregar }) {
       await recarregar();
     } catch (err) {
       inp.checked = !inp.checked;      // desfaz o que o banco recusou
-      toast({ titulo: 'Não foi possível salvar', texto: err.message || String(err), tipo: 'erro' });
+      reportarErro(err, { titulo: 'Não foi possível salvar' });
     } finally { inp.disabled = false; }
   });
 }
@@ -1368,7 +1387,7 @@ function naoExibidosHtml(fora) {
 .serie-6 { --serie: var(--serie-6); }
 
 .hg-grade { display: flex; flex-direction: column; gap: 10px; }
-.hg-linha { display: grid; grid-template-columns: 38px 1fr 92px; align-items: start; gap: 8px; }
+.hg-linha { display: grid; grid-template-columns: 30px 1fr; align-items: start; gap: 8px; }
 .hg-dia { padding-top: 4px; color: var(--muted); font-size: 12px; font-weight: 700; }
 .hg-track { position: relative; border-radius: 8px; background: var(--surface-2); }
 .hg-bloco {
@@ -1410,10 +1429,18 @@ function naoExibidosHtml(fora) {
 .hg-marca i { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--border); }
 .hg-marca em { position: absolute; top: -14px; color: var(--muted); font-size: 10px; font-style: normal; }
 
-@media (max-width: 719px) {
-  .hg-linha { grid-template-columns: 30px 1fr; }
-  .hg-info { grid-column: 2; text-align: left; }
-  .hg-grade { overflow-x: auto; }
+/* Base = celular: duas colunas, o total desce para baixo da barra e a
+   grade rola na horizontal. A partir de 720px cabe a terceira coluna.
+   Mobile-first de verdade (.claude/rules/ui.md): `min-width` ACRESCENTA.
+   Nao existe nenhuma `@media (max-width:)` em todo o src/ - nao crie a
+   primeira. */
+.hg-info { grid-column: 2; text-align: left; }
+.hg-grade { overflow-x: auto; }
+
+@media (min-width: 720px) {
+  .hg-linha { grid-template-columns: 38px 1fr 92px; }
+  .hg-info { grid-column: auto; text-align: right; }
+  .hg-grade { overflow-x: visible; }
 }
 ```
 
@@ -1627,15 +1654,20 @@ grep -rn "bloco.js\|formBloco" src/
 .hj-dia legend { display: flex; align-items: baseline; gap: 8px; }
 .hj-total { color: var(--muted); font-size: 12px; font-weight: 400; }
 .hj-linhas { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
-.hj-linha { display: grid; grid-template-columns: auto auto auto 1fr auto; align-items: center; gap: 6px; }
+.hj-linha { display: grid; grid-template-columns: 1fr 1fr auto; align-items: center; gap: 6px; }
 .hj-ate { color: var(--muted); font-size: 12px; }
 .hj-prob { display: flex; align-items: center; gap: 6px; margin: 6px 0 0; font-size: 12.5px; }
 .hj-prob.n-erro { color: var(--danger); }
 .hj-prob.n-aviso { color: var(--accent); }
-@media (max-width: 559px) {
-  .hj-linha { grid-template-columns: 1fr 1fr auto; }
-  .hj-ate { display: none; }
-  .hj-obs { grid-column: 1 / -1; }
+/* Base = celular: inicio e fim lado a lado, o "as" escondido e a
+   observacao numa linha propria. A partir de 560px tudo cabe em uma. */
+.hj-ate { display: none; }
+.hj-obs { grid-column: 1 / -1; }
+
+@media (min-width: 560px) {
+  .hj-linha { grid-template-columns: auto auto auto 1fr auto; }
+  .hj-ate { display: inline; }
+  .hj-obs { grid-column: auto; }
 }
 ```
 
@@ -1701,7 +1733,7 @@ function ligarArrasto(box) {
       toast({ titulo: 'Ordem salva', tipo: 'sucesso' });
       await carregar();
     } catch (err) {
-      toast({ titulo: 'Não foi possível salvar a ordem', texto: err.message || String(err), tipo: 'erro' });
+      reportarErro(err, { titulo: 'Não foi possível salvar a ordem' });
       await carregar();      // desfaz o que o banco recusou
     }
   });
@@ -1719,7 +1751,7 @@ function ligarArrasto(box) {
       await carregar();
     } catch (err) {
       inp.checked = !inp.checked;
-      toast({ titulo: 'Não foi possível salvar', texto: err.message || String(err), tipo: 'erro' });
+      reportarErro(err, { titulo: 'Não foi possível salvar' });
     } finally { inp.disabled = false; }
   });
 ```
@@ -1744,7 +1776,7 @@ Na barra acima da legenda, só quando `podeEditar` e quando houver alguma linha 
       toast({ titulo: 'Ordem restaurada', tipo: 'sucesso' });
       await carregar();
     } catch (err) {
-      toast({ titulo: 'Não foi possível restaurar', texto: err.message || String(err), tipo: 'erro' });
+      reportarErro(err, { titulo: 'Não foi possível restaurar' });
     }
   });
 ```
