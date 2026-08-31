@@ -13,7 +13,7 @@
 // ============================================================
 import { gerarPropostaTDC, getEscalasRede, getEscalasUnidade, definirEscalaRede,
   definirEscalaUnidade, limparEscalaUnidade, getCalendarioMes } from '../calendario.model.js';
-import { getEscalas, definirEscalaTipo, rotulaEscala } from '../../horarios/escalas.model.js';
+import { getEscalas, definirEscalaTipo, rotulaEscala, ESCALAS_PADRAO } from '../../horarios/escalas.model.js';
 import { getLocais } from '../../escolas/escolas.model.js';
 import { esc } from '../../../shared/dom.js';
 import { fmtData, fmtExtenso, hojeISO } from '../../../shared/format.js';
@@ -27,9 +27,12 @@ import { loading, emptyState, erroBox } from '../../../shared/ui/feedback.js';
 const anoAtual = () => Number(hojeISO().slice(0, 4));
 
 // Sentinela do <select> da visão Escola para "cancelado" (escala nula
-// gravada em escala_unidade) - nunca colide com uma chave de verdade,
-// porque a chave só aceita [a-z0-9-]+ (sem "_") na criação de um tipo.
-const CANCELADO = '_cancelado';
+// gravada em escala_unidade). Não precisa ser uma chave "impossível de
+// digitar" no formulário - quem garante de verdade que uma chave real
+// nunca colide com isto é o CHECK da migration 025
+// (`chave = lower(btrim(chave)) and chave <> ''`, sem espaço em branco
+// e sempre minúsculo); o `pattern` do formulário é só UX (R15).
+const CANCELADO = '__CANCELADO__';
 
 let unidadeId = '';     // '' = visão da rede
 let ano = anoAtual();
@@ -37,16 +40,12 @@ let proposta = null;    // [{ data, escala }] enquanto está sendo editada
 let ctxAtual = null;
 let catalogo = [];      // getEscalas() - rótulos vêm daqui, nunca de ESCALAS_PADRAO direto
 let busca = null;       // instância de criarBuscaSelecao - destruída a cada reentrada na aba
+let geracao = 0;        // token de reentrância - ver renderEscalas
 
 export async function renderEscalas(box, ctx) {
+  const minhaGeracao = ++geracao;
   ctxAtual = ctx;
   proposta = null;
-  // `destruir()` só remove o listener de `document` da instância anterior
-  // - sem isso, trocar de aba e voltar empilha um listener de clique-fora
-  // por reentrada (o mesmo bug que travou o seletor da gaveta de jornada
-  // no B-1).
-  busca?.destruir();
-  busca = null;
 
   box.innerHTML = `
     <div class="toolbar">
@@ -64,11 +63,28 @@ export async function renderEscalas(box, ctx) {
 
   // O catálogo é carregado uma vez por abertura da tela; carregar()
   // e pintarProposta() leem `catalogo`, nunca ESCALAS_PADRAO direto -
-  // senão um rótulo renomeado pelo admin não apareceria aqui.
-  catalogo = await getEscalas().catch(() => []);
+  // senão um rótulo renomeado pelo admin não apareceria aqui. Uma
+  // falha de rede isolada (não a degradação 42P01 que getEscalas() já
+  // trata) cai no mesmo padrão dos três de sempre - nunca em `[]`, que
+  // deixaria cada <select> da visão Rede com só a opção "Sem escala"
+  // e um clique acidental apagaria a escala da rede inteira.
+  catalogo = await getEscalas().catch(() => [...ESCALAS_PADRAO]);
+  // Entre este e o próximo `await`, outra reentrada (troca de aba de
+  // volta antes deste resolver) pode ter religado os mesmos ids -
+  // quem chegar por último ganha; os demais desistem aqui.
+  if (minhaGeracao !== geracao) return;
   document.getElementById('cal-esc-tipos')?.addEventListener('click', abrirTiposEscala);
 
   const locais = await getLocais().catch(() => []);
+  if (minhaGeracao !== geracao) return;
+  // `destruir()` só remove o listener de `document` da instância
+  // anterior - destruir bem aqui, síncrono com a criação logo abaixo,
+  // garante que mesmo com reentrada quem chega por último sempre
+  // destrói o que estava lá antes de instalar o seu (sem isso, trocar
+  // de aba e voltar empilharia um listener de clique-fora por
+  // reentrada - o mesmo bug que travou o seletor da gaveta de jornada
+  // no B-1).
+  busca?.destruir();
   busca = criarBuscaSelecao(document.getElementById('cal-esc-uni'), {
     opcoes: [{ id: '', rotulo: 'Toda a rede', detalhe: 'calendário oficial' }].concat(
       [...locais].sort((a, b) => a.nome.localeCompare(b.nome, 'pt'))
@@ -79,7 +95,9 @@ export async function renderEscalas(box, ctx) {
   });
 
   document.getElementById('cal-esc-ano').addEventListener('change', (e) => {
-    ano = Number(e.target.value) || anoAtual(); proposta = null; carregar();
+    const v = Math.min(2099, Math.max(2020, Number(e.target.value) || anoAtual()));
+    e.target.value = v;
+    ano = v; proposta = null; carregar();
   });
   document.getElementById('cal-esc-gerar')?.addEventListener('click', gerar);
 
@@ -89,6 +107,7 @@ export async function renderEscalas(box, ctx) {
 async function carregar() {
   const dica = document.getElementById('cal-esc-dica');
   const corpo = document.getElementById('cal-esc-corpo');
+  if (!dica || !corpo) return;   // aba/rota trocou antes de chegar aqui
   dica.textContent = unidadeId
     ? 'O que estiver "seguindo a rede" muda junto com o calendário oficial. O que for remarcado ou cancelado vale só para esta escola.'
     : 'As datas abaixo valem para toda a rede. Cada escola pode remarcar ou cancelar as suas.';
@@ -103,14 +122,15 @@ async function carregar() {
         getEscalasRede(de, ate), getEscalasUnidade(unidadeId, de, ate)]);
       pintarEscola(rede, unidade);
     }
-  } catch (err) { corpo.innerHTML = erroBox(err); }
+  } catch (err) { if (document.getElementById('cal-esc-corpo')) corpo.innerHTML = erroBox(err); }
 }
 
 function pintarRede(rows) {
   const corpo = document.getElementById('cal-esc-corpo');
+  if (!corpo) return;
   if (!rows.length) {
     corpo.innerHTML = emptyState(ico('calendario', { tam: 32 }), 'Nenhuma data de TDC',
-      'Gere a proposta do ano acima ou cadastre as datas manualmente.');
+      ctxAtual.podeEditar ? 'Gere a proposta do ano acima para começar.' : 'Nenhuma data de TDC cadastrada.');
     return;
   }
   corpo.innerHTML = `
@@ -149,6 +169,7 @@ async function salvarRede(select) {
 //   linha com escala nula            → "Cancelado" (vence a rede).
 function pintarEscola(rede, unidade) {
   const corpo = document.getElementById('cal-esc-corpo');
+  if (!corpo) return;
   const redeMap = new Map(rede.map(r => [r.data, r.escala]));
   const uniMap = new Map(unidade.map(r => [r.data, r.escala]));
   const datas = [...new Set([...redeMap.keys(), ...uniMap.keys()])].sort();
@@ -218,6 +239,7 @@ async function gerar() {
 
 function pintarProposta() {
   const corpo = document.getElementById('cal-esc-corpo');
+  if (!corpo) return;
   if (!proposta.length) {
     corpo.innerHTML = emptyState(ico('calendario', { tam: 32 }), 'Nenhuma data proposta',
       'Nenhuma quarta-feira letiva foi encontrada neste ano.');
@@ -307,9 +329,11 @@ function abrirTiposEscala() {
       <div id="et-lista"></div>
       <form id="et-novo" class="esc-row">
         <input id="et-chave" placeholder="chave (ex.: tdc-c)" required
-               pattern="[a-z0-9-]+" title="letras minúsculas, números e hífen" />
-        <input id="et-rotulo" placeholder="rótulo (ex.: TDC C)" required />
-        <button type="submit" class="mini-btn">${ico('adicionar', { tam: 14 })}</button>
+               pattern="[a-z0-9]+(-[a-z0-9]+)*" title="letras minúsculas, números e hífen"
+               aria-label="Chave do novo tipo de escala" />
+        <input id="et-rotulo" placeholder="rótulo (ex.: TDC C)" required
+               aria-label="Rótulo do novo tipo de escala" />
+        <button type="submit" class="mini-btn" aria-label="Criar tipo de escala">${ico('adicionar', { tam: 14 })}</button>
       </form>
     </div>`);
   pintarTipos();
@@ -335,9 +359,11 @@ async function renomear(chave, rotulo) {
     await definirEscalaTipo(chave, { rotulo });
     catalogo = await getEscalas();
     toast({ titulo: 'Rótulo atualizado', texto: rotulo, tipo: 'sucesso' });
-    // Se a tabela de proposta (ou uma das visões) estava aberta atrás da
-    // gaveta, reflete o rótulo novo assim que a pessoa fechar.
-    if (proposta) pintarProposta();
+    // Se a proposta estava aberta atrás da gaveta, reflete o rótulo novo
+    // nela; senão, atualiza a tabela "do que já está gravado" (rede ou
+    // escola) - as duas leem `catalogo` direto e ficariam com o rótulo
+    // velho até a próxima troca de aba/unidade/ano sem isto.
+    if (proposta) pintarProposta(); else carregar();
   } catch (err) {
     toast({ titulo: 'Não foi possível renomear', texto: err.message || String(err), tipo: 'erro' });
     pintarTipos();                                // desfaz visualmente
@@ -355,6 +381,10 @@ async function criarTipo(e) {
     document.getElementById('et-chave').value = '';
     document.getElementById('et-rotulo').value = '';
     pintarTipos();
+    // Mesmo raciocínio de renomear(): a tabela de fundo (proposta ou
+    // "o que já está gravado") lê `catalogo` direto e precisa repintar
+    // para a chave nova aparecer nos <select>.
+    if (proposta) pintarProposta(); else carregar();
     toast({ titulo: 'Tipo de escala criado', texto: rotulo, tipo: 'sucesso' });
   } catch (err) {
     toast({ titulo: 'Não foi possível criar', texto: err.message || String(err), tipo: 'erro' });

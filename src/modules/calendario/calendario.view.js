@@ -58,10 +58,17 @@ function pintarAbas() {
   });
 }
 
-function renderAba() {
+async function renderAba() {
   const corpo = document.getElementById('cal-corpo');
-  if (aba === 'escalas') renderEscalas(corpo, { perfil, podeEditar: perfil?.isAdmin });
-  else renderDias(corpo);
+  if (aba === 'escalas') {
+    // A tela de escalas tem os próprios `await` (catálogo, locais) - um
+    // erro que escape deles não pode ficar sem tratamento aqui, senão
+    // vira um "unhandled rejection" mudo e a aba trava carregando.
+    await renderEscalas(corpo, { perfil, podeEditar: perfil?.isAdmin })
+      .catch(err => { corpo.innerHTML = erroBox(err); });
+  } else {
+    renderDias(corpo);
+  }
 }
 
 function renderDias(corpo) {
@@ -94,11 +101,17 @@ function mover(delta) {
 }
 
 async function carregar() {
-  document.getElementById('cal-titulo').textContent = `${MESES[mes - 1]} de ${ano}`;
+  if (aba !== 'dias') return;
+  const titulo = document.getElementById('cal-titulo');
   const grid = document.getElementById('cal-grid');
+  if (!titulo || !grid) return;
+  titulo.textContent = `${MESES[mes - 1]} de ${ano}`;
   let lista = [];
   try { lista = await getCalendarioMes(ano, mes); }
-  catch (err) { grid.innerHTML = erroBox(err); return; }
+  catch (err) { if (aba === 'dias' && document.getElementById('cal-grid')) grid.innerHTML = erroBox(err); return; }
+  // A aba pode ter trocado (ou a rota mudado) enquanto o await estava
+  // pendente - #cal-grid pode nem existir mais nesse ponto.
+  if (aba !== 'dias' || !document.getElementById('cal-grid')) return;
   dias = {};
   lista.forEach(d => { dias[d.data] = d; });
   pintar();
@@ -106,6 +119,7 @@ async function carregar() {
 
 function pintar() {
   const grid = document.getElementById('cal-grid');
+  if (!grid) return;
   const primeiro = new Date(ano, mes - 1, 1).getDay();     // 0 = domingo
   const totalDias = new Date(ano, mes, 0).getDate();
   const hoje = hojeISO();
