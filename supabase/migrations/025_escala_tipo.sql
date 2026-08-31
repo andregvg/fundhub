@@ -13,10 +13,20 @@
 -- valor literal (escolherBlocos/resolverEscala usam a string
 -- 'normal' como fallback) - por isso a tela de admin não oferece
 -- excluí-la. O rótulo dela, como o de qualquer outra, pode mudar.
+--
+-- O vocabulário inicial mudou de 'tdc-a'/'tdc-b' (citado no comentário
+-- da 024) para 'tdc-presencial'/'tdc-virtual' - são estes dois que
+-- ficam semeados abaixo e que o código usa. A 024 já rodou em
+-- produção e não é alterada; esta linha é só para quem lê as
+-- migrations em ordem não estranhar a divergência.
 -- ============================================================
 
 create table if not exists escala_tipo (
-  chave      text primary key,
+  -- Chave normalizada pelo próprio banco: minúscula, sem espaço nas
+  -- pontas, nunca vazia. Sem isso um admin salvando '' ou ' TDC ' cria
+  -- uma chave-fantasma que nunca casa com o que está gravado em
+  -- horario_bloco.escala - e a barreira real é o banco, não a tela.
+  chave      text primary key check (chave = lower(btrim(chave)) and chave <> ''),
   rotulo     text not null,
   ordem      int  not null default 0,
   criado_por text,

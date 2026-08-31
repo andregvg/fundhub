@@ -17,7 +17,7 @@
 // import cruzado com horarios.model.js/grade.model.js/exibicao.model.js
 // nos dois sentidos.
 // ============================================================
-import { sb, hasSupabase } from '../../core/supabase.js';
+import { sb, hasSupabase, emailAtual } from '../../core/supabase.js';
 import { registrarCache } from '../../shared/cache.js';
 
 // Fallback SEM banco (teste puro, tela que ainda não carregou o
@@ -35,7 +35,10 @@ export const ESCALAS_PADRAO = [
 // padrão - e por isso os testes deste arquivo não precisam de banco
 // nenhum para continuar valendo.
 export function rotulaEscala(chave, catalogo = ESCALAS_PADRAO) {
-  return catalogo.find(e => e.chave === chave)?.rotulo || String(chave ?? '');
+  // O default só dispara em `undefined`; `catalogo` explicitamente
+  // `null` (o padrão comum de "ainda não carreguei do banco") passa
+  // direto - por isso o `|| ESCALAS_PADRAO` aqui também.
+  return (catalogo || ESCALAS_PADRAO).find(e => e.chave === chave)?.rotulo || String(chave ?? '');
 }
 
 let _escalas = null;
@@ -47,14 +50,17 @@ registrarCache(limparCacheEscalas);
 // sempre, só não deixa renomear até a migration rodar.
 export async function getEscalas() {
   if (_escalas) return _escalas;
-  if (!hasSupabase()) { _escalas = ESCALAS_PADRAO; return _escalas; }
+  // Cópia, nunca a referência: um consumidor que ordenar o resultado
+  // (comum ao montar um <select>) não pode corromper a constante do
+  // módulo pelo resto da sessão do navegador.
+  if (!hasSupabase()) { _escalas = [...ESCALAS_PADRAO]; return _escalas; }
   const { data, error } = await sb().from('escala_tipo')
     .select('chave, rotulo, ordem').order('ordem');
   if (error) {
-    if (error.code === '42P01') { _escalas = ESCALAS_PADRAO; return _escalas; }
+    if (error.code === '42P01') { _escalas = [...ESCALAS_PADRAO]; return _escalas; }
     throw error;
   }
-  _escalas = data?.length ? data : ESCALAS_PADRAO;
+  _escalas = data?.length ? data : [...ESCALAS_PADRAO];
   return _escalas;
 }
 
@@ -66,7 +72,7 @@ export async function getEscalas() {
 export async function definirEscalaTipo(chave, { rotulo, ordem } = {}) {
   if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
   if (!rotulo?.trim()) throw new Error('Informe o rótulo.');
-  const row = { chave, rotulo: rotulo.trim() };
+  const row = { chave, rotulo: rotulo.trim(), criado_por: await emailAtual() };
   if (ordem !== undefined) row.ordem = ordem;
   const { error } = await sb().from('escala_tipo').upsert(row, { onConflict: 'chave' });
   if (error) throw error;
