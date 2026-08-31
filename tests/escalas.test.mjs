@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { resolverEscala, escolherBlocos, diaDaSemana, jornadaEm, rotulaEscala }
   from '../src/modules/horarios/escalas.model.js';
+import { gerarPropostaTDC } from '../src/modules/calendario/calendario.model.js';
 
 // ── resolverEscala ──
 test('sem nada, o dia e normal', () => {
@@ -100,4 +101,51 @@ test('rotulaEscala e pura: aceita um catalogo carregado do banco', () => {
   const catalogo = [{ chave: 'tdc-presencial', rotulo: 'Reuniao Geral' }];
   assert.equal(rotulaEscala('tdc-presencial', catalogo), 'Reuniao Geral');
   assert.equal(rotulaEscala('normal', catalogo), 'normal');   // fora do catalogo passado
+});
+
+// ── gerarPropostaTDC ──
+test('propoe as 1as e 3as quartas de cada mes', () => {
+  const p = gerarPropostaTDC(2026, { naoLetivos: new Set() });
+  const agosto = p.filter(x => x.data.startsWith('2026-08'));
+  // Agosto/2026: quartas em 05, 12, 19, 26. 1a = 05, 3a = 19.
+  assert.deepEqual(agosto.map(x => x.data), ['2026-08-05', '2026-08-19']);
+});
+
+test('alterna as duas escalas padrao ao longo do ano, sem reiniciar a cada mes', () => {
+  const p = gerarPropostaTDC(2026, { naoLetivos: new Set() });
+  assert.deepEqual(p.slice(0, 4).map(x => x.escala),
+    ['tdc-presencial', 'tdc-virtual', 'tdc-presencial', 'tdc-virtual']);
+});
+
+test('a primeira do ano e sempre a primeira chave', () => {
+  assert.equal(gerarPropostaTDC(2026, { naoLetivos: new Set() })[0].escala, 'tdc-presencial');
+});
+
+test('aceita um catalogo de chaves diferente, vindo do banco', () => {
+  // Um ano com tres variantes de TDC em vez de duas - o gerador nao
+  // pode ter 'tdc-presencial'/'tdc-virtual' chumbados.
+  const p = gerarPropostaTDC(2026, { naoLetivos: new Set(), chaves: ['x', 'y', 'z'] });
+  assert.deepEqual(p.slice(0, 4).map(x => x.escala), ['x', 'y', 'z', 'x']);
+});
+
+test('dia nao letivo e pulado, e a alternancia segue na sequencia que sobrou', () => {
+  // Pulando a 1a quarta de agosto, a 3a (19/08) assume a vez dela.
+  const cheio = gerarPropostaTDC(2026, { naoLetivos: new Set() });
+  const vazado = gerarPropostaTDC(2026, { naoLetivos: new Set(['2026-08-05']) });
+  assert.equal(vazado.some(x => x.data === '2026-08-05'), false);
+  assert.equal(vazado.length, cheio.length - 1);
+  const i = cheio.findIndex(x => x.data === '2026-08-05');
+  assert.equal(vazado[i].data, '2026-08-19');
+  assert.equal(vazado[i].escala, cheio[i].escala);
+});
+
+test('so devolve datas do ano pedido, e sempre em ordem', () => {
+  const p = gerarPropostaTDC(2026, { naoLetivos: new Set() });
+  assert.ok(p.every(x => x.data.startsWith('2026-')));
+  const ordenado = [...p].sort((a, b) => a.data.localeCompare(b.data));
+  assert.deepEqual(p, ordenado);
+});
+
+test('devolve 24 datas num ano sem nenhum nao letivo', () => {
+  assert.equal(gerarPropostaTDC(2026, { naoLetivos: new Set() }).length, 24);
 });
