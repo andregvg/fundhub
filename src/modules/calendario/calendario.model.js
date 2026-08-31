@@ -3,10 +3,15 @@
 // Dias do calendário escolar. É a fonte dos BLOQUEIOS de data que o
 // SATE consulta antes de aceitar uma solicitação.
 // ============================================================
-import { sb, hasSupabase } from '../../core/supabase.js';
+import { sb, hasSupabase, emailAtual } from '../../core/supabase.js';
 import { agoraISO } from '../../shared/format.js';
 
 export const TIPOS_DIA = ['calendário escolar', 'evento pedagógico', 'cultural', 'prova', 'feriado'];
+
+// ISO de uma data civil, montado a partir dos componentes locais.
+// NUNCA toISOString(): ele volta um dia à noite no fuso do Brasil.
+const isoDe = (d) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
 // Dias de um mês (ano, mes 1-12).
 export async function getCalendarioMes(ano, mes) {
@@ -54,7 +59,7 @@ function isosDoPeriodo(de, ate) {
   const d = new Date(de + 'T00:00:00');
   const fim = new Date(ate + 'T00:00:00');
   while (d <= fim) {
-    out.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`);
+    out.push(isoDe(d));
     d.setDate(d.getDate() + 1);
   }
   return out;
@@ -86,11 +91,6 @@ export async function upsertDias(rows) {
   return rows.length;
 }
 
-// ISO de uma data civil, montado a partir dos componentes locais.
-// NUNCA toISOString(): ele volta um dia à noite no fuso do Brasil.
-const isoDe = (d) =>
-  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-
 // Proposta de TDC do ano: 1ª e 3ª quartas letivas de cada mês, com as
 // chaves recebidas alternando ao longo do ano inteiro (não reiniciando
 // a cada mês).
@@ -98,9 +98,23 @@ const isoDe = (d) =>
 // É PROPOSTA, nunca gravação direta. A alternância é um chute
 // razoável, não um fato: feriado, recesso e decisão local mudam a
 // sequência, e só uma pessoa sabe qual. O gerador poupa a digitação
-// de duas dezenas de datas; a decisão continua sendo humana.
-export function gerarPropostaTDC(ano, { naoLetivos = new Set(), chaves = ['tdc-presencial', 'tdc-virtual'] } = {}) {
-  if (!chaves.length) return [];
+// de duas dezenas de datas; a decisão continua sendo humana. Por ser
+// proposta editável, um único não letivo removido troca a polaridade
+// de TODAS as datas seguintes (efeito global na alternância, não só
+// local naquele mês) - é o comportamento esperado, não um bug; a tela
+// (Task 3) deixa cada linha ser corrigida à mão antes de gravar.
+//
+// `naoLetivos` aceita Set ou array (normalizado aqui). `chaves` aceita
+// string[] OU o formato cru de getEscalas() ({chave, rotulo, ordem}[]),
+// para poder ser chamada direto com o catálogo do banco sem quem chama
+// precisar mapear `.chave` antes; default e `null`/`undefined`/array
+// vazio caem no par padrão do módulo.
+export function gerarPropostaTDC(ano, { naoLetivos, chaves } = {}) {
+  const nl = naoLetivos instanceof Set ? naoLetivos : new Set(naoLetivos || []);
+  const chavesNorm = (chaves && chaves.length ? chaves : ['tdc-presencial', 'tdc-virtual'])
+    .map(k => (typeof k === 'string' ? k : k?.chave))
+    .filter(Boolean);
+  if (!chavesNorm.length) return [];
   const datas = [];
   for (let mes = 0; mes < 12; mes++) {
     const quartas = [];
@@ -110,15 +124,13 @@ export function gerarPropostaTDC(ano, { naoLetivos = new Set(), chaves = ['tdc-p
       d.setDate(d.getDate() + 1);
     }
     for (const iso of [quartas[0], quartas[2]]) {
-      if (iso && !naoLetivos.has(iso)) datas.push(iso);
+      if (iso && !nl.has(iso)) datas.push(iso);
     }
   }
   // A alternância corre sobre a sequência que SOBROU: se a 1ª quarta
   // caiu num não letivo, a 3ª assume a vez dela. É o comportamento
-  // que a escola espera - o revezamento não "perde a vez". `chaves`
-  // vem do catálogo real (getEscalas(), Task 1) quando quem chama
-  // sabe dele - o padrão de 2 é só o fallback deste arquivo.
-  return datas.map((data, i) => ({ data, escala: chaves[i % chaves.length] }));
+  // que a escola espera - o revezamento não "perde a vez".
+  return datas.map((data, i) => ({ data, escala: chavesNorm[i % chavesNorm.length] }));
 }
 
 // ── Escalas: leitura ─────────────────────────────────────────
@@ -140,7 +152,7 @@ export async function getEscalasUnidade(unidadeId, de, ate) {
     .select('data, escala').eq('unidade_id', unidadeId)
     .gte('data', de).lte('data', ate).order('data');
   if (error) {
-    if (error.code === '42P01') return [];
+    if (['42P01', '42703'].includes(error.code)) return [];
     throw error;
   }
   return data || [];
@@ -161,7 +173,7 @@ export async function definirEscalaRede(dataISO, escala) {
 export async function definirEscalaUnidade(unidadeId, dataISO, escala) {
   if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
   const { error } = await sb().from('escala_unidade')
-    .upsert({ unidade_id: unidadeId, data: dataISO, escala: escala || null },
+    .upsert({ unidade_id: unidadeId, data: dataISO, escala: escala || null, criado_por: await emailAtual() },
             { onConflict: 'unidade_id,data' });
   if (error) throw error;
 }

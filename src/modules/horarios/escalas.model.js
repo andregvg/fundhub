@@ -15,10 +15,14 @@
 // o arquivo original passaria de 250 linhas (R11) com as ~90 linhas
 // destas funções - não por acoplamento com o resto do módulo. Zero
 // import cruzado com horarios.model.js/grade.model.js/exibicao.model.js
-// nos dois sentidos.
+// nos dois sentidos. HÁ, sim, import de calendario/calendario.model.js
+// (getEscalaDoDia reusa a leitura de lá) - module-to-module é
+// permitido pela R2, e não fecha ciclo: calendario.model.js não
+// importa nada de horarios/.
 // ============================================================
 import { sb, hasSupabase, emailAtual } from '../../core/supabase.js';
 import { registrarCache } from '../../shared/cache.js';
+import { getEscalasRede, getEscalasUnidade } from '../calendario/calendario.model.js';
 
 // Fallback SEM banco (teste puro, tela que ainda não carregou o
 // catálogo). A fonte de verdade é getEscalas(), que lê escala_tipo -
@@ -113,21 +117,20 @@ export function jornadaEm(blocos, { escala, dataISO }) {
 }
 
 // A escala de uma data para uma unidade: o override da escola vence o
-// calendário da rede.
+// calendário da rede. Delega a leitura a calendario.model.js (dono das
+// tabelas dia_calendario/escala_unidade) em vez de repetir a query e
+// a política de degradação aqui.
 export async function getEscalaDoDia(unidadeId, dataISO) {
-  if (!hasSupabase() || !dataISO) return 'normal';
+  if (!dataISO) return 'normal';
   const [rede, over] = await Promise.all([
-    sb().from('dia_calendario').select('escala').eq('data', dataISO).maybeSingle(),
-    unidadeId
-      ? sb().from('escala_unidade').select('escala')
-          .eq('unidade_id', unidadeId).eq('data', dataISO).maybeSingle()
-      : Promise.resolve({ data: null, error: null }),
+    getEscalasRede(dataISO, dataISO),
+    unidadeId ? getEscalasUnidade(unidadeId, dataISO, dataISO) : Promise.resolve([]),
   ]);
-  // Coluna ou tabela ausente (migration 024 não rodada) = dia normal.
-  if (rede.error && !['42P01', '42703'].includes(rede.error.code)) throw rede.error;
-  if (over.error && !['42P01', '42703'].includes(over.error.code)) throw over.error;
+  // over.length (não over[0]) distingue "sem linha" (segue a rede) de
+  // "linha com escala nula" (a escola cancelou) - getEscalasUnidade não
+  // filtra por escala not null, então a linha nula continua no array.
   return resolverEscala({
-    rede: rede.data?.escala ?? null,
-    override: over.data ? { escala: over.data.escala } : undefined,
+    rede: rede[0]?.escala ?? null,
+    override: over.length ? { escala: over[0].escala } : undefined,
   });
 }

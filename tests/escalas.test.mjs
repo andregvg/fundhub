@@ -149,3 +149,35 @@ test('so devolve datas do ano pedido, e sempre em ordem', () => {
 test('devolve 24 datas num ano sem nenhum nao letivo', () => {
   assert.equal(gerarPropostaTDC(2026, { naoLetivos: new Set() }).length, 24);
 });
+
+test('aceita chaves no formato cru de getEscalas() ({chave, rotulo}), sem gravar objeto', () => {
+  // getEscalas() devolve {chave, rotulo, ordem}[] - gerarPropostaTDC
+  // precisa normalizar isso para string, senao escala vira [object Object].
+  const catalogo = [
+    { chave: 'normal', rotulo: 'Normal', ordem: 0 },
+    { chave: 'tdc-presencial', rotulo: 'TDC Presencial', ordem: 1 },
+    { chave: 'tdc-virtual', rotulo: 'TDC Virtual', ordem: 2 },
+  ];
+  const p = gerarPropostaTDC(2026, { naoLetivos: new Set(), chaves: catalogo });
+  assert.deepEqual(p.slice(0, 4).map(x => x.escala),
+    ['normal', 'tdc-presencial', 'tdc-virtual', 'normal']);
+  assert.ok(p.every(x => typeof x.escala === 'string'));
+});
+
+test('chaves null/undefined/vazio cai no par padrao, sem lancar', () => {
+  const semOpcoes = gerarPropostaTDC(2026, { naoLetivos: new Set() });
+  const comNull = gerarPropostaTDC(2026, { naoLetivos: new Set(), chaves: null });
+  const comVazio = gerarPropostaTDC(2026, { naoLetivos: new Set(), chaves: [] });
+  assert.deepEqual(comNull, semOpcoes);
+  assert.deepEqual(comVazio, semOpcoes);
+});
+
+test('naoLetivos aceita array, nao so Set', () => {
+  const viaSet = gerarPropostaTDC(2026, { naoLetivos: new Set(['2026-08-05']) });
+  const viaArray = gerarPropostaTDC(2026, { naoLetivos: ['2026-08-05'] });
+  assert.deepEqual(viaArray, viaSet);
+});
+
+test('sem opcoes nenhuma (nem naoLetivos), nao lanca e usa o padrao', () => {
+  assert.equal(gerarPropostaTDC(2026).length, 24);
+});
