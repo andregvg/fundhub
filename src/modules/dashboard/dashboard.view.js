@@ -25,7 +25,7 @@ export async function render(app) {
     </div>
     <div class="stat-row" id="stats"></div>
     <div class="dash-grid">
-      <div id="dash-hoje"></div>
+      <div id="dash-hoje">${loading()}</div>
       <section class="panel">
         <h2>${ico('transporte', { tam: 16 })} Extraclasse hoje</h2>
         <div id="p-extraclasse">${loading()}</div>
@@ -56,8 +56,13 @@ export async function render(app) {
 
 async function painelHoje() {
   const box = document.getElementById('dash-hoje');
-  const { cartaoHoje } = await import('./views/hoje.js');
-  await cartaoHoje(box);
+  if (!box) return;
+  try {
+    const { cartaoHoje } = await import('./views/hoje.js');
+    await cartaoHoje(box);
+  } catch (err) {
+    box.innerHTML = emptyState(ico('atencao', { tam: 32 }), 'Não foi possível carregar', esc(err.message || err));
+  }
 }
 
 async function painelOcorrencias(hoje) {

@@ -4,7 +4,7 @@
    ============================================================ */
 .hoje-linha { display: flex; align-items: center; gap: 8px; margin: 8px 0; }
 .hoje-data { max-width: 220px; margin-bottom: 8px; }
-.tag.hoje-tdc { background: var(--accent); color: var(--on-cor); }
+.tag.hoje-tdc { color: var(--accent); background: color-mix(in srgb, var(--accent) 15%, transparent); }
 .hoje-afastados h3 { margin: 12px 0 6px; font-size: 13px; color: var(--muted); }
 .hoje-af {
   display: flex; align-items: baseline; gap: 8px;

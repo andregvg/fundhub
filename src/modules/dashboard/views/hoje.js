@@ -22,6 +22,7 @@ import { ico } from '../../../shared/ui/icones.js';
 import { loading, erroBox } from '../../../shared/ui/feedback.js';
 
 export async function cartaoHoje(box) {
+  if (!box) return;
   let data = hojeISO();
 
   box.innerHTML = `
@@ -32,21 +33,22 @@ export async function cartaoHoje(box) {
       <div id="hoje-corpo">${loading()}</div>
     </section>`;
 
-  document.getElementById('hoje-dia').addEventListener('change', (e) => {
+  box.querySelector('#hoje-dia').addEventListener('change', (e) => {
     data = e.target.value || hojeISO();
-    pintar(data);
+    pintar(box, data);
   });
 
-  pintar(data);
+  pintar(box, data);
 }
 
-async function pintar(data) {
-  const corpo = document.getElementById('hoje-corpo');
+async function pintar(box, data) {
+  const corpo = box.querySelector('#hoje-corpo');
+  if (!corpo) return;   // box foi trocado por outra tela enquanto isto estava em voo
   corpo.innerHTML = loading();
 
   const dow = diaDaSemana(data);
   if (dow === 0 || dow === 6) {
-    corpo.innerHTML = `<p class="hoje-linha">${esc(fmtExtenso(data))} -
+    corpo.innerHTML = `<p class="hoje-linha"><span class="capitalizar">${esc(fmtExtenso(data))}</span> -
       ${vazio('fim de semana, sem jornada prevista')}</p>`;
     return;
   }
@@ -54,21 +56,22 @@ async function pintar(data) {
   try {
     const [escalas, afastados, catalogo] = await Promise.all([
       getEscalasRede(data, data),
-      getAfastamentos({ vigentesEm: data, status: 'ativo' }),
+      getAfastamentos({ vigentesEm: data }),
       getEscalas(),   // já em cache depois da primeira data escolhida
     ]);
     const escala = resolverEscala({ rede: escalas[0]?.escala ?? null, override: undefined });
 
     corpo.innerHTML = `
       <p class="hoje-linha">
-        <b>${esc(fmtExtenso(data))}</b>
+        <b class="capitalizar">${esc(fmtExtenso(data))}</b>
         <span class="tag ${escala === 'normal' ? '' : 'hoje-tdc'}">${esc(rotulaEscala(escala, catalogo))}</span>
       </p>
       ${escala === 'normal'
         ? `<p class="form-hint">Jornada normal em toda a rede. Escolas que tenham remarcado
              o próprio TDC podem estar em outra escala.</p>`
         : `<p class="form-hint">A rede está em ${esc(rotulaEscala(escala, catalogo))}. Quem tiver jornada
-             cadastrada nesta escala cumpre a dela; os demais seguem a jornada normal.</p>`}
+             cadastrada nesta escala cumpre a dela; os demais seguem a jornada normal. Uma escola pode ter
+             remarcado ou cancelado o próprio TDC - a visão aqui é sempre a da rede.</p>`}
       ${listaAfastados(afastados)}`;
   } catch (err) { corpo.innerHTML = erroBox(err); }
 }
@@ -78,9 +81,9 @@ function listaAfastados(lista) {
     return `<p class="hoje-linha">${ico('equipe')} ${vazio('ninguém afastado nesta data')}</p>`;
   }
   return `<div class="hoje-afastados">
-    <h3>${lista.length} pessoa(s) afastada(s)</h3>
+    <h3>${lista.length} ${lista.length === 1 ? 'pessoa afastada' : 'pessoas afastadas'}</h3>
     ${lista.map(a => `
-      <div class="hoje-af" style="--af: ${CORES_AFASTAMENTO[a.tipo] || 'var(--af-outro)'}">
+      <div class="hoje-af" style="--af: ${Object.hasOwn(CORES_AFASTAMENTO, a.tipo) ? CORES_AFASTAMENTO[a.tipo] : 'var(--af-outro)'}">
         <span class="hoje-af-nome">${esc(a.servidor?.nome || 'sem nome')}</span>
         <span class="hoje-af-tipo">${esc(a.tipo)}</span>
       </div>`).join('')}
