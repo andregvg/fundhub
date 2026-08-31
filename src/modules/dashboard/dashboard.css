@@ -1,0 +1,15 @@
+/* ============================================================
+   FundHub - modules/dashboard/dashboard.css
+   Cartão "Nesta data": escala vigente + quem está afastado.
+   ============================================================ */
+.hoje-linha { display: flex; align-items: center; gap: 8px; margin: 8px 0; }
+.hoje-data { max-width: 220px; margin-bottom: 8px; }
+.tag.hoje-tdc { background: var(--accent); color: var(--on-cor); }
+.hoje-afastados h3 { margin: 12px 0 6px; font-size: 13px; color: var(--muted); }
+.hoje-af {
+  display: flex; align-items: baseline; gap: 8px;
+  padding: 6px 10px; margin-bottom: 4px;
+  border-left: 3px solid var(--af); border-radius: 0 8px 8px 0;
+  background: var(--surface-2);
+}
+.hoje-af-tipo { margin-left: auto; color: var(--muted); font-size: 12px; }

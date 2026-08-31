@@ -25,6 +25,7 @@ export async function render(app) {
     </div>
     <div class="stat-row" id="stats"></div>
     <div class="dash-grid">
+      <div id="dash-hoje"></div>
       <section class="panel">
         <h2>${ico('transporte', { tam: 16 })} Extraclasse hoje</h2>
         <div id="p-extraclasse">${loading()}</div>
@@ -46,10 +47,17 @@ export async function render(app) {
   // Cada painel carrega e falha por conta própria: um erro num painel
   // não pode derrubar o resto do dashboard.
   painelStats();
+  painelHoje();
   painelExtraclasse(hoje);
   painelAfastamentos(hoje);
   painelCalendario(hoje);
   painelOcorrencias(hoje);
+}
+
+async function painelHoje() {
+  const box = document.getElementById('dash-hoje');
+  const { cartaoHoje } = await import('./views/hoje.js');
+  await cartaoHoje(box);
 }
 
 async function painelOcorrencias(hoje) {
