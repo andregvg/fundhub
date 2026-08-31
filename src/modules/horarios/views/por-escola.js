@@ -40,6 +40,7 @@ export async function renderPorEscola(box, ctx) {
   ctxAtual = ctx;
   if (ctx.unidadeId !== ultimoParam) {
     unidadeId = ctx.unidadeId || '';
+    escalaVista = 'normal';
     ultimoParam = ctx.unidadeId;
   }
 
@@ -350,5 +351,6 @@ function abrirEdicaoJornada(servidorId) {
   abrirJornada({
     servidor: linha.servidor, unidadeId, blocos, recarregar: carregar,
     escalasEmUso: ctxAtual.escalasEmUso, catalogoEscalas: ctxAtual.catalogoEscalas,
+    escalaInicial: escalaVista,
   });
 }

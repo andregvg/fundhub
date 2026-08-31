@@ -70,7 +70,13 @@ export async function render(app, { perfil, params } = {}) {
   } catch { /* sem migration, ou rede sem TDC: só 'normal' */ }
   const catalogoEscalas = await getEscalas().catch(() => [...ESCALAS_PADRAO]);
 
-  ctx = { perfil, podeEditar, locais, unidadeId, servidorId, escalasEmUso: [...emUso], catalogoEscalas };
+  // Abas/chips seguem a ordem do catálogo (escala_tipo.ordem), não a
+  // ordem de inserção no Set - senão a ordem depende de qual data caiu
+  // primeiro no getEscalasRede, não do que o admin configurou.
+  const ordem = new Map(catalogoEscalas.map((e, i) => [e.chave, i]));
+  const escalasOrdenadas = [...emUso].sort((a, b) => (ordem.get(a) ?? 99) - (ordem.get(b) ?? 99));
+
+  ctx = { perfil, podeEditar, locais, unidadeId, servidorId, escalasEmUso: escalasOrdenadas, catalogoEscalas };
 
   document.getElementById('h-abas').addEventListener('click', (e) => {
     const b = e.target.closest('.tab'); if (!b) return;

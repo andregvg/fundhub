@@ -28,9 +28,15 @@ const hhmm = (t) => String(t ?? '').slice(0, 5);
 let estado = null;   // { servidor, unidadeId, escala, porEscala, recarregar, escalasEmUso, catalogoEscalas }
 
 // Uma linha é { id?, inicio, fim, obs, excluir? }. `id` ausente = nova.
-export function abrirJornada({ servidor, unidadeId, blocos, recarregar, escalasEmUso = ['normal'], catalogoEscalas = [] }) {
+export function abrirJornada({ servidor, unidadeId, blocos, recarregar, escalasEmUso = ['normal'], catalogoEscalas = [], escalaInicial = 'normal' }) {
+  // Além das escalas em uso na rede hoje, inclui qualquer escala que já
+  // esteja gravada nos blocos deste servidor - uma escala que caiu em
+  // desuso (virada de ano, catálogo mudou) não pode ficar inalcançável
+  // pela tela só porque a rede não a usa mais no calendário atual (achado
+  // da revisão da Task 4, rodada 1).
+  const chaves = [...new Set([...escalasEmUso, ...blocos.map(b => b.escala || 'normal')])];
   const porEscala = {};
-  for (const chaveEsc of escalasEmUso) {
+  for (const chaveEsc of chaves) {
     porEscala[chaveEsc] = {};
     for (const d of DIAS) {
       porEscala[chaveEsc][d.n] = blocos
@@ -38,11 +44,14 @@ export function abrirJornada({ servidor, unidadeId, blocos, recarregar, escalasE
         .map(b => ({ id: b.id, inicio: hhmm(b.inicio), fim: hhmm(b.fim), obs: b.obs || '' }));
     }
   }
-  estado = { servidor, unidadeId, escala: 'normal', porEscala, recarregar, escalasEmUso, catalogoEscalas };
+  estado = {
+    servidor, unidadeId, escala: chaves.includes(escalaInicial) ? escalaInicial : 'normal',
+    porEscala, recarregar, escalasEmUso: chaves, catalogoEscalas,
+  };
 
-  const abas = escalasEmUso.length > 1 ? `
+  const abas = chaves.length > 1 ? `
     <div class="tabbar hj-escalas" role="tablist">
-      ${escalasEmUso.map(e => `<button type="button" class="tab ${e === estado.escala ? 'on' : ''}"
+      ${chaves.map(e => `<button type="button" class="tab ${e === estado.escala ? 'on' : ''}"
         role="tab" aria-selected="${e === estado.escala}" data-escala="${esc(e)}">${esc(rotulaEscala(e, catalogoEscalas))}</button>`).join('')}
     </div>
     <p class="form-hint" id="hj-dica"></p>` : '';

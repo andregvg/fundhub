@@ -112,12 +112,18 @@ async function carregar() {
 }
 
 function painelLocal(s, local) {
-  const doLocal = escolherBlocos(blocos.filter(b => b.unidade_id === local.id), escalaVista);
+  // O fallback para 'normal' é decidido POR DIA, não pela semana inteira -
+  // escolherBlocos olha o .length do que recebe, e um único bloco de TDC
+  // em qualquer dia da semana desligaria o fallback para os outros 4 dias
+  // (achado da revisão da Task 4, rodada 1). Aplicar dentro do DIAS.map,
+  // mesmo padrão de por-escola.js.
+  const doLocal = blocos.filter(b => b.unidade_id === local.id);
   const vinc = vinculosAbertos(s).find(v => v.unidade_id === local.id);
-  const semana = DIAS.map(d => linhaDia(s, d, doLocal.filter(b => b.dia_semana === d.n),
+  const semana = DIAS.map(d => linhaDia(s, d,
+    escolherBlocos(doLocal.filter(b => b.dia_semana === d.n), escalaVista),
     { podeEditar: ctxAtual.podeEditar, unidadeId: local.id })).join('');
   const totalSemana = DIAS.reduce((acc, d) =>
-    acc + totalDoDia(doLocal.filter(b => b.dia_semana === d.n)), 0);
+    acc + totalDoDia(escolherBlocos(doLocal.filter(b => b.dia_semana === d.n), escalaVista)), 0);
 
   return `<section class="panel hb-painel">
     <h2>
@@ -159,6 +165,7 @@ function abrirJornadaLocal(unidadeId) {
     blocos: blocos.filter(b => b.unidade_id === unidadeId),
     recarregar: carregar,
     escalasEmUso: ctxAtual.escalasEmUso, catalogoEscalas: ctxAtual.catalogoEscalas,
+    escalaInicial: escalaVista,
   });
 }
 
