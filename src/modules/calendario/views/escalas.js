@@ -293,7 +293,11 @@ async function gravarProposta() {
   });
   if (!ok) return;
 
+  // O diálogo do confirmar() fica preso a document.body - sobrevive a uma
+  // troca de aba/rota enquanto está aberto. Se a pessoa confirmar já fora
+  // desta tela, #cal-esc-corpo pode não existir mais.
   const corpo = document.getElementById('cal-esc-corpo');
+  if (!corpo) return;
   corpo.innerHTML = loading('Gravando…');
   const total = proposta.length;
   let falhas = 0;
