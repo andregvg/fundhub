@@ -10,7 +10,7 @@
 
 **Spec:** [`docs/superpowers/specs/2026-08-27-horarios-escalas-grade-design.md`](../specs/2026-08-27-horarios-escalas-grade-design.md)
 
-**Depende de:** os planos `2026-08-27-sistema-visual.md` e `2026-08-27-horarios-b1-grade-e-edicao.md`, ambos concluídos e validados em produção. A migration 024 já foi rodada.
+**Depende de:** os planos `2026-08-27-sistema-visual.md` e `2026-08-27-horarios-b1-grade-e-edicao.md`, ambos **concluídos e com revisão de código limpa** - a migration 024 já foi rodada e publicada em `dev`. A validação visual do André na URL de dev (o que só um olho humano confirma, listado no fechamento de cada plano) ainda está pendente no momento em que o B-2 começa - decisão dele de seguir mesmo assim. Se a validação revelar algo errado na grade do B-1, corrigir lá antes de continuar aqui - o B-2 escreve em cima do mesmo `horario_bloco`/`horario_exibicao`.
 
 ## Global Constraints
 
@@ -43,15 +43,16 @@
 
 | Arquivo | Responsabilidade |
 |---|---|
-| `src/modules/horarios/horarios.model.js` | Resolução de escala e de jornada numa data. |
+| `supabase/migrations/025_escala_tipo.sql` | **novo.** Catálogo de tipos de escala (rótulos editáveis). |
+| `src/modules/horarios/horarios.model.js` | Resolução de escala e de jornada numa data - ou `escalas.model.js`, se dividir (ver Task 1, Step 6). |
 | `src/modules/calendario/calendario.model.js` | Escala da rede, override por unidade, geração da proposta de TDC. |
-| `src/modules/calendario/views/escalas.js` | **novo.** Seletor rede/escola e a tabela de proposta. Extraído para `calendario.view.js` não passar de 400 linhas. |
+| `src/modules/calendario/views/escalas.js` | **novo.** Seletor rede/escola, a tabela de proposta e a gaveta "Tipos de escala". Extraído para `calendario.view.js` não passar de 400 linhas. |
 | `src/modules/calendario/calendario.view.js` | Ganha a aba/ação de escalas. |
-| `src/modules/horarios/views/jornada.js` | Ganha as abas Normal / TDC A / TDC B. |
+| `src/modules/horarios/views/jornada.js` | Ganha as abas Normal / TDC Presencial / TDC Virtual (nomes reais do catálogo, não fixos). |
 | `src/modules/horarios/views/por-escola.js` | Seletor de escala para ver a grade de cada uma. |
 | `src/modules/dashboard/views/hoje.js` | **novo.** O cartão Hoje. |
 | `src/modules/dashboard/dashboard.view.js` | Monta o cartão. |
-| `tests/escalas.test.mjs` | **novo.** Resolução, fallback e geração da proposta. |
+| `tests/escalas.test.mjs` | **novo.** Resolução, fallback, geração da proposta, catálogo. |
 
 ---
 
@@ -389,7 +390,21 @@ Esperado: PASS, 15 testes.
 wc -l src/modules/horarios/horarios.model.js
 ```
 
-Limite 250. Se passou, extrair as escalas para `src/modules/horarios/escalas.model.js` (segundo model público, como no B-1) e atualizar imports e testes.
+Limite 250. `horarios.model.js` está em 186 linhas hoje (depois da divisão da
+Task 6 do B-1, que já tirou `grade.model.js` e `exibicao.model.js` dele) - as
+funções novas de escala (`ESCALAS_PADRAO`, `rotulaEscala`, `getEscalas`,
+`definirEscalaTipo`, `limparCacheEscalas`, `resolverEscala`, `escolherBlocos`,
+`diaDaSemana`, `getEscalaDoDia`, `jornadaEm`) somam ~90 linhas com comentário -
+dá para estourar. Se passou, extrair para `src/modules/horarios/escalas.model.js`.
+Seria o **quarto** model público do módulo, não o segundo - `horarios/` já tem
+três (`horarios.model.js`, `grade.model.js`, `exibicao.model.js`), cada um dono
+de um agregado/concern distinto (jornada, matemática de grade, exibição por
+escola). R2 não impõe teto ("um módulo pode ter mais de um model"); o teste é
+se `escalas.model.js` corresponde a uma preocupação legítima e coesa - e
+corresponde: é o domínio "que dia é hoje e quais blocos valem", nada a ver com
+os outros três. Confirme zero ciclo (`escalas.model.js` não deveria precisar
+importar nada de `horarios.model.js`/`grade.model.js`/`exibicao.model.js`, e
+eles não devem importar dele) e atualize imports e testes.
 
 - [ ] **Step 7: Commitar**
 
@@ -695,7 +710,7 @@ export async function renderEscalas(box, ctx) {
 
 | Estado | O que a tela mostra | O que grava |
 |---|---|---|
-| Segue a rede | `Segue a rede (TDC A)` | `limparEscalaUnidade` |
+| Segue a rede | `Segue a rede (TDC Presencial)` | `limparEscalaUnidade` |
 | Remarcado | o select com a escala escolhida | `definirEscalaUnidade(uni, data, escala)` |
 | Cancelado | `Sem TDC nesta escola` | `definirEscalaUnidade(uni, data, null)` |
 
@@ -885,7 +900,7 @@ git commit -m "feat(calendario): tela de escalas com proposta de TDC editavel"
 
 - [ ] **Step 1: Quais abas mostrar**
 
-Uma aba de escala só aparece se a rede tiver **alguma data** marcada com ela. Barra de abas com um item só é ruído; e mostrar "TDC B" numa rede que nunca usou TDC convida a preencher algo que não existe.
+Uma aba de escala só aparece se a rede tiver **alguma data** marcada com ela. Barra de abas com um item só é ruído; e mostrar "TDC Virtual" numa rede que nunca usou TDC convida a preencher algo que não existe.
 
 Em `horarios.view.js`, ao carregar a casca:
 
@@ -935,13 +950,13 @@ Ao salvar, cada bloco leva `escala: estado.escala`. Blocos de escalas que não f
 </div>`
 ```
 
-A grade passa a desenhar `escolherBlocos(blocosDoServidorNoDia, escalaVista)`. Assim dá para ver a semana de TDC A e a de TDC B lado a lado, trocando de chip.
+A grade passa a desenhar `escolherBlocos(blocosDoServidorNoDia, escalaVista)`. Assim dá para ver a semana de TDC Presencial e a de TDC Virtual lado a lado, trocando de chip.
 
 `por-servidor.js` recebe o mesmo seletor.
 
 - [ ] **Step 4: Verificar no navegador**
 
-Com dev-local: marcar duas datas de TDC na rede, abrir a jornada de um gestor, ver as três abas, preencher só a quarta em TDC A, salvar. Voltar à grade, trocar o chip para TDC A e conferir que a quarta mudou e os demais dias continuam iguais aos normais (fallback). Trocar para TDC B e conferir que tudo cai no normal.
+Com dev-local: marcar duas datas de TDC na rede (uma presencial, uma virtual - ver `escala_tipo`), abrir a jornada de um gestor, ver as três abas, preencher só a quarta em TDC Presencial, salvar. Voltar à grade, trocar o chip para TDC Presencial e conferir que a quarta mudou e os demais dias continuam iguais aos normais (fallback). Trocar para TDC Virtual e conferir que tudo cai no normal.
 
 - [ ] **Step 5: Commitar**
 
@@ -1088,7 +1103,7 @@ Em `dashboard.view.js`, inserir o cartão no topo da grade, com `import()` dinâ
 
 - [ ] **Step 4: Verificar no navegador**
 
-Com dev-local: abrir a Dashboard, conferir que o cartão abre em hoje; escolher uma data marcada como TDC A e ver a tag mudar; escolher um sábado e ver a mensagem semântica; escolher uma data com afastamento ativo e ver a pessoa listada com a cor do tipo. Console limpo.
+Com dev-local: abrir a Dashboard, conferir que o cartão abre em hoje; escolher uma data marcada como TDC Presencial e ver a tag mudar; escolher um sábado e ver a mensagem semântica; escolher uma data com afastamento ativo e ver a pessoa listada com a cor do tipo. Console limpo.
 
 - [ ] **Step 5: Commitar**
 
@@ -1132,7 +1147,7 @@ wc -l src/modules/horarios/*.js src/modules/horarios/views/*.js src/modules/cale
 - Cada escola pode remarcar o próprio TDC para outra data, ou dizer que naquela
   data não tem TDC. O que não for remarcado acompanha o calendário da rede.
 - No horário do gestor, além da semana normal, dá para cadastrar a jornada dos dias
-  de TDC A e de TDC B. Só é preciso preencher os dias que mudam: o que ficar em
+  de TDC Presencial e de TDC Virtual. Só é preciso preencher os dias que mudam: o que ficar em
   branco segue a jornada normal.
 - A Dashboard passou a mostrar, para a data que você escolher, em qual escala a rede
   está e quem está afastado. O campo de data aceita qualquer dia, inclusive passado.
