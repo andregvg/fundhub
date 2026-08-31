@@ -13,6 +13,7 @@
 // ============================================================
 import { DIAS, criarBloco, atualizarBloco, excluirBloco,
   validarDia, totalDoDia, duracao } from '../horarios.model.js';
+import { rotulaEscala } from '../escalas.model.js';
 import { esc, falha } from '../../../shared/dom.js';
 import { ico } from '../../../shared/ui/icones.js';
 import { drawerHead, abrirDrawer, fecharDrawer } from '../../../shared/ui/drawer.js';
@@ -20,22 +21,37 @@ import { toast } from '../../../shared/ui/toast.js';
 import { reportarErro } from '../../../shared/ui/feedback.js';
 
 const hhmm = (t) => String(t ?? '').slice(0, 5);
-let estado = null;   // { servidor, unidadeId, dias: { [n]: linhas[] }, recarregar }
+// estado.porEscala = { [escala]: { [dia_semana]: linhas[] } } - a semana
+// inteira de TODAS as escalas em uso, carregada de uma vez. estado.escala
+// é só QUAL ABA está visível agora; trocar de aba não descarta o que foi
+// digitado nas outras - ver salvar().
+let estado = null;   // { servidor, unidadeId, escala, porEscala, recarregar, escalasEmUso, catalogoEscalas }
 
 // Uma linha é { id?, inicio, fim, obs, excluir? }. `id` ausente = nova.
-export function abrirJornada({ servidor, unidadeId, blocos, recarregar }) {
-  const dias = {};
-  for (const d of DIAS) {
-    dias[d.n] = blocos
-      .filter(b => b.servidor_id === servidor.id && b.dia_semana === d.n)
-      .map(b => ({ id: b.id, inicio: hhmm(b.inicio), fim: hhmm(b.fim), obs: b.obs || '' }));
+export function abrirJornada({ servidor, unidadeId, blocos, recarregar, escalasEmUso = ['normal'], catalogoEscalas = [] }) {
+  const porEscala = {};
+  for (const chaveEsc of escalasEmUso) {
+    porEscala[chaveEsc] = {};
+    for (const d of DIAS) {
+      porEscala[chaveEsc][d.n] = blocos
+        .filter(b => b.servidor_id === servidor.id && b.dia_semana === d.n && (b.escala || 'normal') === chaveEsc)
+        .map(b => ({ id: b.id, inicio: hhmm(b.inicio), fim: hhmm(b.fim), obs: b.obs || '' }));
+    }
   }
-  estado = { servidor, unidadeId, dias, recarregar };
+  estado = { servidor, unidadeId, escala: 'normal', porEscala, recarregar, escalasEmUso, catalogoEscalas };
+
+  const abas = escalasEmUso.length > 1 ? `
+    <div class="tabbar hj-escalas" role="tablist">
+      ${escalasEmUso.map(e => `<button type="button" class="tab ${e === estado.escala ? 'on' : ''}"
+        role="tab" aria-selected="${e === estado.escala}" data-escala="${esc(e)}">${esc(rotulaEscala(e, catalogoEscalas))}</button>`).join('')}
+    </div>
+    <p class="form-hint" id="hj-dica"></p>` : '';
 
   abrirDrawer(`
     ${drawerHead('Jornada da semana', esc(servidor.nome))}
     <div class="drawer-body">
       <form id="hj-form" class="esc-form">
+        ${abas}
         <div id="hj-dias"></div>
         <div class="form-foot">
           <span id="hj-msg" class="auth-msg"></span>
@@ -44,6 +60,7 @@ export function abrirJornada({ servidor, unidadeId, blocos, recarregar }) {
       </form>
     </div>`);
 
+  pintarDica();
   pintar();
   // Ligados uma vez só, aqui - o `<form>` é recriado a cada abertura da
   // gaveta, então não acumula. Ligar dentro de `pintar()` (que o próprio
@@ -52,13 +69,33 @@ export function abrirJornada({ servidor, unidadeId, blocos, recarregar }) {
   // empilhados (achado da rodada de correção 1).
   document.getElementById('hj-dias').addEventListener('change', aoMudarCampo);
   document.getElementById('hj-form').addEventListener('submit', salvar);
+  // Abas ligadas uma vez, sobre o container estável do form - trocar de
+  // aba só troca qual `estado.escala`/`#hj-dica` está ativo, nunca religa
+  // este listener (mesmo raciocínio do resto do arquivo).
+  document.querySelector('.hj-escalas')?.addEventListener('click', (e) => {
+    const b = e.target.closest('.tab'); if (!b) return;
+    estado.escala = b.dataset.escala;
+    document.querySelectorAll('.hj-escalas .tab').forEach(t => {
+      const on = t.dataset.escala === estado.escala;
+      t.classList.toggle('on', on); t.setAttribute('aria-selected', String(on));
+    });
+    pintarDica();
+    pintar();
+  });
+}
+
+function pintarDica() {
+  const dica = document.getElementById('hj-dica');
+  if (!dica) return;
+  dica.textContent = estado.escala === 'normal' ? ''
+    : 'Deixe um dia em branco aqui para ele seguir a jornada Normal nesta escala. Só preencha os dias que mudam.';
 }
 
 // Redesenha ao mudar a hora para os avisos acompanharem o que se digita.
 function aoMudarCampo(e) {
   const linha = e.target.closest('.hj-linha'); if (!linha) return;
   const dia = Number(linha.dataset.dia);
-  const alvo = estado.dias[dia].filter(l => !l.excluir)[Number(linha.dataset.i)];
+  const alvo = estado.porEscala[estado.escala][dia].filter(l => !l.excluir)[Number(linha.dataset.i)];
   alvo.inicio = linha.querySelector('.hj-ini').value;
   alvo.fim = linha.querySelector('.hj-fim').value;
   alvo.obs = linha.querySelector('.hj-obs').value;
@@ -68,7 +105,7 @@ function aoMudarCampo(e) {
 function pintar() {
   const box = document.getElementById('hj-dias');
   box.innerHTML = DIAS.map(d => {
-    const linhas = estado.dias[d.n].filter(l => !l.excluir);
+    const linhas = estado.porEscala[estado.escala][d.n].filter(l => !l.excluir);
     const problemas = validarDia(linhas.filter(l => l.inicio && l.fim));
     const total = totalDoDia(linhas.filter(l => l.inicio && l.fim));
     return `<fieldset class="form-grupo hj-dia">
@@ -92,15 +129,16 @@ function pintar() {
 
   box.querySelectorAll('.hj-add').forEach(b => b.addEventListener('click', () => {
     // Campos vazios de propósito - ver o cabeçalho deste arquivo.
-    estado.dias[Number(b.dataset.dia)].push({ inicio: '', fim: '', obs: '' });
+    estado.porEscala[estado.escala][Number(b.dataset.dia)].push({ inicio: '', fim: '', obs: '' });
     pintar();
   }));
   box.querySelectorAll('.hj-del').forEach(b => b.addEventListener('click', () => {
     const linha = b.closest('.hj-linha');
     const dia = Number(linha.dataset.dia);
-    const alvo = estado.dias[dia].filter(l => !l.excluir)[Number(linha.dataset.i)];
+    const dias = estado.porEscala[estado.escala];
+    const alvo = dias[dia].filter(l => !l.excluir)[Number(linha.dataset.i)];
     if (alvo.id) alvo.excluir = true;               // já existe no banco
-    else estado.dias[dia] = estado.dias[dia].filter(l => l !== alvo);
+    else dias[dia] = dias[dia].filter(l => l !== alvo);
     pintar();
   }));
 }
@@ -110,15 +148,20 @@ async function salvar(e) {
   const msg = document.getElementById('hj-msg');
   msg.className = 'auth-msg'; msg.textContent = '';
 
-  // Validação de campo: inline, junto do formulário.
-  for (const d of DIAS) {
-    const linhas = estado.dias[d.n].filter(l => !l.excluir);
-    for (const l of linhas) {
-      if (!l.inicio || !l.fim) return falha(msg, `${d.nome}: informe início e fim de todos os blocos.`);
-      if (l.fim <= l.inicio) return falha(msg, `${d.nome}: o fim precisa ser depois do início.`);
+  // Validação de campo: inline, junto do formulário. Varre TODAS as
+  // escalas, não só a aba visível - o que foi digitado numa aba não
+  // vista precisa ser validado antes de salvar do mesmo jeito.
+  for (const chaveEsc of Object.keys(estado.porEscala)) {
+    for (const d of DIAS) {
+      const linhas = estado.porEscala[chaveEsc][d.n].filter(l => !l.excluir);
+      const prefixo = estado.escalasEmUso.length > 1 ? `${rotulaEscala(chaveEsc, estado.catalogoEscalas)} - ${d.nome}` : d.nome;
+      for (const l of linhas) {
+        if (!l.inicio || !l.fim) return falha(msg, `${prefixo}: informe início e fim de todos os blocos.`);
+        if (l.fim <= l.inicio) return falha(msg, `${prefixo}: o fim precisa ser depois do início.`);
+      }
+      const erro = validarDia(linhas).find(p => p.nivel === 'erro');
+      if (erro) return falha(msg, `${prefixo}: ${erro.texto}`);
     }
-    const erro = validarDia(linhas).find(p => p.nivel === 'erro');
-    if (erro) return falha(msg, `${d.nome}: ${erro.texto}`);
   }
 
   const btn = document.getElementById('hj-save');
@@ -130,24 +173,32 @@ async function salvar(e) {
     // lista (senão a retentativa tentaria excluir de novo), e o criado
     // ganha o `id` que o banco devolveu (senão a retentativa criaria
     // duplicado em vez de atualizar).
-    for (const d of DIAS) {
-      for (const l of [...estado.dias[d.n]]) {
-        const payload = {
-          servidor_id: estado.servidor.id,
-          unidade_id: estado.unidadeId,
-          dia_semana: d.n,
-          inicio: l.inicio,
-          fim: l.fim,
-          obs: l.obs.trim() || null,
-        };
-        if (l.excluir && l.id) {
-          await excluirBloco(l.id);
-          estado.dias[d.n] = estado.dias[d.n].filter(x => x !== l);
-        } else if (l.id) {
-          await atualizarBloco(l.id, payload);
-        } else if (!l.excluir) {
-          const novo = await criarBloco(payload);
-          l.id = novo.id;
+    //
+    // Grava TODAS as escalas de estado.porEscala, não só a aba visível
+    // agora - trocar de aba não pode descartar silenciosamente o que a
+    // pessoa digitou nas outras abas antes de clicar "Salvar jornada"
+    // uma vez só, no fim.
+    for (const chaveEsc of Object.keys(estado.porEscala)) {
+      for (const d of DIAS) {
+        for (const l of [...estado.porEscala[chaveEsc][d.n]]) {
+          const payload = {
+            servidor_id: estado.servidor.id,
+            unidade_id: estado.unidadeId,
+            dia_semana: d.n,
+            inicio: l.inicio,
+            fim: l.fim,
+            obs: l.obs.trim() || null,
+            escala: chaveEsc,
+          };
+          if (l.excluir && l.id) {
+            await excluirBloco(l.id);
+            estado.porEscala[chaveEsc][d.n] = estado.porEscala[chaveEsc][d.n].filter(x => x !== l);
+          } else if (l.id) {
+            await atualizarBloco(l.id, payload);
+          } else if (!l.excluir) {
+            const novo = await criarBloco(payload);
+            l.id = novo.id;
+          }
         }
       }
     }

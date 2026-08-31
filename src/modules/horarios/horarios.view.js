@@ -11,6 +11,8 @@
 // de gravar; a tela nunca foi a barreira.
 // ============================================================
 import { COBERTURA_INICIO, COBERTURA_FIM, duracao } from './horarios.model.js';
+import { getEscalas, ESCALAS_PADRAO } from './escalas.model.js';
+import { getEscalasRede } from '../calendario/calendario.model.js';
 import { getLocais } from '../escolas/escolas.model.js';
 import { podeEscrever } from '../../core/permissoes.js';
 import { erroBox } from '../../shared/ui/feedback.js';
@@ -18,6 +20,7 @@ import { drawerHtml, montarDrawer } from '../../shared/ui/drawer.js';
 import { renderPorEscola } from './views/por-escola.js';
 import { renderPorServidor } from './views/por-servidor.js';
 import { ico } from '../../shared/ui/icones.js';
+import { hojeISO } from '../../shared/format.js';
 
 let ctx = null;
 let aba = 'escola';
@@ -54,7 +57,20 @@ export async function render(app, { perfil, params } = {}) {
   try { locais = await getLocais(); }
   catch (err) { document.getElementById('h-tab-body').innerHTML = erroBox(err); return; }
 
-  ctx = { perfil, podeEditar, locais, unidadeId, servidorId };
+  // Escalas em uso na rede: só elas viram aba na gaveta de jornada e
+  // chip na grade. Uma aba com uma opção só é ruído; e oferecer "TDC
+  // Virtual" numa rede que nunca marcou essa escala convida a
+  // preencher algo que não existe.
+  const emUso = new Set(['normal']);
+  try {
+    const ano = hojeISO().slice(0, 4);
+    for (const d of await getEscalasRede(`${ano}-01-01`, `${ano}-12-31`)) {
+      if (d.escala) emUso.add(d.escala);
+    }
+  } catch { /* sem migration, ou rede sem TDC: só 'normal' */ }
+  const catalogoEscalas = await getEscalas().catch(() => [...ESCALAS_PADRAO]);
+
+  ctx = { perfil, podeEditar, locais, unidadeId, servidorId, escalasEmUso: [...emUso], catalogoEscalas };
 
   document.getElementById('h-abas').addEventListener('click', (e) => {
     const b = e.target.closest('.tab'); if (!b) return;

@@ -6,6 +6,7 @@
 // encontrava onde cadastrar.
 // ============================================================
 import { DIAS, getBlocosDoServidor, validarDia, totalDoDia, duracao } from '../horarios.model.js';
+import { escolherBlocos, rotulaEscala } from '../escalas.model.js';
 import { posicaoNaBarra, marcasDaBarra } from '../grade.model.js';
 import { getServidores, vinculosAbertos } from '../../servidores/servidores.model.js';
 import { rotulaCargo } from '../../servidores/vinculos.model.js';
@@ -17,6 +18,7 @@ import { ico } from '../../../shared/ui/icones.js';
 
 let servidores = [], blocos = [], busca = null;
 let servidorId = '';
+let escalaVista = 'normal';
 let ultimoParam;   // mesma lógica de por-escola.js: distingue navegação
                     // nova (deep link mudou) de troca de aba (mesmo ctx).
 let ctxAtual = null;
@@ -25,6 +27,7 @@ export async function renderPorServidor(box, ctx) {
   ctxAtual = ctx;
   if (ctx.servidorId !== ultimoParam) {
     servidorId = ctx.servidorId || '';
+    escalaVista = 'normal';
     ultimoParam = ctx.servidorId;
   }
 
@@ -63,7 +66,7 @@ function pintarSeletor() {
     valor: servidorId,
     placeholder: 'Buscar servidor pelo nome…',
     vazioTexto: 'Nenhum servidor com esse nome',
-    onChange: (id) => { servidorId = id; carregar(); },
+    onChange: (id) => { servidorId = id; escalaVista = 'normal'; carregar(); },
   });
 }
 
@@ -96,14 +99,20 @@ async function carregar() {
     return;
   }
 
-  corpo.innerHTML = [...locais.values()]
+  const seletorEscala = ctxAtual.escalasEmUso?.length > 1 ? `
+    <div class="filters hg-escalas">
+      ${ctxAtual.escalasEmUso.map(e => `<button type="button" class="chip ${e === escalaVista ? 'on' : ''}"
+        data-escala="${esc(e)}">${esc(rotulaEscala(e, ctxAtual.catalogoEscalas))}</button>`).join('')}
+    </div>` : '';
+
+  corpo.innerHTML = seletorEscala + [...locais.values()]
     .sort((a, b) => a.nome.localeCompare(b.nome, 'pt'))
     .map(local => painelLocal(s, local)).join('');
   ligarEventos();
 }
 
 function painelLocal(s, local) {
-  const doLocal = blocos.filter(b => b.unidade_id === local.id);
+  const doLocal = escolherBlocos(blocos.filter(b => b.unidade_id === local.id), escalaVista);
   const vinc = vinculosAbertos(s).find(v => v.unidade_id === local.id);
   const semana = DIAS.map(d => linhaDia(s, d, doLocal.filter(b => b.dia_semana === d.n),
     { podeEditar: ctxAtual.podeEditar, unidadeId: local.id })).join('');
@@ -121,6 +130,11 @@ function painelLocal(s, local) {
 
 function ligarEventos() {
   const corpo = document.getElementById('hs-corpo');
+
+  corpo.querySelectorAll('[data-escala]').forEach(b => b.addEventListener('click', () => {
+    escalaVista = b.dataset.escala; carregar();
+  }));
+
   if (!ctxAtual.podeEditar) return;
 
   corpo.querySelectorAll('[data-add]').forEach(b => b.addEventListener('click', () => {
@@ -144,6 +158,7 @@ function abrirJornadaLocal(unidadeId) {
     servidor: s, unidadeId,
     blocos: blocos.filter(b => b.unidade_id === unidadeId),
     recarregar: carregar,
+    escalasEmUso: ctxAtual.escalasEmUso, catalogoEscalas: ctxAtual.catalogoEscalas,
   });
 }
 

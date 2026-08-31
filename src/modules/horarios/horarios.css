@@ -155,6 +155,11 @@
   .hb-marca em { font-size: 9px; }
 }
 
+/* Seletor de escala (chip) acima da grade/painéis - por-escola.js e
+   por-servidor.js. Só o espaçamento: a cor e o formato do chip já
+   vêm de .filters/.chip em components.css. */
+.hg-escalas { margin-bottom: 12px; }
+
 /* ── Grade única (views/grade.js) ─────────────────────────── */
 .hg-legenda { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
 .hg-chip {

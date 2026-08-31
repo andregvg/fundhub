@@ -8,6 +8,7 @@
 // A cobertura é regra de ESCOLA - a sede da SME não entra nela.
 // ============================================================
 import { DIAS, getBlocos, COBERTURA_INICIO, COBERTURA_FIM } from '../horarios.model.js';
+import { escolherBlocos, rotulaEscala } from '../escalas.model.js';
 // getExibicao/definirCobertura moram em exibicao.model.js e
 // ordenarParaGrade em grade.model.js desde a divisão da Task 6
 // (R11 - horarios.model.js estourou 250 linhas). Ver progress.md, Ruling 13.
@@ -30,6 +31,7 @@ let unidades = [], idxUnidades = {}, seg = null, busca = null;
 let servidores = [], blocos = [], exibicao = [], cargosGestao = new Set();
 let linhas = [];           // saída de ordenarParaGrade já filtrada por exibir
 let unidadeId = '';
+let escalaVista = 'normal';
 let ultimoParam;   // valor de ctx.unidadeId visto no último render - distingue
                     // navegação nova (deep link mudou) de troca de aba (mesmo ctx).
 let ctxAtual = null;
@@ -95,7 +97,7 @@ function montarBusca() {
   busca = criarBuscaSelecao(document.getElementById('h-uni-box'), {
     opcoes, valor: unidadeId, placeholder: 'Buscar escola…',
     vazioTexto: 'Nenhuma escola com esse nome',
-    onChange: (id) => { unidadeId = id; carregar(); },
+    onChange: (id) => { unidadeId = id; escalaVista = 'normal'; carregar(); },
   });
 }
 
@@ -140,8 +142,14 @@ async function carregar() {
   const local = ctxAtual.locais.find(l => l.id === unidadeId);
   const mostrarCobertura = local?.tipo !== 'sede';
 
-  corpo.innerHTML =
-    (mostrarCobertura ? `<p class="form-hint">Cobertura da escola: ${esc(COBERTURA_INICIO)} às ${esc(COBERTURA_FIM)}.</p>` : '')
+  const seletorEscala = ctxAtual.escalasEmUso?.length > 1 ? `
+    <div class="filters hg-escalas">
+      ${ctxAtual.escalasEmUso.map(e => `<button type="button" class="chip ${e === escalaVista ? 'on' : ''}"
+        data-escala="${esc(e)}">${esc(rotulaEscala(e, ctxAtual.catalogoEscalas))}</button>`).join('')}
+    </div>` : '';
+
+  corpo.innerHTML = seletorEscala
+    + (mostrarCobertura ? `<p class="form-hint">Cobertura da escola: ${esc(COBERTURA_INICIO)} às ${esc(COBERTURA_FIM)}.</p>` : '')
     + resetHtml()
     + legendaHtml(linhas, { podeEditar: ctxAtual.podeEditar })
     + gradeHtml(DIAS, { linhas, blocosDe, mostrarCobertura })
@@ -154,7 +162,7 @@ async function carregar() {
 }
 
 const blocosDe = (servidorId, dia) =>
-  blocos.filter(b => b.servidor_id === servidorId && b.dia_semana === dia);
+  escolherBlocos(blocos.filter(b => b.servidor_id === servidorId && b.dia_semana === dia), escalaVista);
 
 // "Voltar à ordem padrão" só faz sentido quando há o que voltar: sem
 // linha em `horario_exibicao`, a grade já está no padrão alfabético.
@@ -207,6 +215,9 @@ function ligarEventosCorpo(root) {
 
     const mover = e.target.closest('[data-mover]');
     if (mover) { await moverServidor(mover.dataset.mover); return; }
+
+    const chipEscala = e.target.closest('[data-escala]');
+    if (chipEscala) { escalaVista = chipEscala.dataset.escala; await carregar(); return; }
 
     if (e.target.closest('#hg-reset')) await voltarPadrao();
   });
@@ -336,5 +347,8 @@ async function voltarPadrao() {
 function abrirEdicaoJornada(servidorId) {
   const linha = linhas.find(l => l.servidor.id === servidorId);
   if (!linha) return;
-  abrirJornada({ servidor: linha.servidor, unidadeId, blocos, recarregar: carregar });
+  abrirJornada({
+    servidor: linha.servidor, unidadeId, blocos, recarregar: carregar,
+    escalasEmUso: ctxAtual.escalasEmUso, catalogoEscalas: ctxAtual.catalogoEscalas,
+  });
 }
