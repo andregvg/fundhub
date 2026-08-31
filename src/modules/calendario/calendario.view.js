@@ -5,6 +5,7 @@
 // Admin edita cada dia; os demais visualizam.
 // ============================================================
 import { getCalendarioMes, upsertDiaCalendario, upsertPeriodo, upsertDias, TIPOS_DIA } from './calendario.model.js';
+import { renderEscalas } from './views/escalas.js';
 import { esc, falha } from '../../shared/dom.js';
 import { MESES, DOW, hojeISO, fmtData } from '../../shared/format.js';
 import { loading, erroBox, reportarErro } from '../../shared/ui/feedback.js';
@@ -15,6 +16,7 @@ import { ico } from '../../shared/ui/icones.js';
 const agora = new Date();
 let ano = agora.getFullYear(), mes = agora.getMonth() + 1;   // mes 1-12
 let perfil = null, dias = {};
+let aba = 'dias';   // persiste entre reentradas na rota, como em sate/
 
 export async function render(app, ctx = {}) {
   perfil = ctx.perfil || null;
@@ -22,8 +24,48 @@ export async function render(app, ctx = {}) {
   app.innerHTML = `
     <div class="page-head">
       <h1>Calendário Escolar</h1>
-      <p>Dias letivos, eventos e bloqueios de data (provas bloqueiam extraclasse).</p>
+      <p>Dias letivos, eventos, bloqueios de data e as escalas de TDC.</p>
     </div>
+    <div class="tabbar" id="cal-abas" role="tablist">
+      <button class="tab ${aba === 'dias' ? 'on' : ''}" role="tab" aria-selected="${aba === 'dias'}" data-aba="dias">
+        ${ico('calendario')} Dias</button>
+      <button class="tab ${aba === 'escalas' ? 'on' : ''}" role="tab" aria-selected="${aba === 'escalas'}" data-aba="escalas">
+        ${ico('horario')} Escalas (TDC)</button>
+    </div>
+    <div id="cal-corpo"></div>
+    ${drawerHtml()}`;
+
+  montarDrawer();
+  // Ligado UMA vez sobre a barra (recriada por inteiro a cada render()
+  // de rota) - trocar de aba só troca o conteúdo de #cal-corpo, nunca
+  // religa este listener.
+  document.getElementById('cal-abas').addEventListener('click', (e) => {
+    const b = e.target.closest('.tab');
+    if (!b || b.dataset.aba === aba) return;
+    aba = b.dataset.aba;
+    pintarAbas();
+    renderAba();
+  });
+
+  renderAba();
+}
+
+function pintarAbas() {
+  document.querySelectorAll('#cal-abas .tab').forEach(b => {
+    const on = b.dataset.aba === aba;
+    b.classList.toggle('on', on);
+    b.setAttribute('aria-selected', String(on));
+  });
+}
+
+function renderAba() {
+  const corpo = document.getElementById('cal-corpo');
+  if (aba === 'escalas') renderEscalas(corpo, { perfil, podeEditar: perfil?.isAdmin });
+  else renderDias(corpo);
+}
+
+function renderDias(corpo) {
+  corpo.innerHTML = `
     <div class="cal-bar">
       <div class="cal-nav">
         <button class="mini-btn" id="cal-prev" aria-label="Mês anterior">←</button>
@@ -37,14 +79,12 @@ export async function render(app, ctx = {}) {
       </div>
       ${perfil?.isAdmin ? `<button class="mini-btn" id="cal-importar">${ico('atualizar')} Importar</button>` : ''}
     </div>
-    <div id="cal-grid">${loading()}</div>
-    ${drawerHtml()}`;
+    <div id="cal-grid">${loading()}</div>`;
 
-  montarDrawer();
   document.getElementById('cal-prev').addEventListener('click', () => mover(-1));
   document.getElementById('cal-next').addEventListener('click', () => mover(1));
   document.getElementById('cal-importar')?.addEventListener('click', abrirImportar);
-  await carregar();
+  carregar();
 }
 
 function mover(delta) {

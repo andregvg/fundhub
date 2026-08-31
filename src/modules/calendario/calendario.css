@@ -88,3 +88,28 @@
   }
   .cal-marks { font-size: 12px; }
 }
+
+/* ── Escalas (TDC): tabela do que já está gravado + proposta editável ── */
+.cal-esc-linhas { display: flex; flex-direction: column; gap: 6px; margin: 10px 0; }
+.cal-esc-linha {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--surface);
+}
+.cal-esc-data { font-size: 12.5px; }
+
+.cal-prop-linhas { display: flex; flex-direction: column; gap: 6px; margin: 10px 0; }
+.cal-prop-linha { display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 8px; }
+.cal-prop-data { font-size: 12.5px; }
+/* Base = celular (mobile-first, .claude/rules/ui.md): nao criar
+   @media (max-width:) - nenhuma existe em todo o src/. */
+@media (min-width: 560px) {
+  .cal-esc-data { font-size: 13.5px; }
+  .cal-prop-data { font-size: 13.5px; }
+}
