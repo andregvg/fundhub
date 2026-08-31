@@ -251,7 +251,13 @@ export const SECOES = [
 
       <h3>Quem aparece na tela</h3>
       <p>Horários só lista quem tem <b>vínculo ativo, naquela escola, naquele ano</b>. Servidor sem
-      vínculo não aparece - cadastre o vínculo primeiro, em Gestores &amp; Coordenadores.</p>`,
+      vínculo não aparece - cadastre o vínculo primeiro, em Gestores &amp; Coordenadores.</p>
+
+      <h3>Dias de TDC e escalas</h3>
+      <p>Alguns dias do calendário têm jornada diferente - é o caso do TDC. O Calendário Escolar diz
+      quais datas são TDC e em qual escala cada uma está (hoje, TDC Presencial ou TDC Virtual - um
+      administrador pode renomear esses nomes quando o formato mudar). No horário do gestor, você
+      preenche só os dias que mudam: o que ficar em branco segue a jornada normal.</p>`,
   },
 
   {

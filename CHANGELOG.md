@@ -9,6 +9,32 @@ versionamento **MINOR** = módulo novo ou mudança de modelo de dados, **PATCH**
 
 ---
 
+## [0.14.0] - 2026-08-31
+
+Rodada de **escalas de TDC**: o Calendário Escolar passa a registrar quando é
+dia de revezamento, e a jornada e a Dashboard acompanham.
+
+### Adicionado
+- O Calendário Escolar passou a registrar os dias de TDC e em qual escala
+  cada um está. Um botão gera as 1ªs e 3ªs quartas do ano de uma vez, e você
+  ajusta ou descarta o que não valer antes de gravar.
+- Cada escola pode remarcar o próprio TDC para outra data, ou dizer que
+  naquela data não tem TDC. O que não for remarcado acompanha o calendário
+  da rede.
+- No horário do gestor, além da semana normal, dá para cadastrar a jornada
+  dos dias de TDC. Só é preciso preencher os dias que mudam: o que ficar em
+  branco segue a jornada normal.
+- A Dashboard passou a mostrar, para a data que você escolher, em qual
+  escala a rede está e quem está afastado. O campo de data aceita qualquer
+  dia, inclusive passado.
+
+### Alterado
+- Os nomes das escalas de TDC (hoje "TDC Presencial" e "TDC Virtual") podem
+  ser renomeados por um administrador, na tela de Calendário, sem precisar
+  de uma atualização do sistema.
+
+---
+
 ## [0.13.0] - 2026-08-30
 
 Rodada de **grade de horários**: a jornada da equipe gestora passa a ser
