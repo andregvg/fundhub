@@ -24,7 +24,9 @@ begin
     'dia_calendario','afastamento','horario_bloco','ocorrencia',
     'relatorio_visita','ata_atendimento','projeto','projeto_interesse',
     -- horários: escalas, cargos de gestão e exibição (024)
-    'escala_unidade','cargo_gestao','horario_exibicao'
+    'escala_unidade','cargo_gestao','horario_exibicao',
+    -- horários: catálogo de tipos de escala (025)
+    'escala_tipo'
   ] loop
     -- só age se a tabela existir (o banco pode estar em migration parcial)
     if to_regclass('public.' || t) is not null then
