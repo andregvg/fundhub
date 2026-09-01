@@ -26,6 +26,17 @@ body {
 a { color: var(--brand); text-decoration: none; }
 :focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
 
+/* `hidden` como propriedade JS (`el.hidden = true`) é o padrão do hub para
+   esconder/mostrar (botões "+ Novo", painéis de menu, badge de notificação -
+   ver core/router.js e os *.view.js que fazem `el.hidden = ...`). Sem esta
+   regra, qualquer classe com `display` explícito (.btn-primary, .mini-btn,
+   .btn-secundario - praticamente todo botão) vence o `[hidden]` nativo do
+   navegador por ordem de origem no CSS de autor, e o elemento "escondido"
+   continua visível. `!important` é necessário aqui: é a única forma de um
+   atributo de estado vencer qualquer `display` de classe, sem ter que
+   listar cada seletor um a um. */
+[hidden] { display: none !important; }
+
 /* ── Topo ─────────────────────────────────────────────────── */
 .topbar {
   position: sticky;
