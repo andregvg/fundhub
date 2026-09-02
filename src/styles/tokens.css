@@ -32,6 +32,29 @@
   /* Alvo mínimo de toque - mobile-first não é só largura. */
   --toque: 40px;
 
+  /* Altura de um campo de formulário. Fica entre --controle (o botão, 32px)
+     e --toque (o alvo mínimo, 40px): o campo é maior que o botão porque
+     carrega texto de 16px. Declarar a altura é o que impede o campo de data
+     e o .campo-derivado de saírem mais altos que o campo de texto ao lado -
+     a altura deles era consequência de onde cada um herdava line-height. */
+  --campo: 36px;
+
+  /* Hierarquia de leitura de um formulário: legenda de bloco, rótulo de
+     campo e conteúdo digitado. Três papéis, três tratamentos - ver a spec
+     de 02/09/2026 § D1.
+
+     --form-legend e --form-field têm hoje o mesmo valor, e isso é
+     proposital: eles nunca aparecem na mesma linha, e o que os separa é
+     tamanho, peso e caixa. O token existe pelo NOME, para que calibrar o
+     tom da legenda depois seja um lugar só.
+
+     Não precisam ser redefinidos no tema escuro: como apontam para --text
+     e --muted, a substituição acontece no elemento e já pega o valor
+     escuro. */
+  --form-legend: var(--text);
+  --form-label: var(--muted);
+  --form-field: var(--text);
+
   /* Cor por tipo de afastamento (CORES_AFASTAMENTO, afastamentos.model.js) -
      usada na barra lateral do item e nos chips do calendário. */
   --af-ferias: #0ea5a4;
@@ -130,4 +153,10 @@
        este valor também. */
     --topo: 61px;
   }
+}
+
+/* Em tela de toque nenhum campo pode ficar abaixo do alvo mínimo - a mesma
+   elevação que os botões já recebem em components.css. */
+@media (pointer: coarse) {
+  :root { --campo: var(--toque); }
 }

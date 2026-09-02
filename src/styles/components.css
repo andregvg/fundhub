@@ -442,36 +442,61 @@ a.tile:hover {
 
 /* ── Formulários ──────────────────────────────────────────── */
 .form-grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
+/* Rótulo de campo: 11.5px / 700 / ALTA / .04em / --form-label. Este é o
+   tratamento único do hub - antes cada classe tinha o seu (12px/.03em,
+   12px/.04em, 11.5px/.04em, 11px/.04em), sem que nenhuma diferença tivesse
+   sido decidida. */
 .form-grid label,
 .esc-form > label,
 .fr-of {
   display: flex;
   flex-direction: column;
   gap: 5px;
-  color: var(--muted);
-  font-size: 12px;
+  color: var(--form-label);
+  font-size: 11.5px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: .03em;
+  letter-spacing: .04em;
 }
 .form-grid input, .form-grid select, .form-grid textarea,
 .esc-form input, .esc-form select, .esc-form textarea,
 .fr-of input {
+  min-height: var(--campo);
   padding: 7px 10px;
   border: 1px solid var(--border);
   border-radius: var(--radius-btn);
   background: var(--surface-2);
-  color: var(--text);
+  color: var(--form-field);
   font-size: 16px;   /* idem: 16px evita o zoom do iOS */
   font-weight: 400;
+  line-height: 1.25; /* DECLARADA: o input não herda line-height do body e o
+                        span herda - era daí que vinham alturas diferentes */
   text-transform: none;
   letter-spacing: 0;
 }
+
+/* As duas exceções, explícitas: caixa de seleção e o radio escondido do
+   .switch têm tamanho próprio e não são campo de formulário. Sem isto, o
+   seletor acima faria o checkbox de 18px sair com 36px de altura. */
+.form-grid :is([type="checkbox"], [type="radio"]),
+.esc-form :is([type="checkbox"], [type="radio"]) { min-height: 0; padding: 0; }
+
 .form-grid input:focus, .form-grid select:focus, .form-grid textarea:focus,
 .esc-form input:focus, .esc-form select:focus, .esc-form textarea:focus {
   outline: 2px solid color-mix(in srgb, var(--brand) 40%, transparent);
   border-color: var(--brand);
 }
+
+/* Data e hora saíam 2px mais altos que o campo de texto ao lado: o WebKit
+   dá padding próprio ao invólucro dos campinhos internos (dia/mês/ano).
+   Zerado aqui, a altura passa a vir só de --campo, como em todo campo.
+   É o -fields-wrapper que carrega esse padding, não o ::-webkit-datetime-edit
+   - medido no browser, os dois não são intercambiáveis.
+   O indicador do calendário FICA: trocar o seletor nativo de data por 2px
+   de alinhamento não compensa. */
+input[type="date"]::-webkit-datetime-edit-fields-wrapper,
+input[type="time"]::-webkit-datetime-edit-fields-wrapper { padding: 0; }
+
 input[type="color"] { height: 44px; padding: 4px; cursor: pointer; }
 input[type="checkbox"] { width: 18px; height: 18px; }
 
@@ -528,7 +553,7 @@ input[type="checkbox"] { width: 18px; height: 18px; }
 .auth-card h1 .hub { color: var(--brand); }
 .auth-sub { margin: 0 0 20px; color: var(--muted); font-size: 14px; }
 .auth-form { display: flex; flex-direction: column; gap: 8px; text-align: left; }
-.auth-form label { color: var(--muted); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+.auth-form label { color: var(--form-label); font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
 .auth-form input {
   padding: 12px 13px;
   border: 1px solid var(--border);
@@ -709,10 +734,16 @@ input[type="checkbox"] { width: 18px; height: 18px; }
    16 campos) em blocos que se leem de relance. Não mudam o payload
    nem a validação. */
 .form-grupo { border: 0; margin: 0 0 20px; padding: 0; }
+/* O traço é o que faz a legenda ler como DIVISÃO e não como mais um
+   rótulo: com o rótulo do campo também em caixa alta e negrito, só a
+   diferença de cor não bastaria. */
 .form-grupo > legend {
-  padding: 0 0 8px;
-  color: var(--muted);
-  font-size: 11px;
+  width: 100%;
+  padding: 0 0 7px;
+  margin-bottom: 3px;
+  border-bottom: 1px solid var(--border);
+  color: var(--form-legend);
+  font-size: 11.5px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: .06em;
@@ -728,31 +759,42 @@ input[type="checkbox"] { width: 18px; height: 18px; }
 .form-grupo .campos.auto > .col-full { grid-column: 1 / -1; }
 
 /* Rótulo SEMPRE acima do campo. A única exceção é o checkbox
-   (.inline), onde o rótulo ao lado é o que a caixa significa. */
+   (.inline), onde o rótulo ao lado é o que a caixa significa.
+   A tipografia é a mesma de .form-grid label - até 02/09/2026 este
+   seletor declarava só layout, e o rótulo caía no body: saía com o mesmo
+   tom, peso e tamanho do conteúdo do campo logo abaixo dele. */
 .form-grupo .campos label:not(.inline) {
   display: flex;
   flex-direction: column;
   gap: 5px;
   min-width: 0;
+  color: var(--form-label);
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
 }
 .form-grupo .campos label > input,
 .form-grupo .campos label > select,
 .form-grupo .campos label > textarea { width: 100%; }
 
 /* Valor derivado, exibido no formulário mas editado em outro lugar
-   (cargo e lotação vêm do vínculo). Parece campo, não é. */
+   (cargo e lotação vêm do vínculo). Parece campo, não é - e agora tem
+   exatamente a métrica de um campo, para não sair mais alto que o
+   vizinho. */
 .campo-derivado {
   display: flex;
   align-items: center;
   gap: 8px;
-  min-height: var(--controle);
+  min-height: var(--campo);
   padding: 7px 10px;
   border: 1px dashed var(--border);
   border-radius: var(--radius-btn);
   background: var(--surface-2);
-  color: var(--text);
-  font-size: 15px;
+  color: var(--form-field);
+  font-size: 16px;
   font-weight: 400;
+  line-height: 1.25;
   text-transform: none;
   letter-spacing: 0;
 }
@@ -760,8 +802,8 @@ input[type="checkbox"] { width: 18px; height: 18px; }
 .campo-derivado .mini-btn { margin-left: auto; }
 
 .field { margin-bottom: 14px; }
-.field .lbl { margin-bottom: 3px; color: var(--muted); font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
-.field .val { font-size: 14.5px; }
+.field .lbl { margin-bottom: 3px; color: var(--form-label); font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+.field .val { color: var(--form-field); font-size: 14.5px; }
 .field .val a { word-break: break-word; }
 
 /* Título de bloco dentro da gaveta de detalhe. */
@@ -785,7 +827,7 @@ hr.sep { margin: 20px 0; border: 0; border-top: 1px solid var(--border); }
 
 /* ── Editor de telefones (shared/ui/phones.js) ────────────── */
 .phones { margin: 4px 0 12px; }
-.phones > .lbl { margin-bottom: 6px; color: var(--muted); font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+.phones > .lbl { margin-bottom: 6px; color: var(--form-label); font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
 .phone-rows { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
 .phone-row { display: grid; grid-template-columns: 1fr; gap: 6px; padding: 9px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-2); }
 .phone-row select, .phone-row input[type="tel"], .phone-row input[type="text"] { width: 100%; }
