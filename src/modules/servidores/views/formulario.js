@@ -18,7 +18,7 @@ export function formServidor(s, ctx, { voltar = null } = {}) {
   const novo = !s;
   const v = (k) => esc(s?.[k] ?? '');
   const cargo = s ? cargoDe(s) : '';
-  const lotacao = s ? lotacaoDe(s) : '';
+  const lotacao = s ? lotacaoDe(s, { completo: true }) : '';
 
   // Cargo e lotação continuam à vista - são o que identifica a pessoa
   // - mas não são editáveis aqui: eles vêm do vínculo, que é o único
@@ -26,7 +26,8 @@ export function formServidor(s, ctx, { voltar = null } = {}) {
   const derivado = (rotulo, valor, acao) => `
     <label>${rotulo}
       <span class="campo-derivado">
-        ${valor ? esc(valor) : '<span class="vazio">Sem vínculo</span>'}
+        <span class="cd-valor"${valor ? ` title="${esc(valor)}"` : ''}>${
+          valor ? esc(valor) : '<span class="vazio">Sem vínculo</span>'}</span>
         ${ctx.podeEditar && !novo
           ? `<button type="button" class="mini-btn" data-vinc="${acao}"
                aria-label="${valor ? 'Editar' : 'Criar'} vínculo">${valor ? ico('editar') : ico('adicionar')}</button>`
@@ -108,10 +109,10 @@ export function formServidor(s, ctx, { voltar = null } = {}) {
     } });
   }));
 
-  form.addEventListener('submit', (e) => salvarServidor(e, s, ctx));
+  form.addEventListener('submit', (e) => salvarServidor(e, s, ctx, voltar));
 }
 
-async function salvarServidor(e, s, ctx) {
+async function salvarServidor(e, s, ctx, voltar) {
   e.preventDefault();
   const msg = document.getElementById('s-msg'); msg.className = 'auth-msg';
   const val = (id) => document.getElementById(id).value.trim();
@@ -146,8 +147,11 @@ async function salvarServidor(e, s, ctx) {
   try {
     const id = s ? (await atualizarServidor(s.id, payload), s.id) : (await criarServidor(payload)).id;
     await sincronizarTelefones({ servidorId: id }, telefones);
-    fecharDrawer();
-    await ctx.recarregar();
+    // Recarrega ANTES de fechar: a gaveta de baixo precisa reabrir com o
+    // dado novo, não com o `ctx` de antes da edição. Veio da ficha? volta
+    // para ela. Mesmo padrão de views/vinculo.js § salvar.
+    const novoCtx = await ctx.recarregar();
+    if (voltar) voltar(novoCtx); else fecharDrawer();
     toast({ titulo: s ? 'Servidor atualizado' : 'Servidor cadastrado', texto: payload.nome, tipo: 'sucesso' });
   } catch (err) {
     // Erro de gravação: inline quando dá para corrigir no formulário

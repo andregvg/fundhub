@@ -813,7 +813,10 @@ input[type="checkbox"] { width: 18px; height: 18px; }
   align-items: center;
   gap: 8px;
   min-height: var(--campo);
-  padding: 7px 10px;
+  /* Sem padding vertical: a altura vem de --campo e o miolo se alinha pelo
+     centro. Com padding, o botão de editar (28px) somado ao padding
+     estourava os 36px e o campo saía mais alto que os vizinhos. */
+  padding: 0 10px;
   border: 1px dashed var(--border);
   border-radius: var(--radius-btn);
   background: var(--surface-2);
@@ -825,7 +828,17 @@ input[type="checkbox"] { width: 18px; height: 18px; }
   letter-spacing: 0;
 }
 .campo-derivado .vazio { color: var(--muted); }
-.campo-derivado .mini-btn { margin-left: auto; }
+.campo-derivado .mini-btn { margin-left: auto; flex: 0 0 auto; }
+/* O valor não quebra linha: nome de escola é longo, e um campo que cresce
+   para duas linhas deixa de casar com os vizinhos - que é justamente o que
+   esta classe promete. Corta com reticências; o inteiro fica no title. */
+.campo-derivado > .cd-valor {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
 .field { margin-bottom: 14px; }
 .field .lbl { margin-bottom: 3px; color: var(--form-label); font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }

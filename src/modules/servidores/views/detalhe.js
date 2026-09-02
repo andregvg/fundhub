@@ -64,7 +64,11 @@ export function detalhe(id, ctx) {
     </div>`);
 
   if (ctx.podeEditar) {
-    document.getElementById('sv-edit').addEventListener('click', () => ctx.abrirFormServidor(s));
+    // Editar a partir da ficha EMPILHA a gaveta: o ← devolve para cá, com o
+    // dado recarregado. Sem isto, salvar fechava a pilha inteira e jogava a
+    // pessoa de volta na lista, perdendo o contexto que ela mesma abriu.
+    document.getElementById('sv-edit').addEventListener('click', () =>
+      ctx.abrirFormServidor(s, { voltar: (freshCtx) => detalhe(s.id, freshCtx || ctx) }));
     document.getElementById('sv-del').addEventListener('click', () => ctx.removerServidor(s));
     document.getElementById('sv-vinc').addEventListener('click', () =>
       formVinculo(s, null, ctx, { voltar: (freshCtx) => detalhe(s.id, freshCtx || ctx) }));

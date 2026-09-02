@@ -132,7 +132,7 @@ function ctxAtual() {
     cargos, locais, filtroUnidade,
     recarregar,
     abrirDetalhe: (id) => detalhe(id, ctxAtual()),
-    abrirFormServidor: (s) => formServidor(s, ctxAtual()),
+    abrirFormServidor: (s, opts) => formServidor(s, ctxAtual(), opts),
     removerServidor: (s) => removerServidor(s, ctxAtual()),
   };
 }
