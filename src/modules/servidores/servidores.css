@@ -21,3 +21,13 @@
 
 /* Vários papéis no mesmo card não podem empurrar o nome. */
 .card .card-top .seg + .seg { margin-left: 4px; }
+
+/* Código funcional, CPF e RG na mesma linha no desktop: três campos
+   curtos que ocupavam três linhas inteiras da ficha e empurravam os
+   vínculos para fora da primeira tela. O prefixo do módulo é de
+   propósito - CSS de módulo só ACRESCENTA ao vocabulário comum, e um
+   nome genérico aqui arriscaria colidir com o global depois. */
+.sv-docs { display: grid; grid-template-columns: 1fr; gap: 0 14px; }
+@media (min-width: 560px) {
+  .sv-docs { grid-template-columns: repeat(3, 1fr); }
+}

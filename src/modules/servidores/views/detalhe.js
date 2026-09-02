@@ -3,9 +3,9 @@
 // A gaveta é o centro do módulo: abre a pessoa e, dentro dela, os
 // vínculos com escolas - que é onde a escola de fato entra na história.
 // ============================================================
-import { vinculosAbertos, cargoDe, lotacaoDe } from '../servidores.model.js';
+import { cargoDe, lotacaoDe } from '../servidores.model.js';
 import { rotulaCargo } from '../vinculos.model.js';
-import { esc, vazio } from '../../../shared/dom.js';
+import { esc } from '../../../shared/dom.js';
 import { fmtData, fmtIdade } from '../../../shared/format.js';
 import { drawerHead, abrirDrawer } from '../../../shared/ui/drawer.js';
 import { telefonesTexto } from '../../../shared/ui/phones.js';
@@ -21,17 +21,15 @@ export function detalhe(id, ctx) {
   if (!s) return;
 
   const campo = (l, v) => v ? `<div class="field"><div class="lbl">${l}</div><div class="val">${v}</div></div>` : '';
-  const campoAcao = (rotulo, valor, aria, msgVazio) => `
-    <div class="field">
-      <div class="lbl">${rotulo}</div>
-      <div class="val campo-derivado">
-        ${valor ? esc(valor) : vazio(msgVazio)}
-        ${ctx.podeEditar
-          ? `<button type="button" class="mini-btn" data-vinc-edit="1"
-               aria-label="${aria}">${valor ? ico('editar') : ico('adicionar')}</button>`
-          : ''}
-      </div>
-    </div>`;
+
+  // Cargo e escola do vínculo aberto sobem para o cabeçalho: é o que
+  // identifica a pessoa funcionalmente. No corpo eles seriam a terceira
+  // exibição do mesmo fato - a lista de vínculos abaixo já traz cargo,
+  // escola e período. O apelido sai daqui: ele ajuda a ACHAR a pessoa, e
+  // isso é papel do card na lista, não da ficha dela.
+  const sub = [cargoDe(s), lotacaoDe(s, { completo: true })]
+    .filter(Boolean).map(esc).join(' · ');
+
   const acoes = ctx.podeEditar ? `
     <div class="drawer-acoes">
       <button class="mini-btn" id="sv-edit">${ico('editar')} Editar</button>
@@ -43,19 +41,19 @@ export function detalhe(id, ctx) {
     </div>`;
 
   abrirDrawer(`
-    ${drawerHead(`<span class="nome-oficial">${esc(s.nome)}</span>`, esc(s.apelido || ''))}
+    ${drawerHead(`<span class="nome-oficial">${esc(s.nome)}</span>`, sub)}
     <div class="drawer-body">
       ${acoes}
-      ${campoAcao('Cargo / função', cargoDe(s), 'Editar o vínculo', 'cargo não informado')}
-      ${campoAcao('Lotação', lotacaoDe(s), 'Editar o vínculo', 'sem lotação')}
       ${campo('E-mail', s.email ? `<a href="mailto:${esc(s.email)}">${esc(s.email)}</a>` : '')}
       ${campo('Telefones', telefonesTexto(s.telefones))}
       ${campo('Nascimento', s.nascimento
         ? `${esc(fmtData(s.nascimento))}${fmtIdade(s.nascimento) ? ` · ${esc(fmtIdade(s.nascimento))}` : ''}`
         : '')}
-      ${campo('Código funcional', esc(s.codigo_funcional || ''))}
-      ${campo('CPF', esc(s.cpf || ''))}
-      ${campo('RG', esc(s.rg || ''))}
+      <div class="sv-docs">
+        ${campo('Código funcional', esc(s.codigo_funcional || ''))}
+        ${campo('CPF', esc(s.cpf || ''))}
+        ${campo('RG', esc(s.rg || ''))}
+      </div>
       ${campo('Ingresso na rede', s.inicio_rede ? esc(fmtData(s.inicio_rede)) : '')}
       <hr class="sep" />
       <div class="vinc-head">
@@ -68,8 +66,6 @@ export function detalhe(id, ctx) {
   if (ctx.podeEditar) {
     document.getElementById('sv-edit').addEventListener('click', () => ctx.abrirFormServidor(s));
     document.getElementById('sv-del').addEventListener('click', () => ctx.removerServidor(s));
-    document.querySelectorAll('[data-vinc-edit]').forEach(b => b.addEventListener('click', () =>
-      formVinculo(s, vinculosAbertos(s)[0] || null, ctx, { voltar: (freshCtx) => detalhe(s.id, freshCtx || ctx) })));
     document.getElementById('sv-vinc').addEventListener('click', () =>
       formVinculo(s, null, ctx, { voltar: (freshCtx) => detalhe(s.id, freshCtx || ctx) }));
     const box = document.getElementById('sv-vinculos');
