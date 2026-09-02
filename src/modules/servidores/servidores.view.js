@@ -45,20 +45,18 @@ export async function render(app, ctx = {}) {
       <button id="sv-novo" class="btn-primary" hidden>+ Novo servidor</button>
     </div>
     <div id="sv-seg" class="toolbar-linha"></div>
-    <div class="toolbar-linha">
-      <div class="filtros-linha" id="sv-filtros">
-        <label class="filtro-campo">Cargo / função
-          <select id="f-cargo"><option value="">Todos</option></select>
-        </label>
-        <label class="filtro-campo">Lotação
-          <select id="f-local"><option value="">Todas</option></select>
-        </label>
-        <label class="switch">
-          <input type="checkbox" id="f-sem" /><span class="switch-trilho" aria-hidden="true"></span>
-          Sem vínculo
-        </label>
-        <span id="sv-chip-uni"></span>
-      </div>
+    <div class="painel-filtros" id="sv-filtros">
+      <label class="filtro-campo">Cargo / função
+        <select id="f-cargo"><option value="">Todos</option></select>
+      </label>
+      <label class="filtro-campo">Lotação
+        <select id="f-local"><option value="">Todas</option></select>
+      </label>
+      <label class="switch">
+        <input type="checkbox" id="f-sem" /><span class="switch-trilho" aria-hidden="true"></span>
+        Sem vínculo
+      </label>
+      <span id="sv-chip-uni"></span>
     </div>
     <div class="cards" id="sv-cards">${loading()}</div>
     ${drawerHtml()}`;

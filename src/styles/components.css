@@ -107,33 +107,66 @@ a.tile:hover {
 
 .filters { display: flex; gap: 6px; flex-wrap: wrap; }
 
-/* Linha de filtros que não são multi-escolha: select para escolha
-   única entre muitos, toggle para liga/desliga. O chip continua
-   sendo a forma da multi-escolha (segmento). */
-.filtros-linha { display: grid; grid-template-columns: 1fr; gap: 8px 14px; }
+/* Painel de filtros: a superfície única onde ficam os controles que
+   recortam a lista abaixo. UM por tela de lista - ver a spec de
+   02/09/2026 § D3. Aceita .filtro-campo, .switch, .filters, .chip-filtro
+   e .count; nada além disso entra aqui.
+   MOBILE-FIRST: coluna por padrão, linha a partir de 560px. */
+.painel-filtros {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+/* Em coluna, o eixo cruzado é o HORIZONTAL: o `align-self: end` que o
+   .switch e o .chip-filtro trazem os jogaria para a direita da tela. E o
+   .filtro-sep (afastamentos.css) cresceria na vertical em vez de na
+   horizontal. */
+.painel-filtros .switch,
+.painel-filtros .chip-filtro { align-self: start; }
+.painel-filtros .filtro-sep { flex: 0 0 auto; }
+/* O toggle nasce com a altura de BOTÃO (--controle). Dentro do painel ele
+   divide a linha com campos, então precisa da altura de CAMPO: é o que faz
+   o trilho cair no centro exato do select ao lado, e não 2px abaixo. */
+.painel-filtros .switch { min-height: var(--campo); }
+
 .filtro-campo {
   display: flex;
   flex-direction: column;
   gap: 4px;
   min-width: 0;
-  color: var(--muted);
-  font-size: 11px;
+  color: var(--form-label);
+  font-size: 11.5px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: .04em;
 }
-.filtro-campo select {
+/* Rótulo com ícone: sem o <span>, o SVG e o texto viram dois itens flex e
+   empilham. Ícone nunca é o rótulo sozinho - ele é aria-hidden. */
+.filtro-campo > span { display: flex; align-items: center; gap: 5px; }
+.filtro-campo select,
+.filtro-campo input {
+  min-height: var(--campo);
   padding: 6px 9px;
   border: 1px solid var(--border);
   border-radius: var(--radius-btn);
-  background: var(--surface-2);
-  color: var(--text);
+  /* --surface, e não --surface-2: dentro do painel (que já é --surface-2)
+     o controle precisa ler como controle SOBRE a superfície. */
+  background: var(--surface);
+  color: var(--form-field);
   font-size: 14px;
   font-weight: 400;
+  line-height: 1.25;
   text-transform: none;
   letter-spacing: 0;
 }
-.filtro-campo select:focus {
+.filtro-campo select:focus,
+.filtro-campo input:focus {
   outline: 2px solid color-mix(in srgb, var(--brand) 40%, transparent);
   border-color: var(--brand);
 }
@@ -851,7 +884,19 @@ hr.sep { margin: 20px 0; border: 0; border-top: 1px solid var(--border); }
   .form-grid { grid-template-columns: 1fr 1fr; }
   .form-grid label.col-2, .form-grid .col-2 { grid-column: 1 / -1; }
   .form-grupo .campos.auto { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
-  .filtros-linha { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+  /* align-items: end, e NÃO center: com o rótulo acima do campo, o que faz
+     a linha ler como uma linha é os controles compartilharem a base.
+     Centrar alinharia o toggle com o rótulo dos vizinhos, não com os
+     campos. */
+  .painel-filtros { flex-direction: row; flex-wrap: wrap; align-items: end; gap: 10px 16px; }
+  /* Os campos dividem a linha inteira; o resto ocupa só o que precisa. */
+  .painel-filtros .filtro-campo { flex: 1 1 180px; }
+  .painel-filtros .filters,
+  .painel-filtros .switch,
+  .painel-filtros .chip-filtro { flex: 0 0 auto; align-self: end; }
+  /* O separador de Afastamentos volta a empurrar na horizontal. */
+  .painel-filtros .filtro-sep { flex: 1 1 8px; }
+  .painel-filtros .count { margin-left: auto; align-self: center; }
   .esc-row { flex-direction: row; flex-wrap: wrap; gap: 22px; }
   .form-foot { flex-direction: row; justify-content: space-between; align-items: center; }
   .search { flex: 1 1 240px; }

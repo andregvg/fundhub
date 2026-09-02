@@ -37,20 +37,18 @@ export async function render(app, ctx = {}) {
       <button id="nova-escola" class="btn-primary" hidden>+ Nova escola</button>
     </div>
     <div id="seg-filtro" class="toolbar-linha"></div>
-    <div class="toolbar-linha">
-      <div class="filtros-linha" id="filters">
-        <label class="filtro-campo">Oferta
-          <select id="f-oferta"><option value="">Todas</option></select>
-        </label>
-        <label class="switch">
-          <input type="checkbox" id="f-transporte" /><span class="switch-trilho" aria-hidden="true"></span>
-          ${ico('transporte', { tam: 14 })} Transporte
-        </label>
-        <label class="switch">
-          <input type="checkbox" id="f-eja" /><span class="switch-trilho" aria-hidden="true"></span>
-          ${ico('noturno', { tam: 14 })} EJA
-        </label>
-      </div>
+    <div class="painel-filtros" id="filters">
+      <label class="filtro-campo">Oferta
+        <select id="f-oferta"><option value="">Todas</option></select>
+      </label>
+      <label class="switch">
+        <input type="checkbox" id="f-transporte" /><span class="switch-trilho" aria-hidden="true"></span>
+        ${ico('transporte', { tam: 14 })} Transporte
+      </label>
+      <label class="switch">
+        <input type="checkbox" id="f-eja" /><span class="switch-trilho" aria-hidden="true"></span>
+        ${ico('noturno', { tam: 14 })} EJA
+      </label>
     </div>
     <div class="cards" id="cards"></div>
     ${drawerHtml()}`;
