@@ -79,9 +79,8 @@ function rowHtml(t = {}) {
              placeholder="(16) 00000-0000" value="${esc(normalizarTelefone(t.numero) || '')}" />
       <input class="phone-rot" type="text" placeholder="rótulo (opcional)" value="${esc(t.rotulo || '')}" />
       <label class="switch radio phone-pri" title="Telefone principal">
-        <input type="radio" name="phone-pri" ${t.principal ? 'checked' : ''} />
+        <input type="radio" name="phone-pri" aria-label="Telefone principal" ${t.principal ? 'checked' : ''} />
         <span class="switch-trilho" aria-hidden="true"></span>
-        <span class="switch-txt">principal</span>
       </label>
       <button type="button" class="phone-del" aria-label="Remover telefone">×</button>
     </div>`;

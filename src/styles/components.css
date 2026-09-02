@@ -873,8 +873,15 @@ hr.sep { margin: 20px 0; border: 0; border-top: 1px solid var(--border); }
 /* O "principal" dos telefones é um radio com aparência de switch:
    a exclusão mútua é do navegador, não de JS nosso. */
 .switch.radio { font-weight: 400; font-size: 13px; color: var(--muted); }
+/* O .switch nasce com `align-self: end` e altura de controle - o que serve
+   à linha de filtros, onde ele divide a linha com campos que têm rótulo
+   acima. Na linha de telefone ele é um trilho SEM texto ao lado: aí o
+   caminho certo é o label colapsar no tamanho do trilho e deixar a GRADE
+   centralizá-lo, em vez de esticar o label e tentar centralizar dentro
+   dele. Medido: desvio zero contra o centro do campo de número. */
+.phone-row .switch { align-self: center; min-height: 0; }
 .switch input:checked ~ .switch-txt { color: var(--text); font-weight: 600; }
-.phone-del { justify-self: end; width: var(--toque); height: 30px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--danger); font-size: 18px; line-height: 1; cursor: pointer; }
+.phone-del { justify-self: end; width: var(--toque); height: var(--campo); border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--danger); font-size: 18px; line-height: 1; cursor: pointer; }
 .phone-del:hover { border-color: var(--danger); }
 .tel-item { white-space: nowrap; }
 .tel-item .pri { color: var(--brand); font-weight: 700; }
@@ -910,15 +917,25 @@ hr.sep { margin: 20px 0; border: 0; border-top: 1px solid var(--border); }
   .form-foot { flex-direction: row; justify-content: space-between; align-items: center; }
   .search { flex: 1 1 240px; }
   .solic { flex-direction: row; justify-content: space-between; align-items: center; }
-  /* Tipo · número · rótulo · principal · remover, tudo numa linha.
+  /* Tipo · número · rótulo · principal · remover, os cinco numa linha.
      O número recebe uma largura mínima própria porque um celular
      formatado - (16) 99999-9999 - tem 15 caracteres e era o campo
-     que quebrava primeiro. */
+     que quebrava primeiro.
+
+     A fonte cai para 13px SÓ aqui: abaixo de 560px a linha empilha e
+     precisa dos 16px que evitam o zoom automático do iOS ao focar. A
+     ALTURA não muda - continua var(--campo), como todo campo do hub; o
+     espaço vem da largura, não do achatamento. */
   .phone-row {
-    grid-template-columns: 104px minmax(148px, 1fr) minmax(120px, 1fr) auto auto;
+    grid-template-columns: 96px minmax(132px, 1.1fr) minmax(96px, 1fr) auto auto;
     align-items: center;
     gap: 8px;
   }
+  .phone-row :is(select, input[type="tel"], input[type="text"]) {
+    padding: 5px 8px;
+    font-size: 13px;
+  }
+  .phone-del { width: 30px; }
 }
 
 /* Em telas largas a gaveta ganha mais espaço: os formulários de
