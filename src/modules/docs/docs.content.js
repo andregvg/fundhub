@@ -450,7 +450,10 @@ export const SECOES = [
         <li><code>src/core/config.js</code> → <code>supabaseAnonKey: ''</code>
             (isso liga o modo dev-local: sem gate de login, sem dados);</li>
         <li><code>src/core/perfil.js</code> → no ramo <code>if (!hasSupabase())</code>, devolver
-            <code>{ email:'dev@local', papel:'admin_sme', isAdmin:true }</code>.</li>
+            <code>{ email:'dev@local', papel:'admin_sme', isAdmin:true }</code> <b>e</b> chamar
+            <code>definirMapa(new Proxy({}, { get: () =&gt; 'escrita' }))</code> antes do retorno.
+            Sem o mapa, todo módulo nasce <code>oculto</code> (migration 021) e o roteador barra
+            a rota com "Acesso restrito" - <code>isAdmin</code> sozinho não abre nada.</li>
       </ol>
       <div class="doc-alerta">
         <b>Reverta os dois antes de commitar.</b> Confira que a chave voltou e que

@@ -27,7 +27,8 @@ módulo.
 
 Sempre conferir `src/styles/components.css` antes de escrever CSS novo. O que já existe:
 
-- **Página:** `.page-head` · `.toolbar` · `.toolbar-linha` · `.filters` · `.subfiltros` · `.count`
+- **Página:** `.page-head` · `.toolbar` · `.toolbar-linha` · `.count`
+- **Filtros:** `.painel-filtros` (o contêiner) + `.filtro-campo` · `.switch` · `.filters` · `.chip-filtro`
 - **Abas:** `.tabbar` + `.tab` (`.on` para a ativa)
 - **Listas:** `.solic` (+ `.solic-main`, `.solic-acoes`) · `.dash-item` (+ `.di-top`, `.di-meta`)
 - **Cards e grades:** `.card` · `.cards` · `.tile` · `.tiles` · `.panel` · `.dash-grid` · `.md-grid`
@@ -37,11 +38,44 @@ Sempre conferir `src/styles/components.css` antes de escrever CSS novo. O que j�
 - **Marcadores:** `.chip` · `.tag` · `.badge` · `.pill`
 - **Gaveta:** `.drawer` e família - usar sempre via `shared/ui/drawer.js`, nunca à mão
 - **Confirmação:** `.confirmar-back`/`.confirmar-card` - usar sempre via `shared/ui/confirmar.js`, nunca à mão
-- **Busca:** `.search`
+- **Busca:** `.search` (a caixa de busca por texto; `.compacta` = um controle único na toolbar)
 
 CSS de módulo (`<modulo>.css`) só **acrescenta** ao vocabulário comum; nunca redefine `.card`,
 `.chip` ou `.btn-*`. Se você precisa mudar um componente global, mude em `components.css` - e então
 ele muda no hub inteiro, que é o objetivo.
+
+## Formulário: três papéis, três tratamentos
+
+Todo formulário do hub lê em três níveis, e cada um tem um token:
+
+| Papel | Token | Forma |
+|---|---|---|
+| Legenda de bloco (`<legend>`) | `--form-legend` | 11.5px · 700 · ALTA · .06em · com traço embaixo |
+| Rótulo de campo (`<label>`) | `--form-label` | 11.5px · 700 · ALTA · .04em |
+| Conteúdo do campo | `--form-field` | 16px · 400 · caixa normal |
+
+Não escrever `--text` nem `--muted` direto num rótulo de formulário - use o token do papel.
+
+Todo controle de formulário tem `min-height: var(--campo)` e `line-height: 1.25` **declarados**.
+Sem isso, `input`, `span` e `input[type="date"]` herdam entrelinha de lugares diferentes e saem com
+três alturas na mesma linha - foi exatamente o que aconteceu até 02/09/2026. `--campo` (36px) fica
+entre `--controle` (o botão, 32px) e `--toque` (40px), e sobe para `--toque` em `(pointer: coarse)`.
+
+Campo somente-leitura que exibe valor longo (`.campo-derivado`) corta com reticências e guarda o
+inteiro no `title`: um campo que cresce para duas linhas deixa de casar com os vizinhos.
+
+## Filtros: um painel por tela de lista
+
+Toda tela de lista com filtro usa **um** `.painel-filtros`, e só ele. Dentro entram
+`.filtro-campo` (rótulo acima do controle), `.switch`, `.filters` (grupo de chips),
+`.chip-filtro` e `.count`. Nada mais.
+
+O rótulo fica **acima** do controle, e o painel alinha os controles pela **base**
+(`align-items: end`) - é a base compartilhada que faz a linha ler como uma linha. A caixa de busca
+por texto (`.search`) fica **fora**, na `.toolbar` acima do painel.
+
+O filtro por segmento (`shared/ui/filtro-segmento.js`) fica fora do painel, na própria linha: é
+multi-escolha com memória de sessão, outro mecanismo.
 
 ## R9 - Nenhuma cor literal em módulo
 

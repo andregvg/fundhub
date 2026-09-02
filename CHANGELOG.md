@@ -9,6 +9,30 @@ versionamento **MINOR** = módulo novo ou mudança de modelo de dados, **PATCH**
 
 ---
 
+## [0.14.1] - 2026-09-02
+
+Rodada de acabamento visual: formulários e filtros ficam mais fáceis de ler, e a
+ficha do servidor foi reorganizada.
+
+### Alterado
+- Nos formulários, o título de cada bloco, o nome de cada campo e o que você
+  digita agora se distinguem à primeira vista. Antes o nome do campo saía do
+  mesmo tamanho e da mesma cor do conteúdo dele, e o título do bloco era o texto
+  mais apagado da tela.
+- Campos de data e campos apenas para leitura deixaram de sair mais altos que os
+  campos de texto ao lado.
+- Os filtros de todas as listas passaram a ficar num painel só, em uma linha,
+  com os campos alinhados e o nome de cada filtro acima dele. Vale para
+  Servidores, Escolas, Visitas, Ocorrências, Projetos, Atas, Afastamentos e o
+  registro de alterações.
+- Na ficha do servidor, o cargo e a escola atuais aparecem logo abaixo do nome,
+  com o nome completo da escola. Deixaram de aparecer repetidos no meio da
+  ficha, já que a lista de vínculos logo abaixo mostra os dois com o período.
+- Código funcional, CPF e RG passaram a dividir a mesma linha da ficha.
+- Editar um servidor a partir da ficha dele agora tem botão de voltar, e ao
+  salvar você volta para a ficha em vez de cair na lista.
+- A linha de cadastro de telefone passou a caber inteira em uma linha.
+
 ## [0.14.0] - 2026-08-31
 
 Rodada de **escalas de TDC**: o Calendário Escolar passa a registrar quando é
