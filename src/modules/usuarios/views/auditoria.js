@@ -20,18 +20,20 @@ let filtro = { tabela: '', operacao: '', autor: '', de: addDias(hojeISO(), -30),
 
 export async function render(ctx) {
   ctx.box().innerHTML = `
-    <div class="toolbar subfiltros">
-      <label class="search compacta">De <input id="au-de" type="date" value="${filtro.de}" /></label>
-      <label class="search compacta">Até <input id="au-ate" type="date" value="${filtro.ate}" /></label>
-      <label class="search compacta">Módulo <select id="au-tab">
+    <div class="painel-filtros">
+      <label class="filtro-campo">De <input id="au-de" type="date" value="${filtro.de}" /></label>
+      <label class="filtro-campo">Até <input id="au-ate" type="date" value="${filtro.ate}" /></label>
+      <label class="filtro-campo">Módulo <select id="au-tab">
         <option value="">Todos</option>
         ${Object.entries(TABELAS).map(([k, v]) => `<option value="${k}">${esc(v)}</option>`).join('')}
       </select></label>
-      <label class="search compacta">Ação <select id="au-op">
+      <label class="filtro-campo">Ação <select id="au-op">
         <option value="">Todas</option>
         ${Object.entries(OPERACOES).map(([k, v]) => `<option value="${k}">${esc(v)}</option>`).join('')}
       </select></label>
-      <label class="search compacta">${ico('servidor', { tam: 14 })} <input id="au-autor" type="search" placeholder="autor…" /></label>
+      <label class="filtro-campo"><span>${ico('servidor', { tam: 13 })} Autor</span>
+        <input id="au-autor" type="search" placeholder="autor…" />
+      </label>
       <span class="count" id="au-count"></span>
     </div>
     <div id="au-lista">${loading()}</div>

@@ -30,10 +30,10 @@ export async function render(app, ctx = {}) {
       </label>
       <button id="at-nova" class="btn-primary" hidden>+ Nova ata</button>
     </div>
-    <div class="toolbar subfiltros no-print">
-      <label class="search compacta">De <input id="at-de" type="date" value="${filtro.de}" /></label>
-      <label class="search compacta">Até <input id="at-ate" type="date" value="${filtro.ate}" /></label>
-      <label class="search compacta">Tipo <select id="at-tipo">
+    <div class="painel-filtros no-print">
+      <label class="filtro-campo">De <input id="at-de" type="date" value="${filtro.de}" /></label>
+      <label class="filtro-campo">Até <input id="at-ate" type="date" value="${filtro.ate}" /></label>
+      <label class="filtro-campo">Tipo <select id="at-tipo">
         <option value="">Todos</option>
         ${Object.entries(TIPOS).map(([k, v]) => `<option value="${k}">${esc(v)}</option>`).join('')}
       </select></label>

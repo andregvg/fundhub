@@ -53,10 +53,12 @@ export async function render(app, ctx = {}) {
       <button id="vi-novo" class="btn-primary" hidden>+ Novo relatório</button>
     </div>
     <div id="vi-seg" class="toolbar-linha"></div>
-    <div class="toolbar subfiltros">
-      <label class="search compacta">De <input id="vi-de" type="date" value="${filtro.de}" /></label>
-      <label class="search compacta">Até <input id="vi-ate" type="date" value="${filtro.ate}" /></label>
-      <label class="search compacta">${ico('escola', { tam: 14 })} <select id="vi-uni"><option value="">Todas as escolas</option></select></label>
+    <div class="painel-filtros">
+      <label class="filtro-campo">De <input id="vi-de" type="date" value="${filtro.de}" /></label>
+      <label class="filtro-campo">Até <input id="vi-ate" type="date" value="${filtro.ate}" /></label>
+      <label class="filtro-campo"><span>${ico('escola', { tam: 13 })} Escola</span>
+        <select id="vi-uni"><option value="">Todas as escolas</option></select>
+      </label>
       <div class="filters" id="vi-status">
         <button class="chip" data-st="">Todos</button>
         ${Object.entries(STATUS).map(([k, v]) => `<button class="chip" data-st="${k}">${esc(v)}</button>`).join('')}

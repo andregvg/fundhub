@@ -36,12 +36,12 @@ export async function render(app, ctx = {}) {
       </label>
       <button id="pj-novo" class="btn-primary" hidden>+ Novo projeto</button>
     </div>
-    <div class="toolbar subfiltros">
-      <label class="search compacta">Situação <select id="pj-status">
+    <div class="painel-filtros">
+      <label class="filtro-campo">Situação <select id="pj-status">
         <option value="">Todas</option>
         ${Object.entries(STATUS).map(([k, v]) => `<option value="${k}">${esc(v)}</option>`).join('')}
       </select></label>
-      <label class="search compacta">Tipo <select id="pj-tipo">
+      <label class="filtro-campo">Tipo <select id="pj-tipo">
         <option value="">Todos</option>
         ${Object.entries(TIPOS).map(([k, v]) => `<option value="${k}">${esc(v)}</option>`).join('')}
       </select></label>

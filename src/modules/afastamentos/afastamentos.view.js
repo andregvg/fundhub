@@ -53,7 +53,7 @@ export async function render(app, ctx = {}) {
       <button id="af-novo" class="btn-primary" hidden>+ Novo afastamento</button>
     </div>
     <div id="af-seg" class="toolbar-linha"></div>
-    <div class="filters" id="af-filtros"></div>
+    <div class="painel-filtros" id="af-filtros"></div>
     <div id="af-body">${loading()}</div>
     ${drawerHtml()}`;
 
@@ -117,15 +117,17 @@ function montarFiltros() {
         <span><i class="lg lg-pend"></i> aguardando confirmação</span>
         <small>o texto do dia é o evento do calendário escolar</small>
       </div>
-      ${chipsTipo()}`;
+      <div class="filters">${chipsTipo()}</div>`;
   } else {
     box.innerHTML = `
-      <button class="chip" data-visao="vigentes">Vigentes</button>
-      <button class="chip" data-visao="todos">Todos</button>
-      <button class="chip" data-visao="importados">Importados</button>
-      <button class="chip" data-visao="cancelados">Cancelados</button>
+      <div class="filters">
+        <button class="chip" data-visao="vigentes">Vigentes</button>
+        <button class="chip" data-visao="todos">Todos</button>
+        <button class="chip" data-visao="importados">Importados</button>
+        <button class="chip" data-visao="cancelados">Cancelados</button>
+      </div>
       <span class="filtro-sep"></span>
-      ${chipsTipo()}`;
+      <div class="filters">${chipsTipo()}</div>`;
   }
   box.querySelectorAll('.chip').forEach(b => {
     const on = (b.dataset.visao && b.dataset.visao === filtro.visao)

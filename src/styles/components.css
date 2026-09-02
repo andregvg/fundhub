@@ -93,6 +93,9 @@ a.tile:hover {
   border-radius: 11px;
   box-shadow: var(--shadow);
 }
+/* Variante compacta: um controle único (data, ano) dentro de uma .toolbar,
+   que não deve esticar. NÃO usar como campo de filtro - filtro mora em
+   .painel-filtros com .filtro-campo, que tem o rótulo acima. */
 .search.compacta { flex: 0 0 auto; }
 .search input {
   width: 100%;
@@ -239,16 +242,6 @@ a.tile:hover {
 .switch input:checked + .switch-trilho::after { transform: translateX(14px); }
 .switch input:focus-visible + .switch-trilho { outline: 2px solid var(--brand); outline-offset: 2px; }
 @media (pointer: coarse) { .switch { min-height: var(--toque); } }
-
-/* Segunda barra de filtros (período/escola/status), usada por módulos de
-   lista como Ocorrências, Visitas e Auditoria. */
-.subfiltros { margin-top: -6px; }
-.subfiltros .search.compacta { flex: 1 1 auto; }
-.subfiltros .search.compacta select { min-width: 0; }
-@media (min-width: 560px) {
-  .subfiltros .search.compacta { flex: 0 0 auto; }
-  .subfiltros select { min-width: 160px; }
-}
 
 /* Texto longo: uma linha no card (reticências), inteiro na gaveta. */
 .texto-resumo { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
@@ -891,9 +884,12 @@ hr.sep { margin: 20px 0; border: 0; border-top: 1px solid var(--border); }
   .painel-filtros { flex-direction: row; flex-wrap: wrap; align-items: end; gap: 10px 16px; }
   /* Os campos dividem a linha inteira; o resto ocupa só o que precisa. */
   .painel-filtros .filtro-campo { flex: 1 1 180px; }
-  .painel-filtros .filters,
   .painel-filtros .switch,
   .painel-filtros .chip-filtro { flex: 0 0 auto; align-self: end; }
+  /* O grupo de chips PODE encolher (0 1 auto) e tem min-width: 0: com
+     `0 0 auto` ele fica com a largura de max-content e a fila de tipos de
+     afastamento estoura o painel em vez de quebrar linha dentro dele. */
+  .painel-filtros .filters { flex: 0 1 auto; min-width: 0; align-self: end; }
   /* O separador de Afastamentos volta a empurrar na horizontal. */
   .painel-filtros .filtro-sep { flex: 1 1 8px; }
   .painel-filtros .count { margin-left: auto; align-self: center; }
