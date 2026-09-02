@@ -143,7 +143,8 @@ function blocoServidor() {
           <div class="campos duas">
             <label>Nome completo <input value="${esc(s.nome || '')}" readonly /></label>
             <label>Código funcional <input value="${esc(s.codigo_funcional || '')}" readonly /></label>
-            <label>Lotação <input value="${esc(lotacaoDe(s) || 'sem lotação')}" readonly /></label>
+            <label>Lotação <input value="${esc(lotacaoDe(s, { completo: true }) || 'sem lotação')}"
+              title="${esc(lotacaoDe(s, { completo: true }) || 'sem lotação')}" readonly /></label>
             <label>Cargo / função <input value="${esc(cargoDe(s) || 'cargo não informado')}" readonly /></label>
             <label>Ingresso na rede <input value="${esc(s.inicio_rede ? fmtData(s.inicio_rede) : '')}" readonly /></label>
           </div>
