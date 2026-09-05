@@ -980,8 +980,10 @@ hr.sep { margin: 20px 0; border: 0; border-top: 1px solid var(--border); }
    dele. Medido: desvio zero contra o centro do campo de número. */
 .phone-row .switch { align-self: center; min-height: 0; }
 .switch input:checked ~ .switch-txt { color: var(--text); font-weight: 600; }
-.phone-del { justify-self: end; width: var(--toque); height: var(--campo); border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--danger); font-size: 18px; line-height: 1; cursor: pointer; }
-.phone-del:hover { border-color: var(--danger); }
+/* O botão de remover é um .mini-btn.no como em toda lista; na grade da
+   linha fica à direita (a regra :has(> input) de components.css já dá o
+   min-height de campo). */
+.phone-row > .phone-del { justify-self: end; }
 .tel-item { white-space: nowrap; }
 .tel-item .pri { color: var(--brand); font-weight: 700; }
 
@@ -1034,7 +1036,6 @@ hr.sep { margin: 20px 0; border: 0; border-top: 1px solid var(--border); }
     padding: 5px 8px;
     font-size: 13px;
   }
-  .phone-del { width: 30px; }
 }
 
 /* Em telas largas a gaveta ganha mais espaço: os formulários de

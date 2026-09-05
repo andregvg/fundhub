@@ -64,7 +64,7 @@ export function phonesEditorHtml(lista = [], { label = 'Telefones' } = {}) {
     <div class="phones" data-phones>
       <div class="lbl">${esc(label)}</div>
       <div class="phone-rows">${rows}</div>
-      <button type="button" class="mini-btn phone-add">+ telefone</button>
+      <button type="button" class="mini-btn phone-add">${ico('adicionar', { tam: 14 })} telefone</button>
     </div>`;
 }
 
@@ -82,7 +82,7 @@ function rowHtml(t = {}) {
         <input type="radio" name="phone-pri" aria-label="Telefone principal" ${t.principal ? 'checked' : ''} />
         <span class="switch-trilho" aria-hidden="true"></span>
       </label>
-      <button type="button" class="phone-del" aria-label="Remover telefone">×</button>
+      <button type="button" class="mini-btn no phone-del" aria-label="Remover telefone">${ico('excluir', { tam: 14 })}</button>
     </div>`;
 }
 
