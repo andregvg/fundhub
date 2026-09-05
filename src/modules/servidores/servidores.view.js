@@ -42,7 +42,7 @@ export async function render(app, ctx = {}) {
         <input id="sv-q" type="search" placeholder="Buscar por nome, apelido, e-mail, cargo ou escola…" autocomplete="off" />
       </label>
       <span class="count" id="sv-count"></span>
-      <button id="sv-novo" class="btn-primary" hidden>+ Novo servidor</button>
+      <button id="sv-novo" class="btn-primary" hidden>${ico('adicionar')} Novo servidor</button>
     </div>
     <div id="sv-seg" class="toolbar-linha"></div>
     <div class="painel-filtros" id="sv-filtros">

@@ -28,7 +28,7 @@ export async function render(app, ctx = {}) {
       <label class="search">${ico('buscar')}
         <input id="at-q" type="search" placeholder="Buscar por assunto, participantes, local…" autocomplete="off" />
       </label>
-      <button id="at-nova" class="btn-primary" hidden>+ Nova ata</button>
+      <button id="at-nova" class="btn-primary" hidden>${ico('adicionar')} Nova ata</button>
     </div>
     <div class="painel-filtros no-print">
       <label class="filtro-campo">De <input id="at-de" type="date" value="${filtro.de}" /></label>

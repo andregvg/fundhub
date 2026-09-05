@@ -34,7 +34,7 @@ export async function render(app, ctx = {}) {
         <input id="q" type="search" placeholder="Buscar por nome, apelido, bairro, gestor…" autocomplete="off" />
       </label>
       <span class="count" id="count"></span>
-      <button id="nova-escola" class="btn-primary" hidden>+ Nova escola</button>
+      <button id="nova-escola" class="btn-primary" hidden>${ico('adicionar')} Nova escola</button>
     </div>
     <div id="seg-filtro" class="toolbar-linha"></div>
     <div class="painel-filtros" id="filters">

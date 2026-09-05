@@ -34,7 +34,7 @@ export async function render(app, ctx = {}) {
       <label class="search">${ico('buscar')}
         <input id="pj-q" type="search" placeholder="Buscar por título, proponente, público-alvo…" autocomplete="off" />
       </label>
-      <button id="pj-novo" class="btn-primary" hidden>+ Novo projeto</button>
+      <button id="pj-novo" class="btn-primary" hidden>${ico('adicionar')} Novo projeto</button>
     </div>
     <div class="painel-filtros">
       <label class="filtro-campo">Situação <select id="pj-status">
@@ -146,7 +146,7 @@ async function detalhe(id) {
       <hr class="sep" />
       <div class="vinc-head">
         <div class="field" style="margin:0"><div class="lbl">Escolas interessadas</div></div>
-        ${perfil?.isAdmin ? `<button class="mini-btn" id="pj-add-int">+ Registrar interesse</button>` : ''}
+        ${perfil?.isAdmin ? `<button class="mini-btn" id="pj-add-int">${ico('adicionar')} Registrar interesse</button>` : ''}
       </div>
       <div class="people" id="pj-interesses">${loading()}</div>
     </div>`);

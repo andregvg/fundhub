@@ -50,7 +50,7 @@ export async function render(app, ctx = {}) {
       </label>
       <span class="count" id="af-count"></span>
       <button id="af-sync" class="mini-btn" hidden>${ico('atualizar')} Sincronizar planilha</button>
-      <button id="af-novo" class="btn-primary" hidden>+ Novo afastamento</button>
+      <button id="af-novo" class="btn-primary" hidden>${ico('adicionar')} Novo afastamento</button>
     </div>
     <div id="af-seg" class="toolbar-linha"></div>
     <div class="painel-filtros" id="af-filtros"></div>

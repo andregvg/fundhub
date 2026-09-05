@@ -50,7 +50,7 @@ export async function render(app, ctx = {}) {
       <label class="search">${ico('buscar')}
         <input id="vi-q" type="search" placeholder="Buscar por escola, responsável, pauta…" autocomplete="off" />
       </label>
-      <button id="vi-novo" class="btn-primary" hidden>+ Novo relatório</button>
+      <button id="vi-novo" class="btn-primary" hidden>${ico('adicionar')} Novo relatório</button>
     </div>
     <div id="vi-seg" class="toolbar-linha"></div>
     <div class="painel-filtros">

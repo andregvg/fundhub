@@ -58,7 +58,7 @@ export function detalhe(id, ctx) {
       <hr class="sep" />
       <div class="vinc-head">
         <div class="field" style="margin:0"><div class="lbl">Vínculos com escolas</div></div>
-        ${ctx.podeEditar ? `<button class="mini-btn" id="sv-vinc">+ Novo vínculo</button>` : ''}
+        ${ctx.podeEditar ? `<button class="mini-btn" id="sv-vinc">${ico('adicionar')} Novo vínculo</button>` : ''}
       </div>
       <div class="people" id="sv-vinculos">${listaVinculos(s, ctx.podeEditar)}</div>
     </div>`);

@@ -50,7 +50,7 @@ export async function render(app, ctx = {}) {
       <label class="search">${ico('buscar')}
         <input id="oc-q" type="search" placeholder="Buscar por assunto, solicitante, relato ou escola…" autocomplete="off" />
       </label>
-      <button id="oc-novo" class="btn-primary" hidden>+ Nova ocorrência</button>
+      <button id="oc-novo" class="btn-primary" hidden>${ico('adicionar')} Nova ocorrência</button>
     </div>
     <div id="oc-seg" class="toolbar-linha"></div>
     <div class="painel-filtros">

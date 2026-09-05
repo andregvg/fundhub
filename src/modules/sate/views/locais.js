@@ -21,7 +21,7 @@ export function render(contexto) {
   const barra = perfil?.isAdmin ? `
     <div class="toolbar">
       <span class="count">Destinos das atividades e solicitações - geocode uma vez, reutilize.</span>
-      <button id="novo-local" class="btn-primary">+ Novo local</button>
+      <button id="novo-local" class="btn-primary">${ico('adicionar')} Novo local</button>
     </div>` : '';
 
   box.innerHTML = barra + (locais.length

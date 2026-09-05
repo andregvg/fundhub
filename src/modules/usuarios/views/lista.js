@@ -45,7 +45,7 @@ export async function render(ctx) {
   ctx.box().innerHTML = `
     <div class="toolbar">
       <span class="count" id="us-count"></span>
-      <button id="us-novo" class="btn-primary">+ Adicionar acesso</button>
+      <button id="us-novo" class="btn-primary">${ico('adicionar')} Adicionar acesso</button>
     </div>
     <div id="us-lista">${loading()}</div>
     ${drawerHtml()}`;
