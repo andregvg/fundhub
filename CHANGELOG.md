@@ -9,6 +9,15 @@ versionamento **MINOR** = módulo novo ou mudança de modelo de dados, **PATCH**
 
 ---
 
+## [0.14.3] - 2026-09-05
+
+### Corrigido
+- A correção da versão anterior era parcial: faltava também o caso de digitar
+  um horário do zero (não só editar um já preenchido) - o foco ainda saía do
+  campo assim que o primeiro dígito do minuto já fechava um horário válido.
+  A tela agora nunca recria o campo de hora enquanto a pessoa digita; só o
+  total do dia e os avisos de sobreposição/carga horária são atualizados.
+
 ## [0.14.2] - 2026-09-05
 
 ### Corrigido

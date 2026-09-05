@@ -100,7 +100,32 @@ function pintarDica() {
     : 'Deixe um dia em branco aqui para ele seguir a jornada Normal nesta escala. Só preencha os dias que mudam.';
 }
 
-// Redesenha ao mudar a hora para os avisos acompanharem o que se digita.
+// Atualiza só o total/avisos do dia para acompanhar o que se digita - NUNCA
+// mexe em `.hj-linhas` (onde ficam os <input>). Recriar o campo que acabou
+// de disparar o 'change' é o que causava a perda de foco: um input[type=time]
+// dispara 'change' assim que hora+minuto formam um valor válido, ainda com o
+// campo focado - inclusive no PRIMEIRO dígito do minuto, quando esse dígito
+// já fecha um horário válido sozinho (sem esperar um segundo dígito). Não dá
+// pra "restaurar o foco" depois de recriar o nó (o `.focus()` bate no campo,
+// mas reinicia o cursor no segmento da hora) - a saída é nunca recriar esse
+// nó por causa de um 'change' (achado da 2ª rodada de correção, 05/09/2026).
+function atualizarDia(dia) {
+  const fieldset = document.querySelector(`.hj-dia[data-dia="${dia}"]`);
+  if (!fieldset) return;
+  const d = DIAS.find(x => x.n === dia);
+  const linhas = estado.porEscala[estado.escala][dia].filter(l => !l.excluir);
+  const comHorario = linhas.filter(l => l.inicio && l.fim);
+  const total = totalDoDia(comHorario);
+  fieldset.querySelector('legend').innerHTML =
+    `${esc(d.nome)} ${total ? `<span class="hj-total">${esc(duracao(total))}</span>` : ''}`;
+  fieldset.querySelector('.hj-avisos').innerHTML = avisosHtml(validarDia(comHorario));
+}
+
+function avisosHtml(problemas) {
+  return problemas.map(p => `<p class="hj-prob n-${p.nivel}">
+    ${ico(p.nivel === 'erro' ? 'erro' : 'atencao', { tam: 14 })} ${esc(p.texto)}</p>`).join('');
+}
+
 function aoMudarCampo(e) {
   const linha = e.target.closest('.hj-linha'); if (!linha) return;
   const dia = Number(linha.dataset.dia);
@@ -108,19 +133,7 @@ function aoMudarCampo(e) {
   alvo.inicio = linha.querySelector('.hj-ini').value;
   alvo.fim = linha.querySelector('.hj-fim').value;
   alvo.obs = linha.querySelector('.hj-obs').value;
-
-  // pintar() reconstrói a linha inteira - sem restaurar o foco, o campo
-  // que acabou de disparar o 'change' perde o foco no meio da digitação:
-  // um <input type="time"> com os dois lados já válidos (caso comum ao
-  // EDITAR um bloco existente) dispara 'change' assim que um dígito
-  // forma um horário válido, ainda com o campo focado - não só ao sair
-  // dele. O nó antigo é destruído pelo innerHTML e o foco cai no <body>,
-  // sentido como "a hora empurra o foco pra fora" em vez de avançar pros
-  // minutos (achado da rodada de correção do fluxo de digitação, 05/09/2026).
-  const { dia: d, i } = linha.dataset;
-  const campo = e.target.className;
-  pintar();
-  document.querySelector(`.hj-linha[data-dia="${d}"][data-i="${i}"] .${campo}`)?.focus();
+  atualizarDia(dia);
 }
 
 function pintar() {
@@ -129,7 +142,7 @@ function pintar() {
     const linhas = estado.porEscala[estado.escala][d.n].filter(l => !l.excluir);
     const problemas = validarDia(linhas.filter(l => l.inicio && l.fim));
     const total = totalDoDia(linhas.filter(l => l.inicio && l.fim));
-    return `<fieldset class="form-grupo hj-dia">
+    return `<fieldset class="form-grupo hj-dia" data-dia="${d.n}">
       <legend>${esc(d.nome)} ${total ? `<span class="hj-total">${esc(duracao(total))}</span>` : ''}</legend>
       <div class="hj-linhas">
         ${linhas.map((l, i) => `
@@ -143,8 +156,7 @@ function pintar() {
           || `<p class="form-hint">Sem jornada nesta ${esc(d.nome.toLowerCase())}.</p>`}
       </div>
       <button type="button" class="mini-btn hj-add" data-dia="${d.n}">${ico('adicionar', { tam: 14 })} bloco</button>
-      ${problemas.map(p => `<p class="hj-prob n-${p.nivel}">
-        ${ico(p.nivel === 'erro' ? 'erro' : 'atencao', { tam: 14 })} ${esc(p.texto)}</p>`).join('')}
+      <div class="hj-avisos">${avisosHtml(problemas)}</div>
     </fieldset>`;
   }).join('');
 
