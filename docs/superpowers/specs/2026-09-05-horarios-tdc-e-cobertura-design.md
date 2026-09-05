@@ -7,7 +7,8 @@
 
 ## 1. Os problemas
 
-Cinco coisas, da mais estrutural à mais cosmética:
+Nove coisas, da mais estrutural à mais cosmética (1–5 desenhadas em 05/09; 6–9
+acrescentadas na fusão com as recomendações do André):
 
 1. **O TDC só existe depois que alguém preenche o calendário.** A aba de TDC na
    gaveta de jornada só aparece se alguma data do ano já estiver marcada com
@@ -28,6 +29,23 @@ Cinco coisas, da mais estrutural à mais cosmética:
 5. **Detalhes de leitura da grade e da toolbar:** os campos de busca não ocupam
    a linha; o eixo de horas mostra `07` sem dizer que é hora; os dias aparecem
    como `Seg`, `Ter`.
+6. **"Sem escala" na visão Rede do Calendário é uma exclusão disfarçada de
+   opção de `<select>`.** Escolher "Sem escala" apaga a linha de
+   `dia_calendario.escala` - remoção, não um estado "sem escala". A ação certa
+   ali é um botão de excluir explícito.
+7. **Os dias de TDC não aparecem na grade mensal do Calendário Escolar.** A
+   escala vive só na aba "Escalas (TDC)"; quem olha o mês não vê quais quartas
+   são TDC.
+8. **A modal "Tipos de escala" não segue o padrão de campo do hub.** Os
+   `<input>` de rótulo são soltos, sem o tratamento de rótulo/altura
+   (`--campo`) das outras telas.
+9. **Um gestor que faz o mesmo horário todos os dias precisa preencher cinco
+   vezes** na gaveta de jornada. Falta um atalho "aplicar a todos os dias".
+
+> **Adiado desta rodada:** o TDC de uma data pode ficar sob o gestor 1 ou o
+> gestor 2 da unidade, e não se sabe de antemão qual - com necessidade de
+> registrar a jornada de TDC de todos os gestores mesmo assim. É uma decisão de
+> modelo à parte, tratada numa rodada dedicada.
 
 ## 2. Decisões
 
@@ -218,16 +236,62 @@ ele precisa estar lá e precisa sumir quando não se está olhando para ele.
 apresentação e mora no CSS. O model continua dizendo "Seg", que é o que outros
 consumidores esperam.
 
+### D8 - "Sem escala" da visão Rede vira botão de excluir
+
+Na tabela da visão **Rede** (`views/escalas.js`, `pintarRede`), cada linha tem
+hoje um `<select>` com "Sem escala" + as escalas do catálogo. O "Sem escala"
+sai do `<select>`: fica um `<select>` só com as escalas reais e, ao lado, um
+botão de excluir (lixeira vermelha, Bloco I) que remove a data da rede -
+`definirEscalaRede(data, null)`, a mesma chamada de hoje, agora explícita.
+Excluir uma data de TDC não some com nada gravado nos horários (a jornada
+aponta para o *nome* da escala, não para a data); a tela confirma antes
+mesmo assim, porque a data volta a valer a jornada Normal para todo mundo.
+
+A visão **Escola** (`pintarEscola`) **não muda**: ali "Segue a rede" e "Sem TDC
+nesta escola" são dois estados com significado distinto (herdar vs. cancelar
+por cima da rede), e o `<select>` é o controle certo para escolher entre eles.
+
+### D9 - A escala aparece na grade mensal do Calendário
+
+A grade mensal (`calendario.view.js`, aba "Grade") ganha, no dia que tem
+escala não-Normal resolvida para aquela data, um marcador discreto com o
+rótulo da escala (um `.tag` pequeno, como os de evento). É leitura, não
+edição - editar continua na aba "Escalas (TDC)". O dado vem de
+`getEscalasRede`/`getEscalasUnidade` para o mês exibido, resolvido pela mesma
+regra de precedência que o resto do módulo usa (override de escola vence
+rede). Sem a migration de escalas, a grade fica como hoje.
+
+### D10 - "Aplicar a todos os dias" na gaveta de jornada
+
+Na gaveta (`views/jornada.js`), a aba de um dia ganha um botão
+"Copiar para todos os dias" ao lado de "adicionar bloco". Clicar substitui
+os blocos dos outros dias **daquela escala** pelos blocos do dia atual
+(cópia, não referência - editar a terça depois não mexe na segunda). Só
+aparece nas escalas sem dia fixo (uma escala com `dia_semana` definido tem um
+dia só - D5 - e o botão não faz sentido). Confirma antes quando algum outro
+dia já tem bloco preenchido, porque a cópia sobrescreve.
+
+### D11 - A modal "Tipos de escala" no padrão de campo
+
+`abrirTiposEscala`/`pintarTipos` em `views/escalas.js`: cada linha da lista de
+tipos passa a ser um campo com rótulo (`--form-label`) e altura `--campo`, e o
+botão de criar/remover segue o Bloco I. O botão de excluir um tipo de escala
+(hoje ausente) entra - vermelho, e recusado se a escala estiver em uso
+(gravada em `dia_calendario.escala` ou em algum bloco de jornada); a chave
+continua imutável na edição.
+
 ## 3. Ordem de implementação sugerida
 
-As cinco decisões são independentes entre si, exceto pela dependência do Bloco
-A. Sugestão de fatiamento, do menor risco ao maior:
+As decisões são quase todas independentes entre si, exceto pela dependência do
+Bloco A. Sugestão de fatiamento, do menor risco ao maior:
 
-1. D1 e D7 - CSS e uma linha de HTML; entregáveis isolados.
+1. D1, D7, D8, D11 - CSS, HTML e a modal de tipos; entregáveis isolados.
 2. D2 - move a tela de cargos para o painel de configuração.
 3. D3 - parametriza a janela de cobertura (mexe em model puro e tem teste).
-4. D4 e D5 - migration + gaveta de jornada.
-5. D6 - a sub-linha na grade, que é o que depende de tudo acima.
+4. D10 - "copiar para todos os dias" na gaveta (não depende de migration).
+5. D4 e D5 - migration + gaveta de jornada.
+6. D6 e D9 - a sub-linha na grade de Horários e o marcador na grade do
+   Calendário, que dependem do modelo de dia da semana acima.
 
 ## 4. Arquivos
 
@@ -244,7 +308,11 @@ A. Sugestão de fatiamento, do menor risco ao maior:
 | `src/modules/horarios/views/jornada.js` | um dia só para escala com dia fixo; aviso de blocos órfãos |
 | `src/modules/horarios/views/por-escola.js` | janela por unidade; sub-linha de TDC; chips só para escalas sem dia fixo |
 | `src/modules/horarios/views/grade.js` | sub-linha, validação por escala, eixo com `h` |
+| `src/modules/horarios/views/jornada.js` | "copiar para todos os dias" (D10) |
 | `src/modules/horarios/horarios.css` | `.hg-dia` em caixa alta; `.hg-marca em`; sub-linha |
+| `src/modules/calendario/views/escalas.js` | "Sem escala" → botão de excluir (D8); modal de tipos no padrão (D11) |
+| `src/modules/calendario/calendario.view.js` | marcador de escala na grade mensal (D9) |
+| `src/modules/calendario/calendario.css` | marcador na grade |
 | `src/styles/components.css` | `.toolbar` com busca elástica (D1) |
 | `tests/horarios.test.mjs` · `tests/escalas.test.mjs` | janela parametrizada; escolha de blocos por escala com dia fixo |
 | `docs/modulos/horarios.md` | criar - tutorial, no mesmo commit |
@@ -277,7 +345,14 @@ A. Sugestão de fatiamento, do menor risco ao maior:
    **não** recebe aviso de sobreposição.
 8. A tira de cobertura não muda por causa dos blocos de TDC.
 9. O eixo mostra `07h`, `08h`…, mais discreto; os dias aparecem em caixa alta.
-10. `node --test tests/` sem falhas, incluindo os testes novos.
-11. Legível em 375px, nos dois temas.
-12. `docs/modulos/horarios.md` escrito no mesmo commit.
-13. `python .claude/scripts/verificar_arquitetura.py` sem violações.
+10. Na visão Rede do Calendário, remover uma data de TDC é um botão de excluir
+    vermelho, com confirmação; a visão Escola mantém o `<select>`.
+11. A grade mensal do Calendário mostra qual escala vale em cada dia de TDC.
+12. "Copiar para todos os dias" replica os blocos do dia atual nos demais dias
+    da mesma escala, com confirmação quando sobrescreve.
+13. A modal "Tipos de escala" usa o padrão de campo do hub e permite excluir
+    um tipo não utilizado.
+14. `node --test tests/` sem falhas, incluindo os testes novos.
+15. Legível em 375px, nos dois temas.
+16. `docs/modulos/horarios.md` escrito no mesmo commit.
+17. `python .claude/scripts/verificar_arquitetura.py` sem violações.
