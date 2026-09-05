@@ -201,11 +201,19 @@ def check_direcao_kernel():
         if camada(f) != 'kernel':
             continue
         eh_registry = rel_src(f) == 'core/registry.js'
+        eh_router = rel_src(f) == 'core/router.js'
         for alvo in grafo[f]:
             ca = camada(alvo)
             if ca.startswith('modulo:'):
                 if eh_registry and os.path.basename(alvo) == 'module.js':
                     continue          # excecao nomeada: manifestos
+                # Excecao nomeada: o roteador abre o painel de configuracao
+                # por import() DINAMICO no clique da engrenagem (spec
+                # 2026-09-05-configuracoes-por-modulo, D8). O kernel dispara,
+                # o modulo responde - mesma inversao de mod.load().
+                if (eh_router and alvo not in estaticos.get(f, [])
+                        and rel_src(alvo) == 'modules/configuracoes/painel.js'):
+                    continue
                 add('BLOQUEIA', 5, f, 0,
                     'kernel importa %s; o kernel nao conhece modulo' % rel_src(alvo))
             elif ca == 'shell':

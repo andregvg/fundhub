@@ -73,8 +73,14 @@ export async function route({ manterScroll = false } = {}) {
       outlet.innerHTML = emptyState(ico('restrito', { tam: 32 }), 'Acesso restrito',
         'Você não tem permissão para este módulo. Se precisa de acesso, fale com a Gerência de Ensino Fundamental.');
     } else {
+      const nv = nivel(chavePerm(mod));
+      // Estrutura estável: a barra de ações é IRMÃ da view, não mãe. A
+      // view continua recebendo um elemento e escrevendo o innerHTML nele;
+      // .mod-wrap é o pai posicionado que ancora a barra no canto.
+      outlet.innerHTML = `<div class="mod-wrap"><div class="mod-acoes" id="mod-acoes"></div><div id="mod-view"></div></div>`;
+      await montarAcoesModulo(mod, nv);
       const view = await mod.load();   // import() dinâmico: só agora a view é baixada
-      await view.render(outlet, { perfil, nivel: nivel(chavePerm(mod)), params });
+      await view.render(document.getElementById('mod-view'), { perfil, nivel: nv, params });
     }
   } catch (err) {
     outlet.innerHTML = emptyState(ico('atencao', { tam: 32 }), 'Não foi possível abrir este módulo', esc(String(err?.message || err)));
@@ -82,6 +88,21 @@ export async function route({ manterScroll = false } = {}) {
 
   aoTrocarRota(hash);
   if (!manterScroll) window.scrollTo(0, 0);
+}
+
+// A engrenagem (e, no Bloco B, o botão de ajuda) da barra de ações.
+// `import()` dinâmico do painel: o kernel dispara, o módulo responde -
+// mesma inversão de mod.load(). Módulo sem `config` não ganha botão, e
+// sem botão a barra fica vazia (invisível, via .mod-acoes:empty).
+async function montarAcoesModulo(mod, nv) {
+  const barra = document.getElementById('mod-acoes');
+  if (!barra || nv === OCULTO || typeof mod.config !== 'function') return;
+  barra.insertAdjacentHTML('beforeend',
+    `<button type="button" class="mod-acao" id="mod-cfg" aria-label="Configurações de ${esc(mod.nome)}">${ico('config')}</button>`);
+  document.getElementById('mod-cfg').addEventListener('click', async () => {
+    const { abrirPainelConfig } = await import('../modules/configuracoes/painel.js');
+    abrirPainelConfig(mod);
+  });
 }
 
 // Reexecuta a rota atual sem tocar no hash - o scroll, a aba e o

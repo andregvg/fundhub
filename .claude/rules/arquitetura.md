@@ -104,6 +104,7 @@ Estas são as únicas. Qualquer outra precisa de justificativa em comentário no
 | Exceção | Por quê |
 |---|---|
 | `core/registry.js` importa os `module.js` | Ponto de inversão: o kernel conhece **manifestos**, não implementações. As views entram por `import()` dinâmico. |
+| `core/router.js` importa `modules/configuracoes/painel.js` por `import()` **dinâmico** | A engrenagem da barra de ações abre o painel de configuração no clique. O kernel dispara, o módulo responde - mesma inversão de `mod.load()`. Só dinâmico, só esse alvo. Spec `2026-09-05-configuracoes-por-modulo`, D8. |
 | `core/segmentos.js` tem vocabulário de domínio | Aceito só porque quase todo módulo filtra por segmento e todos precisam concordar sobre o significado. Espelha `unidade_segmentos()` no Postgres - mudou aqui, mude lá. Não é licença para mover domínio ao kernel. |
 | `dashboard` / `viagens` importam muitos models | Legítimo: são **leitores puros sem dados próprios**, acoplamento unidirecional, módulo descartável. Vira problema se o agregador começar a escrever. |
 | `shared/ui/filtro-segmento.js` conhece segmentos | O domínio vem de `core/segmentos.js`, que já é kernel. **Não é controle de acesso** - quem restringe é o RLS; o filtro é conveniência e pode ser desmarcado. |

@@ -5,6 +5,25 @@
    MOBILE-FIRST - o padrão é uma coluna; as grades entram no @media.
    ============================================================ */
 
+/* ── Barra de ações do módulo (roteador) ──────────────────────
+   A engrenagem (e, no Bloco B, a ajuda) do módulo. É IRMÃ da view - a
+   view faz innerHTML no #mod-view e apagaria o que estivesse dentro.
+   .mod-wrap é o pai posicionado; a barra ancora no canto superior. */
+.mod-wrap { position: relative; }
+.mod-acoes { position: absolute; top: 0; right: 0; z-index: 5; display: flex; gap: 6px; }
+.mod-acoes:empty { display: none; }
+.mod-acao {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: var(--controle); height: var(--controle);
+  border: 1px solid var(--border); border-radius: 9px;
+  background: var(--surface-2); color: var(--muted); cursor: pointer;
+  box-shadow: var(--shadow-btn);
+}
+.mod-acao:hover { color: var(--text); border-color: var(--border-forte); }
+/* Reserva à direita no título para os botões não cobrirem o texto. */
+#mod-view > .page-head { padding-right: calc(var(--controle) + 12px); }
+@media (pointer: coarse) { .mod-acao { width: var(--toque); height: var(--toque); } }
+
 /* ── Hero e tiles (home) ──────────────────────────────────── */
 .hero {
   background: linear-gradient(135deg, color-mix(in srgb, var(--brand) 14%, var(--surface)), var(--surface));
