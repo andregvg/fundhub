@@ -358,7 +358,15 @@ a.tile:hover {
 
 .mini-btn { min-height: 28px; padding: 3px 10px; font-size: 12.5px; }
 .mini-btn.ok:hover { border-color: var(--ok); color: var(--ok); }
-.mini-btn.no:hover { border-color: var(--danger); color: var(--danger); }
+/* Excluir é a única ação que .no marca (a de "Cancelar" reversível não
+   usa mais esta classe). Vermelho em repouso, não só no hover - é o
+   padrão único de "excluir" do hub. A borda fica neutra: não é um botão
+   preenchido de perigo (esse é o .btn-perigo, só dentro de confirmar()). */
+.mini-btn.no { color: var(--danger); }
+.mini-btn.no:hover {
+  border-color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 8%, transparent);
+}
 
 /* Toque: o compacto do desktop não vale numa tela de celular. */
 @media (pointer: coarse) {

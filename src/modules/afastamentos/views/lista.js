@@ -46,7 +46,7 @@ function item(a, perfil) {
       : `
         ${importado ? `<button class="mini-btn ok" data-confirmar="${a.id}" aria-label="Confirmar">${ico('ok')}</button>` : ''}
         <button class="mini-btn" data-edit="${a.id}" aria-label="Editar">${ico('editar')}</button>
-        <button class="mini-btn no" data-cancelar="${a.id}" aria-label="Cancelar">${ico('fechar')}</button>`}
+        <button class="mini-btn" data-cancelar="${a.id}" aria-label="Cancelar">${ico('fechar')}</button>`}
     </div>` : '';
   return `<div class="solic ${cancelado ? 'inativo' : ''}" style="border-left:3px solid ${esc(cor)}">
     <div class="solic-main">
