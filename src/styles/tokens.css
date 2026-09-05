@@ -109,6 +109,17 @@
   --serie-4: #a98cc4;
   --serie-5: #d18f8f;
   --serie-6: #7fa06b;
+
+  /* Cor por eixo pedagógico no filtro de segmento (core/segmentos.js,
+     shared/ui/filtro-segmento.js). Fundamental reusa o azul de --brand -
+     não é coincidência, é o eixo "padrão" da rede. Infantil é âmbar, não
+     amarelo puro: amarelo (#f59e0b, --accent) como cor de TEXTO tem
+     contraste 2,2:1 sobre fundo claro - ilegível. O âmbar escolhido aqui
+     tem ~5,0:1. --eixo-todas é o cinza "destacado" pedido, mais escuro
+     que --muted para não parecer desabilitado. */
+  --eixo-fundamental: #1d4ed8;
+  --eixo-infantil: #b45309;
+  --eixo-todas: #57606a;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -142,6 +153,11 @@
     --serie-4: #b99cd4;
     --serie-5: #dd9f9f;
     --serie-6: #8fb07b;
+
+    /* Mesmos três eixos, recalibrados para fundo escuro. */
+    --eixo-fundamental: #5b8cff;
+    --eixo-infantil: #fbbf24;
+    --eixo-todas: #adbac7;
   }
 }
 
