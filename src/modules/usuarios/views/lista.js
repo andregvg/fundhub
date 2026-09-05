@@ -200,9 +200,9 @@ function abrirForm(p) {
     const ativo = atalhoDe(segs);
     boxSegs.innerHTML = `
       <div class="fseg">
-        ${ATALHOS.map(a => `<button type="button" class="chip atalho ${ativo === a.id ? 'on' : ''}" data-atalho="${a.id}">${esc(a.rotulo)}</button>`).join('')}
+        ${ATALHOS.map(a => `<button type="button" class="chip atalho ${ativo === a.id ? 'on' : ''}" data-atalho="${a.id}" data-eixo="${a.id}">${esc(a.rotulo)}</button>`).join('')}
         <span class="fseg-sep" aria-hidden="true"></span>
-        ${SEGMENTOS.map(s => `<button type="button" class="chip ${segs.includes(s.codigo) ? 'on' : ''}" data-seg="${s.codigo}">${ico(s.ico, { tam: 14 })} ${esc(s.rotulo)}</button>`).join('')}
+        ${SEGMENTOS.map(s => `<button type="button" class="chip ${segs.includes(s.codigo) ? 'on' : ''}" data-seg="${s.codigo}" data-eixo="${s.eixo}">${esc(s.rotulo)}</button>`).join('')}
       </div>`;
   };
   boxSegs.addEventListener('click', (e) => {
