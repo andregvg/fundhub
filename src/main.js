@@ -20,6 +20,7 @@ import { montarNav, marcarNav, setChrome, carimboRodape, marcarAtualizacao } fro
 import { renderAcessoPendente } from './shell/pendente.js';
 import { limparToasts } from './shared/ui/toast.js';
 import { limparCaches } from './shared/cache.js';
+import { ligarCamposDataHora } from './shared/ui/campo-data-hora.js';
 
 const app = document.getElementById('app');
 let montado = false;
@@ -88,6 +89,7 @@ function pararServicos() {
 
 async function boot() {
   carimboRodape();
+  ligarCamposDataHora();
 
   // Modo dev-local (sem Supabase configurado): sem gate, sem dados.
   if (!hasSupabase()) { montarApp(null); return; }
