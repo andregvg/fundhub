@@ -559,12 +559,52 @@ a.tile:hover {
    `height` (e não `min-height`) resolve o (2): trava o teto em --campo
    sem cortar o texto nem o ícone do calendário (conferido no browser).
    Paradigma do hub - ver .claude/rules/ui.md R17: data e hora têm SEMPRE
-   a mesma altura dos campos vizinhos, em qualquer módulo.
-   O indicador do calendário FICA: trocar o seletor nativo de data por
-   causa de alguns pixels não compensa. */
+   a mesma altura dos campos vizinhos, em qualquer módulo. */
 input[type="date"], input[type="time"] { height: var(--campo); }
 input[type="date"]::-webkit-datetime-edit-fields-wrapper,
 input[type="time"]::-webkit-datetime-edit-fields-wrapper { padding: 0; }
+
+/* O indicador nativo (::-webkit-calendar-picker-indicator) entra na ordem
+   de tabulação do Chromium como uma parada A MAIS depois do último
+   segmento (dd/mm/aaaa ou hh/mm) - medido: 4 Tabs para sair de um campo
+   de data com 3 segmentos, 3 Tabs para um de hora com 2. Como o ícone
+   vive no shadow DOM do campo, `activeElement` não muda durante essa
+   parada e não há como interceptá-la por JS - a única saída é remover o
+   indicador da árvore de foco. Ver
+   docs/superpowers/specs/2026-09-05-campos-data-hora-tab-design.md. */
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator { display: none; }
+
+/* O ícone volta por conta própria, como background-image - MASK-IMAGE FOI
+   TESTADO E DESCARTADO: aplicado ao <input> inteiro, ele recorta a
+   visibilidade do campo TODO para a área do ícone (o texto digitado some
+   junto, não só o indicador nativo). background-image não tem esse efeito
+   colateral: pinta sobre o fundo existente sem afetar o resto da caixa.
+   Duas cores, não uma var(--token): uma data URI não enxerga variável CSS
+   do documento que a referencia. #656d76/#93a0bd são --muted claro/escuro
+   (tokens.css) copiados à mão - se --muted mudar lá, mudar aqui junto.
+   O clique nesta faixa (canto direito, ~26px) abre o seletor nativo via
+   showPicker() - ver shared/ui/campo-data-hora.js. */
+input[type="date"], input[type="time"] {
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 16px 16px;
+  padding-right: 28px;
+}
+input[type="date"] {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23656d76' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'/%3E%3Cline x1='16' y1='2' x2='16' y2='6'/%3E%3Cline x1='8' y1='2' x2='8' y2='6'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E%3C/svg%3E");
+}
+input[type="time"] {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23656d76' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpolyline points='12 6 12 12 16 14'/%3E%3C/svg%3E");
+}
+@media (prefers-color-scheme: dark) {
+  input[type="date"] {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2393a0bd' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'/%3E%3Cline x1='16' y1='2' x2='16' y2='6'/%3E%3Cline x1='8' y1='2' x2='8' y2='6'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E%3C/svg%3E");
+  }
+  input[type="time"] {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2393a0bd' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpolyline points='12 6 12 12 16 14'/%3E%3C/svg%3E");
+  }
+}
 
 input[type="color"] { height: 44px; padding: 4px; cursor: pointer; }
 input[type="checkbox"] { width: 18px; height: 18px; }
