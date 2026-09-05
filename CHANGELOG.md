@@ -9,6 +9,24 @@ versionamento **MINOR** = módulo novo ou mudança de modelo de dados, **PATCH**
 
 ---
 
+## [0.14.2] - 2026-09-05
+
+### Corrigido
+- Na jornada semanal, digitar um novo horário num bloco que já tinha início e
+  fim preenchidos jogava o foco para fora do campo no meio da digitação - a
+  pessoa precisava clicar de novo para continuar. Agora o foco permanece no
+  campo.
+
+### Alterado
+- Campo de hora passou a ter sempre a mesma altura dos campos de texto e de
+  seleção ao lado - antes saía 2 a 3 pixels mais alto em algumas telas.
+- Botão de ação ao lado de um campo (excluir um bloco de horário, descartar
+  uma data de escala proposta, criar um tipo de escala novo) passou a ter a
+  mesma altura do campo vizinho, em vez de sair mais baixo. Dois campos de
+  escala que ainda usavam a aparência padrão do navegador (a lista de tipos
+  de escala e a proposta de datas de TDC) ganharam a mesma aparência dos
+  demais campos do hub.
+
 ## [0.14.1] - 2026-09-02
 
 Rodada de acabamento visual: formulários e filtros ficam mais fáceis de ler, e a

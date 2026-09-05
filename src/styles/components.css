@@ -349,6 +349,22 @@ a.tile:hover {
   .mini-btn { min-height: 34px; }
 }
 
+/* Paradigma do hub (05/09/2026): um botão de ação que divide LINHA com
+   campo(s) de formulário (excluir um bloco de horário ao lado do início/
+   fim, descartar uma proposta ao lado do <select> de escala, etc.) usa a
+   altura do campo (--campo), não a altura padrão de botão - a linha
+   inteira precisa ler como uma peça só, não como campo + botão flutuando
+   em alturas diferentes.
+   Estrutural, não por classe: pega qualquer <div>/<form> cujo FILHO
+   DIRETO seja um input/select, com um .mini-btn também filho direto -
+   é o desenho que .hj-linha, .cal-prop-linha e #et-novo já usam. Um
+   módulo novo que seguir o mesmo desenho (linha com campo + botão)
+   ganha a altura certa de graça, sem precisar lembrar de nada.
+   Não pega .campo-derivado (não tem input/select, é <span>) nem os
+   grupos de ação de lista/gaveta (.drawer-acoes, .solic-acoes...) -
+   nenhum tem um input/select como filho direto do mesmo container. */
+:is(div, form):has(> input, > select) > .mini-btn { min-height: var(--campo); }
+
 /* ── Cards ────────────────────────────────────────────────── */
 .cards { display: grid; gap: 12px; grid-template-columns: 1fr; }
 .card {
@@ -513,13 +529,22 @@ a.tile:hover {
   border-color: var(--brand);
 }
 
-/* Data e hora saíam 2px mais altos que o campo de texto ao lado: o WebKit
-   dá padding próprio ao invólucro dos campinhos internos (dia/mês/ano).
-   Zerado aqui, a altura passa a vir só de --campo, como em todo campo.
-   É o -fields-wrapper que carrega esse padding, não o ::-webkit-datetime-edit
-   - medido no browser, os dois não são intercambiáveis.
-   O indicador do calendário FICA: trocar o seletor nativo de data por 2px
-   de alinhamento não compensa. */
+/* Data e hora saem mais altos que o campo de texto ao lado por dois
+   motivos empilhados - os dois medidos no browser, não deduzidos:
+   1) o WebKit dá padding próprio ao invólucro dos campinhos internos
+      (dia/mês/ano) - é o -fields-wrapper que carrega esse padding, não o
+      ::-webkit-datetime-edit, os dois não são intercambiáveis;
+   2) mesmo com esse padding zerado, o controle nativo ainda reivindica
+      uma altura mínima própria maior que --campo (medido: 38,8px contra
+      36px, com min-height IGUAL nos dois - min-height não segura quando
+      o conteúdo interno pede mais).
+   `height` (e não `min-height`) resolve o (2): trava o teto em --campo
+   sem cortar o texto nem o ícone do calendário (conferido no browser).
+   Paradigma do hub - ver .claude/rules/ui.md R17: data e hora têm SEMPRE
+   a mesma altura dos campos vizinhos, em qualquer módulo.
+   O indicador do calendário FICA: trocar o seletor nativo de data por
+   causa de alguns pixels não compensa. */
+input[type="date"], input[type="time"] { height: var(--campo); }
 input[type="date"]::-webkit-datetime-edit-fields-wrapper,
 input[type="time"]::-webkit-datetime-edit-fields-wrapper { padding: 0; }
 

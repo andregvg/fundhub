@@ -108,7 +108,19 @@ function aoMudarCampo(e) {
   alvo.inicio = linha.querySelector('.hj-ini').value;
   alvo.fim = linha.querySelector('.hj-fim').value;
   alvo.obs = linha.querySelector('.hj-obs').value;
+
+  // pintar() reconstrói a linha inteira - sem restaurar o foco, o campo
+  // que acabou de disparar o 'change' perde o foco no meio da digitação:
+  // um <input type="time"> com os dois lados já válidos (caso comum ao
+  // EDITAR um bloco existente) dispara 'change' assim que um dígito
+  // forma um horário válido, ainda com o campo focado - não só ao sair
+  // dele. O nó antigo é destruído pelo innerHTML e o foco cai no <body>,
+  // sentido como "a hora empurra o foco pra fora" em vez de avançar pros
+  // minutos (achado da rodada de correção do fluxo de digitação, 05/09/2026).
+  const { dia: d, i } = linha.dataset;
+  const campo = e.target.className;
   pintar();
+  document.querySelector(`.hj-linha[data-dia="${d}"][data-i="${i}"] .${campo}`)?.focus();
 }
 
 function pintar() {

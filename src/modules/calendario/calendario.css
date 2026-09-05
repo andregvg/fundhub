@@ -107,6 +107,37 @@
 .cal-prop-linhas { display: flex; flex-direction: column; gap: 6px; margin: 10px 0; }
 .cal-prop-linha { display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 8px; }
 .cal-prop-data { font-size: 12.5px; }
+
+/* Os três <select> desta tela (rede, escola, proposta) editam um valor -
+   mesma altura e aparência dos demais campos do hub (ui.md R17), não o
+   tamanho nativo do navegador. Sem isto, o botão de descartar ao lado do
+   `.cal-prop-esc` (já na altura do campo, ver components.css) sobrava
+   mais alto que o próprio select - achado da rodada de correção do fluxo
+   de digitação, 05/09/2026. */
+.cal-esc-sel, .cal-esc-sel-uni, .cal-prop-esc {
+  min-height: var(--campo);
+  padding: 6px 9px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-btn);
+  background: var(--surface-2);
+  color: var(--form-field);
+  font-size: 14px;
+}
+
+/* #et-novo é um <form class="esc-row"> sem um .esc-form por fora (só
+   esta tela faz isso) - sem estilo próprio os dois <input> saem no
+   padrão do navegador (branco chapado, até no tema escuro), mesmo
+   achado da rodada de correção do fluxo de digitação, 05/09/2026. */
+#et-novo input {
+  min-height: var(--campo);
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-btn);
+  background: var(--surface-2);
+  color: var(--form-field);
+  font-size: 16px;
+  line-height: 1.25;
+}
 /* Base = celular (mobile-first, .claude/rules/ui.md): nao criar
    @media (max-width:) - nenhuma existe em todo o src/. */
 @media (min-width: 560px) {

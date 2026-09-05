@@ -1,6 +1,6 @@
 # UI - tela, estilo e componentes
 
-Regras R9, R12, R14 e R16. Contexto em
+Regras R9, R12, R14, R16 e R17. Contexto em
 `docs/superpowers/specs/2026-08-25-arquitetura-fundhub-design.md`.
 
 ## R12 - Quando é componente JS e quando é classe CSS
@@ -63,6 +63,27 @@ entre `--controle` (o botão, 32px) e `--toque` (40px), e sobe para `--toque` em
 
 Campo somente-leitura que exibe valor longo (`.campo-derivado`) corta com reticências e guarda o
 inteiro no `title`: um campo que cresce para duas linhas deixa de casar com os vizinhos.
+
+## R17 - Altura de campo e de botão de linha
+
+Dois paradigmas do hub, decisão do André (05/09/2026):
+
+**Todo campo de formulário tem a mesma altura - inclusive data e hora.** `input[type="date"]` e
+`input[type="time"]` não são exceção: dentro de `.esc-form`, `.form-grid` ou `.filtro-campo` eles já
+herdam `--campo` como qualquer `input`/`select` (`components.css`), e o padding extra que o WebKit
+dá ao miolo do date/time é zerado à parte (`::-webkit-datetime-edit-fields-wrapper`) para não sair
+2px mais alto que o campo de texto ao lado. **Um campo de data/hora novo sempre nasce dentro de um
+desses três containers** - é o que garante a altura de graça; não estilizar data/hora à parte.
+
+**Um botão de ação que divide LINHA com campo(s) usa a altura do campo (`--campo`), não a altura
+padrão de botão (`--controle`/`.mini-btn`).** Exemplos: excluir um bloco de horário ao lado do
+início/fim (`jornada.js`), descartar uma proposta ao lado do `<select>` de escala
+(`calendario/views/escalas.js`). A regra é **estrutural**, não por classe nova - pega qualquer
+`<div>`/`<form>` cujo filho direto seja `input`/`select` e que também tenha um `.mini-btn` como
+filho direto (`components.css`). Um módulo novo com esse mesmo desenho (linha = campo(s) + botão)
+ganha a altura certa sem precisar declarar nada. Não se aplica a botão de ação de lista/gaveta
+(`.drawer-acoes`, `.solic-acoes`) nem a `.campo-derivado` (não tem `input`/`select`, é `<span>`) -
+nenhum dos dois tem campo como filho direto do mesmo container.
 
 ## Filtros: um painel por tela de lista
 

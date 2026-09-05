@@ -9,7 +9,7 @@ export const CONFIG = {
   appName: 'FundHub',
   // Versão do sistema. Ao lançar, subir aqui E registrar em CHANGELOG.md.
   // Semântica: MINOR = módulo novo ou mudança de modelo; PATCH = correção.
-  versao: '0.14.1',
+  versao: '0.14.2',
   supabaseUrl: 'https://uwkroffzjyzbjslepjnh.supabase.co',
   // Chave "publishable" do Supabase (Project Settings → API). É PÚBLICA por
   // design - sem login institucional + estar na allowlist (perfil), o RLS
