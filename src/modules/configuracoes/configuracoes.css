@@ -1,0 +1,32 @@
+/* ============================================================
+   FundHub - configuracoes.css
+   Painel de configuração (gaveta da engrenagem) e tela agregadora.
+   Reusa .switch, .form-hint e os tokens de formulário do hub.
+   ============================================================ */
+
+.cfg-grupo { border: 0; margin: 0 0 20px; padding: 0; }
+.cfg-grupo + .cfg-grupo { border-top: 1px solid var(--border); padding-top: 16px; }
+.cfg-grupo > legend {
+  color: var(--form-legend); font-size: 11.5px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .06em; padding-bottom: 6px;
+  border-bottom: 1px solid var(--border); width: 100%; margin-bottom: 12px;
+}
+
+.cfg-item { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
+.cfg-rot {
+  color: var(--form-label); font-size: 11.5px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .04em;
+}
+.cfg-dica {
+  display: block; text-transform: none; font-weight: 400;
+  letter-spacing: 0; margin-top: 2px;
+}
+.cfg-rede { color: var(--brand); font-size: 10px; margin-left: 4px; }
+.cfg-item input[type="number"] {
+  min-height: var(--campo); line-height: 1.25; max-width: 120px;
+}
+
+/* Tela agregadora: um bloco por módulo. */
+.cfg-mod { margin-bottom: 28px; }
+.cfg-mod-head { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+.cfg-mod-head h2 { font-size: 15px; margin: 0; }
