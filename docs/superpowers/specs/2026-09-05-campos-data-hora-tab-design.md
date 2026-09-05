@@ -53,17 +53,54 @@ de volta.
 ### D2 - O ícone volta, desenhado por nós
 
 Sem ícone, um campo de data fica indistinguível de um campo de texto. Ele volta
-como imagem de fundo do próprio `<input>`, usando `mask-image` com o traçado
-que já existe em `shared/ui/icones.js` (`calendario` e `horario`), pintado com
-`background-color: var(--muted)`.
+como `background-image` do próprio `<input>`, um SVG do mesmo traçado que já
+existe em `shared/ui/icones.js` (`calendario` e `horario`), posicionado à
+direita (`background-position: right 8px center`).
 
-`mask-image` e não `background-image`: um SVG carregado como imagem não herda
-`currentColor` e sairia com cor fixa - o que quebraria o tema escuro e a R9. Com
-máscara, quem pinta é um token, e o ícone acompanha o tema de graça.
+**`mask-image` foi testado e descartado - ele quebra o campo, não só o ícone.**
+`mask-image` (ao contrário de `background-image`) não *soma* uma camada: ele
+recorta a visibilidade do elemento inteiro para a área onde a máscara tem
+opacidade. Aplicada a um `<input>` com `mask-size: 16px` e posição fixa, o
+efeito medido no navegador é o campo inteiro desaparecer - texto, fundo, borda -
+sobrando só o ícone de 16px; o valor digitado, o cursor, tudo some fora dessa
+janela. Não há como restringir `mask-image` a "só o canto direito" sem que o
+resto do elemento vire invisível, e `<input>` não aceita `::before`/`::after`
+como camada sobreposta para carregar a máscara à parte (testado: o pseudo-
+elemento até existe no `getComputedStyle`, mas o navegador o desenha **abaixo**
+do campo, nunca por cima - útil para outra coisa, inútil aqui). `background-
+image`, ao contrário, pinta *sobre* o fundo existente sem afetar o resto da
+caixa - é a única das duas que serve para um ícone dentro de um campo que
+continua editável.
 
-O ícone é **decorativo** (`aria-hidden` por natureza - é CSS, não entra na
-árvore de acessibilidade) e não é foco de nada. É exatamente o papel que ele
-deveria ter desde sempre.
+**A cor do ícone não pode vir de `var(--muted)` - é uma limitação da própria
+CSS, não uma escolha.** Uma `url(data:image/svg+xml,...)` não enxerga variáveis
+CSS do documento que a referencia; o SVG dentro da data URI é um documento à
+parte. A saída é **dois SVGs, com a cor do traço escrita à mão dentro da data
+URI**, um para cada tema, trocados pelo mesmo `@media (prefers-color-scheme:
+dark)` que o resto de `tokens.css` já usa:
+
+```css
+input[type="date"] {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23656d76' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'/%3E%3Cline x1='16' y1='2' x2='16' y2='6'/%3E%3Cline x1='8' y1='2' x2='8' y2='6'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E%3C/svg%3E");
+}
+@media (prefers-color-scheme: dark) {
+  input[type="date"] {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2393a0bd' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'/%3E%3Cline x1='16' y1='2' x2='16' y2='6'/%3E%3Cline x1='8' y1='2' x2='8' y2='6'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E%3C/svg%3E");
+  }
+}
+```
+
+`#656d76` e `#93a0bd` são os valores literais de `--muted` claro e escuro
+(`tokens.css`) **copiados à mão**, com um comentário apontando de volta para o
+token - se `--muted` mudar, os dois SVGs precisam mudar junto, e é por isso que
+o comentário existe. Isto **não** é uma cor de módulo (R9 fala de
+`src/modules/**`, e `components.css` é kernel); é uma limitação de plataforma
+sem outra saída em CSS puro sem build. O `horario` (relógio) recebe o mesmo
+tratamento, com o traçado próprio.
+
+O ícone é **decorativo** (não entra na árvore de acessibilidade por não ser um
+elemento - é pintura de fundo) e não é foco de nada. É exatamente o papel que
+ele deveria ter desde sempre.
 
 ### D3 - O clique no ícone continua abrindo o seletor
 
@@ -129,7 +166,7 @@ Nenhum deles é alterado: a correção é global.
 
 | Arquivo | Ação |
 |---|---|
-| `src/styles/components.css` | esconder o indicador; ícone por `mask-image`; espaço à direita no campo |
+| `src/styles/components.css` | esconder o indicador; ícone por `background-image` (dois SVGs por campo, claro/escuro); espaço à direita no campo |
 | `src/shared/ui/campo-data-hora.js` | criar - ouvinte delegado + `showPicker()` |
 | `src/main.js` | chamar `ligarCamposDataHora()` no boot |
 
@@ -141,6 +178,7 @@ Nenhuma migration. Nenhuma view alterada.
 |---|---|
 | `Alt+↓` deixar de abrir o seletor com o indicador escondido | **verificar na implementação**; se quebrar, o mesmo ouvinte trata a tecla e chama `showPicker()` |
 | Ícone desenhado desalinhar em algum campo | o campo já tem altura fixa (`--campo`); posicionar por `background-position: right 8px center` |
+| `--muted` mudar em `tokens.css` e os SVGs ficarem desatualizados | comentário em `components.css` aponta de volta para o token; é checagem manual, não mecânica |
 | `offsetX` medir errado num campo com transform/zoom | usar `getBoundingClientRect()` se aparecer; o caso não existe hoje |
 | Firefox/Safari se comportarem diferente | a regra `-webkit-` é ignorada por Firefox; conferir se lá também há parada extra e tratar só se houver |
 
