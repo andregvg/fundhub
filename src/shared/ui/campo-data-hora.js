@@ -30,6 +30,6 @@ export function ligarCamposDataHora() {
     const campo = e.target.closest('input[type="date"], input[type="time"]');
     if (!campo || campo.disabled || campo.readOnly) return;
     if (!cliqueNoIcone(e.offsetX, campo.clientWidth)) return;
-    campo.showPicker?.();
+    try { campo.showPicker?.(); } catch (_) { /* degrada em silencio - ver D3 da spec */ }
   });
 }

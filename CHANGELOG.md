@@ -9,6 +9,15 @@ versionamento **MINOR** = módulo novo ou mudança de modelo de dados, **PATCH**
 
 ---
 
+## [0.14.5] - 2026-09-05
+
+### Corrigido
+- Ao terminar de digitar uma data ou uma hora, o Tab passou a ir direto para
+  o próximo campo. Antes era preciso apertar Tab uma vez a mais, parando no
+  ícone de calendário/relógio - quem preenche a jornada semanal inteira
+  pagava essa parada dez vezes. O ícone continua no lugar e clicar nele
+  continua abrindo o calendário.
+
 ## [0.14.4] - 2026-09-05
 
 ### Alterado
