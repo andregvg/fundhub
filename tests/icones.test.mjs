@@ -26,6 +26,11 @@ test('tamanho padrao e 16', () => {
   assert.match(ico('escola'), /width="16"/);
 });
 
+test('tem o traçado de configuração (engrenagem)', () => {
+  assert.ok(TEM_ICONE('config'));
+  assert.match(ico('config'), /^<svg /);
+});
+
 test('aceita classe extra sem perder a classe base', () => {
   const svg = ico('escola', { classe: 'nav-ico' });
   assert.match(svg, /class="ico nav-ico"/);
@@ -52,7 +57,8 @@ test('todos os icones do conjunto produzem svg', () => {
     'restrito', 'menu', 'perdido', 'vazio', 'fixo', 'celular', 'whatsapp',
     'email', 'documento', 'arquivo', 'identidade', 'imprimir', 'tema',
     'noturno', 'subir', 'meta', 'parceria', 'obra', 'infantil',
-    'acessibilidade', 'destaque', 'atualizar', 'sair', 'chevron', 'info', 'arrastar'];
+    'acessibilidade', 'destaque', 'atualizar', 'sair', 'chevron', 'info', 'arrastar',
+    'config'];
   for (const n of nomes) {
     assert.ok(ico(n).startsWith('<svg '), `icone ausente: ${n}`);
   }

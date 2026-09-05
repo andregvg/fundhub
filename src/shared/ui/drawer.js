@@ -16,6 +16,16 @@ export const drawerHtml = () => `
   <div class="drawer-back" id="drawer-back"></div>
   <aside class="drawer" id="drawer" aria-hidden="true"></aside>`;
 
+// Garante que o markup do drawer existe. As views que montam a própria
+// página já incluem `${drawerHtml()}` + `montarDrawer()`; a barra de
+// ações do módulo (roteador) não tem página própria, então a engrenagem
+// precisa poder abrir a gaveta sem depender do que a view fez.
+export function garantirDrawer() {
+  if (document.getElementById('drawer')) return;
+  document.body.insertAdjacentHTML('beforeend', drawerHtml());
+  montarDrawer();
+}
+
 let escListener = null;
 // Uma gaveta pode ser aberta POR CIMA de outra (editar o vínculo a
 // partir da ficha do servidor). Guardamos a FUNÇÃO que reabre a de
@@ -34,6 +44,7 @@ export function montarDrawer() {
 }
 
 export function abrirDrawer(html, { voltar = null } = {}) {
+  garantirDrawer();
   const d = document.getElementById('drawer');
   if (!d) return;
 
