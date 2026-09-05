@@ -247,6 +247,10 @@ a.tile:hover {
 .texto-resumo { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
 .texto-completo { white-space: pre-wrap; }
 .chip {
+  /* Default: todo chip que não declara data-eixo (afastamentos, escalas,
+     segmentos de Usuários fora do filtro, etc.) continua exatamente como
+     era - só o filtro de segmento (.fseg) redefine --eixo abaixo. */
+  --eixo: var(--brand);
   min-height: var(--controle);
   padding: 4px 11px;
   border-radius: 999px;
@@ -259,9 +263,9 @@ a.tile:hover {
 }
 .chip:hover { background: var(--surface-2); border-color: var(--border-forte); }
 .chip.on {
-  background: color-mix(in srgb, var(--brand) 12%, transparent);
-  color: var(--brand);
-  border-color: color-mix(in srgb, var(--brand) 40%, var(--border));
+  background: color-mix(in srgb, var(--eixo) 12%, transparent);
+  color: var(--eixo);
+  border-color: color-mix(in srgb, var(--eixo) 40%, var(--border));
   font-weight: 600;
 }
 
@@ -270,11 +274,19 @@ a.tile:hover {
 @media (min-width: 900px) { .md-grid { grid-template-columns: 1fr 1fr; } }
 
 /* Filtro por segmento: atalhos à esquerda, segmentos-base à direita,
-   separados por um traço fino para a diferença ficar óbvia. */
+   separados por um traço fino para a diferença ficar óbvia. Cada chip
+   redefine --eixo pelo próprio data-eixo (fundamental/infantil/todas) -
+   ver core/segmentos.js e shared/ui/filtro-segmento.js. */
 .fseg { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .fseg .atalho { font-weight: 600; }
 .fseg-sep { width: 1px; height: 20px; background: var(--border); margin: 0 2px; }
 .fseg .limpar { color: var(--muted); border-style: dashed; }
+.fseg .chip[data-eixo="fundamental"] { --eixo: var(--eixo-fundamental); }
+.fseg .chip[data-eixo="infantil"]    { --eixo: var(--eixo-infantil); }
+.fseg .chip[data-eixo="todas"]       { --eixo: var(--eixo-todas); }
+/* Em repouso (sem .on) a borda já insinua o eixo, para a fila ler como
+   dois grupos mesmo sem nada selecionado. */
+.fseg .chip { border-color: color-mix(in srgb, var(--eixo) 25%, var(--border)); }
 
 /* ── Botões ───────────────────────────────────────────────────
    Padrão discreto, no espírito do GitHub: altura de 32px, borda de
