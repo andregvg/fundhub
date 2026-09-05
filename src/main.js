@@ -14,6 +14,7 @@
 import { hasSupabase } from './core/supabase.js';
 import { getUser, onAuthChange, renderLogin, isInstitucional, signOut } from './core/auth.js';
 import { getPerfilAtual, limparPerfil, registrarAcesso } from './core/perfil.js';
+import { carregarConfiguracoes, limparConfiguracoes } from './core/configuracoes.js';
 import { startRouter } from './core/router.js';
 import { servicos } from './core/registry.js';
 import { montarNav, marcarNav, setChrome, carimboRodape, marcarAtualizacao } from './shell/chrome.js';
@@ -27,7 +28,10 @@ let montado = false;
 const rodando = [];
 
 async function montarApp(user) {
-  const perfil = await getPerfilAtual().catch(() => null);
+  const [perfil] = await Promise.all([
+    getPerfilAtual().catch(() => null),
+    carregarConfiguracoes().catch(() => {}),
+  ]);
 
   // Autenticou, domínio certo - mas não está na allowlist. Antes o
   // perfil.js devolvia um "leitor" sintético e a pessoa navegava por
@@ -63,6 +67,7 @@ function desmontarApp({ restrito = false } = {}) {
   montado = false;
   pararServicos();
   limparCaches();  // Dados de outro usuario nao podem atravessar o logout.
+  limparConfiguracoes();
   limparPerfil();
   setChrome(false);
   renderLogin(app, { restrito });

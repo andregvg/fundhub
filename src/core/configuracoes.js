@@ -13,6 +13,7 @@
 // consumidor cai no padrão. Mesma degradação de telefones/locais.
 // ============================================================
 import { sb, hasSupabase } from './supabase.js';
+import { agoraISO } from '../shared/format.js';
 
 // Chave composta "modulo/chave" → valor jsonb já desserializado.
 let _rede = {};
@@ -53,7 +54,7 @@ export async function definirConf(modulo, chave, valor) {
   if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
   const { data: u } = await sb().auth.getUser();
   const { error } = await sb().from('config_modulo').upsert(
-    { modulo, chave, valor, atualizado_por: u?.user?.email || null, atualizado_em: new Date().toISOString() },
+    { modulo, chave, valor, atualizado_por: u?.user?.email || null, atualizado_em: agoraISO() },
     { onConflict: 'modulo,chave' });
   if (error) throw error;
   _rede[k(modulo, chave)] = valor;   // gravou, atualiza o mapa em memória
@@ -65,7 +66,7 @@ export async function definirPref(modulo, chave, valor) {
   const email = u?.user?.email;
   if (!email) throw new Error('Sessão expirada.');
   const { error } = await sb().from('preferencia_usuario').upsert(
-    { email, modulo, chave, valor, atualizado_em: new Date().toISOString() },
+    { email, modulo, chave, valor, atualizado_em: agoraISO() },
     { onConflict: 'email,modulo,chave' });
   if (error) throw error;
   _pessoa[k(modulo, chave)] = valor;
