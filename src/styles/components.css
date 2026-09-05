@@ -284,9 +284,15 @@ a.tile:hover {
 .fseg .chip[data-eixo="fundamental"] { --eixo: var(--eixo-fundamental); }
 .fseg .chip[data-eixo="infantil"]    { --eixo: var(--eixo-infantil); }
 .fseg .chip[data-eixo="todas"]       { --eixo: var(--eixo-todas); }
-/* Em repouso (sem .on) a borda já insinua o eixo, para a fila ler como
-   dois grupos mesmo sem nada selecionado. */
-.fseg .chip { border-color: color-mix(in srgb, var(--eixo) 25%, var(--border)); }
+/* Em repouso (sem .on, sem :hover) a borda já insinua o eixo, para a fila
+   ler como dois grupos mesmo sem nada selecionado. Os :not() garantem que
+   isso não sobrescreva a borda de .chip.on nem de :hover, que têm a mesma
+   especificidade e viriam depois na cascata (achado da revisão final,
+   05/09/2026) - e :not(.limpar) mantém o botão "limpar" neutro, sem
+   herdar o tom do eixo Fundamental (--eixo default é var(--brand)). */
+.fseg .chip:not(.on):not(:hover):not(.limpar) {
+  border-color: color-mix(in srgb, var(--eixo) 25%, var(--border));
+}
 
 /* ── Botões ───────────────────────────────────────────────────
    Padrão discreto, no espírito do GitHub: altura de 32px, borda de

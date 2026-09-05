@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { SEGMENTOS, ATALHOS, expandir, unidadeNoSegmento } from '../src/core/segmentos.js';
+import { SEGMENTOS, expandir, unidadeNoSegmento } from '../src/core/segmentos.js';
 
 test('todo segmento-base declara eixo fundamental ou infantil', () => {
   for (const s of SEGMENTOS) {

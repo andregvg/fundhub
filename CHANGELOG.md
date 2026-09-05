@@ -9,6 +9,15 @@ versionamento **MINOR** = módulo novo ou mudança de modelo de dados, **PATCH**
 
 ---
 
+## [0.14.4] - 2026-09-05
+
+### Alterado
+- O filtro por segmento (Fundamental, Infantil, EMEF, EJA, CEI, EMEI,
+  Conveniadas) deixou de mostrar ícone ao lado do nome e passou a usar cor:
+  Ensino Fundamental em azul, Educação Infantil em âmbar, e "Todas" em
+  cinza destacado. A mesma cor aparece nos segmentos de atuação da tela de
+  Usuários.
+
 ## [0.14.3] - 2026-09-05
 
 ### Corrigido
