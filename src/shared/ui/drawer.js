@@ -9,6 +9,7 @@
 //   montarDrawer();                    // liga fundo + tecla Esc
 //   abrirDrawer(`<div class="drawer-head">…</div>…`);
 // ============================================================
+import { ico } from './icones.js';
 
 // Marcação a incluir no final do HTML da página.
 export const drawerHtml = () => `
@@ -79,9 +80,9 @@ export function fecharDrawer() {
   focoAnterior = null;
 }
 
-// Cabeçalho padrão da gaveta (o botão × é ligado por abrirDrawer).
+// Cabeçalho padrão da gaveta (o botão de fechar é ligado por abrirDrawer).
 export const drawerHead = (titulo, sub = '') => `
   <div class="drawer-head">
     <div><h2>${titulo}</h2>${sub ? `<small>${sub}</small>` : ''}</div>
-    <button class="drawer-close" type="button" aria-label="Fechar">×</button>
+    <button class="drawer-close" type="button" aria-label="Fechar">${ico('fechar')}</button>
   </div>`;

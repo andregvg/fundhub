@@ -117,7 +117,7 @@ function pintarChipUnidade() {
   const nome = locais.find(l => l.id === filtroUnidade)?.nome;
   const rotulo = nome ? `Equipe de ${esc(nome)}` : 'Equipe desta unidade';
   box.innerHTML = `<span class="chip-filtro">${rotulo}
-    <button type="button" id="sv-limpa-uni" aria-label="Remover o filtro de unidade">×</button></span>`;
+    <button type="button" id="sv-limpa-uni" aria-label="Remover o filtro de unidade">${ico('fechar', { tam: 12 })}</button></span>`;
   document.getElementById('sv-limpa-uni').addEventListener('click', () => {
     filtroUnidade = ''; pintarChipUnidade(); pintar();
   });
