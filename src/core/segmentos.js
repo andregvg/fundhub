@@ -13,26 +13,17 @@
 
 // Segmentos-base. O `codigo` é o que está em unidade_escolar.segmento
 // (mais 'EJA', que vem da flag tem_eja).
-// `ico` é o NOME do traçado em shared/ui/icones.js, não o desenho -
-// os consumidores envolvem em ico(). Duas decisões aqui:
-//   • EJA usa 'noturno' (entrada própria em TRACOS, com o traçado de lua).
-//     Nome de domínio, não de modo de tela - EJA é o segmento noturno da
-//     rede, e é isso que o ícone significa aqui. O tema do hub vem só de
-//     `prefers-color-scheme` (não há alternador de tema na interface);
-//     'noturno' não tem relação nenhuma com isso, é entrada independente
-//     em TRACOS e pode mudar de traçado sem afetar tema nenhum.
-//   • CEI e EMEI dividem 'infantil' de propósito, não por falta de opção.
-//     Em todo consumidor o rótulo de texto fica colado ao ícone
-//     (`${ico(s.ico)} ${esc(s.rotulo)}`) e o ícone é aria-hidden,
-//     puramente decorativo - não há perda de informação, e inventar uma
-//     metáfora distinta para "0 a 3 anos" vs. "4 a 5 anos" seria
-//     arbitrário e pior que a divisão honesta.
+// `eixo` agrupa os segmentos em dois grandes eixos pedagógicos da rede -
+// Ensino Fundamental e Educação Infantil - usado pela interface para dar
+// cor consistente ao filtro de segmento (shared/ui/filtro-segmento.js).
+// Não é vocabulário do banco: é convenção de exibição, e por isso mora
+// aqui e não em unidade_segmentos() no Postgres.
 export const SEGMENTOS = [
-  { codigo: 'EMEF',       rotulo: 'EMEF',        ico: 'escola' },
-  { codigo: 'EJA',        rotulo: 'EJA',         ico: 'noturno' },
-  { codigo: 'CEI',        rotulo: 'CEI',         ico: 'infantil' },
-  { codigo: 'EMEI',       rotulo: 'EMEI',        ico: 'infantil' },
-  { codigo: 'CONVENIADA', rotulo: 'Conveniadas', ico: 'parceria' },
+  { codigo: 'EMEF',       rotulo: 'EMEF',        eixo: 'fundamental' },
+  { codigo: 'EJA',        rotulo: 'EJA',         eixo: 'fundamental' },
+  { codigo: 'CEI',        rotulo: 'CEI',         eixo: 'infantil' },
+  { codigo: 'EMEI',       rotulo: 'EMEI',        eixo: 'infantil' },
+  { codigo: 'CONVENIADA', rotulo: 'Conveniadas', eixo: 'infantil' },
 ];
 
 export const CODIGOS = SEGMENTOS.map(s => s.codigo);
