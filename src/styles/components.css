@@ -883,12 +883,15 @@ input[type="checkbox"] { width: 18px; height: 18px; }
 .form-grupo .campos.auto { display: grid; grid-template-columns: 1fr; gap: 13px; }
 .form-grupo .campos.auto > .col-full { grid-column: 1 / -1; }
 
-/* Rótulo SEMPRE acima do campo. A única exceção é o checkbox
-   (.inline), onde o rótulo ao lado é o que a caixa significa.
+/* Rótulo SEMPRE acima do campo. Exceções: o checkbox (.inline), onde o
+   rótulo ao lado é o que a caixa significa; e o .search da busca-seleção,
+   que é um widget com o próprio <label class="search"> por dentro (lupa +
+   input na MESMA linha) - herdar o flex-direction: column daqui jogava a
+   lupa para cima do campo.
    A tipografia é a mesma de .form-grid label - até 02/09/2026 este
    seletor declarava só layout, e o rótulo caía no body: saía com o mesmo
    tom, peso e tamanho do conteúdo do campo logo abaixo dele. */
-.form-grupo .campos label:not(.inline) {
+.form-grupo .campos label:not(.inline):not(.search) {
   display: flex;
   flex-direction: column;
   gap: 5px;
