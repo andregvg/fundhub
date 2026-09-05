@@ -9,6 +9,21 @@ versionamento **MINOR** = módulo novo ou mudança de modelo de dados, **PATCH**
 
 ---
 
+## [0.14.6] - 2026-09-05
+
+### Corrigido
+- Um servidor ou uma escola recém-cadastrados agora aparecem na lista na hora,
+  sem precisar recarregar a página, mesmo com um filtro de segmento ativo.
+  Antes, um cadastro ainda sem segmento ficava escondido até limpar o filtro.
+- Nas modais com campo de busca (como o de escola ao criar um vínculo), a lupa
+  ficava acima do campo; agora fica dentro dele, como nas outras telas.
+
+### Alterado
+- Todos os botões de excluir do sistema passaram a ter o mesmo desenho: uma
+  lixeira vermelha. Antes o mesmo "excluir" aparecia ora como um "x" vermelho,
+  ora como uma lixeira cinza. Os botões de fechar e de adicionar também
+  ficaram iguais em todas as telas.
+
 ## [0.14.5] - 2026-09-05
 
 ### Corrigido

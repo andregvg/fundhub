@@ -351,3 +351,10 @@ hash.
   tocar no arquivo, não como refatoração própria).
 - Qualquer mudança de layout de página que não decorra das quatro decisões
   acima.
+
+## Adendo (05/09/2026)
+
+A coerência de *uso* dos ícones recorrentes (excluir / fechar / adicionar /
+busca) foi tratada em `2026-09-05-icones-e-botoes-design.md`: uma só lixeira
+vermelha para excluir, `ico(fechar)` e `ico(adicionar)` no lugar dos glifos de
+texto, e a lupa sempre dentro do campo de busca.
