@@ -7,7 +7,7 @@ import { esc, norm } from '../../../shared/dom.js';
 import { emptyState } from '../../../shared/ui/feedback.js';
 import { ico } from '../../../shared/ui/icones.js';
 
-function combina(s, ctx) {
+export function combina(s, ctx) {
   const { filtro, seg, idxUnidades, filtroUnidade } = ctx;
   const abertos = vinculosAbertos(s);
 
@@ -18,12 +18,14 @@ function combina(s, ctx) {
   if (filtro.local && !abertos.some(v => v.unidade_id === filtro.local)) return false;
   if (filtro.semVinculo && abertos.length) return false;
 
-  // Recorte por segmento: entra quem atua em ALGUMA escola do
-  // segmento. A sede não tem segmento - e por isso continua visível,
-  // senão o filtro esconderia justamente a equipe da SME.
+  // Recorte por segmento: entra quem atua em ALGUMA escola do segmento.
+  // Quem NÃO tem âncora de segmento - sem vínculo aberto, ou só vínculo
+  // com a sede / local interno da SME - passa em qualquer recorte:
+  // senão o filtro esconderia a equipe da SME e todo servidor
+  // recém-criado, que ainda não tem onde casar.
   if (seg && seg.selecionados().length) {
-    const soSede = abertos.length && abertos.every(v => v.unidade?.tipo === 'sede');
-    if (!soSede && !abertos.some(v => seg.combina(idxUnidades[v.unidade_id]))) return false;
+    const semAncora = !abertos.some(v => v.unidade?.tipo === 'escola' && v.unidade_id);
+    if (!semAncora && !abertos.some(v => seg.combina(idxUnidades[v.unidade_id]))) return false;
   }
 
   if (filtro.q) {

@@ -101,7 +101,10 @@ function pintarOfertas() {
 }
 
 function combina(u) {
-  if (seg && !seg.combina(u)) return false;
+  // Escola ainda sem segmento (cadastro recém-criado, campo em branco)
+  // não é escondida pelo filtro - a pessoa precisa vê-la para completá-la.
+  const temSegmento = Boolean(u.segmento) || Boolean(u.tem_eja);
+  if (seg && temSegmento && !seg.combina(u)) return false;
   if (filtro.oferta && u.oferta !== filtro.oferta) return false;
   if (filtro.transporte && !u.tem_transporte) return false;
   if (filtro.eja && !u.tem_eja) return false;
