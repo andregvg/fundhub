@@ -39,11 +39,11 @@ export function criarFiltroSegmento(el, { perfil, onChange = () => {}, chaveMemo
       <div class="fseg" role="group" aria-label="Filtrar por segmento">
         ${ATALHOS.map(a => `
           <button type="button" class="chip atalho ${ativo === a.id ? 'on' : ''}"
-                  data-atalho="${a.id}">${esc(a.rotulo)}</button>`).join('')}
+                  data-atalho="${a.id}" data-eixo="${a.id}">${esc(a.rotulo)}</button>`).join('')}
         <span class="fseg-sep" aria-hidden="true"></span>
         ${SEGMENTOS.map(s => `
           <button type="button" class="chip ${selecao.includes(s.codigo) ? 'on' : ''}"
-                  data-seg="${s.codigo}">${ico(s.ico, { tam: 14 })} ${esc(s.rotulo)}</button>`).join('')}
+                  data-seg="${s.codigo}" data-eixo="${s.eixo}">${esc(s.rotulo)}</button>`).join('')}
         ${selecao.length ? `<button type="button" class="chip limpar" data-limpar="1">${ico('fechar', { tam: 12 })} limpar</button>` : ''}
       </div>`;
   }
