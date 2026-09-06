@@ -1,7 +1,7 @@
 // ============================================================
 // FundHub - servidores/views/lista.js  (busca, filtros e cards)
 // ============================================================
-import { vinculosAbertos, lotacaoDe } from '../servidores.model.js';
+import { vinculosAbertos, localDeTrabalhoDe } from '../servidores.model.js';
 import { rotulaCargo } from '../vinculos.model.js';
 import { esc, norm } from '../../../shared/dom.js';
 import { emptyState } from '../../../shared/ui/feedback.js';
@@ -31,7 +31,7 @@ export function combina(s, ctx) {
 
   if (filtro.q) {
     const alvo = norm([
-      s.nome, s.apelido, s.email, s.codigo_funcional, lotacaoDe(s),
+      s.nome, s.apelido, s.email, s.codigo_funcional, localDeTrabalhoDe(s),
       ...(s.telefones || []).map(t => t.numero),
       ...abertos.map(v => `${v.unidade?.nome} ${v.unidade?.apelido} ${rotulaCargo(v.papel)}`),
     ].join(' '));

@@ -1,7 +1,7 @@
 // ============================================================
 // FundHub - servidores/views/formulario.js  (criar, editar, excluir)
 // ============================================================
-import { criarServidor, atualizarServidor, excluirServidor, cargoDe, lotacaoDe, vinculosAbertos } from '../servidores.model.js';
+import { criarServidor, atualizarServidor, excluirServidor, cargoDe, localDeTrabalhoDe, vinculosAbertos } from '../servidores.model.js';
 import { sincronizarTelefones } from '../../telefones/telefones.model.js';
 import { esc, falha } from '../../../shared/dom.js';
 import { mascaraCPF, mascaraRG, noPadraoCPF, noPadraoRG } from '../../../shared/format.js';
@@ -18,7 +18,7 @@ export function formServidor(s, ctx, { voltar = null } = {}) {
   const novo = !s;
   const v = (k) => esc(s?.[k] ?? '');
   const cargo = s ? cargoDe(s) : '';
-  const lotacao = s ? lotacaoDe(s, { completo: true }) : '';
+  const lotacao = s ? localDeTrabalhoDe(s, { completo: true }) : '';
 
   // Cargo e lotação continuam à vista - são o que identifica a pessoa
   // - mas não são editáveis aqui: eles vêm do vínculo, que é o único

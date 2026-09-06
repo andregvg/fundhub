@@ -125,10 +125,10 @@ export async function getMeuPerfil() {
   if (!hasSupabase()) return null;
   const { data: { user } } = await sb().auth.getUser();
   if (!user) return null;
-  // O servidor embeda os vínculos: "Meus dados" exibe cargo e lotação
-  // via vinculosAbertos()/cargoDe()/lotacaoDe() (servidores.model.js),
-  // que precisam do array - sem ele os dois campos ficam sempre em
-  // branco. `tipo` fica de fora: esta tela não lê.
+  // O servidor embeda os vínculos: "Meus dados" exibe cargo e local de
+  // trabalho via vinculosAbertos()/cargoDe()/localDeTrabalhoDe()
+  // (servidores.model.js), que precisam do array - sem ele os dois
+  // campos ficam sempre em branco. `tipo` fica de fora: esta tela não lê.
   const { data, error } = await sb().from('perfil')
     .select(`*, servidor:servidor_id(*, vinculos:vinculo(
       id, unidade_id, papel, ingresso, fim,

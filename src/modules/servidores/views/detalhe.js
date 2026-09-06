@@ -3,7 +3,7 @@
 // A gaveta é o centro do módulo: abre a pessoa e, dentro dela, os
 // vínculos com escolas - que é onde a escola de fato entra na história.
 // ============================================================
-import { cargoDe, lotacaoDe } from '../servidores.model.js';
+import { cargoDe, localDeTrabalhoDe } from '../servidores.model.js';
 import { rotulaCargo } from '../vinculos.model.js';
 import { esc } from '../../../shared/dom.js';
 import { fmtData, fmtIdade } from '../../../shared/format.js';
@@ -27,7 +27,7 @@ export function detalhe(id, ctx) {
   // exibição do mesmo fato - a lista de vínculos abaixo já traz cargo,
   // escola e período. O apelido sai daqui: ele ajuda a ACHAR a pessoa, e
   // isso é papel do card na lista, não da ficha dela.
-  const sub = [cargoDe(s), lotacaoDe(s, { completo: true })]
+  const sub = [cargoDe(s), localDeTrabalhoDe(s, { completo: true })]
     .filter(Boolean).map(esc).join(' · ');
 
   const acoes = ctx.podeEditar ? `

@@ -57,14 +57,14 @@ export async function getServidores() {
 // Aberto = SEM data de fim. Uma regra, um lugar.
 export const vinculosAbertos = (s) => (s?.vinculos || []).filter(v => !v.fim);
 
-// A lotação é o nome do local do vínculo aberto - escola ou SME.
-// Mais de um vínculo aberto acontece (alguém responde por duas
-// unidades) e esconder isso seria mentir.
+// O local de trabalho é o nome da unidade do vínculo aberto - escola,
+// Sede ou local interno da SME. Mais de um vínculo aberto acontece
+// (alguém responde por duas unidades) e esconder isso seria mentir.
 // `completo`: o nome oficial em vez do apelido. O apelido existe para
 // caber no card da lista; no cabeçalho da ficha e no formulário há
-// espaço, e é o nome oficial que se confere. Qual nome representa a
-// lotação é regra de domínio - por isso está aqui, e não na view (R3).
-export function lotacaoDe(s, { completo = false } = {}) {
+// espaço, e é o nome oficial que se confere. Qual nome representa o
+// local de trabalho é regra de domínio - por isso está aqui, não na view (R3).
+export function localDeTrabalhoDe(s, { completo = false } = {}) {
   const nomes = vinculosAbertos(s)
     .map(v => (completo ? v.unidade?.nome : (v.unidade?.apelido || v.unidade?.nome)))
     .filter(Boolean);
