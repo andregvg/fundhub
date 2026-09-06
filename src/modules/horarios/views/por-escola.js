@@ -122,11 +122,11 @@ async function carregar() {
     ]);
   } catch (err) { corpo.innerHTML = erroBox(err); return; }
 
-  document.getElementById('h-count').textContent = `${servidores.length} servidor(es) vinculado(s)`;
+  document.getElementById('h-count').textContent = `${servidores.length} servidor(es) neste local`;
 
   if (!servidores.length) {
-    corpo.innerHTML = emptyState(ico('equipe', { tam: 32 }), 'Nenhum servidor vinculado',
-      `Esta unidade não tem ninguém com vínculo aberto. Cadastre em
+    corpo.innerHTML = emptyState(ico('equipe', { tam: 32 }), 'Nenhum servidor neste local',
+      `Esta unidade não tem ninguém com local de trabalho atual. Cadastre em
        <a href="#/servidores?unidade=${esc(unidadeId)}">Servidores</a>.`);
     return;
   }

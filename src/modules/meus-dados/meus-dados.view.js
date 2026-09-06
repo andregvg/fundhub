@@ -143,12 +143,12 @@ function blocoServidor() {
           <div class="campos duas">
             <label>Nome completo <input value="${esc(s.nome || '')}" readonly /></label>
             <label>Código funcional <input value="${esc(s.codigo_funcional || '')}" readonly /></label>
-            <label>Lotação <input value="${esc(localDeTrabalhoDe(s, { completo: true }) || 'sem lotação')}"
-              title="${esc(localDeTrabalhoDe(s, { completo: true }) || 'sem lotação')}" readonly /></label>
+            <label>Local de trabalho <input value="${esc(localDeTrabalhoDe(s, { completo: true }) || 'sem local de trabalho')}"
+              title="${esc(localDeTrabalhoDe(s, { completo: true }) || 'sem local de trabalho')}" readonly /></label>
             <label>Cargo / função <input value="${esc(cargoDe(s) || 'cargo não informado')}" readonly /></label>
             <label>Ingresso na rede <input value="${esc(s.inicio_rede ? fmtData(s.inicio_rede) : '')}" readonly /></label>
           </div>
-          <small class="form-hint">Nome, documentos e lotação constam da folha -
+          <small class="form-hint">Nome, documentos e local de trabalho constam da folha -
             correções são feitas por um administrador.</small>
         </fieldset>
 
@@ -165,9 +165,9 @@ function blocoServidor() {
 
         ${vinculos.length ? `
         <fieldset class="form-grupo">
-          <legend>Lotações vigentes</legend>
+          <legend>Locais de trabalho atuais</legend>
           <div class="tags">
-            ${vinculos.map(v => `<span class="tag">${esc(v.unidade?.nome || 'sem escola')} · ${esc(rotulaCargo(v.papel))}</span>`).join('')}
+            ${vinculos.map(v => `<span class="tag">${esc(v.unidade?.nome || 'sem local')} · ${esc(rotulaCargo(v.papel))}</span>`).join('')}
           </div>
         </fieldset>` : ''}
 

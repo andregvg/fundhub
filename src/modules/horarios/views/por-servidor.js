@@ -94,8 +94,8 @@ async function carregar() {
   for (const v of vinculosAbertos(s)) if (v.unidade && !locais.has(v.unidade.id)) locais.set(v.unidade.id, v.unidade);
 
   if (!locais.size) {
-    corpo.innerHTML = emptyState(ico('escola', { tam: 32 }), 'Sem local de lotação',
-      `${esc(s.apelido || s.nome)} não tem vínculo aberto em nenhum local.`);
+    corpo.innerHTML = emptyState(ico('escola', { tam: 32 }), 'Sem local de trabalho',
+      `${esc(s.apelido || s.nome)} não tem nenhum local de trabalho atual.`);
     return;
   }
 

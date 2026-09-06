@@ -39,7 +39,7 @@ export async function abrirCargos({ recarregar }) {
           <span class="switch-trilho" aria-hidden="true"></span>
           <span class="switch-txt">${esc(c)}</span>
         </label>`).join('')}</div>`
-    : `<p class="form-hint">Nenhum cargo em uso ainda. Cadastre um vínculo em Servidores.</p>`;
+    : `<p class="form-hint">Nenhum cargo em uso ainda. Registre um local de trabalho em Servidores.</p>`;
 
   box.addEventListener('change', async (e) => {
     const inp = e.target.closest('[data-cargo]'); if (!inp) return;

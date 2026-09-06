@@ -11,7 +11,7 @@ export const TABELAS = {
   unidade_escolar: 'Escolas',
   regional: 'Regionais',
   servidor: 'Servidores',
-  vinculo: 'Vínculos',
+  vinculo: 'Locais de trabalho',
   perfil: 'Usuários & Acessos',
   atividade_extraclasse: 'Atividades (SATE)',
   solicitacao_transporte: 'Solicitações (SATE)',

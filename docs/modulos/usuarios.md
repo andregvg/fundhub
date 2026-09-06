@@ -62,7 +62,8 @@ níveis são:
 - Os **segmentos de atuação** aparecem pré-marcados no filtro de segmento de
   Escolas, Servidores, Calendário e outras telas.
 - Uma pessoa pode ser ligada ao seu cadastro de **servidor** - assim o sistema
-  sabe que "quem entra" e "quem é" são a mesma pessoa.
+  sabe que "quem entra" e "quem é" são a mesma pessoa, e "Meus dados" mostra o
+  cargo e o local de trabalho dela.
 
 ## Perguntas frequentes
 

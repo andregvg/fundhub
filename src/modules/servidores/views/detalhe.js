@@ -4,6 +4,7 @@
 // vínculos com escolas - que é onde a escola de fato entra na história.
 // ============================================================
 import { cargoDe, localDeTrabalhoDe } from '../servidores.model.js';
+import { eLocalInterno } from '../../escolas/escolas.model.js';
 import { rotulaCargo } from '../vinculos.model.js';
 import { esc } from '../../../shared/dom.js';
 import { fmtData, fmtIdade } from '../../../shared/format.js';
@@ -57,8 +58,8 @@ export function detalhe(id, ctx) {
       ${campo('Ingresso na rede', s.inicio_rede ? esc(fmtData(s.inicio_rede)) : '')}
       <hr class="sep" />
       <div class="vinc-head">
-        <div class="field" style="margin:0"><div class="lbl">Vínculos com escolas</div></div>
-        ${ctx.podeEditar ? `<button class="mini-btn" id="sv-vinc">${ico('adicionar')} Novo vínculo</button>` : ''}
+        <div class="field" style="margin:0"><div class="lbl">Locais de trabalho</div></div>
+        ${ctx.podeEditar ? `<button class="mini-btn" id="sv-vinc">${ico('adicionar')} Adicionar local de trabalho</button>` : ''}
       </div>
       <div class="people" id="sv-vinculos">${listaVinculos(s, ctx.podeEditar)}</div>
     </div>`);
@@ -83,7 +84,7 @@ export function detalhe(id, ctx) {
 }
 
 function listaVinculos(s, podeEditar) {
-  if (!s.vinculos.length) return '<p class="count">Nenhum vínculo cadastrado.</p>';
+  if (!s.vinculos.length) return '<p class="count">Nenhum local de trabalho cadastrado.</p>';
 
   // Abertos primeiro; o histórico fica abaixo, apagado.
   const ordenados = [...s.vinculos].sort((a, b) =>
@@ -98,12 +99,12 @@ function listaVinculos(s, podeEditar) {
     ].filter(Boolean).join(' · ');
     const acoes = podeEditar ? `
       <div class="vinc-acoes">
-        <button class="mini-btn" data-edit-vinc="${esc(v.id)}" aria-label="Editar vínculo">${ico('editar')}</button>
-        <button class="mini-btn no" data-del-vinc="${esc(v.id)}" aria-label="Excluir vínculo">${ico('excluir')}</button>
+        <button class="mini-btn" data-edit-vinc="${esc(v.id)}" aria-label="Editar local de trabalho">${ico('editar')}</button>
+        <button class="mini-btn no" data-del-vinc="${esc(v.id)}" aria-label="Excluir local de trabalho">${ico('excluir')}</button>
       </div>` : '';
     return `<div class="person ${encerrado ? 'inativo' : ''}">
       <div class="role">${esc(rotulaCargo(v.papel))}${encerrado ? ' · encerrado' : ''}</div>
-      <div class="pname">${v.unidade?.tipo === 'sede' ? ico('sede', { tam: 12 }) + ' ' : ''}${esc(v.unidade?.nome || 'sem escola')}</div>
+      <div class="pname">${v.unidade && eLocalInterno(v.unidade) ? ico('sede', { tam: 12 }) + ' ' : ''}${esc(v.unidade?.nome || 'sem local')}</div>
       <div class="pmeta">
         ${periodo ? `<span>${esc(periodo)}</span>` : ''}
         ${acoes}

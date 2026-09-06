@@ -67,7 +67,7 @@ export function detalhe(u, ctx) {
       </div>
       <div class="people">${pessoas}</div>
       <p class="form-hint" style="margin-top:10px">
-        A equipe vem dos vínculos abertos. Para incluir ou encerrar alguém, use Servidores.
+        A equipe vem dos locais de trabalho atuais. Para incluir ou encerrar alguém, use Servidores.
       </p>
     </div>`);
 

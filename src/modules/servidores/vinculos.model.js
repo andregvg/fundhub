@@ -107,7 +107,7 @@ export async function criarVinculo({ servidor_id, unidade_id, papel, ingresso = 
     if (error.code === '23505') {
       // Mantém o código e marca amigavel: é o que shared/ui/feedback.js:
       // reportarErro usa para saber que o erro cabe inline e já traduzido.
-      const e = new Error('Este servidor já tem um vínculo aberto com esse cargo neste local.');
+      const e = new Error('Este servidor já tem esse cargo neste local de trabalho.');
       e.code = error.code;
       e.amigavel = true;
       throw e;
@@ -129,7 +129,7 @@ export async function atualizarVinculo(id, { unidade_id, papel, ingresso = null,
     if (error.code === '23505') {
       // Mantém o código e marca amigavel: é o que shared/ui/feedback.js:
       // reportarErro usa para saber que o erro cabe inline e já traduzido.
-      const e = new Error('Este servidor já tem um vínculo aberto com esse cargo neste local.');
+      const e = new Error('Este servidor já tem esse cargo neste local de trabalho.');
       e.code = error.code;
       e.amigavel = true;
       throw e;

@@ -1,13 +1,11 @@
 // ============================================================
 // FundHub - modules/servidores/servidores.view.js
-// Servidores: cadastro das pessoas e dos seus vínculos com as
-// escolas. Cobre também quem é lotado na SEDE (equipe de
-// acompanhamento, agentes administrativos), que não tem vínculo com
-// unidade mas tem afastamento a controlar.
+// Servidores: cadastro das pessoas e dos seus locais de trabalho
+// (escola, Sede ou gerência interna da SME). Cobre também quem é
+// lotado na SEDE (equipe de acompanhamento, agentes administrativos).
 //
 // Casca: busca, filtros e a lista de cards. A gaveta de detalhe (com
-// os vínculos) e os formulários vivem em views/ - é lá que a escola de
-// fato entra na história da pessoa.
+// os locais de trabalho) e os formulários vivem em views/.
 // ============================================================
 import { getServidores } from './servidores.model.js';
 import { getUnidades, getLocais } from '../escolas/escolas.model.js';
@@ -35,7 +33,7 @@ export async function render(app, ctx = {}) {
   app.innerHTML = `
     <div class="page-head">
       <h1>Servidores</h1>
-      <p>Cadastro funcional, lotações e vínculos com as escolas.</p>
+      <p>Cadastro funcional, cargos e locais de trabalho.</p>
     </div>
     <div class="toolbar">
       <label class="search">${ico('buscar')}
@@ -49,12 +47,12 @@ export async function render(app, ctx = {}) {
       <label class="filtro-campo">Cargo / função
         <select id="f-cargo"><option value="">Todos</option></select>
       </label>
-      <label class="filtro-campo">Lotação
-        <select id="f-local"><option value="">Todas</option></select>
+      <label class="filtro-campo">Local de trabalho
+        <select id="f-local"><option value="">Todos</option></select>
       </label>
       <label class="switch">
         <input type="checkbox" id="f-sem" /><span class="switch-trilho" aria-hidden="true"></span>
-        Sem vínculo
+        Sem local de trabalho
       </label>
       <span id="sv-chip-uni"></span>
     </div>
@@ -104,7 +102,7 @@ function pintarOpcoes() {
     cargos.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('');
   selCargo.value = filtro.cargo;
   const selLocal = document.getElementById('f-local');
-  selLocal.innerHTML = `<option value="">Todas</option>` +
+  selLocal.innerHTML = `<option value="">Todos</option>` +
     locais.map(l => `<option value="${esc(l.id)}">${esc(l.nome)}</option>`).join('');
   selLocal.value = filtro.local;
 }

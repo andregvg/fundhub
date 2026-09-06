@@ -87,7 +87,8 @@ export async function renderEscalas(box, ctx) {
   busca?.destruir();
   busca = criarBuscaSelecao(document.getElementById('cal-esc-uni'), {
     opcoes: [{ id: '', rotulo: 'Toda a rede', detalhe: 'calendário oficial' }].concat(
-      [...locais].sort((a, b) => a.nome.localeCompare(b.nome, 'pt'))
+      // Escala é por escola: as gerências/subsecretarias internas não entram.
+      [...locais].filter(l => l.tipo !== 'interno').sort((a, b) => a.nome.localeCompare(b.nome, 'pt'))
         .map(l => ({ id: l.id, rotulo: l.nome, busca: l.apelido || '' }))),
     valor: unidadeId,
     placeholder: 'Toda a rede',

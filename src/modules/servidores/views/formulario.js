@@ -2,38 +2,53 @@
 // FundHub - servidores/views/formulario.js  (criar, editar, excluir)
 // ============================================================
 import { criarServidor, atualizarServidor, excluirServidor, cargoDe, localDeTrabalhoDe, vinculosAbertos } from '../servidores.model.js';
+import { criarVinculo } from '../vinculos.model.js';
+import { eLocalInterno } from '../../escolas/escolas.model.js';
 import { sincronizarTelefones } from '../../telefones/telefones.model.js';
 import { esc, falha } from '../../../shared/dom.js';
 import { mascaraCPF, mascaraRG, noPadraoCPF, noPadraoRG } from '../../../shared/format.js';
 import { drawerHead, abrirDrawer, fecharDrawer } from '../../../shared/ui/drawer.js';
 import { phonesEditorHtml, montarPhonesEditor, lerPhonesEditor } from '../../../shared/ui/phones.js';
+import { criarBuscaSelecao } from '../../../shared/ui/busca-selecao.js';
 import { confirmar } from '../../../shared/ui/confirmar.js';
 import { toast } from '../../../shared/ui/toast.js';
 import { reportarErro } from '../../../shared/ui/feedback.js';
 import { formVinculo } from './vinculo.js';
 import { ico } from '../../../shared/ui/icones.js';
 
-// `ctx`: { recarregar } - ver servidores.view.js § ctxAtual().
+const OUTRO = '::outro::';
+
+// Uma instância por gaveta aberta - reabrir "Novo servidor" sem destruir
+// a de antes deixa um listener de document vivo (mesma armadilha de vinculo.js).
+let buscaLocalNovo = null;
+
+// `ctx`: { recarregar, podeEditar, locais, cargos } - ver servidores.view.js § ctxAtual().
 export function formServidor(s, ctx, { voltar = null } = {}) {
   const novo = !s;
   const v = (k) => esc(s?.[k] ?? '');
   const cargo = s ? cargoDe(s) : '';
-  const lotacao = s ? localDeTrabalhoDe(s, { completo: true }) : '';
+  const local = s ? localDeTrabalhoDe(s, { completo: true }) : '';
 
-  // Cargo e lotação continuam à vista - são o que identifica a pessoa
-  // - mas não são editáveis aqui: eles vêm do vínculo, que é o único
-  // dono desse dado. O botão de editar abre a gaveta do vínculo POR CIMA desta.
+  buscaLocalNovo?.destruir();
+  buscaLocalNovo = null;
+
+  // Cargo e local de trabalho continuam à vista na edição - são o que
+  // identifica a pessoa -, mas não são editáveis aqui: vêm do vínculo,
+  // seu único dono. O botão de editar abre a gaveta do vínculo por cima.
   const derivado = (rotulo, valor, acao) => `
     <label>${rotulo}
       <span class="campo-derivado">
         <span class="cd-valor"${valor ? ` title="${esc(valor)}"` : ''}>${
-          valor ? esc(valor) : '<span class="vazio">Sem vínculo</span>'}</span>
+          valor ? esc(valor) : '<span class="vazio">Sem local de trabalho</span>'}</span>
         ${ctx.podeEditar && !novo
           ? `<button type="button" class="mini-btn" data-vinc="${acao}"
-               aria-label="${valor ? 'Editar' : 'Criar'} vínculo">${valor ? ico('editar') : ico('adicionar')}</button>`
+               aria-label="${valor ? 'Editar' : 'Adicionar'} local de trabalho">${valor ? ico('editar') : ico('adicionar')}</button>`
           : ''}
       </span>
     </label>`;
+
+  const opcoesCargo = (ctx.cargos || [])
+    .map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('');
 
   abrirDrawer(`
     ${drawerHead(novo ? 'Novo servidor' : 'Editar servidor', novo ? '' : esc(s.nome))}
@@ -62,10 +77,31 @@ export function formServidor(s, ctx, { voltar = null } = {}) {
           <legend>Rede</legend>
           <div class="campos auto">
             <label>Ingresso na rede <input id="s-ingresso" type="date" value="${v('inicio_rede')}" /></label>
-            ${derivado('Cargo / função', cargo, 'cargo')}
-            ${derivado('Lotação', lotacao, 'lotacao')}
+            ${novo ? '' : derivado('Cargo / função', cargo, 'cargo')}
+            ${novo ? '' : derivado('Local de trabalho', local, 'lotacao')}
           </div>
         </fieldset>
+
+        ${novo ? `
+        <fieldset class="form-grupo">
+          <legend>Local de trabalho
+            <span class="form-hint" style="text-transform:none;font-weight:400;letter-spacing:0">opcional - pode adicionar depois pela ficha</span>
+          </legend>
+          <div class="campos auto">
+            <label class="col-full">Local de trabalho <div id="s-local-box"></div></label>
+            <label class="col-full">Cargo / função
+              <select id="s-cargo">
+                <option value="">Selecione…</option>
+                ${opcoesCargo}
+                <option value="${OUTRO}">+ Outro…</option>
+              </select>
+            </label>
+            <label class="col-full" id="s-cargo-novo-wrap" hidden>Qual cargo / função?
+              <input id="s-cargo-novo" placeholder="Ex.: Vice-diretor(a)" />
+            </label>
+            <label>Início <input id="s-vinc-ini" type="date" /></label>
+          </div>
+        </fieldset>` : ''}
 
         <fieldset class="form-grupo">
           <legend>Contato</legend>
@@ -80,11 +116,28 @@ export function formServidor(s, ctx, { voltar = null } = {}) {
           <button type="submit" id="s-save" class="btn-primary">${novo ? 'Criar' : 'Salvar'}</button>
         </div>
       </form>
-      ${novo ? `<p class="form-hint" style="margin-top:14px">Depois de criar, abra o servidor para vinculá-lo a uma escola ou à SME.</p>` : ''}
     </div>`, { voltar });
 
   const form = document.getElementById('sv-form');
   montarPhonesEditor(form);
+
+  if (novo) {
+    buscaLocalNovo = criarBuscaSelecao(document.getElementById('s-local-box'), {
+      opcoes: [...(ctx.locais || [])].map(l => ({
+        id: l.id, rotulo: l.nome,
+        detalhe: eLocalInterno(l) ? 'SME' : '',
+        busca: l.apelido || '',
+      })),
+      placeholder: 'Buscar escola ou gerência…',
+      vazioTexto: 'Nada com esse nome',
+    });
+    const selCargo = document.getElementById('s-cargo');
+    selCargo.addEventListener('change', () => {
+      const outro = selCargo.value === OUTRO;
+      document.getElementById('s-cargo-novo-wrap').hidden = !outro;
+      if (outro) document.getElementById('s-cargo-novo').focus();
+    });
+  }
 
   // Máscara enquanto digita. O caso comum é digitar do começo ao fim;
   // reformatar o valor inteiro mantém o cursor no lugar certo aí.
@@ -96,7 +149,7 @@ export function formServidor(s, ctx, { voltar = null } = {}) {
   mascarar('s-cpf', mascaraCPF);
   mascarar('s-rg', mascaraRG);
 
-  // O botão de editar cargo/lotação abre o vínculo sobre esta gaveta;
+  // O botão de editar cargo/local abre o vínculo sobre esta gaveta;
   // ao fechar, volta para cá com o servidor recarregado.
   form.querySelectorAll('[data-vinc]').forEach(b => b.addEventListener('click', async () => {
     const c = await ctx.recarregar();
@@ -130,6 +183,24 @@ async function salvarServidor(e, s, ctx, voltar) {
   };
   if (!payload.nome) return falha(msg, 'Informe o nome completo.');
 
+  // Local de trabalho da modal (só no cadastro novo). Local sem cargo é
+  // erro: não dá para ter designação sem função. Cargo sem local é
+  // ignorado com aviso.
+  let vinc = null;
+  if (!s && buscaLocalNovo) {
+    const unidade_id = buscaLocalNovo.valorAtual();
+    const escolhido = document.getElementById('s-cargo').value;
+    const papel = escolhido === OUTRO ? val('s-cargo-novo') : escolhido;
+    const ingresso = document.getElementById('s-vinc-ini').value || null;
+    if (unidade_id && !String(papel).trim()) {
+      return falha(msg, 'Escolha também o cargo do local de trabalho, ou deixe o local em branco.');
+    }
+    if (unidade_id) vinc = { unidade_id, papel, ingresso };
+    else if (String(papel).trim()) {
+      toast({ titulo: 'Cargo ignorado', texto: 'Escolha um local de trabalho para registrar o cargo.', tipo: 'atencao' });
+    }
+  }
+
   // Documento fora do padrão é AVISO, não erro: RG de outro estado tem
   // outro formato e a pessoa precisa ser cadastrada assim mesmo (R15).
   const fora = [
@@ -147,6 +218,15 @@ async function salvarServidor(e, s, ctx, voltar) {
   try {
     const id = s ? (await atualizarServidor(s.id, payload), s.id) : (await criarServidor(payload)).id;
     await sincronizarTelefones({ servidorId: id }, telefones);
+    if (vinc) {
+      try {
+        await criarVinculo({ servidor_id: id, ...vinc });
+      } catch (err) {
+        // O servidor já está no banco; não desfaz. A ficha resolve.
+        toast({ titulo: 'Servidor criado',
+                texto: 'O local de trabalho não pôde ser salvo - adicione pela ficha.', tipo: 'atencao' });
+      }
+    }
     // Recarrega ANTES de fechar: a gaveta de baixo precisa reabrir com o
     // dado novo, não com o `ctx` de antes da edição. Veio da ficha? volta
     // para ela. Mesmo padrão de views/vinculo.js § salvar.
@@ -164,7 +244,7 @@ async function salvarServidor(e, s, ctx, voltar) {
 export async function removerServidor(s, ctx) {
   const n = s.vinculos.length;
   const aviso = n
-    ? `Isso apaga junto ${n} vínculo(s), os horários e os afastamentos dele. Não pode ser desfeito.`
+    ? `Isso apaga junto ${n} registro(s) de local de trabalho, os horários e os afastamentos dele. Não pode ser desfeito.`
     : 'Esta ação não pode ser desfeita.';
   const ok = await confirmar(`Excluir "${s.nome}"?`, { detalhe: aviso, textoOk: 'Excluir', perigo: true });
   if (!ok) return;

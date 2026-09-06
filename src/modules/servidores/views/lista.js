@@ -6,6 +6,7 @@ import { rotulaCargo } from '../vinculos.model.js';
 import { esc, norm } from '../../../shared/dom.js';
 import { emptyState } from '../../../shared/ui/feedback.js';
 import { ico } from '../../../shared/ui/icones.js';
+import { eLocalInterno } from '../../escolas/escolas.model.js';
 import { mostrarTelefonesNoCard } from '../servidores.config.js';
 
 export function combina(s, ctx) {
@@ -62,9 +63,9 @@ function card(s) {
     .map(c => `<span class="seg">${esc(c)}</span>`).join('');
 
   const lugares = abertos.length
-    ? abertos.map(v => `<span class="tag">${v.unidade?.tipo === 'sede' ? ico('sede', { tam: 12 }) + ' ' : ''}${
-        esc(v.unidade?.apelido || v.unidade?.nome || 'sem escola')}</span>`).join('')
-    : `<span class="tag eja">${ico('atencao', { tam: 12 })} Sem vínculo</span>`;
+    ? abertos.map(v => `<span class="tag">${v.unidade && eLocalInterno(v.unidade) ? ico('sede', { tam: 12 }) + ' ' : ''}${
+        esc(v.unidade?.apelido || v.unidade?.nome || 'sem local')}</span>`).join('')
+    : `<span class="tag eja">${ico('atencao', { tam: 12 })} Sem local de trabalho</span>`;
 
   const tel = mostrarTelefonesNoCard()
     ? (s.telefones || []).find(t => t.principal) || (s.telefones || [])[0]

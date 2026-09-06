@@ -13,7 +13,7 @@ export default {
   id: 'servidores',
   ico: 'equipe',
   nome: 'Servidores',
-  desc: 'Cadastro funcional, lotações e contatos.',
+  desc: 'Cadastro funcional, cargos, locais de trabalho e contatos.',
   navNome: 'Servidores',
   rota: '#/servidores',
   nav: true,

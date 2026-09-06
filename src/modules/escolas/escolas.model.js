@@ -167,7 +167,7 @@ export async function excluirLocalInterno(id) {
   const { error } = await sb().from('unidade_escolar').delete().eq('id', id);
   if (error) {
     if (error.code === '23503') {             // FK: há vínculo apontando
-      const e = new Error('Há servidores lotados neste local. Encerre os vínculos antes de excluí-lo.');
+      const e = new Error('Há servidores neste local de trabalho. Encerre-os antes de excluí-lo.');
       e.amigavel = true; throw e;
     }
     throw error;
