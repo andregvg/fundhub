@@ -9,6 +9,30 @@ versionamento **MINOR** = módulo novo ou mudança de modelo de dados, **PATCH**
 
 ---
 
+## [0.20.1] - 2026-09-06
+
+### Alterado
+- **CPF, RG e telefone**: você digita com ponto, traço e parênteses ou só os
+  números, tanto faz - o sistema guarda o dado limpo e mostra sempre no mesmo
+  formato, em qualquer tela. Um RG que não segue o formato de São Paulo passa
+  a aparecer inteiro, sem esconder dígito. Telefone incompleto trava o
+  salvamento em vez de sumir depois de salvo.
+- As telas de **configuração** (a engrenagem de cada módulo e a página
+  Configurações) ganharam o mesmo desenho de campo do resto do sistema:
+  mesma altura, mesmo rótulo, mesmo destaque ao clicar. Vale também para a
+  janela "Tipos de escala", no Calendário.
+- Quem tem só permissão de leitura num módulo já não vê os controles de
+  configuração da rede com cara de editáveis: eles aparecem desligados, com o
+  valor à vista e o motivo escrito.
+- Na **Ajuda**, o topo de cada tutorial tem dois botões: voltar para a tela de
+  onde você veio e abrir a lista completa de tutoriais. Antes havia um só, e
+  ele sempre levava para a lista.
+
+### Corrigido
+- **Ajuda**, **Todos os Módulos**, **Meus dados** e **Configurações** não somem
+  mais do menu quando uma atualização do banco de dados ainda não foi aplicada.
+  Eram telas de todo mundo que podiam desaparecer sem aviso.
+
 ## [0.20.0] - 2026-09-06
 
 ### Adicionado

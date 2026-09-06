@@ -7,7 +7,7 @@ import { cargoDe, localDeTrabalhoDe } from '../servidores.model.js';
 import { eLocalInterno } from '../../escolas/escolas.model.js';
 import { rotulaCargo } from '../vinculos.model.js';
 import { esc } from '../../../shared/dom.js';
-import { fmtData, fmtIdade } from '../../../shared/format.js';
+import { fmtData, fmtIdade, fmtCPF, fmtRG } from '../../../shared/format.js';
 import { drawerHead, abrirDrawer } from '../../../shared/ui/drawer.js';
 import { telefonesTexto } from '../../../shared/ui/phones.js';
 import { formVinculo, removerVinculo } from './vinculo.js';
@@ -52,8 +52,8 @@ export function detalhe(id, ctx) {
         : '')}
       <div class="sv-docs">
         ${campo('Código funcional', esc(s.codigo_funcional || ''))}
-        ${campo('CPF', esc(s.cpf || ''))}
-        ${campo('RG', esc(s.rg || ''))}
+        ${campo('CPF', esc(fmtCPF(s.cpf)))}
+        ${campo('RG', esc(fmtRG(s.rg)))}
       </div>
       ${campo('Ingresso na rede', s.inicio_rede ? esc(fmtData(s.inicio_rede)) : '')}
       <hr class="sep" />

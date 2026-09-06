@@ -55,6 +55,9 @@ o local de trabalho de alguém.
 
 - Uma escola sem segmento preenchido continua aparecendo em qualquer filtro de
   segmento - para você poder abri-la e completar o cadastro.
+- **Telefone incompleto** trava o salvamento - o número precisa ter os oito ou
+  nove dígitos. Você digita com parênteses e traço ou só os números, tanto faz:
+  o sistema arruma e mostra sempre no mesmo formato. Sem DDD, assume 16.
 - Excluir uma escola não pode ser desfeito.
 
 ## Ligações com outros módulos
@@ -75,4 +78,4 @@ servidores não carregou - recarregue a página.
 Se você tem um segmento marcado no filtro, uma escola ainda sem segmento
 aparece mesmo assim. Se não aparecer, recarregue a página.
 
-> Atualizado na versão 0.19.0.
+> Atualizado na versão 0.20.1.

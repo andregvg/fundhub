@@ -65,7 +65,14 @@ local de trabalho.
 - **Local de trabalho sem cargo** não é aceito: se você escolher um local na
   modal de cadastro, precisa escolher também o cargo.
 - **Documento fora do formato** (CPF, RG) é só um aviso: salva assim mesmo,
-  porque RG de outro estado tem outro formato.
+  porque RG de outro estado tem outro formato. Um RG que não segue o formato
+  de São Paulo aparece na tela inteiro, sem pontos e sem traço - nenhum
+  dígito é escondido.
+- **CPF, RG e telefone você digita à vontade**, com ponto, traço e parênteses
+  ou sem: o sistema arruma a pontuação sozinho e mostra sempre no mesmo
+  formato, aqui e em qualquer outra tela.
+- **Telefone incompleto** trava o salvamento - o número precisa ter os oito
+  ou nove dígitos. Sem DDD, o sistema assume 16.
 - **Excluir um servidor** apaga junto os locais de trabalho, os horários e os
   afastamentos dele. A tela avisa antes.
 
@@ -89,4 +96,4 @@ trabalho aparece mesmo assim. Se não aparecer, recarregue a página.
 Encerre o local antigo (preencha o Término) e registre um novo. Assim o
 histórico fica correto.
 
-> Atualizado na versão 0.19.0.
+> Atualizado na versão 0.20.1.

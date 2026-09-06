@@ -6,6 +6,7 @@ import { rotulaCargo } from '../vinculos.model.js';
 import { esc, norm } from '../../../shared/dom.js';
 import { emptyState } from '../../../shared/ui/feedback.js';
 import { ico } from '../../../shared/ui/icones.js';
+import { exibirTelefone } from '../../../shared/ui/phones.js';
 import { eLocalInterno } from '../../escolas/escolas.model.js';
 import { mostrarTelefonesNoCard } from '../servidores.config.js';
 
@@ -33,7 +34,7 @@ export function combina(s, ctx) {
   if (filtro.q) {
     const alvo = norm([
       s.nome, s.apelido, s.email, s.codigo_funcional, localDeTrabalhoDe(s),
-      ...(s.telefones || []).map(t => t.numero),
+      ...(s.telefones || []).flatMap(t => [t.numero, exibirTelefone(t.numero)]),
       ...abertos.map(v => `${v.unidade?.nome} ${v.unidade?.apelido} ${rotulaCargo(v.papel)}`),
     ].join(' '));
     if (!alvo.includes(norm(filtro.q))) return false;
@@ -79,6 +80,6 @@ function card(s) {
       ${cargos}
     </div>
     ${s.apelido ? `<div class="apelido">${esc(s.apelido)}</div>` : ''}
-    <div class="tags">${lugares}${tel ? `<span class="tag">${ico('fixo', { tam: 12 })} ${esc(tel.numero)}</span>` : ''}</div>
+    <div class="tags">${lugares}${tel ? `<span class="tag">${ico('fixo', { tam: 12 })} ${esc(exibirTelefone(tel.numero))}</span>` : ''}</div>
   </article>`;
 }

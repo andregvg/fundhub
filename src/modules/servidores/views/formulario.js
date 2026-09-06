@@ -6,7 +6,7 @@ import { criarVinculo } from '../vinculos.model.js';
 import { eLocalInterno } from '../../escolas/escolas.model.js';
 import { sincronizarTelefones } from '../../telefones/telefones.model.js';
 import { esc, falha } from '../../../shared/dom.js';
-import { mascaraCPF, mascaraRG, noPadraoCPF, noPadraoRG } from '../../../shared/format.js';
+import { mascaraCPF, mascaraRG, cpfCru, rgCru, noPadraoCPF, noPadraoRG } from '../../../shared/format.js';
 import { drawerHead, abrirDrawer, fecharDrawer } from '../../../shared/ui/drawer.js';
 import { phonesEditorHtml, montarPhonesEditor, lerPhonesEditor } from '../../../shared/ui/phones.js';
 import { criarBuscaSelecao } from '../../../shared/ui/busca-selecao.js';
@@ -176,8 +176,8 @@ async function salvarServidor(e, s, ctx, voltar) {
     apelido: val('s-apelido') || null,
     email: val('s-email') || null,
     codigo_funcional: val('s-codigo') || null,
-    cpf: val('s-cpf') || null,
-    rg: val('s-rg') || null,
+    cpf: cpfCru(val('s-cpf')) || null,
+    rg: rgCru(val('s-rg')) || null,
     nascimento: document.getElementById('s-nascimento').value || null,
     inicio_rede: document.getElementById('s-ingresso').value || null,
   };

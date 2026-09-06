@@ -11,6 +11,7 @@ import { drawerHtml, montarDrawer } from '../../shared/ui/drawer.js';
 import { criarFiltroSegmento } from '../../shared/ui/filtro-segmento.js';
 import { podeEscrever } from '../../core/permissoes.js';
 import { ico } from '../../shared/ui/icones.js';
+import { exibirTelefone } from '../../shared/ui/phones.js';
 import { mostrarTelefonesNoCard, mostrarServidoresNoCard, cardsPorLinha } from './escolas.config.js';
 import { detalhe } from './views/detalhe.js';
 import { abrirForm, removerEscola } from './views/formulario.js';
@@ -161,7 +162,7 @@ function cardHtml(u) {
     u.tem_transporte ? `<span class="tag bus">${ico('transporte', { tam: 12 })} Transporte</span>` : '',
     u.tem_eja ? `<span class="tag eja">${ico('noturno', { tam: 12 })} EJA</span>` : '',
     u.oferta ? `<span class="tag">${esc(u.oferta)}</span>` : '',
-    tel ? `<span class="tag">${ico('fixo', { tam: 12 })} ${esc(tel.numero)}</span>` : '',
+    tel ? `<span class="tag">${ico('fixo', { tam: 12 })} ${esc(exibirTelefone(tel.numero))}</span>` : '',
     mostrarServidoresNoCard()
       ? `<span class="tag">${ico('equipe', { tam: 12 })} ${contagemServidores[u.id] || 0} ${(contagemServidores[u.id] || 0) === 1 ? 'servidor' : 'servidores'}</span>`
       : '',

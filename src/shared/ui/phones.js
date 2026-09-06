@@ -23,6 +23,7 @@ export const TIPOS_TELEFONE = [['fixo', 'Fixo'], ['celular', 'Celular'], ['whats
 // Preto e região são 16; quem precisar de outro digita os 10/11
 // dígitos e a máscara respeita o que veio.
 const DDD_PADRAO = '16';
+const PAIS_PADRAO = '55';
 
 // ── Máscara ──────────────────────────────────────────────────
 // Formata o que já foi digitado, sem exigir o número completo - a
@@ -40,14 +41,69 @@ export function formatarTelefone(valor) {
   return `(${ddd}) ${resto.slice(0, corte)}-${resto.slice(corte)}`;
 }
 
-// Normaliza para gravar: completa o DDD padrão quando vieram só os
-// 8/9 dígitos locais. Guardamos formatado porque é assim que o
-// número é lido e conferido - e é o formato que já está no banco.
+// Completa o DDD padrão quando vieram só os 8/9 dígitos locais e devolve
+// FORMATADO. É o auxiliar do campo (o `focusout` conserta o que a pessoa
+// digitou pela metade), não o formato de gravação - quem grava é paraE164.
 export function normalizarTelefone(valor) {
   const d = String(valor || '').replace(/\D/g, '');
   if (!d) return '';
   if (d.length === 8 || d.length === 9) return formatarTelefone(DDD_PADRAO + d);
   return formatarTelefone(d);
+}
+
+// ── E.164: o formato de GRAVAÇÃO ─────────────────────────────
+// `+5516999999999`. É a norma ITU-T E.164, o que libphonenumber, Twilio e
+// WhatsApp usam, e exatamente o que o URI `tel:` (RFC 3966) quer.
+//
+// Até 06/09/2026 o banco guardava o número FORMATADO, e o comentário que
+// justificava isso ("é assim que o número é lido e conferido") confundia
+// legibilidade com armazenamento - a mesma confusão que punha máscara no
+// CPF. E cobrava o preço: boa parte da base foi cadastrada sem DDD
+// ('3333-3333'), e sem saber se os dois primeiros dígitos são DDD ou
+// prefixo não há como formatar sem chutar. Com o código do país explícito
+// a ambiguidade acaba: o que está gravado sempre diz o que é.
+//
+// Escada de tamanhos, do mais completo ao menos:
+//   12-13 dígitos começando em 55 → já tem país, só falta o '+';
+//   10-11 dígitos                 → tem DDD, falta o país;
+//   8-9 dígitos                   → é local, faltam DDD e país.
+// Fora disso não dá para afirmar nada: devolve vazio em vez de inventar - e
+// vazio é descartado por sincronizarTelefones, como uma linha em branco.
+// Para que isso não vire perda silenciosa de um número digitado pela metade,
+// o campo carrega um `pattern`: o próprio navegador barra o envio e diz o
+// que falta, em vez de o número sumir depois de salvo.
+export function paraE164(valor) {
+  const d = String(valor || '').replace(/\D/g, '');
+  if (!d) return '';
+  if (d.length >= 12 && d.length <= 13 && d.startsWith(PAIS_PADRAO)) return `+${d}`;
+  if (d.length === 10 || d.length === 11) return `+${PAIS_PADRAO}${d}`;
+  if (d.length === 8 || d.length === 9) return `+${PAIS_PADRAO}${DDD_PADRAO}${d}`;
+  return '';
+}
+
+// E.164 → os dígitos nacionais, para a máscara brasileira poder formatar.
+// Número que não é do Brasil volta como está: melhor um '+34 91…' cru na
+// tela do que um número estrangeiro fatiado num formato que não é o dele.
+export function deE164(valor) {
+  const s = String(valor || '').trim();
+  if (!s.startsWith('+')) return s;                 // legado ainda não migrado
+  const d = s.slice(1);
+  if (!d.startsWith(PAIS_PADRAO)) return s;
+  return d.slice(PAIS_PADRAO.length);
+}
+
+// O número como a pessoa lê: '(16) 99999-9999'.
+// Só o brasileiro é formatado. `formatarTelefone` joga fora tudo que não é
+// dígito, então um número espanhol sairia vestido de brasileiro, com DDD e
+// hífen no lugar errado - pior do que não formatar.
+export function exibirTelefone(valor) {
+  const nacional = deE164(valor);
+  if (nacional.startsWith('+')) return nacional;
+  // `normalizarTelefone`, não `formatarTelefone`: sem o '+' o valor é legado
+  // ainda não migrado, e boa parte da base foi cadastrada SEM DDD
+  // ('3333-3333') - formatar direto leria o '33' como DDD. A tela precisa
+  // continuar certa na janela entre o deploy e a migration 029.
+  return normalizarTelefone(nacional) || String(valor || '');
 }
 
 // Um número é de celular se tem 9 dígitos locais começando em 9.
@@ -76,7 +132,9 @@ function rowHtml(t = {}) {
     <div class="phone-row" data-id="${esc(t.id || '')}">
       <select class="phone-tipo" aria-label="Tipo">${opts}</select>
       <input class="phone-num" type="tel" inputmode="tel" maxlength="16"
-             placeholder="(16) 00000-0000" value="${esc(normalizarTelefone(t.numero) || '')}" />
+             pattern="\\(\\d{2}\\) \\d{4,5}-\\d{4}"
+             title="Informe o número completo: (00) 0000-0000 ou (00) 00000-0000"
+             placeholder="(16) 00000-0000" value="${esc(exibirTelefone(t.numero))}" />
       <input class="phone-rot" type="text" placeholder="rótulo (opcional)" value="${esc(t.rotulo || '')}" />
       <label class="switch radio phone-pri" title="Telefone principal">
         <input type="radio" name="phone-pri" aria-label="Telefone principal" ${t.principal ? 'checked' : ''} />
@@ -160,7 +218,7 @@ export function lerPhonesEditor(root) {
   return [...box.querySelectorAll('.phone-row')].map(r => ({
     id: r.dataset.id || undefined,
     tipo: r.querySelector('.phone-tipo').value,
-    numero: normalizarTelefone(r.querySelector('.phone-num').value),
+    numero: paraE164(r.querySelector('.phone-num').value),
     rotulo: r.querySelector('.phone-rot').value.trim() || null,
     principal: r.querySelector('.phone-pri input').checked,
   })).filter(t => t.numero);
@@ -173,10 +231,9 @@ const ICO_TEL = { whatsapp: 'whatsapp', celular: 'celular', fixo: 'fixo' };
 export function telefonesTexto(lista = []) {
   return (lista || [])
     .map(t => {
-      // normalizar, não formatar: boa parte da base foi cadastrada sem
-      // DDD ("3333-3333"), e formatar direto leria o "33" como DDD.
-      const fmt = normalizarTelefone(t.numero) || t.numero;
-      const num = `<a href="tel:${esc(String(t.numero).replace(/\D/g, ''))}">${esc(fmt)}</a>`;
+      // O href vai em E.164 - é o que a RFC 3966 pede e o que o discador
+      // do celular entende sem adivinhar região.
+      const num = `<a href="tel:${esc(paraE164(t.numero) || t.numero)}">${esc(exibirTelefone(t.numero))}</a>`;
       const rot = t.rotulo ? ` <small>(${esc(t.rotulo)})</small>` : '';
       const pri = t.principal ? ' <small class="pri">principal</small>' : '';
       return `<span class="tel-item">${ico(ICO_TEL[t.tipo] || 'fixo', { tam: 14 })} ${num}${rot}${pri}</span>`;

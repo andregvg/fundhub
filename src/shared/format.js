@@ -67,15 +67,26 @@ export function fmtIdade(iso) {
   return anos === 1 ? '1 ano' : `${anos} anos`;
 }
 
-// ── Máscaras de documento ────────────────────────────────────
-// Formatação progressiva: mascaram o que já foi digitado e não
-// reclamam do que falta. Quem valida "de verdade" é noPadrao*(),
-// e o resultado dela é AVISO, não erro (R15) - RG de outro estado
-// tem outro formato e a SME precisa cadastrar essa pessoa.
+// ── Documentos: guardar canônico, exibir formatado ───────────
+// A máscara é affordance de INTERFACE; o formato de armazenamento é
+// outra coisa, e confundir os dois é o que fazia o banco guardar
+// '111.111.111-11'. Formato de exibição muda com o locale; o dado, não.
+//
+//   CPF - 11 dígitos, sem pontuação. Não há norma de armazenamento, mas
+//         toda API pública (SERPRO, Receita, gov.br) fala em dígitos.
+//   RG  - dígitos + DV, caixa alta, sem pontuação. NÃO existe padrão
+//         nacional: cada estado emite o seu, com tamanho próprio e DV
+//         que no paulista pode ser 'X'.
+//
+// `mascara*` formata PROGRESSIVAMENTE, para o campo enquanto se digita:
+// mascara o que já veio e não reclama do que falta. `fmt*` é a exibição
+// de um valor pronto - só formata o que cabe no padrão, e devolve o cru
+// quando não cabe, para nunca esconder um dígito de um RG de fora de SP.
+// `*Cru` é o caminho de volta, o que vai ao banco.
 
-// '11111111111' → '111.111.111-11'
+// '11111111111' | '111.111.111-11' → '111.111.111-11'
 export function mascaraCPF(v) {
-  const d = String(v ?? '').replace(/\D/g, '').slice(0, 11);
+  const d = cpfCru(v);
   if (d.length <= 3) return d;
   if (d.length <= 6) return `${d.slice(0, 3)}.${d.slice(3)}`;
   if (d.length <= 9) return `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6)}`;
@@ -84,8 +95,14 @@ export function mascaraCPF(v) {
 
 // '123456789' → '12.345.678-9'. O dígito verificador do RG paulista
 // pode ser X, então o último caractere aceita letra.
+//
+// Acima de 9 caracteres a máscara SAI DO CAMINHO e devolve o cru: o
+// formato paulista não serve, e truncar aqui apagaria um dígito de um RG
+// de outro estado - em silêncio, no `value` do campo, e de novo no banco
+// no próximo salvamento.
 export function mascaraRG(v) {
-  const bruto = String(v ?? '').toUpperCase().replace(/[^0-9X]/g, '').slice(0, 9);
+  const bruto = rgCru(v);
+  if (bruto.length > 9) return bruto;
   const num = bruto.replace(/X/g, '').slice(0, 8);
   const dv = bruto.length > 8 ? bruto.slice(8, 9) : '';
   let out = num;
@@ -94,8 +111,18 @@ export function mascaraRG(v) {
   return dv ? `${out}-${dv}` : out;
 }
 
-export const noPadraoCPF = (v) =>
-  !String(v ?? '').trim() || /^\d{3}\.\d{3}\.\d{3}-\d{2}$/.test(String(v).trim());
+// O que vai ao banco.
+export const cpfCru = (v) => String(v ?? '').replace(/\D/g, '').slice(0, 11);
+export const rgCru = (v) => String(v ?? '').toUpperCase().replace(/[^0-9X]/g, '');
 
-export const noPadraoRG = (v) =>
-  !String(v ?? '').trim() || /^\d{2}\.\d{3}\.\d{3}-[0-9X]$/.test(String(v).trim().toUpperCase());
+// O que aparece na tela. Fora do padrão, o valor cru - inteiro.
+export const fmtCPF = (v) => (noPadraoCPF(v) ? mascaraCPF(v) : cpfCru(v));
+export const fmtRG = (v) => (noPadraoRG(v) ? mascaraRG(v) : rgCru(v));
+
+// Aviso, nunca erro (R15): RG de outro estado tem outro formato e a SME
+// precisa cadastrar essa pessoa. Testam o CRU, que é o que vai ao banco -
+// antes testavam a string já mascarada, e passariam a recusar tudo.
+// Vazio passa: campo em branco não é campo errado.
+export const noPadraoCPF = (v) => !cpfCru(v) || /^\d{11}$/.test(cpfCru(v));
+
+export const noPadraoRG = (v) => !rgCru(v) || /^\d{8}[0-9X]$/.test(rgCru(v));
