@@ -78,16 +78,29 @@ export async function getUnidades() {
   return _cache;
 }
 
-// LOCAIS de lotação = escolas + a sede da SME. Só o formulário de
-// vínculo e o seletor de Horários usam isto; a lista de Escolas
-// continua sendo só escola (getUnidades). A sede vem primeiro porque
-// procurá-la no meio de 144 nomes seria absurdo.
+// LOCAIS DE TRABALHO = escolas + a Sede + as gerências/subsecretarias
+// internas da SME (tipo 'interno'). Só o formulário de local de
+// trabalho e o seletor de Horários usam isto; a lista de Escolas
+// continua sendo só escola (getUnidades).
 let _locais = null;
 
 // Um único registro cobre os dois caches deste model: getUnidades()
 // e getLocais() são leituras independentes, mas o botão Atualizar
 // invalida as duas de uma vez.
 registrarCache(() => { _cache = null; _locais = null; });
+
+// Sede e local interno da SME contam como "não-escola": ícone de
+// prédio, e o filtro de segmento não os esconde (não têm segmento).
+export const eLocalInterno = (u) => (u?.tipo || '') !== 'escola';
+
+// Ordem do seletor de local de trabalho: a Sede primeiro (procurá-la
+// no meio de 144 nomes seria absurdo), depois os internos, depois as
+// escolas - cada grupo em ordem alfabética.
+export function ordenarLocais(lista) {
+  const rank = (t) => (t === 'sede' ? 0 : t === 'interno' ? 1 : 2);
+  return [...lista].sort((a, b) =>
+    rank(a.tipo) - rank(b.tipo) || a.nome.localeCompare(b.nome, 'pt'));
+}
 
 export async function getLocais() {
   if (_locais) return _locais;
@@ -101,9 +114,65 @@ export async function getLocais() {
     return _locais;
   }
   if (error) throw error;
-  _locais = [...(data || [])].sort((a, b) =>
-    (a.tipo === 'sede' ? -1 : b.tipo === 'sede' ? 1 : 0) || a.nome.localeCompare(b.nome, 'pt'));
+  _locais = ordenarLocais(data || []);
   return _locais;
+}
+
+// Locais de trabalho que NÃO são escolas: a Sede e as gerências/
+// subsecretarias. Editados no painel de configuração de Escolas.
+export async function getLocaisInternos() {
+  if (!hasSupabase()) return [];
+  const { data, error } = await sb().from('unidade_escolar')
+    .select('id, nome, tipo, vinculos:vinculo(count)')
+    .in('tipo', ['sede', 'interno']).order('nome');
+  if (error) {
+    if (error.code === '42703') return [];   // 023 não rodou
+    throw error;
+  }
+  return (data || []).map(u => ({
+    id: u.id, nome: u.nome, tipo: u.tipo,
+    vinculos: u.vinculos?.[0]?.count ?? 0,
+  }));
+}
+
+export async function criarLocalInterno(nome) {
+  if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
+  const limpo = String(nome || '').trim();
+  if (!limpo) throw new Error('Informe o nome do local.');
+  const { data, error } = await sb().from('unidade_escolar')
+    .insert({ nome: limpo, tipo: 'interno' }).select().single();
+  if (error) {
+    if (error.code === '23514') {             // CHECK: a 028 ainda não rodou
+      const e = new Error('Atualização do banco pendente - locais internos ainda não estão liberados.');
+      e.amigavel = true; throw e;
+    }
+    throw error;
+  }
+  _cache = null; _locais = null;
+  return data;
+}
+
+export async function renomearLocalInterno(id, nome) {
+  if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
+  const limpo = String(nome || '').trim();
+  if (!limpo) throw new Error('Informe o nome do local.');
+  const { error } = await sb().from('unidade_escolar')
+    .update({ nome: limpo, atualizado_em: agoraISO() }).eq('id', id);
+  if (error) throw error;
+  _cache = null; _locais = null;
+}
+
+export async function excluirLocalInterno(id) {
+  if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
+  const { error } = await sb().from('unidade_escolar').delete().eq('id', id);
+  if (error) {
+    if (error.code === '23503') {             // FK: há vínculo apontando
+      const e = new Error('Há servidores lotados neste local. Encerre os vínculos antes de excluí-lo.');
+      e.amigavel = true; throw e;
+    }
+    throw error;
+  }
+  _cache = null; _locais = null;
 }
 
 // Campos editáveis de uma unidade (o resto é derivado/sistema).
