@@ -16,5 +16,10 @@ export default {
   grupo: 'conta',
   nav: true,
   ativo: true,
+  // De todo mundo por desenho: sem dados próprios, esconder não protege
+  // nada. O banco diz o mesmo (meu_mapa_permissoes, migration 026); esta
+  // linha é o que faz o módulo DEGRADAR em vez de sumir do menu enquanto
+  // a migration não roda. Ver nivelEfetivo() em core/registry.js.
+  publico: true,
   load: () => import('./meus-dados.view.js'),
 };

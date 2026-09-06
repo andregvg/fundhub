@@ -4,8 +4,8 @@
 // registro de módulos - nada é escrito à mão aqui, e o que a pessoa
 // não pode ver já vem filtrado por modulosVisiveis().
 // ============================================================
-import { modulosVisiveis, GRUPOS, chavePerm } from '../../core/registry.js';
-import { nivel, rotulaNivel, ESCRITA } from '../../core/permissoes.js';
+import { modulosVisiveis, GRUPOS, nivelEfetivo } from '../../core/registry.js';
+import { rotulaNivel, ESCRITA } from '../../core/permissoes.js';
 import { esc } from '../../shared/dom.js';
 import { ico } from '../../shared/ui/icones.js';
 
@@ -32,7 +32,7 @@ export async function render(app) {
 }
 
 function tile(m) {
-  const n = nivel(chavePerm(m));
+  const n = nivelEfetivo(m);
   const badge = !m.ativo
     ? `<span class="badge breve">em breve</span>`
     : n === ESCRITA

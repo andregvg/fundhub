@@ -101,6 +101,14 @@ export default {
 };
 ```
 
+`publico: true` (opcional) diz que o módulo é **de todo mundo por desenho** -
+sem dados próprios, esconder não protegeria nada. Só os quatro de serviço ao
+usuário têm: `ajuda`, `modulos`, `meus_dados`, `configuracoes`. Isso os faz
+**degradar** para `leitura` quando o mapa do banco cala, em vez de sumirem do
+menu em silêncio na janela entre o deploy e a migration. **Não é permissão:**
+quem barra continua sendo o RLS, e o nível concedido é `leitura`, nunca
+`escrita`. Módulo com dados próprios **nunca** leva `publico`.
+
 Registrar em `src/core/registry.js`: um `import` no topo e o nome no array `MODULOS`
 (a ordem no array é a ordem no menu). Isso faz o tile, a rota e o item de navegação aparecerem
 sozinhos.

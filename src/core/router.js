@@ -10,9 +10,9 @@
 // A rota raiz é a DASHBOARD. A antiga home de tiles virou o módulo
 // "Módulos" em #/modulos, alcançável pelo menu lateral.
 // ============================================================
-import { moduloPorRota, caminhoDaRota, chavePerm, REDIRECIONAMENTOS } from './registry.js';
+import { moduloPorRota, caminhoDaRota, nivelEfetivo, REDIRECIONAMENTOS } from './registry.js';
 import { getPerfilAtual } from './perfil.js';
-import { nivel, OCULTO } from './permissoes.js';
+import { OCULTO } from './permissoes.js';
 import { loading, emptyState } from '../shared/ui/feedback.js';
 import { ico } from '../shared/ui/icones.js';
 import { esc } from '../shared/dom.js';
@@ -67,13 +67,13 @@ export async function route({ manterScroll = false } = {}) {
     if (!mod || !mod.ativo) {
       outlet.innerHTML = emptyState(ico('perdido', { tam: 32 }), 'Página não encontrada',
         'O endereço não corresponde a nenhum módulo. Use o menu à esquerda para navegar.');
-    } else if (nivel(chavePerm(mod)) === OCULTO) {
+    } else if (nivelEfetivo(mod) === OCULTO) {
       // Mesma mensagem para "não existe" e "não pode": confirmar que o
       // módulo existe já é informação a mais para quem não tem acesso.
       outlet.innerHTML = emptyState(ico('restrito', { tam: 32 }), 'Acesso restrito',
         'Você não tem permissão para este módulo. Se precisa de acesso, fale com a Gerência de Ensino Fundamental.');
     } else {
-      const nv = nivel(chavePerm(mod));
+      const nv = nivelEfetivo(mod);
       // Estrutura estável: a barra de ações é IRMÃ da view, não mãe. A
       // view continua recebendo um elemento e escrevendo o innerHTML nele;
       // .mod-wrap é o pai posicionado que ancora a barra no canto.

@@ -21,8 +21,8 @@ import { atualizarServidor, localDeTrabalhoDe, cargoDe, vinculosAbertos } from '
 import { rotulaCargo } from '../servidores/vinculos.model.js';
 import { sincronizarTelefones, getTelefonesMapas } from '../telefones/telefones.model.js';
 import { recarregarPerfil } from '../../core/perfil.js';
-import { mapaAtual, rotulaNivel, OCULTO } from '../../core/permissoes.js';
-import { MODULOS, chavePerm } from '../../core/registry.js';
+import { rotulaNivel, OCULTO } from '../../core/permissoes.js';
+import { MODULOS, nivelEfetivo } from '../../core/registry.js';
 import { rotuloSelecao } from '../../core/segmentos.js';
 import { esc, vazio } from '../../shared/dom.js';
 import { fmtData, fmtDataHora } from '../../shared/format.js';
@@ -101,10 +101,11 @@ export async function render(app, ctx = {}) {
 
 // ── Blocos de leitura ────────────────────────────────────────
 function blocoAcesso() {
-  const mapa = mapaAtual();
+  // Nível EFETIVO, o mesmo que monta o menu: um módulo público aparece
+  // no menu ao lado, e some daqui seria a tela se contradizendo.
   const visiveis = MODULOS
-    .filter(m => m.rota && (mapa[chavePerm(m)] || OCULTO) !== OCULTO)
-    .map(m => `<span class="tag">${ico(m.ico, { tam: 14 })} ${esc(m.navNome || m.nome)} · ${esc(rotulaNivel(mapa[chavePerm(m)]))}</span>`)
+    .filter(m => m.rota && nivelEfetivo(m) !== OCULTO)
+    .map(m => `<span class="tag">${ico(m.ico, { tam: 14 })} ${esc(m.navNome || m.nome)} · ${esc(rotulaNivel(nivelEfetivo(m)))}</span>`)
     .join('');
 
   return `

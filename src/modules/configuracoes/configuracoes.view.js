@@ -4,8 +4,7 @@
 // pessoa pode ver e que declara `config`, na ordem do registro. Usa o
 // MESMO renderizador que a engrenagem (painel.js).
 // ============================================================
-import { MODULOS, chavePerm } from '../../core/registry.js';
-import { nivel, OCULTO } from '../../core/permissoes.js';
+import { MODULOS, veModulo } from '../../core/registry.js';
 import { esc } from '../../shared/dom.js';
 import { ico } from '../../shared/ui/icones.js';
 import { emptyState } from '../../shared/ui/feedback.js';
@@ -19,7 +18,7 @@ export async function render(app, ctx = {}) {
   const alvos = MODULOS.filter(m =>
     m.id !== 'configuracoes' &&
     typeof m.config === 'function' &&
-    nivel(chavePerm(m)) !== OCULTO);
+    veModulo(m));
 
   app.innerHTML = `
     <div class="page-head">

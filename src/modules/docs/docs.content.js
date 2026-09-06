@@ -494,9 +494,11 @@ export const SECOES = [
   nome: 'Ocorrências',
   desc: 'Registro de atendimentos telefônicos.',
   rota: '#/ocorrencias',
+  grupo: 'modulos',   // seção do menu: principal | modulos | conta | admin | ajuda
   nav: true,          // aparece na barra de navegação
   ativo: true,        // false = tile "em breve"
-  admin: false,       // true = só admin vê e acessa
+  perm: 'ocorrencias',// chave no mapa de permissões (default: o próprio id)
+  publico: false,     // true só para módulo sem dados próprios (Ajuda, Meus dados…)
   load: () => import('./ocorrencias.view.js'),
 };</pre>
 

@@ -5,15 +5,13 @@
 // Um `?m=` de módulo oculto responde como rota inexistente - sem
 // confirmar que o módulo existe.
 // ============================================================
-import { MODULOS, chavePerm } from '../../core/registry.js';
-import { nivel, OCULTO } from '../../core/permissoes.js';
+import { MODULOS, veModulo } from '../../core/registry.js';
 import { esc } from '../../shared/dom.js';
 import { ico } from '../../shared/ui/icones.js';
 import { loading, emptyState } from '../../shared/ui/feedback.js';
 import { markdownParaHtml } from './markdown.js';
 
-const comTutorial = () => MODULOS.filter(m =>
-  m.doc === true && nivel(chavePerm(m)) !== OCULTO);
+const comTutorial = () => MODULOS.filter(m => m.doc === true && veModulo(m));
 
 export async function render(app, ctx = {}) {
   const alvoId = ctx.params?.get('m') || '';

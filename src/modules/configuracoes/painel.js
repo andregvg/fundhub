@@ -13,8 +13,8 @@
 // esconder faria a tela mentir sobre por que o sistema se comporta assim.
 // ============================================================
 import { conf, pref, definirConf, definirPref, GRUPOS } from '../../core/configuracoes.js';
-import { nivel, OCULTO, podeEscrever } from '../../core/permissoes.js';
-import { chavePerm } from '../../core/registry.js';
+import { podeEscrever } from '../../core/permissoes.js';
+import { chavePerm, veModulo } from '../../core/registry.js';
 import { esc } from '../../shared/dom.js';
 import { abrirDrawer, drawerHead } from '../../shared/ui/drawer.js';
 import { toast } from '../../shared/ui/toast.js';
@@ -33,7 +33,7 @@ export async function abrirPainelConfig(mod) {
 export async function pintarConfigDoModulo(box, mod, ctx = {}) {
   if (!box) return;
   const perm = chavePerm(mod);
-  if (nivel(perm) === OCULTO) { box.innerHTML = ''; return; }
+  if (!veModulo(mod)) { box.innerHTML = ''; return; }
 
   let declaracao;
   try {
@@ -70,10 +70,28 @@ export async function pintarConfigDoModulo(box, mod, ctx = {}) {
     if (alvo) {
       try { await i.painel(alvo, ctx); }
       catch (err) { alvo.innerHTML = erroBox(err); }
+      travarSeRede(alvo, i, podeRede);
     }
   }
 
   ligar(box, mod.id, podeRede);
+}
+
+// Um item de escopo `rede` sem permissão de escrita fica DESABILITADO, com o
+// valor à vista (D10). O renderizador genérico já fazia isso; o painel, não -
+// ele desenha os próprios controles e não recebia `podeRede`. Quem tinha
+// leitura em Horários via os switches de equipe gestora e os campos de
+// cobertura com cara de editáveis, mexia, e só o RLS recusava: o banco venceu
+// (R6), mas a tela tinha prometido o que não podia cumprir.
+//
+// Trancar aqui, DEPOIS de o painel desenhar, em vez de passar `podeRede` para
+// dentro de cada painel: vale para os cinco painéis de hoje e para os que
+// vierem, sem que nenhum precise se lembrar da regra.
+function travarSeRede(alvo, item, podeRede) {
+  if (item.escopo !== 'rede' || podeRede) return;
+  alvo.querySelectorAll('input, select, textarea, button').forEach(el => { el.disabled = true; });
+  alvo.insertAdjacentHTML('beforeend',
+    '<span class="form-hint">Só quem tem permissão de escrita neste módulo muda isto.</span>');
 }
 
 function itemHtml(i, modId, podeRede) {

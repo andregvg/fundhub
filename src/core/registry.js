@@ -8,14 +8,16 @@
 // A tela de cada módulo é carregada sob demanda pelo roteador, via
 // `load()` → import() dinâmico. Nada de módulo inativo é baixado.
 //
-// Dois campos governam a navegação:
-//   grupo - em que seção do menu lateral o item aparece;
-//   perm  - a chave de permissão (default: o próprio id). Ver
-//           core/permissoes.js; o mapa vem do banco (migration 021).
+// Três campos governam a navegação:
+//   grupo   - em que seção do menu lateral o item aparece;
+//   perm    - a chave de permissão (default: o próprio id). Ver
+//             core/permissoes.js; o mapa vem do banco (migration 021).
+//   publico - o módulo é de todo mundo por desenho e não some do menu
+//             quando o banco cala. Ver nivelEfetivo() abaixo.
 //
 // Campos do manifesto - ver modules/docs/docs.content.js § "Novo módulo".
 // ============================================================
-import { podeVer } from './permissoes.js';
+import { nivel, OCULTO, LEITURA } from './permissoes.js';
 
 import dashboard    from '../modules/dashboard/module.js';
 import modulos      from '../modules/modulos/module.js';
@@ -58,10 +60,36 @@ export const GRUPOS = [
 // A chave de permissão do módulo (default: o id).
 export const chavePerm = (m) => m.perm || m.id;
 
+// O nível EFETIVO de um módulo. Quase sempre é o que o banco disse; a
+// única exceção é o módulo `publico: true`, que existe para qualquer
+// pessoa logada por desenho - Ajuda, Módulos, Meus dados e Configurações
+// não têm dados próprios, e esconder qualquer um deles não protege nada.
+//
+// Por que isto mora aqui e não em permissoes.js: o fato "este módulo é de
+// todo mundo" é uma propriedade do MÓDULO, e este arquivo é a fonte única
+// de verdade sobre módulos. E permissoes.js não pode importar daqui - o
+// import é neste sentido, e o contrário fecharia ciclo (R4).
+//
+// Por que existe: até 06/09/2026 esse fato só estava escrito como literal
+// SQL dentro de `meu_mapa_permissoes()` (migration 026). Como migration é
+// aplicada à mão, na janela entre o deploy e o SQL esses quatro módulos
+// SUMIAM do menu, em silêncio, em vez de degradar - o oposto do que
+// .claude/rules/dados.md exige. Agora o front tem a mesma informação.
+//
+// Isto NÃO é controle de acesso. Quem barra continua sendo o RLS (R6): o
+// nível concedido aqui é `leitura`, nunca `escrita`, então uma config de
+// rede continua desabilitada até o banco dizer o contrário.
+export function nivelEfetivo(mod) {
+  const nv = nivel(chavePerm(mod));
+  return (nv === OCULTO && mod.publico === true) ? LEITURA : nv;
+}
+
+export const veModulo = (mod) => nivelEfetivo(mod) !== OCULTO;
+
 // Módulos que o usuário pode enxergar. O nível 'oculto' some de tudo:
 // menu, página de módulos e rota. Antes isto era só `m.admin`.
 export function modulosVisiveis() {
-  return MODULOS.filter(m => podeVer(chavePerm(m)));
+  return MODULOS.filter(veModulo);
 }
 
 // Itens de navegação, agrupados na ordem de GRUPOS. Devolve só os
@@ -75,7 +103,7 @@ export function navPorGrupo() {
 
 // Serviços de fundo (sem tela): inicializados no boot, após o login.
 export function servicos() {
-  return MODULOS.filter(m => m.servico && m.ativo && podeVer(chavePerm(m)));
+  return MODULOS.filter(m => m.servico && m.ativo && veModulo(m));
 }
 
 // Só o caminho identifica o módulo: `#/servidores?unidade=…` é a mesma
