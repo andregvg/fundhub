@@ -11,6 +11,8 @@
 - Registrar um local de trabalho da pessoa - uma escola, a Sede ou uma
   gerência/subsecretaria da SME - com cargo e período.
 - Encerrar um local de trabalho quando a pessoa deixa de atuar ali.
+- Ajustar o card (na engrenagem): exibir o telefone e escolher quantos cards
+  cabem por linha em telas largas.
 
 ## Quem pode o quê
 
@@ -87,4 +89,4 @@ trabalho aparece mesmo assim. Se não aparecer, recarregue a página.
 Encerre o local antigo (preencha o Término) e registre um novo. Assim o
 histórico fica correto.
 
-> Atualizado na versão 0.17.0.
+> Atualizado na versão 0.19.0.

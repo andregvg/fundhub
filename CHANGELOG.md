@@ -9,6 +9,20 @@ versionamento **MINOR** = módulo novo ou mudança de modelo de dados, **PATCH**
 
 ---
 
+## [0.19.0] - 2026-09-06
+
+### Adicionado
+- O card de **Escolas** ganhou opções (na engrenagem): mostrar o telefone
+  principal, mostrar quantos servidores estão na unidade, e escolher quantos
+  cards cabem por linha em telas largas. Servidores tem a mesma opção de
+  cards por linha.
+
+### Alterado
+- No formulário de escola, o Nome ocupa a linha inteira, e "Transporte de
+  alunos" e "Atende EJA" viraram interruptores.
+- As dicas abaixo dos campos deixaram de sair em maiúsculas e negrito -
+  valia para todos os formulários do sistema.
+
 ## [0.18.0] - 2026-09-06
 
 ### Adicionado
