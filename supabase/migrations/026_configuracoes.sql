@@ -86,14 +86,14 @@ begin
   end loop;
 end $$;
 
--- ── Permissão: Configurações é de todo mundo (como Meus dados) ──
+-- ── Permissão: Configurações e Ajuda são de todo mundo (como Meus dados) ──
 create or replace function meu_mapa_permissoes() returns jsonb
   language sql stable security definer set search_path = public as $$
     select case
       when is_admin() then
         (select jsonb_object_agg(m, 'escrita')
            from (select distinct modulo as m from papel_permissao) x)
-        || '{"usuarios":"escrita","modulos":"escrita","meus_dados":"escrita","configuracoes":"escrita"}'::jsonb
+        || '{"usuarios":"escrita","modulos":"escrita","meus_dados":"escrita","configuracoes":"escrita","ajuda":"escrita"}'::jsonb
       else
         coalesce(
           (select jsonb_object_agg(pp.modulo, pp.nivel::text)
@@ -102,7 +102,7 @@ create or replace function meu_mapa_permissoes() returns jsonb
             where p.email = auth_email() and p.ativo),
           '{}'::jsonb)
         || coalesce((select permissoes from perfil where email = auth_email() and ativo), '{}'::jsonb)
-        || '{"meus_dados":"escrita","modulos":"leitura","configuracoes":"escrita"}'::jsonb
+        || '{"meus_dados":"escrita","modulos":"leitura","configuracoes":"escrita","ajuda":"escrita"}'::jsonb
     end
   $$;
 grant execute on function meu_mapa_permissoes() to authenticated;

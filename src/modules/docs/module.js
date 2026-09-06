@@ -5,9 +5,9 @@
 export default {
   id: 'docs',
   ico: 'docs',
-  nome: 'Documentação',
-  desc: 'Como o FundHub funciona por dentro.',
-  navNome: 'Docs',
+  nome: 'Documentação técnica',
+  desc: 'Arquitetura, migrations e RLS - para quem mantém o código.',
+  navNome: 'Docs técnicos',
   rota: '#/docs',
   grupo: 'ajuda',
   nav: true,

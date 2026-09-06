@@ -12,5 +12,6 @@ export default {
   grupo: 'conta',
   nav: true,
   ativo: true,
+  doc: true,
   load: () => import('./configuracoes.view.js'),
 };

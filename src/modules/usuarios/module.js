@@ -10,6 +10,7 @@ export default {
   grupo: 'admin',
   nav: true,
   ativo: true,
+  doc: true,
   // `admin: true` saiu: quem barra agora é o mapa de permissões
   // (nenhum papel recebe 'usuarios' no preset, só is_admin()).
   load: () => import('./usuarios.view.js'),

@@ -18,6 +18,7 @@ export default {
   rota: '#/servidores',
   nav: true,
   ativo: true,
+  doc: true,
   config: () => import('./servidores.config.js'),
   load: () => import('./servidores.view.js'),
 };
