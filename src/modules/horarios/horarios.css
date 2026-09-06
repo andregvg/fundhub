@@ -256,6 +256,7 @@
 .hj-dia legend { display: flex; align-items: baseline; gap: 8px; }
 .hj-total { color: var(--muted); font-size: 12px; font-weight: 400; }
 .hj-linhas { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
+.hj-dia-acoes { display: flex; flex-wrap: wrap; gap: 8px; }
 .hj-linha { display: grid; grid-template-columns: 1fr 1fr auto; align-items: center; gap: 6px; }
 .hj-ate { color: var(--muted); font-size: 12px; }
 .hj-prob { display: flex; align-items: center; gap: 6px; margin: 6px 0 0; font-size: 12.5px; }

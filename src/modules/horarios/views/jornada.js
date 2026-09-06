@@ -17,6 +17,7 @@ import { rotulaEscala } from '../escalas.model.js';
 import { esc, falha } from '../../../shared/dom.js';
 import { ico } from '../../../shared/ui/icones.js';
 import { drawerHead, abrirDrawer, fecharDrawer } from '../../../shared/ui/drawer.js';
+import { confirmar } from '../../../shared/ui/confirmar.js';
 import { toast } from '../../../shared/ui/toast.js';
 import { reportarErro } from '../../../shared/ui/feedback.js';
 
@@ -93,6 +94,12 @@ export function abrirJornada({ servidor, unidadeId, blocos, recarregar, escalasE
   });
 }
 
+// Só faz sentido "copiar para todos os dias" quando a escala tem 5
+// dias. Uma escala com dia da semana fixo (Task 5) tem um dia só.
+function podeCopiar() {
+  return !estado.diasFixos?.[estado.escala];
+}
+
 function pintarDica() {
   const dica = document.getElementById('hj-dica');
   if (!dica) return;
@@ -155,7 +162,10 @@ function pintar() {
           </div>`).join('')
           || `<p class="form-hint">Sem jornada nesta ${esc(d.nome.toLowerCase())}.</p>`}
       </div>
-      <button type="button" class="mini-btn hj-add" data-dia="${d.n}">${ico('adicionar', { tam: 14 })} bloco</button>
+      <div class="hj-dia-acoes">
+        <button type="button" class="mini-btn hj-add" data-dia="${d.n}">${ico('adicionar', { tam: 14 })} bloco</button>
+        ${podeCopiar() ? `<button type="button" class="mini-btn hj-copiar" data-dia="${d.n}">${ico('atualizar', { tam: 14 })} copiar para todos os dias</button>` : ''}
+      </div>
       <div class="hj-avisos">${avisosHtml(problemas)}</div>
     </fieldset>`;
   }).join('');
@@ -172,6 +182,24 @@ function pintar() {
     const alvo = dias[dia].filter(l => !l.excluir)[Number(linha.dataset.i)];
     if (alvo.id) alvo.excluir = true;               // já existe no banco
     else dias[dia] = dias[dia].filter(l => l !== alvo);
+    pintar();
+  }));
+
+  box.querySelectorAll('.hj-copiar').forEach(b => b.addEventListener('click', async () => {
+    const origem = Number(b.dataset.dia);
+    const dias = estado.porEscala[estado.escala];
+    const fonte = dias[origem].filter(l => !l.excluir && l.inicio && l.fim);
+    if (!fonte.length) return toast({ titulo: 'Nada para copiar', texto: 'Este dia não tem blocos preenchidos.', tipo: 'atencao' });
+    const temOutros = DIAS.some(d => d.n !== origem && dias[d.n].some(l => !l.excluir && (l.inicio || l.fim)));
+    if (temOutros && !(await confirmar('Copiar para todos os dias?', {
+        detalhe: 'Os blocos dos outros dias desta escala serão substituídos pelos deste dia.', textoOk: 'Copiar' }))) return;
+    for (const d of DIAS) {
+      if (d.n === origem) continue;
+      // Blocos já gravados no banco viram exclusão; os novos entram sem
+      // id. Cópia, não referência: editar um dia depois não mexe nos outros.
+      dias[d.n] = dias[d.n].filter(l => l.id).map(l => ({ ...l, excluir: true }))
+        .concat(fonte.map(l => ({ inicio: l.inicio, fim: l.fim, obs: l.obs })));
+    }
     pintar();
   }));
 }
