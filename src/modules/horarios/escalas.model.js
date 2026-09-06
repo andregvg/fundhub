@@ -150,14 +150,37 @@ export function escalasParaJornada({ emUsoNoAno = [], blocosDoServidor = [], cat
   return [...s];
 }
 
-// Blocos daquela escala. Sem nenhum, cai nos 'normal' - é o fallback
-// que faz quem não tem jornada alternativa não precisar de registro
-// nenhum. 'normal' nunca cai em outra coisa: seria circular.
-export function escolherBlocos(blocos, escala) {
+// A variante de um bloco. SEMPRE por aqui, nunca `b.variante` direto:
+// sem a migration 030 a coluna não existe e a propriedade vem
+// `undefined` - toda jornada gravada antes dela é a variante 1.
+export const varDe = (b) => b?.variante ?? 1;
+
+const daEscala = (lista, escala) => lista.filter(b => (b.escala || 'normal') === escala);
+
+// Blocos daquela escala e variante, em três degraus (D4 da spec
+// 2026-09-06-variantes-de-jornada):
+//
+//   1. a escala e a variante pedidas;
+//   2. a MESMA escala, variante 1 - o horário que não muda entre as
+//      variantes se escreve uma vez só (a coordenadora que tem horário
+//      próprio de TDC, igual nas duas, escreve na 1 e vale nas duas);
+//   3. a escala 'normal', variante 1 - o fallback que já existia, o que
+//      poupa registro de quem não tem jornada alternativa nenhuma.
+//
+// 'normal'/1 nunca cai em outra coisa: seria circular.
+export function escolherBlocos(blocos, escala, variante = 1) {
   const lista = blocos || [];
-  const daEscala = lista.filter(b => (b.escala || 'normal') === escala);
-  if (daEscala.length || escala === 'normal') return daEscala;
-  return lista.filter(b => (b.escala || 'normal') === 'normal');
+
+  const exatos = daEscala(lista, escala).filter(b => varDe(b) === variante);
+  if (exatos.length) return exatos;
+
+  if (variante !== 1) {
+    const base = daEscala(lista, escala).filter(b => varDe(b) === 1);
+    if (base.length) return base;
+  }
+
+  if (escala === 'normal') return [];
+  return daEscala(lista, 'normal').filter(b => varDe(b) === 1);
 }
 
 // 0=domingo … 6=sábado. O '+ T00:00:00' é obrigatório: sem ele o JS
@@ -166,11 +189,13 @@ export function diaDaSemana(iso) {
   return new Date(String(iso) + 'T00:00:00').getDay();
 }
 
-// A jornada de uma data: o dia da semana filtra, a escala escolhe.
-export function jornadaEm(blocos, { escala, dataISO }) {
+// A jornada de uma data: o dia da semana filtra, a escala e a variante
+// escolhem. Qual variante vale numa data concreta ninguém sabe - o
+// parâmetro existe para a tela poder pedir cada uma.
+export function jornadaEm(blocos, { escala, dataISO, variante = 1 }) {
   const dow = diaDaSemana(dataISO);
   if (dow < 1 || dow > 5) return [];              // fim de semana não tem jornada
-  return escolherBlocos((blocos || []).filter(b => b.dia_semana === dow), escala);
+  return escolherBlocos((blocos || []).filter(b => b.dia_semana === dow), escala, variante);
 }
 
 // A escala de uma data para uma unidade: o override da escola vence o

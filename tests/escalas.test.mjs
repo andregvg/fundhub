@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { resolverEscala, escolherBlocos, diaDaSemana, jornadaEm, rotulaEscala, escalasParaJornada }
+import { resolverEscala, escolherBlocos, diaDaSemana, jornadaEm, rotulaEscala, escalasParaJornada, varDe }
   from '../src/modules/horarios/escalas.model.js';
 import { gerarPropostaTDC } from '../src/modules/calendario/calendario.model.js';
 
@@ -48,6 +48,50 @@ test('escala normal nunca cai em outra coisa', () => {
 test('lista vazia devolve lista vazia', () => {
   assert.deepEqual(escolherBlocos([], 'tdc-presencial'), []);
   assert.deepEqual(escolherBlocos(undefined, 'normal'), []);
+});
+
+// ── escolherBlocos: os tres degraus do fallback (D4) ──
+const BV = (escala, variante, inicio) => ({ escala, variante, inicio, fim: '12:00', dia_semana: 3 });
+
+test('degrau 1: a escala e a variante pedidas', () => {
+  const blocos = [BV('tdc-presencial', 1, '11:10'), BV('tdc-presencial', 2, '06:45')];
+  assert.deepEqual(escolherBlocos(blocos, 'tdc-presencial', 2).map(b => b.inicio), ['06:45']);
+});
+
+test('degrau 2: sem bloco na variante, cai na variante 1 da MESMA escala', () => {
+  // O horario que nao muda entre as variantes se escreve uma vez so.
+  const blocos = [BV('tdc-presencial', 1, '08:00')];
+  assert.deepEqual(escolherBlocos(blocos, 'tdc-presencial', 2).map(b => b.inicio), ['08:00']);
+});
+
+test('degrau 3: sem bloco na escala, cai no normal variante 1', () => {
+  const blocos = [BV('normal', 1, '07:00')];
+  assert.deepEqual(escolherBlocos(blocos, 'tdc-virtual', 2).map(b => b.inicio), ['07:00']);
+});
+
+test('o degrau 3 ignora variante alta do normal - so a 1 e fallback', () => {
+  const blocos = [BV('normal', 2, '09:45')];
+  assert.deepEqual(escolherBlocos(blocos, 'tdc-virtual', 2), []);
+});
+
+test('variante do normal nao cai em outra coisa', () => {
+  const blocos = [BV('normal', 1, '07:00')];
+  assert.deepEqual(escolherBlocos(blocos, 'normal', 2).map(b => b.inicio), ['07:00']);
+  assert.deepEqual(escolherBlocos([BV('tdc-presencial', 1, '08:00')], 'normal', 2), []);
+});
+
+test('bloco sem a coluna variante conta como variante 1 - sem a migration 030', () => {
+  const blocos = [{ escala: 'normal', inicio: '07:00', fim: '12:00', dia_semana: 3 }];
+  assert.deepEqual(escolherBlocos(blocos, 'normal', 1).map(b => b.inicio), ['07:00']);
+  assert.deepEqual(escolherBlocos(blocos, 'tdc-presencial', 1).map(b => b.inicio), ['07:00']);
+});
+
+test('jornadaEm respeita a variante', () => {
+  // 2026-09-02 e uma quarta-feira.
+  const blocos = [BV('tdc-presencial', 1, '11:10'), BV('tdc-presencial', 2, '06:45')];
+  assert.deepEqual(
+    jornadaEm(blocos, { escala: 'tdc-presencial', dataISO: '2026-09-02', variante: 2 }).map(b => b.inicio),
+    ['06:45']);
 });
 
 // ── diaDaSemana ──
@@ -180,6 +224,13 @@ test('naoLetivos aceita array, nao so Set', () => {
 
 test('sem opcoes nenhuma (nem naoLetivos), nao lanca e usa o padrao', () => {
   assert.equal(gerarPropostaTDC(2026).length, 24);
+});
+
+// ── varDe ──
+test('varDe: sem a coluna, a variante e 1', () => {
+  assert.equal(varDe({}), 1);
+  assert.equal(varDe({ variante: null }), 1);
+  assert.equal(varDe({ variante: 3 }), 3);
 });
 
 // ── escalasParaJornada ──
