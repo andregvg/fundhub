@@ -146,9 +146,19 @@ async function carregar() {
   const mostrarCobertura = local?.tipo === 'escola';
   const janela = janelaDaUnidade(unidades.find(u => u.id === unidadeId));
 
-  const seletorEscala = ctxAtual.escalasEmUso?.length > 1 ? `
+  // Escalas com dia da semana fixo (TDC) viram sub-linha da grade, não
+  // chip: um chip que troca a grade inteira e uma sub-linha que mostra
+  // o mesmo dado ao mesmo tempo seriam duas respostas para a pergunta.
+  const diasFixos = new Map((ctxAtual.catalogoEscalas || [])
+    .filter(e => e.dia_semana != null).map(e => [e.chave, e.dia_semana]));
+  const chipsEscala = (ctxAtual.escalasEmUso || []).filter(e => !diasFixos.has(e));
+  const subLinhas = [...diasFixos]
+    .filter(([chave]) => (ctxAtual.escalasEmUso || []).includes(chave))
+    .map(([chave, dia]) => ({ dia, escala: chave, rotulo: rotulaEscala(chave, ctxAtual.catalogoEscalas) }));
+
+  const seletorEscala = chipsEscala.length > 1 ? `
     <div class="filters hg-escalas">
-      ${ctxAtual.escalasEmUso.map(e => `<button type="button" class="chip ${e === escalaVista ? 'on' : ''}"
+      ${chipsEscala.map(e => `<button type="button" class="chip ${e === escalaVista ? 'on' : ''}"
         data-escala="${esc(e)}">${esc(rotulaEscala(e, ctxAtual.catalogoEscalas))}</button>`).join('')}
     </div>` : '';
 
@@ -156,7 +166,8 @@ async function carregar() {
     + (mostrarCobertura ? `<p class="form-hint">Cobertura da escola: ${esc(paraHora(janela.ini).slice(0, 5))} às ${esc(paraHora(janela.fim).slice(0, 5))}.</p>` : '')
     + resetHtml()
     + legendaHtml(linhas, { podeEditar: ctxAtual.podeEditar })
-    + gradeHtml(DIAS, { linhas, blocosDe, mostrarCobertura, janela })
+    + gradeHtml(DIAS, { linhas, blocosDe, mostrarCobertura, janela, subLinhas, blocosDeEscala })
+    + (subLinhas.length ? `<p class="form-hint">Quem não tem horário próprio de TDC cumpre a jornada normal.</p>` : '')
     + naoExibidosHtml(fora);
   // `corpo.innerHTML` acabou de ser reconstruído - sem isto, quem
   // estava selecionado (ex.: editou a jornada pelo lápis, que seleciona
@@ -167,6 +178,11 @@ async function carregar() {
 
 const blocosDe = (servidorId, dia) =>
   escolherBlocos(blocos.filter(b => b.servidor_id === servidorId && b.dia_semana === dia), escalaVista);
+
+// Blocos EXATAMENTE daquela escala (sem o fallback para 'normal') - a
+// sub-linha só mostra quem tem horário próprio de TDC (D6.3).
+const blocosDeEscala = (servidorId, dia, escala) =>
+  blocos.filter(b => b.servidor_id === servidorId && b.dia_semana === dia && (b.escala || 'normal') === escala);
 
 // "Voltar à ordem padrão" só faz sentido quando há o que voltar: sem
 // linha em `horario_exibicao`, a grade já está no padrão alfabético.

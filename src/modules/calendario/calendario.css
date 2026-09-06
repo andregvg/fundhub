@@ -153,3 +153,10 @@
   text-transform: uppercase; letter-spacing: .04em;
 }
 .et-campo input { min-height: var(--campo); line-height: 1.25; text-transform: none; font-weight: 400; letter-spacing: 0; }
+
+/* D9: qual escala (TDC) vale no dia, na grade mensal. */
+.cal-escala {
+  font-size: 9.5px; line-height: 1.2; margin-top: 1px;
+  color: var(--accent); font-weight: 700;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}

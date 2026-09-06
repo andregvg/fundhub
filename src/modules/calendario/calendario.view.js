@@ -4,8 +4,9 @@
 // afastamento) que o SATE e os Afastamentos consultam.
 // Admin edita cada dia; os demais visualizam.
 // ============================================================
-import { getCalendarioMes, upsertDiaCalendario, upsertPeriodo, upsertDias, TIPOS_DIA } from './calendario.model.js';
+import { getCalendarioMes, upsertDiaCalendario, upsertPeriodo, upsertDias, TIPOS_DIA, getEscalasRede } from './calendario.model.js';
 import { renderEscalas } from './views/escalas.js';
+import { getEscalas, rotulaEscala } from '../horarios/escalas.model.js';
 import { esc, falha } from '../../shared/dom.js';
 import { MESES, DOW, hojeISO, fmtData } from '../../shared/format.js';
 import { loading, erroBox, reportarErro } from '../../shared/ui/feedback.js';
@@ -16,6 +17,7 @@ import { ico } from '../../shared/ui/icones.js';
 const agora = new Date();
 let ano = agora.getFullYear(), mes = agora.getMonth() + 1;   // mes 1-12
 let perfil = null, dias = {};
+let escalasDoMes = {}, catalogoEscalas = [];   // D9: qual escala vale em cada dia
 let aba = 'dias';   // persiste entre reentradas na rota, como em sate/
 
 export async function render(app, ctx = {}) {
@@ -106,8 +108,22 @@ async function carregar() {
   const grid = document.getElementById('cal-grid');
   if (!titulo || !grid) return;
   titulo.textContent = `${MESES[mes - 1]} de ${ano}`;
+  const de = `${ano}-${String(mes).padStart(2, '0')}-01`;
+  const ate = `${ano}-${String(mes).padStart(2, '0')}-${String(new Date(ano, mes, 0).getDate()).padStart(2, '0')}`;
   let lista = [];
-  try { lista = await getCalendarioMes(ano, mes); }
+  try {
+    // Escala do mês (D9): degrada em silêncio - sem a migration a grade
+    // fica como hoje.
+    const [cal, escRows, cat] = await Promise.all([
+      getCalendarioMes(ano, mes),
+      getEscalasRede(de, ate).catch(() => []),
+      getEscalas().catch(() => []),
+    ]);
+    lista = cal;
+    catalogoEscalas = cat;
+    escalasDoMes = {};
+    for (const r of escRows) if (r.escala && r.escala !== 'normal') escalasDoMes[r.data] = r.escala;
+  }
   catch (err) { if (aba === 'dias' && document.getElementById('cal-grid')) grid.innerHTML = erroBox(err); return; }
   // A aba pode ter trocado (ou a rota mudado) enquanto o await estava
   // pendente - #cal-grid pode nem existir mais nesse ponto.
@@ -137,6 +153,7 @@ function pintar() {
     cells += `<div class="${cls.join(' ')}" data-iso="${iso}" tabindex="0" role="button">
       <div class="cal-num">${dia}</div>
       ${d?.evento ? `<div class="cal-ev">${esc(d.evento)}</div>` : ''}
+      ${escalasDoMes[iso] ? `<div class="cal-escala">${esc(rotulaEscala(escalasDoMes[iso], catalogoEscalas))}</div>` : ''}
       <div class="cal-marks">
         ${d?.bloqueia_extraclasse ? `<span title="Bloqueia extraclasse">${ico('erro', { tam: 12 })}</span>` : ''}
         ${d?.bloqueia_afastamento ? `<span title="Não conceder afastamentos">${ico('afastamento', { tam: 12 })}</span>` : ''}

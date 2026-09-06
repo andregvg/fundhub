@@ -274,6 +274,11 @@
   .hj-obs { grid-column: auto; }
 }
 
+/* Sub-linha de TDC: uma faixa fina abaixo do dia, só nos dias que têm
+   escala com dia da semana fixo (Bloco G, D6). */
+.hg-sublinha { grid-column: 2; margin-top: 3px; padding-top: 4px; border-top: 1px dashed var(--border); }
+.hg-sub-rotulo { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 2px; }
+
 /* Aviso de blocos órfãos numa escala que passou a ter dia fixo. */
 .hj-orfaos { margin-bottom: 14px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-2); }
 .hj-orfaos .hj-prob { margin-top: 0; }

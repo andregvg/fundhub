@@ -41,10 +41,11 @@ como se comporta.
 1. No menu lateral, em "Minha conta", abra **Configurações**.
 2. Cada módulo aparece como um bloco, com as opções agrupadas por assunto.
 
-Algumas configurações são listas que você edita ali mesmo - por exemplo, em
-Escolas, os locais de trabalho internos da SME (gerências e subsecretarias),
-ou, no Dashboard, a ordem e a visibilidade dos painéis. Você renomeia ou
-reordena na própria linha.
+Algumas configurações são listas ou tabelas que você edita ali mesmo - por
+exemplo, em Escolas, os locais de trabalho internos da SME (gerências e
+subsecretarias); no Dashboard, a ordem e a visibilidade dos painéis; em
+Horários, quais cargos são equipe gestora, a janela de cobertura por tipo de
+escola e o dia da semana de cada escala de TDC.
 
 ## Regras que o sistema aplica
 
@@ -69,4 +70,4 @@ novo) ou é uma configuração da rede que você não tem permissão para mudar.
 **Minhas preferências somem quando eu saio?**
 Não. Elas são do seu e-mail, não do navegador.
 
-> Atualizado na versão 0.17.0.
+> Atualizado na versão 0.20.0.

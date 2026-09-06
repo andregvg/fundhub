@@ -60,10 +60,39 @@ export function legendaHtml(linhas, { podeEditar }) {
   </div>`;
 }
 
-export function gradeHtml(dias, { linhas, blocosDe, mostrarCobertura, janela = JANELA_FABRICA }) {
+export function gradeHtml(dias, { linhas, blocosDe, mostrarCobertura, janela = JANELA_FABRICA,
+    subLinhas = [], blocosDeEscala = null }) {
   const serieDe = new Map(linhas.map(l => [l.servidor.id, l.serie]));
   const nomeDe = new Map(linhas.map(l => [l.servidor.id, l.servidor.nome]));
   const contam = new Set(linhas.filter(l => l.contaCobertura).map(l => l.servidor.id));
+
+  // Uma faixa fina abaixo do dia, só nos dias que têm escala com dia
+  // fixo (TDC). Blocos e validação DAQUELA escala - nunca somados aos
+  // normais (D6.1); a cobertura (D6.2) segue do dia regular, acima.
+  const subLinhaHtml = (dia) => subLinhas.filter(s => s.dia === dia).map(s => {
+    const doDia = linhas.flatMap(l => (blocosDeEscala?.(l.servidor.id, dia, s.escala)) || []);
+    if (!doDia.length) return '';
+    const faixas = contarFaixas(doDia);
+    const barras = empilhar(doDia).map(({ bloco, faixa }) => {
+      const p = posicaoNaBarra(bloco, janela);
+      const serie = (serieDe.get(bloco.servidor_id) ?? 0) + 1;
+      return `<span class="hg-bloco serie-${serie}" style="left:${p.esquerda}%;width:${p.largura}%;top:${faixa * 26}px"
+        title="${esc(nomeDe.get(bloco.servidor_id) || '')} · ${esc(hhmm(bloco.inicio))}–${esc(hhmm(bloco.fim))}">
+        <span>${esc(hhmm(bloco.inicio))}–${esc(hhmm(bloco.fim))}</span></span>`;
+    }).join('');
+    const marcasFalha = linhas.flatMap(l => {
+      const meus = (blocosDeEscala?.(l.servidor.id, dia, s.escala)) || [];
+      return validarDia(meus).map(pb => {
+        const pos = posDoIntervalo(pb.ini, pb.fim, janela);
+        return `<span class="hg-falha n-${pb.nivel}" style="left:${pos.esquerda}%;width:${pos.largura}%"
+          title="${esc(l.servidor.nome)}: ${esc(pb.texto)}"></span>`;
+      });
+    }).join('');
+    return `<div class="hg-sublinha">
+      <div class="hg-sub-rotulo">${esc(s.rotulo)}</div>
+      <div class="hg-track" style="height:${faixas * 26 + 4}px">${eixo(janela)}${barras}${marcasFalha}</div>
+    </div>`;
+  }).join('');
 
   return `<div class="hg-grade">${dias.map(d => {
     const doDia = linhas.flatMap(l => blocosDe(l.servidor.id, d.n));
@@ -110,6 +139,7 @@ export function gradeHtml(dias, { linhas, blocosDe, mostrarCobertura, janela = J
         ${eixo(janela)}${barras}${marcas}
       </div>
       ${tira}
+      ${subLinhaHtml(d.n)}
       <div class="hg-info">${
         doDia.length ? `<b>${duracao(totalDoDia(doDia))}</b>` : vazio('sem jornada')
       }</div>

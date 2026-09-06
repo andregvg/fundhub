@@ -9,6 +9,26 @@ versionamento **MINOR** = módulo novo ou mudança de modelo de dados, **PATCH**
 
 ---
 
+## [0.20.0] - 2026-09-06
+
+### Adicionado
+- A jornada dos dias de **TDC** aparece agora na mesma grade da semana, como
+  uma faixa abaixo do dia, em vez de trocar a grade inteira. E o TDC passou a
+  ter dia da semana: a escala aparece na jornada mesmo antes de o calendário
+  do ano ser lançado.
+- No Calendário Escolar, a grade do mês mostra qual escala vale em cada dia.
+- Na jornada, um botão "copiar para todos os dias" repete o horário de um dia
+  nos outros.
+
+### Alterado
+- A janela de cobertura de cada escola passou a depender do tipo (CEI, EMEF,
+  EMEF com EJA…), configurável pela Gerência. O padrão continua 07:00–18:20.
+- "Equipe gestora" saiu da barra do módulo Horários e virou uma configuração.
+- Leitura da grade: o eixo mostra "07h" e os dias aparecem em maiúsculas.
+- No Calendário, remover uma data de TDC é um botão de excluir, não uma opção
+  escondida num menu; a modal "Tipos de escala" ganhou o padrão de campo do
+  hub e permite excluir uma escala não utilizada.
+
 ## [0.19.0] - 2026-09-06
 
 ### Adicionado
