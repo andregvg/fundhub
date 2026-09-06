@@ -9,6 +9,14 @@ versionamento **MINOR** = módulo novo ou mudança de modelo de dados, **PATCH**
 
 ---
 
+## [0.18.0] - 2026-09-06
+
+### Adicionado
+- No **Dashboard**, agora você reordena os painéis arrastando pelo título (ou
+  pelas setas nas configurações) e oculta os que não usa. A ordem e o que fica
+  escondido são só seus e seguem o seu login. Painel de um módulo que você não
+  acessa deixou de aparecer.
+
 ## [0.17.0] - 2026-09-06
 
 ### Alterado
