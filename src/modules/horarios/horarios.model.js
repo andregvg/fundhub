@@ -44,6 +44,18 @@ export const duracao = (min) => {
   return m ? `${h}h${String(m).padStart(2, '0')}` : `${h}h`;
 };
 
+// ── Degradacao sem a migration 030 ──
+// Sem a migration 030 as colunas `variante`/`conduz` nao existem e o
+// PostgREST devolve 42703 na escrita (a LEITURA nao quebra: o select e
+// `*`, que traz o que existir). Em vez de derrubar a gaveta, grava sem
+// elas - que e exatamente o comportamento anterior a 030: uma variante
+// so. `.claude/rules/dados.md`, degradacao por migration ausente.
+export const semColunasNovas = ({ variante, conduz, ...resto }) => resto;
+
+// Lembrado entre chamadas: descobrir a ausencia uma vez por sessao
+// evita pagar um round-trip perdido a cada bloco de um lote.
+let _temColunasNovas = true;
+
 // ── Acesso a dados ───────────────────────────────────────────
 const SEL = '*, servidor:servidor(id, nome, apelido)';
 
@@ -72,14 +84,26 @@ export async function getBlocosDoServidor(servidorId) {
 export async function criarBloco(payload) {
   if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
   const row = { ...payload, criado_por: await emailAtual() };
-  const { data, error } = await sb().from('horario_bloco').insert(row).select(SEL).single();
+  const inserir = (r) => sb().from('horario_bloco').insert(r).select(SEL).single();
+
+  let { data, error } = await inserir(_temColunasNovas ? row : semColunasNovas(row));
+  if (error?.code === '42703' && _temColunasNovas) {
+    _temColunasNovas = false;
+    ({ data, error } = await inserir(semColunasNovas(row)));
+  }
   if (error) throw error;
   return data;
 }
 
 export async function atualizarBloco(id, payload) {
   if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
-  const { error } = await sb().from('horario_bloco').update(payload).eq('id', id);
+  const gravar = (r) => sb().from('horario_bloco').update(r).eq('id', id);
+
+  let { error } = await gravar(_temColunasNovas ? payload : semColunasNovas(payload));
+  if (error?.code === '42703' && _temColunasNovas) {
+    _temColunasNovas = false;
+    ({ error } = await gravar(semColunasNovas(payload)));
+  }
   if (error) throw error;
 }
 
