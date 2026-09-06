@@ -124,20 +124,6 @@
   font-size: 14px;
 }
 
-/* #et-novo é um <form class="esc-row"> sem um .esc-form por fora (só
-   esta tela faz isso) - sem estilo próprio os dois <input> saem no
-   padrão do navegador (branco chapado, até no tema escuro), mesmo
-   achado da rodada de correção do fluxo de digitação, 05/09/2026. */
-#et-novo input {
-  min-height: var(--campo);
-  padding: 7px 10px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-btn);
-  background: var(--surface-2);
-  color: var(--form-field);
-  font-size: 16px;
-  line-height: 1.25;
-}
 /* Base = celular (mobile-first, .claude/rules/ui.md): nao criar
    @media (max-width:) - nenhuma existe em todo o src/. */
 @media (min-width: 560px) {
@@ -145,14 +131,16 @@
   .cal-prop-data { font-size: 13.5px; }
 }
 
-/* Modal "Tipos de escala": cada linha = campo com rótulo + botão de excluir. */
+/* Modal "Tipos de escala": cada linha = campo com rótulo + botão de excluir.
+   O corpo da gaveta é um `.esc-form` (tipos-escala.js), então rótulo e
+   campo já vêm no padrão do hub - aqui fica só o arranjo da linha. */
 .et-linha { display: flex; gap: 8px; align-items: end; margin-bottom: 8px; }
-.et-campo {
-  flex: 1 1 auto; display: flex; flex-direction: column; gap: 4px;
-  color: var(--form-label); font-size: 11.5px; font-weight: 700;
-  text-transform: uppercase; letter-spacing: .04em;
-}
-.et-campo input { min-height: var(--campo); line-height: 1.25; text-transform: none; font-weight: 400; letter-spacing: 0; }
+.et-campo { flex: 1 1 auto; }
+/* R17: botão que divide a linha com um campo tem a ALTURA do campo. A
+   regra estrutural de components.css não alcança esta linha porque aqui
+   o <input> está dentro do <label>, e não é filho direto da linha -
+   então a linha declara. */
+.et-linha > .mini-btn { min-height: var(--campo); }
 
 /* D9: qual escala (TDC) vale no dia, na grade mensal. */
 .cal-escala {

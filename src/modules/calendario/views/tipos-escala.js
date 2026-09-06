@@ -25,18 +25,20 @@ export async function abrirTiposEscala({ onMudou = () => {} } = {}) {
   abrirDrawer(`
     ${drawerHead('Tipos de escala', 'Rótulos usados no calendário e na jornada')}
     <div class="drawer-body">
-      <p class="form-hint">O nome muda aqui; o que já foi gravado (as datas do
-        calendário, os blocos de jornada) continua apontando para a mesma escala -
-        só o rótulo na tela muda.</p>
-      <div id="et-lista"></div>
-      <form id="et-novo" class="esc-row">
-        <input id="et-chave" placeholder="chave (ex.: tdc-c)" required
-               pattern="[a-z0-9]+(-[a-z0-9]+)*" title="letras minúsculas, números e hífen"
-               aria-label="Chave do novo tipo de escala" />
-        <input id="et-rotulo" placeholder="rótulo (ex.: TDC C)" required
-               aria-label="Rótulo do novo tipo de escala" />
-        <button type="submit" class="mini-btn" aria-label="Criar tipo de escala">${ico('adicionar', { tam: 14 })}</button>
-      </form>
+      <div class="esc-form">
+        <p class="form-hint">O nome muda aqui; o que já foi gravado (as datas do
+          calendário, os blocos de jornada) continua apontando para a mesma escala -
+          só o rótulo na tela muda.</p>
+        <div id="et-lista"></div>
+        <form id="et-novo" class="esc-row">
+          <input id="et-chave" placeholder="chave (ex.: tdc-c)" required
+                 pattern="[a-z0-9]+(-[a-z0-9]+)*" title="letras minúsculas, números e hífen"
+                 aria-label="Chave do novo tipo de escala" />
+          <input id="et-rotulo" placeholder="rótulo (ex.: TDC C)" required
+                 aria-label="Rótulo do novo tipo de escala" />
+          <button type="submit" class="mini-btn" aria-label="Criar tipo de escala">${ico('adicionar', { tam: 14 })}</button>
+        </form>
+      </div>
     </div>`);
 
   catalogo = await getEscalas().catch(() => []);
@@ -49,7 +51,7 @@ function pintar() {
   if (!lista) return;
   lista.innerHTML = catalogo.map(e => `
     <div class="et-linha" data-chave="${esc(e.chave)}">
-      <label class="et-campo">${esc(e.chave)}
+      <label class="lbl et-campo">${esc(e.chave)}
         <input class="et-rotulo" value="${esc(e.rotulo)}" aria-label="Rótulo de ${esc(e.chave)}" />
       </label>
       ${e.chave !== 'normal'

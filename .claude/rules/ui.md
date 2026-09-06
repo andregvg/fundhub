@@ -33,7 +33,7 @@ Sempre conferir `src/styles/components.css` antes de escrever CSS novo. O que j�
 - **Listas:** `.solic` (+ `.solic-main`, `.solic-acoes`) · `.dash-item` (+ `.di-top`, `.di-meta`)
 - **Cards e grades:** `.card` · `.cards` · `.tile` · `.tiles` · `.panel` · `.dash-grid` · `.md-grid`
 - **Stats:** `.stat-row` · `.stat-tile` · `.stat-ico` · `.stat-num` · `.stat-label`
-- **Formulário:** `.esc-form` · `.esc-row` · `.form-grid` · `.form-grupo` · `.form-foot` · `.form-hint` · `.field`
+- **Formulário:** `.esc-form` · `.esc-row` · `.form-grid` · `.form-grupo` · `.form-foot` · `.form-hint` · `.field` · `.lbl`
 - **Botões:** `.btn-primary` · `.btn-secundario` · `.btn-perigo` (ação destrutiva, só em diálogo) · `.mini-btn` (com `.ok` / `.no`)
 - **Marcadores:** `.chip` · `.tag` · `.badge` · `.pill`
 - **Gaveta:** `.drawer` e família - usar sempre via `shared/ui/drawer.js`, nunca à mão
@@ -45,6 +45,21 @@ CSS de módulo (`<modulo>.css`) só **acrescenta** ao vocabulário comum; nunca 
 ele muda no hub inteiro, que é o objetivo.
 
 ## Formulário: três papéis, três tratamentos
+
+**Superfície em forma de formulário se DECLARA formulário.** `.esc-form`,
+`.form-grid` e `.filtro-campo` são o que concede altura de campo, reset de
+`date`/`time`, anel de foco e tipografia de rótulo. Quem desenha campo fora
+dos três acaba remendando `min-height` à mão, e desigualmente - foi o que
+aconteceu com os painéis de configuração e com a gaveta "Tipos de escala"
+até 06/09/2026. O painel de configuração já nasce dentro de `.esc-form`
+(`configuracoes/painel.js`): **um `painel:` de módulo nunca declara
+`--campo`.**
+
+**Rótulo de campo é a classe `.lbl`**, não um bloco de cinco declarações
+copiado. Ela vale sozinha (`<div class="lbl">`) e ao lado de uma classe de
+posicionamento do módulo (`class="lbl cfg-rot"`). Os `<label>` de
+`.form-grid`, `.esc-form` e `.form-grupo .campos` já recebem o tratamento
+pela estrutura e não precisam da classe.
 
 Todo formulário do hub lê em três níveis, e cada um tem um token:
 

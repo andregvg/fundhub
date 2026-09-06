@@ -537,9 +537,18 @@ a.tile:hover {
 /* Rótulo de campo: 11.5px / 700 / ALTA / .04em / --form-label. Este é o
    tratamento único do hub - antes cada classe tinha o seu (12px/.03em,
    12px/.04em, 11.5px/.04em, 11px/.04em), sem que nenhuma diferença tivesse
-   sido decidida. */
+   sido decidida.
+   Único, mas até 06/09/2026 estava COPIADO em seis blocos - aqui e nos
+   módulos -, e quem escrevia um rótulo novo copiava o mais perto, que é
+   como as variações nascem de novo. Agora é UMA regra, e `.lbl` é o NOME
+   do papel: rótulo em lugar novo ganha a CLASSE, nunca o bloco copiado.
+   O empilhamento vem junto de propósito. Num `.lbl` de bloco, que tem um
+   filho só, `flex-direction: column` não muda nada; num <label> que
+   embrulha o campo, é exatamente o que se quer. */
+.lbl,
 .form-grid label,
 .esc-form > label,
+.form-grupo .campos label:not(.inline):not(.search):not(.switch),
 .fr-of {
   display: flex;
   flex-direction: column;
@@ -923,19 +932,10 @@ input[type="checkbox"] { width: 18px; height: 18px; }
    .search da busca-seleção, que é um widget com o próprio
    <label class="search"> por dentro (lupa + input na MESMA linha) -
    herdar o flex-direction: column daqui jogava a lupa para cima do campo.
-   A tipografia é a mesma de .form-grid label - até 02/09/2026 este
-   seletor declarava só layout, e o rótulo caía no body: saía com o mesmo
-   tom, peso e tamanho do conteúdo do campo logo abaixo dele. */
+   Tipografia e empilhamento vêm da regra de rótulo lá em cima
+   (§ Formulários); aqui fica só o que é DESTE contexto. */
 .form-grupo .campos label:not(.inline):not(.search):not(.switch) {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
   min-width: 0;
-  color: var(--form-label);
-  font-size: 11.5px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: .04em;
 }
 .form-grupo .campos label > input,
 .form-grupo .campos label > select,
@@ -982,7 +982,7 @@ input[type="checkbox"] { width: 18px; height: 18px; }
 }
 
 .field { margin-bottom: 14px; }
-.field .lbl { margin-bottom: 3px; color: var(--form-label); font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+.field .lbl { margin-bottom: 3px; }
 .field .val { color: var(--form-field); font-size: 14.5px; }
 .field .val a { word-break: break-word; }
 
@@ -1007,7 +1007,7 @@ hr.sep { margin: 20px 0; border: 0; border-top: 1px solid var(--border); }
 
 /* ── Editor de telefones (shared/ui/phones.js) ────────────── */
 .phones { margin: 4px 0 12px; }
-.phones > .lbl { margin-bottom: 6px; color: var(--form-label); font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+.phones > .lbl { margin-bottom: 6px; }
 .phone-rows { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
 .phone-row { display: grid; grid-template-columns: 1fr; gap: 6px; padding: 9px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-2); }
 .phone-row select, .phone-row input[type="tel"], .phone-row input[type="text"] { width: 100%; }

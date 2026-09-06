@@ -72,9 +72,9 @@ async function pintarDiasDeEscala(box) {
     return;
   }
 
-  box.innerHTML = `<div class="cfg-dias esc-form">${escalas.map(e => `
-    <div class="cfg-dia-linha campos" data-chave="${esc(e.chave)}">
-      <label>${esc(e.rotulo)}
+  box.innerHTML = `<div class="cfg-dias">${escalas.map(e => `
+    <div class="cfg-dia-linha" data-chave="${esc(e.chave)}">
+      <label class="lbl">${esc(e.rotulo)}
         <select class="cfg-dia-sel">
           <option value="">sem dia fixo</option>
           ${DIAS.map(d => `<option value="${d.n}" ${e.dia_semana === d.n ? 'selected' : ''}>${esc(d.nome)}</option>`).join('')}
@@ -102,12 +102,12 @@ function pintarCoberturaPorTipo(box) {
   const padraoFim = paraHora(JANELA_FABRICA.fim).slice(0, 5);
 
   box.innerHTML = `
-    <div class="cfg-cobertura esc-form">
+    <div class="cfg-cobertura">
       ${TIPOS_COBERTURA.map(t => `
-        <div class="cfg-cob-linha campos" data-tipo="${esc(t.id)}">
-          <span class="cfg-cob-tipo">${esc(t.rotulo)}</span>
-          <label>Início <input type="time" class="cfg-cob-ini" value="${esc(mapa[t.id]?.inicio || padraoIni)}" /></label>
-          <label>Fim <input type="time" class="cfg-cob-fim" value="${esc(mapa[t.id]?.fim || padraoFim)}" /></label>
+        <div class="cfg-cob-linha" data-tipo="${esc(t.id)}">
+          <span class="lbl cfg-cob-tipo">${esc(t.rotulo)}</span>
+          <label class="lbl">Início <input type="time" class="cfg-cob-ini" value="${esc(mapa[t.id]?.inicio || padraoIni)}" /></label>
+          <label class="lbl">Fim <input type="time" class="cfg-cob-fim" value="${esc(mapa[t.id]?.fim || padraoFim)}" /></label>
         </div>`).join('')}
     </div>`;
 

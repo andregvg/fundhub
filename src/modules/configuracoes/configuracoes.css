@@ -1,30 +1,36 @@
 /* ============================================================
    FundHub - configuracoes.css
    Painel de configuração (gaveta da engrenagem) e tela agregadora.
-   Reusa .switch, .form-hint e os tokens de formulário do hub.
+
+   O painel se declara `.esc-form` > `.form-grupo` (painel.js), então
+   altura de campo, anel de foco, tipografia de legenda e de rótulo vêm
+   prontos de components.css. Este arquivo só ACRESCENTA o que é do
+   painel: o empilhamento do item, a dica e os painéis de módulo.
    ============================================================ */
 
-.cfg-grupo { border: 0; margin: 0 0 20px; padding: 0; }
-.cfg-grupo + .cfg-grupo { border-top: 1px solid var(--border); padding-top: 16px; }
-.cfg-grupo > legend {
-  color: var(--form-legend); font-size: 11.5px; font-weight: 700;
-  text-transform: uppercase; letter-spacing: .06em; padding-bottom: 6px;
-  border-bottom: 1px solid var(--border); width: 100%; margin-bottom: 12px;
-}
+/* O espaçamento entre grupos é do `gap` do .esc-form - a margem própria
+   do .form-grupo somaria por cima e afastaria demais. */
+.cfg-form > .form-grupo { margin-bottom: 0; }
 
+/* Um item = rótulo em cima, controle embaixo, dica e aviso na sequência.
+   Não é `.campos` porque ali o campo mora DENTRO do <label>, e aqui o
+   rótulo e o controle são irmãos (o switch tem <label> próprio). */
 .cfg-item { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
-.cfg-rot {
-  color: var(--form-label); font-size: 11.5px; font-weight: 700;
-  text-transform: uppercase; letter-spacing: .04em;
-}
+/* O `.switch` nasce com `align-self: end`. Em coluna o eixo cruzado é o
+   HORIZONTAL, então o toggle era jogado para a borda direita, longe do
+   rótulo que ele obedece. Aqui ele é uma linha própria: volta ao começo e
+   larga a altura de campo - a mesma correção que `.form-grupo .campos
+   label.switch` faz no formulário. */
+.cfg-item > .switch { align-self: start; min-height: var(--campo); }
+/* .cfg-rot recebe a tipografia de rótulo em components.css § Formulários. */
 .cfg-dica {
   display: block; text-transform: none; font-weight: 400;
   letter-spacing: 0; margin-top: 2px;
 }
 .cfg-rede { color: var(--brand); font-size: 10px; margin-left: 4px; }
-.cfg-item input[type="number"] {
-  min-height: var(--campo); line-height: 1.25; max-width: 120px;
-}
+/* Altura e entrelinha vêm do .esc-form; aqui só o teto de largura - um
+   campo de "cards por linha" não precisa atravessar a gaveta. */
+.cfg-item input[type="number"] { max-width: 120px; }
 
 /* Painel de lista editável (ex.: locais de trabalho internos, em Escolas). */
 .cfg-locais { display: flex; flex-direction: column; gap: 8px; }
@@ -42,7 +48,8 @@
 .cfg-mod-head { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
 .cfg-mod-head h2 { font-size: 15px; margin: 0; }
 
-/* Painéis de Horários: cobertura por tipo e dia da semana de escala. */
+/* Painéis de Horários: cobertura por tipo e dia da semana de escala.
+   O rótulo do tipo ocupa a linha inteira e os dois campos vêm embaixo,
+   alinhados pela base - a altura dos campos de hora é do hub (R17). */
 .cfg-cob-linha, .cfg-dia-linha { display: flex; flex-wrap: wrap; align-items: end; gap: 8px 12px; margin-bottom: 10px; }
-.cfg-cob-tipo { flex: 0 0 100%; font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--form-label); }
-.cfg-cob-linha input[type="time"] { min-height: var(--campo); }
+.cfg-cob-tipo { flex: 0 0 100%; }

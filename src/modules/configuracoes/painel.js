@@ -48,11 +48,21 @@ export async function pintarConfigDoModulo(box, mod, ctx = {}) {
 
   if (!porGrupo.length) { box.innerHTML = '<p class="form-hint">Nada a configurar aqui.</p>'; return; }
 
-  box.innerHTML = porGrupo.map(g => `
-    <fieldset class="cfg-grupo">
+  // `.esc-form` + `.form-grupo`: o painel de configuração É um formulário,
+  // e passa a se declarar como tal. É o container que concede altura de
+  // campo, reset do date/time do WebKit, anel de foco e tipografia de
+  // rótulo (components.css § Formulários, .claude/rules/ui.md R17). Antes
+  // cada painel remediava por conta - e desigualmente: os de Horários se
+  // embrulhavam em `.esc-form` sozinhos e ficavam certos, o de Escolas não
+  // e saía com input de altura nativa ao lado de um botão de 36px, e o
+  // `<select>` do tipo 'opcao' não recebia altura de lugar nenhum. Marcado
+  // aqui, todo painel - os de hoje e os que vierem - nasce no padrão sem
+  // precisar saber disso.
+  box.innerHTML = `<div class="esc-form cfg-form">${porGrupo.map(g => `
+    <fieldset class="form-grupo">
       <legend>${esc(g.rotulo)}</legend>
       ${g.itens.map(i => itemHtml(i, mod.id, podeRede)).join('')}
-    </fieldset>`).join('');
+    </fieldset>`).join('')}</div>`;
 
   // Painéis (função do módulo) são desenhados depois, no elemento reservado.
   for (const i of itens.filter(x => typeof x.painel === 'function')) {
@@ -69,7 +79,7 @@ export async function pintarConfigDoModulo(box, mod, ctx = {}) {
 function itemHtml(i, modId, podeRede) {
   if (typeof i.painel === 'function') {
     return `<div class="cfg-item cfg-painel">
-      <div class="cfg-rot">${esc(i.rotulo)}${dicaHtml(i)}</div>
+      <div class="lbl cfg-rot">${esc(i.rotulo)}${dicaHtml(i)}</div>
       <div data-painel="${esc(i.chave)}">${loading()}</div>
     </div>`;
   }
@@ -98,7 +108,7 @@ function itemHtml(i, modId, podeRede) {
   }
 
   return `<div class="cfg-item">
-    <label class="cfg-rot" for="${nome}">${esc(i.rotulo)}${
+    <label class="lbl cfg-rot" for="${nome}">${esc(i.rotulo)}${
       rede ? ' <span class="cfg-rede" title="Vale para a rede toda">rede</span>' : ''}${dicaHtml(i)}</label>
     ${controle}
     ${desabilita ? '<span class="form-hint">Só quem tem permissão de escrita neste módulo muda isto.</span>' : ''}
