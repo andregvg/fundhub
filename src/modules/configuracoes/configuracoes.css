@@ -31,6 +31,12 @@
 .cfg-local { align-items: center; }
 .cfg-local .cfg-local-nome { flex: 1 1 auto; min-width: 0; }
 
+/* Painel de ordenação (ex.: painéis do dashboard). */
+.cfg-paineis { display: flex; flex-direction: column; gap: 6px; }
+.cfg-painel-linha { display: flex; align-items: center; gap: 10px; }
+.cfg-painel-nome { flex: 1 1 auto; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; }
+.cfg-painel-setas { display: inline-flex; gap: 4px; flex: 0 0 auto; }
+
 /* Tela agregadora: um bloco por módulo. */
 .cfg-mod { margin-bottom: 28px; }
 .cfg-mod-head { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }

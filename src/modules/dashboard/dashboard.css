@@ -1,7 +1,29 @@
 /* ============================================================
    FundHub - modules/dashboard/dashboard.css
-   Cartão "Nesta data": escala vigente + quem está afastado.
+   Painéis reordenáveis + cartão "Nesta data".
    ============================================================ */
+
+/* Cabeçalho do painel = alça de arrasto. */
+.panel-cab {
+  display: flex; align-items: center; gap: 8px;
+  cursor: grab; user-select: none;
+}
+.panel-cab:active { cursor: grabbing; }
+.panel-tit { display: inline-flex; align-items: center; gap: 8px; flex: 1 1 auto; min-width: 0; }
+.panel-x {
+  flex: 0 0 auto; border: 0; background: none; color: var(--muted); cursor: pointer;
+  display: inline-flex; padding: 2px; border-radius: 6px;
+}
+.panel-x:hover { background: var(--surface-3); color: var(--text); }
+.panel.arrastando { opacity: .5; outline: 2px dashed var(--brand); }
+.gira-180 { display: inline-flex; transform: rotate(180deg); }
+
+@media (pointer: coarse) {
+  /* Arrasto nativo não existe em toque: o caminho é o switch nas
+     configurações. O cabeçalho deixa de anunciar que arrasta. */
+  .panel-cab { cursor: default; }
+}
+
 .hoje-linha { display: flex; align-items: center; gap: 8px; margin: 8px 0; }
 .hoje-data { max-width: 220px; margin-bottom: 8px; }
 .tag.hoje-tdc { color: var(--accent); background: color-mix(in srgb, var(--accent) 15%, transparent); }

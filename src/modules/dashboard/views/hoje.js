@@ -25,13 +25,12 @@ export async function cartaoHoje(box) {
   if (!box) return;
   let data = hojeISO();
 
+  // O título "Nesta data" vem do cabeçalho do painel (dashboard.view.js);
+  // aqui só o campo de data e o corpo.
   box.innerHTML = `
-    <section class="panel hoje">
-      <h2>${ico('horario')} Nesta data</h2>
-      <label class="search compacta hoje-data">${ico('calendario')}
-        <input type="date" id="hoje-dia" value="${esc(data)}" aria-label="Data" /></label>
-      <div id="hoje-corpo">${loading()}</div>
-    </section>`;
+    <label class="search compacta hoje-data">${ico('calendario')}
+      <input type="date" id="hoje-dia" value="${esc(data)}" aria-label="Data" /></label>
+    <div id="hoje-corpo">${loading()}</div>`;
 
   box.querySelector('#hoje-dia').addEventListener('change', (e) => {
     data = e.target.value || hojeISO();
