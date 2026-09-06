@@ -31,6 +31,11 @@ test('tem o traçado de configuração (engrenagem)', () => {
   assert.match(ico('config'), /^<svg /);
 });
 
+test('tem o traçado de ajuda (interrogação em círculo)', () => {
+  assert.ok(TEM_ICONE('ajuda'));
+  assert.match(ico('ajuda'), /^<svg /);
+});
+
 test('aceita classe extra sem perder a classe base', () => {
   const svg = ico('escola', { classe: 'nav-ico' });
   assert.match(svg, /class="ico nav-ico"/);
@@ -58,7 +63,7 @@ test('todos os icones do conjunto produzem svg', () => {
     'email', 'documento', 'arquivo', 'identidade', 'imprimir', 'tema',
     'noturno', 'subir', 'meta', 'parceria', 'obra', 'infantil',
     'acessibilidade', 'destaque', 'atualizar', 'sair', 'chevron', 'info', 'arrastar',
-    'config'];
+    'config', 'ajuda'];
   for (const n of nomes) {
     assert.ok(ico(n).startsWith('<svg '), `icone ausente: ${n}`);
   }

@@ -90,19 +90,29 @@ export async function route({ manterScroll = false } = {}) {
   if (!manterScroll) window.scrollTo(0, 0);
 }
 
-// A engrenagem (e, no Bloco B, o botão de ajuda) da barra de ações.
+// A barra de ações do módulo: ajuda à esquerda, engrenagem à direita -
+// ordem fixa em toda tela. Ajuda NAVEGA (tutorial é texto para ler com
+// calma); engrenagem abre gaveta (configurar é interrupção curta).
 // `import()` dinâmico do painel: o kernel dispara, o módulo responde -
-// mesma inversão de mod.load(). Módulo sem `config` não ganha botão, e
-// sem botão a barra fica vazia (invisível, via .mod-acoes:empty).
+// mesma inversão de mod.load(). Sem ajuda e sem config, a barra fica
+// vazia (invisível, via .mod-acoes:empty).
 async function montarAcoesModulo(mod, nv) {
   const barra = document.getElementById('mod-acoes');
-  if (!barra || nv === OCULTO || typeof mod.config !== 'function') return;
-  barra.insertAdjacentHTML('beforeend',
-    `<button type="button" class="mod-acao" id="mod-cfg" aria-label="Configurações de ${esc(mod.nome)}">${ico('config')}</button>`);
-  document.getElementById('mod-cfg').addEventListener('click', async () => {
-    const { abrirPainelConfig } = await import('../modules/configuracoes/painel.js');
-    abrirPainelConfig(mod);
-  });
+  if (!barra || nv === OCULTO) return;
+
+  if (mod.doc === true) {
+    barra.insertAdjacentHTML('beforeend',
+      `<a class="mod-acao" href="#/ajuda?m=${encodeURIComponent(mod.id)}" aria-label="Ajuda de ${esc(mod.nome)}">${ico('ajuda')}</a>`);
+  }
+
+  if (typeof mod.config === 'function') {
+    barra.insertAdjacentHTML('beforeend',
+      `<button type="button" class="mod-acao" id="mod-cfg" aria-label="Configurações de ${esc(mod.nome)}">${ico('config')}</button>`);
+    document.getElementById('mod-cfg').addEventListener('click', async () => {
+      const { abrirPainelConfig } = await import('../modules/configuracoes/painel.js');
+      abrirPainelConfig(mod);
+    });
+  }
 }
 
 // Reexecuta a rota atual sem tocar no hash - o scroll, a aba e o

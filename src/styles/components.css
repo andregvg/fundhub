@@ -17,7 +17,7 @@
   width: var(--controle); height: var(--controle);
   border: 1px solid var(--border); border-radius: 9px;
   background: var(--surface-2); color: var(--muted); cursor: pointer;
-  box-shadow: var(--shadow-btn);
+  box-shadow: var(--shadow-btn); text-decoration: none;
 }
 .mod-acao:hover { color: var(--text); border-color: var(--border-forte); }
 /* Reserva à direita no título para os botões não cobrirem o texto. */
