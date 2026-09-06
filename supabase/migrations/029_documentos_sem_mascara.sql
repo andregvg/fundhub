@@ -8,9 +8,11 @@
 -- com o locale; o dado, não.
 --
 --   servidor.cpf     11 dígitos, sem pontuação.
---   servidor.rg      dígitos + DV (que em SP pode ser 'X'), caixa alta,
---                    sem pontuação. NÃO há padrão nacional de RG - cada
---                    estado emite o seu -, então nada de checar tamanho.
+--   servidor.rg      caracteres do documento, caixa alta, sem pontuação.
+--                    NÃO há padrão nacional de RG - cada estado emite o
+--                    seu -, então nada de checar tamanho, e a LETRA fica:
+--                    o DV paulista pode ser 'X' e o mineiro traz o prefixo
+--                    da UF ('MG…'). Some só o que separa.
 --   telefone.numero  E.164 (ITU-T): '+5516999999999'. É o que
 --                    libphonenumber, Twilio e WhatsApp usam, e o que o
 --                    URI `tel:` (RFC 3966) quer.
@@ -25,8 +27,8 @@
 update servidor set cpf = regexp_replace(cpf, '[^0-9]', '', 'g')
  where cpf is not null and cpf ~ '[^0-9]';
 
-update servidor set rg = regexp_replace(upper(rg), '[^0-9X]', '', 'g')
- where rg is not null and upper(rg) ~ '[^0-9X]';
+update servidor set rg = regexp_replace(upper(rg), '[^0-9A-Z]', '', 'g')
+ where rg is not null and upper(rg) ~ '[^0-9A-Z]';
 
 -- Campo que ficou vazio depois da limpeza não é documento, é sujeira.
 update servidor set cpf = null where cpf = '';
@@ -38,7 +40,7 @@ alter table servidor add  constraint servidor_cpf_sem_mascara
 
 alter table servidor drop constraint if exists servidor_rg_sem_mascara;
 alter table servidor add  constraint servidor_rg_sem_mascara
-  check (rg is null or rg !~ '[^0-9X]');
+  check (rg is null or rg !~ '[^0-9A-Z]');
 
 -- ── Telefone: E.164 ──────────────────────────────────────────
 -- Escada de tamanhos, do mais completo ao menos - a mesma de paraE164()

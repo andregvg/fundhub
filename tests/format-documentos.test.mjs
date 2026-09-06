@@ -72,3 +72,21 @@ test('campo em branco passa - vazio não é errado (R15)', () => {
     assert.equal(noPadraoRG(v), true);
   }
 });
+
+// Não existe padrão nacional de RG: vários estados emitem com prefixo da UF.
+// O seed dos servidores preserva esse prefixo, então a letra é DADO - some
+// só o que separa. Um CHECK que aceitasse apenas dígitos e 'X' recusaria
+// esses cadastros.
+test('RG com prefixo de UF mantém a letra e não é mascarado à força', () => {
+  assert.equal(rgCru('MG-12.345.678'), 'MG12345678');
+  assert.equal(mascaraRG('MG-12.345.678'), 'MG12345678');
+  assert.equal(fmtRG('MG12345678'), 'MG12345678');
+  assert.equal(noPadraoRG('MG12345678'), false, 'fora do padrão paulista: aviso');
+});
+
+test('a máscara de RG paulista continua progressiva enquanto se digita', () => {
+  assert.equal(mascaraRG('12'), '12');
+  assert.equal(mascaraRG('123'), '12.3');
+  assert.equal(mascaraRG('123456'), '12.345.6');
+  assert.equal(mascaraRG('12345678X'), '12.345.678-X');
+});

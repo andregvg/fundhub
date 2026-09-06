@@ -74,9 +74,10 @@ export function fmtIdade(iso) {
 //
 //   CPF - 11 dígitos, sem pontuação. Não há norma de armazenamento, mas
 //         toda API pública (SERPRO, Receita, gov.br) fala em dígitos.
-//   RG  - dígitos + DV, caixa alta, sem pontuação. NÃO existe padrão
-//         nacional: cada estado emite o seu, com tamanho próprio e DV
-//         que no paulista pode ser 'X'.
+//   RG  - caracteres do documento, caixa alta, SEM pontuação. NÃO existe
+//         padrão nacional: cada estado emite o seu, com tamanho próprio,
+//         DV que no paulista pode ser 'X' e, em vários, prefixo da UF
+//         ('MG…') - por isso a letra é preservada, não só o X.
 //
 // `mascara*` formata PROGRESSIVAMENTE, para o campo enquanto se digita:
 // mascara o que já veio e não reclama do que falta. `fmt*` é a exibição
@@ -93,16 +94,19 @@ export function mascaraCPF(v) {
   return `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6, 9)}-${d.slice(9)}`;
 }
 
-// '123456789' → '12.345.678-9'. O dígito verificador do RG paulista
+// Formato PAULISTA: '123456789' → '12.345.678-9'. O dígito verificador
 // pode ser X, então o último caractere aceita letra.
 //
-// Acima de 9 caracteres a máscara SAI DO CAMINHO e devolve o cru: o
-// formato paulista não serve, e truncar aqui apagaria um dígito de um RG
-// de outro estado - em silêncio, no `value` do campo, e de novo no banco
-// no próximo salvamento.
+// Fora dele a máscara SAI DO CAMINHO e devolve o cru. Não existe padrão
+// nacional de RG: o de Minas vem com o prefixo da UF ('MG…'), o de outros
+// estados tem mais de nove caracteres. Formatar isso à força truncaria ou
+// pontuaria errado - em silêncio, no `value` do campo, e de novo no banco
+// no salvamento seguinte.
+const RG_SP = /^\d{0,8}[0-9X]?$/;
+
 export function mascaraRG(v) {
   const bruto = rgCru(v);
-  if (bruto.length > 9) return bruto;
+  if (bruto.length > 9 || !RG_SP.test(bruto)) return bruto;
   const num = bruto.replace(/X/g, '').slice(0, 8);
   const dv = bruto.length > 8 ? bruto.slice(8, 9) : '';
   let out = num;
@@ -113,7 +117,9 @@ export function mascaraRG(v) {
 
 // O que vai ao banco.
 export const cpfCru = (v) => String(v ?? '').replace(/\D/g, '').slice(0, 11);
-export const rgCru = (v) => String(v ?? '').toUpperCase().replace(/[^0-9X]/g, '');
+// Letra é dado, não pontuação: o prefixo de UF do RG mineiro faz parte do
+// documento. Some só o que separa (ponto, traço, barra, espaço).
+export const rgCru = (v) => String(v ?? '').toUpperCase().replace(/[^0-9A-Z]/g, '');
 
 // O que aparece na tela. Fora do padrão, o valor cru - inteiro.
 export const fmtCPF = (v) => (noPadraoCPF(v) ? mascaraCPF(v) : cpfCru(v));
