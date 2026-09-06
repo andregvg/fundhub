@@ -72,7 +72,7 @@ async function pintarDiasDeEscala(box) {
     return;
   }
 
-  box.innerHTML = `<div class="cfg-dias">${escalas.map(e => `
+  box.innerHTML = `<div>${escalas.map(e => `
     <div class="cfg-dia-linha" data-chave="${esc(e.chave)}">
       <label class="lbl">${esc(e.rotulo)}
         <select class="cfg-dia-sel">
@@ -102,7 +102,7 @@ function pintarCoberturaPorTipo(box) {
   const padraoFim = paraHora(JANELA_FABRICA.fim).slice(0, 5);
 
   box.innerHTML = `
-    <div class="cfg-cobertura">
+    <div>
       ${TIPOS_COBERTURA.map(t => `
         <div class="cfg-cob-linha" data-tipo="${esc(t.id)}">
           <span class="lbl cfg-cob-tipo">${esc(t.rotulo)}</span>

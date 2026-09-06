@@ -41,7 +41,7 @@ export function legendaHtml(linhas, { podeEditar }) {
       <div class="hg-chip serie-${l.serie + 1}${podeEditar ? ' arrastavel' : ''}"
            data-servidor="${esc(l.servidor.id)}" ${podeEditar ? 'draggable="true"' : ''}>
         <span class="hg-cor" aria-hidden="true"></span>
-        <span class="hg-nome">${esc(l.servidor.nome)}</span>
+        <span>${esc(l.servidor.nome)}</span>
         <span class="hg-cargo">${esc(l.cargo)}</span>
         ${podeEditar ? `
           <button type="button" class="mini-btn hg-mover" data-mover="${esc(l.servidor.id)}:-1"

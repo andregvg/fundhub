@@ -34,7 +34,7 @@ export async function pintarCargosGestao(box) {
 
   lista.innerHTML = cargos.length
     ? `<div class="cg-linhas">${cargos.map(c => `
-        <label class="switch cg-linha">
+        <label class="switch">
           <input type="checkbox" data-cargo="${esc(c)}" ${gestao.has(c) ? 'checked' : ''} />
           <span class="switch-trilho" aria-hidden="true"></span>
           <span class="switch-txt">${esc(c)}</span>

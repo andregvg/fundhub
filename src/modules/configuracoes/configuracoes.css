@@ -22,7 +22,12 @@
    larga a altura de campo - a mesma correção que `.form-grupo .campos
    label.switch` faz no formulário. */
 .cfg-item > .switch { align-self: start; min-height: var(--campo); }
-/* .cfg-rot recebe a tipografia de rótulo em components.css § Formulários. */
+/* `.lbl` empilha em coluna, que é o caso comum (rótulo acima do campo).
+   Aqui o rótulo tem TRÊS filhos - texto, selo "rede" e dica - e só a dica
+   deve quebrar linha: o selo pertence ao rótulo. Voltando a `block`, o
+   texto e o selo ficam inline e a `.cfg-dica`, que é `display: block`,
+   quebra sozinha. */
+.cfg-item > .lbl { display: block; }
 .cfg-dica {
   display: block; text-transform: none; font-weight: 400;
   letter-spacing: 0; margin-top: 2px;

@@ -139,7 +139,7 @@ function imprimir(a) {
 
   document.getElementById('at-folha').innerHTML = `
     <div class="ata-timbre">
-      <div class="ata-brasao">${ico('sede', { tam: 42 })}</div>
+      <div>${ico('sede', { tam: 42 })}</div>
       <div class="ata-orgao">
         <strong>Prefeitura Municipal de Ribeirão Preto</strong>
         <span>Secretaria Municipal da Educação</span>

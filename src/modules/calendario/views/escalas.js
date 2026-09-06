@@ -270,7 +270,7 @@ function pintarProposta() {
     return;
   }
   corpo.innerHTML = `
-    <div class="cal-prop">
+    <div>
       <p class="form-hint">${proposta.length} datas propostas. Troque a escala de
         qualquer linha ou descarte a que não valer. Nada é gravado até você
         confirmar.</p>

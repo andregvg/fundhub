@@ -83,7 +83,7 @@ function listaAfastados(lista) {
     <h3>${lista.length} ${lista.length === 1 ? 'pessoa afastada' : 'pessoas afastadas'}</h3>
     ${lista.map(a => `
       <div class="hoje-af" style="--af: ${Object.hasOwn(CORES_AFASTAMENTO, a.tipo) ? CORES_AFASTAMENTO[a.tipo] : 'var(--af-outro)'}">
-        <span class="hoje-af-nome">${esc(a.servidor?.nome || 'sem nome')}</span>
+        <span>${esc(a.servidor?.nome || 'sem nome')}</span>
         <span class="hoje-af-tipo">${esc(a.tipo)}</span>
       </div>`).join('')}
   </div>`;

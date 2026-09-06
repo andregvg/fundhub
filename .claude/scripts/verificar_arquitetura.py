@@ -3,7 +3,7 @@
 """
 FundHub - verificacao arquitetural deterministica.
 
-Onze checagens mecanicas das regras de CLAUDE.md e .claude/rules/.
+Doze checagens mecanicas das regras de CLAUDE.md e .claude/rules/.
 Nao substitui revisao: cobre o que da para verificar sem julgamento.
 
 Uso:
@@ -447,6 +447,81 @@ def check_documentacao():
 
 
 # ------------------------------------------------------------------
+# 12. Classe CSS orfa  (--)
+# ------------------------------------------------------------------
+# Uma classe escrita no markup que nao existe em CSS nenhum NEM e usada como
+# seletor em JS nao faz nada - e ninguem percebe, porque CSS ausente e
+# silencioso. Foi o que quase aconteceu com `.gira-90`: escopada em
+# `.hg-mover` dentro de horarios.css, invisivel para qualquer outra tela que
+# tentasse usa-la.
+#
+# AVISO, nao bloqueio: nome montado em runtime (`serie-${n}`) e classe de
+# terceiro sempre vao existir, e falso positivo que barra commit vira ruido
+# ignorado - que e pior do que nao ter a checagem.
+RE_CLASSE_DEF = re.compile(r'\.(-?[_a-zA-Z][\w-]*)')
+RE_CLASSE_ATTR = re.compile(r'class\s*=\s*["\']([^"\']*)["\']')
+RE_SELETOR_JS = re.compile(
+    r'(?:querySelectorAll|querySelector|closest|matches)\(\s*[`\'"]([^`\'"]*)[`\'"]')
+RE_CLASSLIST_JS = re.compile(
+    r'classList\.(?:add|remove|toggle|contains|replace)\(\s*[`\'"]([\w-]+)[`\'"]')
+RE_COMENTARIO_CSS = re.compile(r'/\*.*?\*/', re.S)
+RE_NOME_CLASSE = re.compile(r'-?[_a-zA-Z][\w-]*')
+
+# Classes que o navegador ou uma convencao do hub define, nunca o nosso CSS.
+CLASSES_EXTERNAS = {
+    'ico',            # so o envelope de ico(); o estilo vem de .ico em components.css
+}
+
+
+def check_classes_orfas():
+    definidas = set()
+    for f in arquivos(SRC, '.css'):
+        css = RE_COMENTARIO_CSS.sub(' ', ler(f))
+        definidas.update(RE_CLASSE_DEF.findall(css))
+
+    usadas_como_seletor = set()
+    fontes = list(arquivos(SRC, '.js')) + [os.path.join(RAIZ, 'index.html')]
+    for f in fontes:
+        if not os.path.isfile(f):
+            continue
+        txt = ler(f)
+        for linha in txt.splitlines():
+            if RE_SELETOR_JS.search(linha):
+                usadas_como_seletor.update(RE_CLASSE_DEF.findall(linha))
+        usadas_como_seletor.update(RE_CLASSLIST_JS.findall(txt))
+
+    conhecidas = definidas | usadas_como_seletor | CLASSES_EXTERNAS
+
+    for f in fontes:
+        if not os.path.isfile(f):
+            continue
+        if f.endswith('.content.js'):
+            continue                      # conteudo, com markup de exemplo
+        for i, linha in enumerate(linhas_de(f), 1):
+            if suprimido(linha, 12):
+                continue
+            for valor in RE_CLASSE_ATTR.findall(linha):
+                # Um `${...}` com aspas dentro faz a captura parar no meio da
+                # expressao. Do `${` em diante nao ha classe confiavel - o que
+                # vem depois e pedaco de codigo (`===`, um identificador JS).
+                antes, tem_expr, _ = valor.partition('${')
+                nomes = antes.split()
+                # E se o `${` vem GRUDADO no texto anterior, o ultimo token e
+                # so o prefixo de um nome montado em runtime (`serie-${n}`).
+                if tem_expr and antes and not antes[-1].isspace():
+                    nomes = nomes[:-1]
+                for nome in nomes:
+                    # So identificador de classe. O que sobra e pedaco de
+                    # expressao (`===`, `?`, `||`) capturado quando o atributo
+                    # tem um `${...}` com aspas dentro - nao e classe nenhuma.
+                    if not RE_NOME_CLASSE.fullmatch(nome):
+                        continue
+                    if nome not in conhecidas:
+                        add('AVISO', 12, f, i,
+                            'classe "%s" nao existe em CSS nenhum nem e usada como seletor' % nome)
+
+
+# ------------------------------------------------------------------
 # Execucao
 # ------------------------------------------------------------------
 TITULOS = {
@@ -461,6 +536,7 @@ TITULOS = {
     9: 'R11 limite de linhas',
     10: '--  consistencia do registro',
     11: '--  tutorial por modulo',
+    12: '--  classe CSS orfa',
 }
 
 
@@ -481,6 +557,7 @@ def main():
         check_tamanho()
         check_registro()
         check_documentacao()
+        check_classes_orfas()
 
     bloqueios = [p for p in problemas if p[0] == 'BLOQUEIA']
     avisos = [p for p in problemas if p[0] == 'AVISO']

@@ -93,5 +93,5 @@ só nascem no terceiro caso concreto.
 python .claude/scripts/verificar_arquitetura.py
 ```
 
-Onze checagens mecânicas das regras acima. Rodar antes de commitar mudanças estruturais.
+Doze checagens mecânicas das regras acima. Rodar antes de commitar mudanças estruturais.
 Para revisão arquitetural com análise (não só o script): skill `architecture-review`.

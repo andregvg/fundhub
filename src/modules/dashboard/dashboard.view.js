@@ -45,7 +45,7 @@ export async function render(app) {
             <span class="panel-tit">${ico(m.ico, { tam: 16 })} ${esc(m.titulo)}</span>
             <button type="button" class="panel-x" aria-label="Ocultar ${esc(m.titulo)}">${ico('fechar', { tam: 13 })}</button>
           </h2>
-          <div class="panel-corpo" id="dp-${esc(id)}">${loading()}</div>
+          <div id="dp-${esc(id)}">${loading()}</div>
         </section>`;
       }).join('')}</div>`
     : emptyState(ico('dashboard', { tam: 32 }), 'Todos os painéis estão ocultos',

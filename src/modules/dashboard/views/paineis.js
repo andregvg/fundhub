@@ -22,7 +22,7 @@ const erro = (box, err) => {
 
 const statTile = (svgIco, num, label, extra = '') => `
   <div class="stat-tile ${extra}">
-    <div class="stat-ico" aria-hidden="true">${svgIco}</div>
+    <div aria-hidden="true">${svgIco}</div>
     <div>
       <div class="stat-num">${esc(num)}</div>
       <div class="stat-label">${esc(label)}</div>

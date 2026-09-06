@@ -96,8 +96,8 @@ function travarSeRede(alvo, item, podeRede) {
 
 function itemHtml(i, modId, podeRede) {
   if (typeof i.painel === 'function') {
-    return `<div class="cfg-item cfg-painel">
-      <div class="lbl cfg-rot">${esc(i.rotulo)}${dicaHtml(i)}</div>
+    return `<div class="cfg-item">
+      <div class="lbl">${esc(i.rotulo)}${dicaHtml(i)}</div>
       <div data-painel="${esc(i.chave)}">${loading()}</div>
     </div>`;
   }
@@ -126,7 +126,7 @@ function itemHtml(i, modId, podeRede) {
   }
 
   return `<div class="cfg-item">
-    <label class="lbl cfg-rot" for="${nome}">${esc(i.rotulo)}${
+    <label class="lbl" for="${nome}">${esc(i.rotulo)}${
       rede ? ' <span class="cfg-rede" title="Vale para a rede toda">rede</span>' : ''}${dicaHtml(i)}</label>
     ${controle}
     ${desabilita ? '<span class="form-hint">Só quem tem permissão de escrita neste módulo muda isto.</span>' : ''}

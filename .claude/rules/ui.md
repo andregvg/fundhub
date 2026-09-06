@@ -32,7 +32,7 @@ Sempre conferir `src/styles/components.css` antes de escrever CSS novo. O que j�
 - **Abas:** `.tabbar` + `.tab` (`.on` para a ativa)
 - **Listas:** `.solic` (+ `.solic-main`, `.solic-acoes`) · `.dash-item` (+ `.di-top`, `.di-meta`)
 - **Cards e grades:** `.card` · `.cards` · `.tile` · `.tiles` · `.panel` · `.dash-grid` · `.md-grid`
-- **Stats:** `.stat-row` · `.stat-tile` · `.stat-ico` · `.stat-num` · `.stat-label`
+- **Stats:** `.stat-row` · `.stat-tile` · `.stat-num` · `.stat-label`
 - **Formulário:** `.esc-form` · `.esc-row` · `.form-grid` · `.form-grupo` · `.form-foot` · `.form-hint` · `.field` · `.lbl`
 - **Botões:** `.btn-primary` · `.btn-secundario` · `.btn-perigo` (ação destrutiva, só em diálogo) · `.mini-btn` (com `.ok` / `.no`)
 - **Marcadores:** `.chip` · `.tag` · `.badge` · `.pill`
@@ -57,9 +57,15 @@ até 06/09/2026. O painel de configuração já nasce dentro de `.esc-form`
 
 **Rótulo de campo é a classe `.lbl`**, não um bloco de cinco declarações
 copiado. Ela vale sozinha (`<div class="lbl">`) e ao lado de uma classe de
-posicionamento do módulo (`class="lbl cfg-rot"`). Os `<label>` de
+posicionamento do módulo (`class="lbl cfg-cob-tipo"`). Os `<label>` de
 `.form-grid`, `.esc-form` e `.form-grupo .campos` já recebem o tratamento
 pela estrutura e não precisam da classe.
+
+**Classe no markup sem regra de CSS não faz nada** - e ninguém percebe, porque
+CSS ausente é silencioso. A checagem 12 do verificador avisa quando uma classe
+não existe em CSS nenhum **nem** é usada como seletor em JS. Se você quer um
+gancho só para o JS, tudo bem: use-o num `querySelector` e a checagem entende.
+O que não vale é deixar o nome no HTML esperando que alguém adivinhe.
 
 Todo formulário do hub lê em três níveis, e cada um tem um token:
 
