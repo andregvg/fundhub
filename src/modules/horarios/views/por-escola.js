@@ -7,8 +7,9 @@
 //
 // A cobertura é regra de ESCOLA - a sede da SME não entra nela.
 // ============================================================
-import { DIAS, getBlocos, COBERTURA_INICIO, COBERTURA_FIM } from '../horarios.model.js';
+import { DIAS, getBlocos, paraHora } from '../horarios.model.js';
 import { escolherBlocos, rotulaEscala } from '../escalas.model.js';
+import { janelaDaUnidade } from '../horarios.config.js';
 // getExibicao/definirCobertura moram em exibicao.model.js e
 // ordenarParaGrade em grade.model.js desde a divisão da Task 6
 // (R11 - horarios.model.js estourou 250 linhas). Ver progress.md, Ruling 13.
@@ -138,10 +139,12 @@ async function carregar() {
   linhas = itens.filter(it => it.exibir);
   const fora = itens.filter(it => !it.exibir);
 
-  // A janela 7h00–18h20 é regra de ESCOLA: é o horário em que precisa
-  // haver alguém da equipe gestora na unidade. Não se aplica à sede.
+  // A janela de cobertura é regra de ESCOLA: o horário em que precisa
+  // haver alguém da equipe gestora na unidade. Varia por tipo (config
+  // de rede) e não se aplica à sede.
   const local = ctxAtual.locais.find(l => l.id === unidadeId);
-  const mostrarCobertura = local?.tipo !== 'sede';
+  const mostrarCobertura = local?.tipo === 'escola';
+  const janela = janelaDaUnidade(unidades.find(u => u.id === unidadeId));
 
   const seletorEscala = ctxAtual.escalasEmUso?.length > 1 ? `
     <div class="filters hg-escalas">
@@ -150,10 +153,10 @@ async function carregar() {
     </div>` : '';
 
   corpo.innerHTML = seletorEscala
-    + (mostrarCobertura ? `<p class="form-hint">Cobertura da escola: ${esc(COBERTURA_INICIO)} às ${esc(COBERTURA_FIM)}.</p>` : '')
+    + (mostrarCobertura ? `<p class="form-hint">Cobertura da escola: ${esc(paraHora(janela.ini).slice(0, 5))} às ${esc(paraHora(janela.fim).slice(0, 5))}.</p>` : '')
     + resetHtml()
     + legendaHtml(linhas, { podeEditar: ctxAtual.podeEditar })
-    + gradeHtml(DIAS, { linhas, blocosDe, mostrarCobertura })
+    + gradeHtml(DIAS, { linhas, blocosDe, mostrarCobertura, janela })
     + naoExibidosHtml(fora);
   // `corpo.innerHTML` acabou de ser reconstruído - sem isto, quem
   // estava selecionado (ex.: editou a jornada pelo lápis, que seleciona

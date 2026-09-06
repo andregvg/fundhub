@@ -8,30 +8,33 @@
 // ============================================================
 import { paraMin, paraHora, COBERTURA_INICIO, COBERTURA_FIM, unir } from './horarios.model.js';
 
-const INI = paraMin(COBERTURA_INICIO);   // 420
-const FIM = paraMin(COBERTURA_FIM);      // 1100
+// Janela de FÁBRICA: o padrão quando a Gerência não configurou uma
+// janela para o tipo daquela escola. As três funções abaixo recebem a
+// janela como parâmetro (a view a deriva da unidade - ver
+// horarios.config.js) e continuam PURAS.
+export const JANELA_FABRICA = { ini: paraMin(COBERTURA_INICIO), fim: paraMin(COBERTURA_FIM) };
 
 const paraIntervalo = (b) => ({ ini: paraMin(b.inicio), fim: paraMin(b.fim) });
 
-// Posição de um bloco na barra gráfica, em % da janela 7h00–18h20.
+// Posição de um bloco na barra gráfica, em % da janela da escola.
 // Blocos fora da janela são recortados para não vazarem da barra.
-export function posicaoNaBarra(bloco) {
-  const janela = FIM - INI;
-  const ini = Math.max(paraMin(bloco.inicio), INI);
-  const fim = Math.min(paraMin(bloco.fim), FIM);
+export function posicaoNaBarra(bloco, { ini, fim } = JANELA_FABRICA) {
+  const janela = fim - ini;
+  const i = Math.max(paraMin(bloco.inicio), ini);
+  const f = Math.min(paraMin(bloco.fim), fim);
   return {
-    esquerda: ((ini - INI) / janela) * 100,
-    largura: (Math.max(fim - ini, 0) / janela) * 100,
-    forade: paraMin(bloco.inicio) < INI || paraMin(bloco.fim) > FIM,
+    esquerda: ((i - ini) / janela) * 100,
+    largura: (Math.max(f - i, 0) / janela) * 100,
+    forade: paraMin(bloco.inicio) < ini || paraMin(bloco.fim) > fim,
   };
 }
 
 // Marcas de hora cheia para o eixo da barra.
-export function marcasDaBarra() {
-  const janela = FIM - INI;
+export function marcasDaBarra({ ini, fim } = JANELA_FABRICA) {
+  const janela = fim - ini;
   const marcas = [];
-  for (let m = Math.ceil(INI / 60) * 60; m <= FIM; m += 60) {
-    marcas.push({ hora: paraHora(m), pos: ((m - INI) / janela) * 100 });
+  for (let m = Math.ceil(ini / 60) * 60; m <= fim; m += 60) {
+    marcas.push({ hora: paraHora(m), pos: ((m - ini) / janela) * 100 });
   }
   return marcas;
 }
@@ -63,20 +66,20 @@ export function empilhar(blocos) {
 export const contarFaixas = (blocos) =>
   Math.max(1, empilhar(blocos).reduce((m, x) => Math.max(m, x.faixa + 1), 0));
 
-// Lacunas na cobertura da UNIDADE num dia: os trechos de 7h00–18h20
-// em que nenhum servidor está presente. Devolve [{ ini, fim }] em minutos.
-export function lacunasCobertura(blocosDoDiaDaUnidade) {
+// Lacunas na cobertura da UNIDADE num dia: os trechos da janela da
+// escola em que nenhum servidor está presente. [{ ini, fim }] em minutos.
+export function lacunasCobertura(blocosDoDiaDaUnidade, { ini, fim } = JANELA_FABRICA) {
   const cobertos = unir(blocosDoDiaDaUnidade.map(paraIntervalo))
-    .filter(iv => iv.fim > INI && iv.ini < FIM);   // só o que toca a janela
+    .filter(iv => iv.fim > ini && iv.ini < fim);   // só o que toca a janela
 
   const lacunas = [];
-  let cursor = INI;
+  let cursor = ini;
   for (const iv of cobertos) {
-    if (iv.ini > cursor) lacunas.push({ ini: cursor, fim: Math.min(iv.ini, FIM) });
+    if (iv.ini > cursor) lacunas.push({ ini: cursor, fim: Math.min(iv.ini, fim) });
     cursor = Math.max(cursor, iv.fim);
-    if (cursor >= FIM) break;
+    if (cursor >= fim) break;
   }
-  if (cursor < FIM) lacunas.push({ ini: cursor, fim: FIM });
+  if (cursor < fim) lacunas.push({ ini: cursor, fim });
   return lacunas;
 }
 

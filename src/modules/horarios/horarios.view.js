@@ -10,7 +10,7 @@
 // 021. Quem tem nível 'proprios' continua barrado pelo RLS na hora
 // de gravar; a tela nunca foi a barreira.
 // ============================================================
-import { COBERTURA_INICIO, COBERTURA_FIM, duracao } from './horarios.model.js';
+import { duracao } from './horarios.model.js';
 import { getEscalas, ESCALAS_PADRAO } from './escalas.model.js';
 import { getEscalasRede } from '../calendario/calendario.model.js';
 import { getLocais } from '../escolas/escolas.model.js';
@@ -36,7 +36,7 @@ export async function render(app, { perfil, params } = {}) {
       <h1>Horários de Trabalho</h1>
       <p>Jornada semanal da equipe gestora, validada por regra:
          até ${duracao(8 * 60)} por dia, no máximo ${duracao(6 * 60)} contínuas,
-         e a escola coberta das ${COBERTURA_INICIO} às ${COBERTURA_FIM}.</p>
+         e a escola coberta pela janela do seu tipo (o padrão é das 07:00 às 18:20).</p>
     </div>
     <div class="tabbar" id="h-abas" role="tablist">
       <button class="tab ${aba === 'escola' ? 'on' : ''}" role="tab"

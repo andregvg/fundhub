@@ -12,7 +12,7 @@ import { validarDia, totalDoDia, paraHora, duracao } from '../horarios.model.js'
 // lacunasCobertura, da divisão da Task 6 - as quatro moram em
 // grade.model.js, não em horarios.model.js. Ver progress.md, Ruling 13.
 import { empilhar, contarFaixas, lacunasCobertura,
-  posicaoNaBarra, marcasDaBarra } from '../grade.model.js';
+  posicaoNaBarra, marcasDaBarra, JANELA_FABRICA } from '../grade.model.js';
 import { esc, vazio } from '../../../shared/dom.js';
 import { ico } from '../../../shared/ui/icones.js';
 
@@ -21,10 +21,10 @@ const hhmm = (t) => String(t ?? '').slice(0, 5);
 let sel = null;
 export const selecionado = () => sel;
 
-// Posição de um intervalo (em minutos) na barra, em % - reusa a
-// mesma janela de posicaoNaBarra passando um pseudo-bloco.
-const posDoIntervalo = (ini, fim) =>
-  posicaoNaBarra({ inicio: paraHora(ini), fim: paraHora(fim) });
+// Posição de um intervalo (em minutos) na barra, em % - reusa
+// posicaoNaBarra passando um pseudo-bloco e a mesma janela da escola.
+const posDoIntervalo = (ini, fim, janela) =>
+  posicaoNaBarra({ inicio: paraHora(ini), fim: paraHora(fim) }, janela);
 
 // `podeEditar` libera o lápis, o arrasto e o checkbox de cobertura.
 // A Task 7 desenhou `draggable`/`.arrastavel` e o checkbox mas os
@@ -60,7 +60,7 @@ export function legendaHtml(linhas, { podeEditar }) {
   </div>`;
 }
 
-export function gradeHtml(dias, { linhas, blocosDe, mostrarCobertura }) {
+export function gradeHtml(dias, { linhas, blocosDe, mostrarCobertura, janela = JANELA_FABRICA }) {
   const serieDe = new Map(linhas.map(l => [l.servidor.id, l.serie]));
   const nomeDe = new Map(linhas.map(l => [l.servidor.id, l.servidor.nome]));
   const contam = new Set(linhas.filter(l => l.contaCobertura).map(l => l.servidor.id));
@@ -70,7 +70,7 @@ export function gradeHtml(dias, { linhas, blocosDe, mostrarCobertura }) {
     const faixas = contarFaixas(doDia);
 
     const barras = empilhar(doDia).map(({ bloco, faixa }) => {
-      const p = posicaoNaBarra(bloco);
+      const p = posicaoNaBarra(bloco, janela);
       const serie = (serieDe.get(bloco.servidor_id) ?? 0) + 1;
       const nome = nomeDe.get(bloco.servidor_id) || '';
       return `<button type="button" class="hg-bloco serie-${serie}"
@@ -86,7 +86,7 @@ export function gradeHtml(dias, { linhas, blocosDe, mostrarCobertura }) {
     const marcas = linhas.flatMap(l => {
       const meus = blocosDe(l.servidor.id, d.n);
       return validarDia(meus).map(p => {
-        const pos = posDoIntervalo(p.ini, p.fim);
+        const pos = posDoIntervalo(p.ini, p.fim, janela);
         return `<span class="hg-falha n-${p.nivel}"
           style="left:${pos.esquerda}%;width:${pos.largura}%"
           title="${esc(l.servidor.nome)}: ${esc(p.texto)}"></span>`;
@@ -94,11 +94,11 @@ export function gradeHtml(dias, { linhas, blocosDe, mostrarCobertura }) {
     }).join('');
 
     const lacunas = mostrarCobertura
-      ? lacunasCobertura(doDia.filter(b => contam.has(b.servidor_id)))
+      ? lacunasCobertura(doDia.filter(b => contam.has(b.servidor_id)), janela)
       : [];
     const tira = mostrarCobertura
       ? `<div class="hg-cobertura">${lacunas.map(l => {
-          const pos = posDoIntervalo(l.ini, l.fim);
+          const pos = posDoIntervalo(l.ini, l.fim, janela);
           return `<span class="hg-lacuna" style="left:${pos.esquerda}%;width:${pos.largura}%"
             title="Sem ninguém entre ${esc(paraHora(l.ini))} e ${esc(paraHora(l.fim))}"></span>`;
         }).join('')}</div>`
@@ -107,7 +107,7 @@ export function gradeHtml(dias, { linhas, blocosDe, mostrarCobertura }) {
     return `<div class="hg-linha" data-dia="${d.n}">
       <div class="hg-dia">${esc(d.curto)}</div>
       <div class="hg-track" style="height:${faixas * 26 + 4}px">
-        ${eixo()}${barras}${marcas}
+        ${eixo(janela)}${barras}${marcas}
       </div>
       ${tira}
       <div class="hg-info">${
@@ -117,8 +117,8 @@ export function gradeHtml(dias, { linhas, blocosDe, mostrarCobertura }) {
   }).join('')}</div>`;
 }
 
-function eixo() {
-  return marcasDaBarra().map(m =>
+function eixo(janela) {
+  return marcasDaBarra(janela).map(m =>
     `<span class="hg-marca" style="left:${m.pos}%"><i></i><em>${esc(m.hora.slice(0, 2))}h</em></span>`).join('');
 }
 
