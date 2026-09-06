@@ -64,6 +64,17 @@ a.tile:hover {
    não de font-size - por isso não existe mais uma regra de tamanho
    aqui como havia quando o tile mostrava um emoji num div.ico. */
 .ico { display: inline-block; vertical-align: -0.125em; flex: 0 0 auto; }
+/* Rotacao de icone. O hub gira um tracado unico em vez de guardar quatro
+   desenhos da mesma seta - `chevron` aponta para baixo, `subir` para cima.
+   Utilitario COMPARTILHADO: ate 06/09/2026 morava em horarios.css (escopado
+   em .hg-mover, inalcancavel de fora) e em dashboard.css (solto, que e um
+   utilitario global no arquivo errado). */
+.gira-90 { transform: rotate(90deg); }
+.gira-menos90 { transform: rotate(-90deg); }
+.gira-180 { transform: rotate(180deg); }
+/* Num <span> que embrulha o icone, `transform` precisa de uma caixa, e
+   inline nao tem. O proprio <svg>.ico ja e inline-block e nao entra aqui. */
+span.gira-90, span.gira-menos90, span.gira-180 { display: inline-flex; }
 .tile h3 { margin: 2px 0 0; font-size: 16px; padding-right: 60px; }
 .tile p { margin: 0; color: var(--muted); font-size: 13px; }
 

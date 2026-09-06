@@ -16,7 +16,6 @@
 }
 .panel-x:hover { background: var(--surface-3); color: var(--text); }
 .panel.arrastando { opacity: .5; outline: 2px dashed var(--brand); }
-.gira-180 { display: inline-flex; transform: rotate(180deg); }
 
 @media (pointer: coarse) {
   /* Arrasto nativo não existe em toque: o caminho é o switch nas

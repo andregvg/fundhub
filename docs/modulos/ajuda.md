@@ -26,8 +26,10 @@ precisa do manual dela.
    interrogação) no canto superior direito.
 2. O tutorial abre numa página própria. Você pode deixá-la aberta numa aba e
    voltar à tela em outra.
-3. Para ver todos os tutoriais, clique em **Todos os tutoriais** no topo, ou
-   abra **Ajuda** no menu lateral.
+3. No topo do tutorial há dois botões: **Voltar para** a tela de onde você
+   veio e **Todos os tutoriais**, que abre a lista completa.
+4. A lista completa também está em **Ajuda**, no menu lateral, na seção
+   Documentação.
 
 ### Pedir a correção de um texto
 
@@ -56,4 +58,4 @@ Ou você não tem acesso a eles, ou o tutorial deles ainda não foi escrito.
 Não. Aquela descreve como o sistema funciona por dentro e é só para quem
 mantém o código. A Ajuda é para quem usa.
 
-> Atualizado na versão 0.16.0.
+> Atualizado na versão 0.20.1.

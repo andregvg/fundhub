@@ -11,11 +11,11 @@
   background: var(--surface-2); color: var(--text); text-decoration: none;
 }
 .ajuda-tile:hover { border-color: var(--border-forte); background: var(--surface-3); }
-.ajuda-voltar {
-  display: inline-flex; align-items: center; gap: 4px;
-  color: var(--muted); text-decoration: none; font-size: 13px; margin-bottom: 6px;
-}
-.ajuda-voltar:hover { color: var(--text); }
+/* Os dois destinos de saída de um tutorial (ver navegarHtml). São
+   `.mini-btn` - o botão do hub -, não um link solto: até 06/09/2026 isto
+   era um <a> de texto com o ícone `chevron`, que aponta para BAIXO, sem
+   classe de rotação. Agora é o traçado `voltar`, que aponta para onde diz. */
+.ajuda-navegar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
 
 .ajuda-doc { max-width: 720px; line-height: 1.6; }
 .ajuda-doc h1 { font-size: 20px; margin: 24px 0 8px; }

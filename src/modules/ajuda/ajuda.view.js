@@ -48,10 +48,29 @@ function pintarIndice(app, disponiveis) {
         'Os módulos que você usa ainda não têm instruções escritas.')}`;
 }
 
+// Um tutorial se alcança por dois caminhos - o índice e o ícone de ajuda
+// na barra de ações do módulo (core/router.js) -, e cada um tem um
+// "voltar" diferente. Em vez de adivinhar de onde a pessoa veio (ou
+// carregar um parâmetro de origem que o endereço não precisa ter), a tela
+// oferece os dois destinos: o módulo de que o tutorial fala, primeiro,
+// porque é para lá que quem estava trabalhando quer voltar.
+//
+// `mod.rota` sempre existe num módulo com `doc: true`; a guarda é para a
+// Ajuda falando de si mesma, cuja rota é a própria página de índice.
+function navegarHtml(mod) {
+  const paraModulo = mod.rota && mod.rota !== '#/ajuda'
+    ? `<a class="mini-btn" href="${esc(mod.rota)}">${ico('voltar', { tam: 14 })} Voltar para ${esc(mod.navNome || mod.nome)}</a>`
+    : '';
+  return `<div class="ajuda-navegar">
+    ${paraModulo}
+    <a class="mini-btn" href="#/ajuda">${ico('modulos', { tam: 14 })} Todos os tutoriais</a>
+  </div>`;
+}
+
 async function pintarTutorial(app, mod) {
   app.innerHTML = `
     <div class="page-head">
-      <a class="ajuda-voltar" href="#/ajuda">${ico('chevron', { tam: 14 })} Todos os tutoriais</a>
+      ${navegarHtml(mod)}
       <h1>Ajuda: ${esc(mod.nome)}</h1>
     </div>
     <article class="ajuda-doc" id="ajuda-doc">${loading()}</article>`;

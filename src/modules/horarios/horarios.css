@@ -174,10 +174,9 @@
 
 /* Setas de mover: alternativa por teclado ao arrasto (arrasto nativo
    não é utilizável sem mouse). O chevron (aponta para baixo) gira para
-   apontar para o lado que a seta move o chip. */
+   apontar para o lado que a seta move o chip - a rotação em si é
+   utilitário do hub (components.css § .gira-*). */
 .hg-mover { padding: 3px 6px; }
-.hg-mover .ico.gira-90 { transform: rotate(90deg); }
-.hg-mover .ico.gira-menos90 { transform: rotate(-90deg); }
 
 .serie-1 { --serie: var(--serie-1); }
 .serie-2 { --serie: var(--serie-2); }
