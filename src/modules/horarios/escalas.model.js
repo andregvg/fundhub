@@ -188,17 +188,14 @@ export function escolherBlocos(blocos, escala, variante = 1) {
 // ainda tem a variante 1 - a implícita, degrau final do fallback de D4.
 export function variantesDe(blocos, escala, dia) {
   const ns = new Set([1]);
-  for (const b of blocos || []) {
-    if ((b.escala || 'normal') === escala && b.dia_semana === dia) ns.add(varDe(b));
+  for (const b of daEscala(blocos || [], escala)) {
+    if (b.dia_semana === dia) ns.add(varDe(b));
   }
   return [...ns].sort((a, b) => a - b);
 }
 
-// Quem conduz o TDC naquela variante (o `servidor_id`), ou null.
-//
 // Null é estado VÁLIDO e previsto: na quarta-feira sem TDC que tem
 // revezamento não há responsável nenhum, e a tela cai em "Variante N".
-//
 // Nenhuma constraint impede dois marcados na mesma variante (seria um
 // índice parcial sobre um agregado - D5). Com dois, vence o primeiro
 // da `ordem` da grade: o desempate precisa ser determinístico, senão o
@@ -206,9 +203,8 @@ export function variantesDe(blocos, escala, dia) {
 // na ordem (saiu da grade) ainda é devolvido - o nome certo é melhor
 // que "variante N".
 export function conduzDaVariante(blocos, { escala, dia, variante, ordem = [] } = {}) {
-  const ids = new Set((blocos || [])
-    .filter(b => (b.escala || 'normal') === escala && b.dia_semana === dia
-              && varDe(b) === variante && b.conduz)
+  const ids = new Set(daEscala(blocos || [], escala)
+    .filter(b => b.dia_semana === dia && varDe(b) === variante && b.conduz)
     .map(b => b.servidor_id));
   if (!ids.size) return null;
   for (const id of ordem) if (ids.has(id)) return id;
