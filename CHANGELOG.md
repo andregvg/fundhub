@@ -9,6 +9,15 @@ versionamento **MINOR** = módulo novo ou mudança de modelo de dados, **PATCH**
 
 ---
 
+## [0.16.0] - 2026-09-05
+
+### Adicionado
+- Módulo **Ajuda** (em "Documentação") com um tutorial de uso por módulo, e um
+  botão de ajuda no topo de cada tela que tem tutorial. Começa com Servidores,
+  Usuários, Configurações e a própria Ajuda. O que antes era "Documentação"
+  passou a se chamar "Documentação técnica" - é a parte escrita para quem
+  mantém o sistema.
+
 ## [0.15.0] - 2026-09-05
 
 ### Adicionado
