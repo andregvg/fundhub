@@ -8,5 +8,6 @@ export default {
   rota: '#/horarios',
   nav: true,
   ativo: true,
+  config: () => import('./horarios.config.js'),
   load: () => import('./horarios.view.js'),
 };

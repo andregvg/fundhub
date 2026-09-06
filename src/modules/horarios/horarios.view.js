@@ -38,15 +38,11 @@ export async function render(app, { perfil, params } = {}) {
          até ${duracao(8 * 60)} por dia, no máximo ${duracao(6 * 60)} contínuas,
          e a escola coberta das ${COBERTURA_INICIO} às ${COBERTURA_FIM}.</p>
     </div>
-    <div class="h-topo">
-      <div class="tabbar" id="h-abas" role="tablist">
-        <button class="tab ${aba === 'escola' ? 'on' : ''}" role="tab"
-                aria-selected="${aba === 'escola'}" data-aba="escola">${ico('escola')} Por escola</button>
-        <button class="tab ${aba === 'servidor' ? 'on' : ''}" role="tab"
-                aria-selected="${aba === 'servidor'}" data-aba="servidor">${ico('servidor')} Por servidor</button>
-      </div>
-      ${podeEditar ? `<button type="button" class="mini-btn" id="h-cargos"
-          title="Quais cargos são equipe gestora">${ico('equipe')} Equipe gestora</button>` : ''}
+    <div class="tabbar" id="h-abas" role="tablist">
+      <button class="tab ${aba === 'escola' ? 'on' : ''}" role="tab"
+              aria-selected="${aba === 'escola'}" data-aba="escola">${ico('escola')} Por escola</button>
+      <button class="tab ${aba === 'servidor' ? 'on' : ''}" role="tab"
+              aria-selected="${aba === 'servidor'}" data-aba="servidor">${ico('servidor')} Por servidor</button>
     </div>
     <div id="h-tab-body"></div>
     ${drawerHtml()}`;
@@ -83,11 +79,6 @@ export async function render(app, { perfil, params } = {}) {
     aba = b.dataset.aba;
     pintarAbas();
     renderAba();
-  });
-
-  document.getElementById('h-cargos')?.addEventListener('click', async () => {
-    const { abrirCargos } = await import('./views/cargos.js');
-    abrirCargos({ recarregar: renderAba });
   });
 
   pintarAbas();
