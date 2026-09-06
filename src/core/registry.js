@@ -34,6 +34,7 @@ import notificacoes from '../modules/notificacoes/module.js';
 import meusDados    from '../modules/meus-dados/module.js';
 import configuracoes from '../modules/configuracoes/module.js';
 import usuarios     from '../modules/usuarios/module.js';
+import ajuda        from '../modules/ajuda/module.js';
 import docs         from '../modules/docs/module.js';
 
 // A ordem aqui é a ordem dentro de cada grupo do menu.
@@ -41,7 +42,7 @@ export const MODULOS = [
   dashboard, modulos,
   escolas, servidores, calendario, horarios, afastamentos,
   sate, viagens, projetos, ocorrencias, atas, visitas,
-  notificacoes, meusDados, configuracoes, usuarios, docs,
+  notificacoes, meusDados, configuracoes, usuarios, ajuda, docs,
 ];
 
 // Seções do menu lateral, na ordem de exibição. Um módulo cai em
