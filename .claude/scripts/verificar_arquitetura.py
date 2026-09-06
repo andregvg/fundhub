@@ -3,7 +3,7 @@
 """
 FundHub - verificacao arquitetural deterministica.
 
-Dez checagens mecanicas das regras de CLAUDE.md e .claude/rules/.
+Onze checagens mecanicas das regras de CLAUDE.md e .claude/rules/.
 Nao substitui revisao: cobre o que da para verificar sem julgamento.
 
 Uso:
@@ -19,6 +19,7 @@ Supressao de falso positivo: escreva `fundhub:ok-<n>` na propria linha
 
 import os
 import re
+import subprocess
 import sys
 
 RAIZ = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -402,6 +403,50 @@ def check_registro():
 
 
 # ------------------------------------------------------------------
+# 11. Tutorial por modulo (spec 2026-09-05-ajuda-por-modulo)
+# ------------------------------------------------------------------
+def _git_ct(caminho):
+    """Timestamp do ultimo commit que tocou `caminho` (0 se nao rastreado)."""
+    try:
+        out = subprocess.run(
+            ['git', 'log', '-1', '--format=%ct', '--', caminho],
+            cwd=RAIZ, capture_output=True, text=True, timeout=10)
+        return int(out.stdout.strip()) if out.stdout.strip() else 0
+    except Exception:
+        return 0
+
+
+def check_documentacao():
+    modulos_dir = os.path.join(SRC, 'modules')
+    docs_dir = os.path.join(RAIZ, 'docs', 'modulos')
+    com_doc = set()
+
+    for mod in sorted(os.listdir(modulos_dir)):
+        manifesto = os.path.join(modulos_dir, mod, 'module.js')
+        if not os.path.isfile(manifesto):
+            continue
+        if not re.search(r'\bdoc\s*:\s*true\b', ler(manifesto)):
+            continue
+        com_doc.add(mod)
+        md = os.path.join(docs_dir, mod + '.md')
+        if not os.path.isfile(md):
+            add('BLOQUEIA', 11, manifesto, 0,
+                'modulo declara doc:true mas nao ha docs/modulos/%s.md' % mod)
+        elif _git_ct(os.path.join('src', 'modules', mod)) > _git_ct(os.path.join('docs', 'modulos', mod + '.md')):
+            add('AVISO', 11, md, 0,
+                'codigo de src/modules/%s/ mais novo que o tutorial - revisar' % mod)
+
+    if os.path.isdir(docs_dir):
+        for f in sorted(os.listdir(docs_dir)):
+            if not f.endswith('.md'):
+                continue
+            mod = f[:-3]
+            if mod not in com_doc:
+                add('BLOQUEIA', 11, os.path.join(docs_dir, f), 0,
+                    'docs/modulos/%s.md sem modulo correspondente com doc:true' % mod)
+
+
+# ------------------------------------------------------------------
 # Execucao
 # ------------------------------------------------------------------
 TITULOS = {
@@ -415,6 +460,7 @@ TITULOS = {
     8: 'R7  segredo e PII',
     9: 'R11 limite de linhas',
     10: '--  consistencia do registro',
+    11: '--  tutorial por modulo',
 }
 
 
@@ -434,6 +480,7 @@ def main():
         check_pii()
         check_tamanho()
         check_registro()
+        check_documentacao()
 
     bloqueios = [p for p in problemas if p[0] == 'BLOQUEIA']
     avisos = [p for p in problemas if p[0] == 'AVISO']

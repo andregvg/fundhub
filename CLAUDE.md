@@ -85,6 +85,7 @@ só nascem no terceiro caso concreto.
 | tela, estilo, componente | `.claude/rules/ui.md` |
 | data, validação, persistência | `.claude/rules/dados.md` |
 | criar um módulo novo | `.claude/rules/modulo-novo.md` |
+| tela, fluxo ou regra de um módulo com tutorial (`doc: true`) | `.claude/rules/documentacao.md` |
 
 ## Verificação
 
@@ -92,5 +93,5 @@ só nascem no terceiro caso concreto.
 python .claude/scripts/verificar_arquitetura.py
 ```
 
-Dez checagens mecânicas das regras acima. Rodar antes de commitar mudanças estruturais.
+Onze checagens mecânicas das regras acima. Rodar antes de commitar mudanças estruturais.
 Para revisão arquitetural com análise (não só o script): skill `architecture-review`.
