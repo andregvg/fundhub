@@ -678,7 +678,18 @@ input[type="checkbox"] { width: 18px; height: 18px; }
   cursor: pointer;
 }
 .form-foot button:disabled { opacity: .6; }
-.form-hint { color: var(--muted); font-size: 13px; }
+/* Dentro de um <label>, a dica herdava peso 700, caixa alta e
+   letter-spacing do rótulo de campo - saía MAIÚSCULA E EM NEGRITO,
+   competindo com o rótulo. O reset é global: a herança atinge toda
+   dica em Escolas, Servidores, SATE e Projetos. */
+.form-hint {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  line-height: 1.4;
+}
 .drawer-acoes { display: flex; gap: 8px; margin-bottom: 16px; }
 
 /* ── Login ────────────────────────────────────────────────── */
@@ -902,15 +913,15 @@ input[type="checkbox"] { width: 18px; height: 18px; }
 .form-grupo .campos.auto { display: grid; grid-template-columns: 1fr; gap: 13px; }
 .form-grupo .campos.auto > .col-full { grid-column: 1 / -1; }
 
-/* Rótulo SEMPRE acima do campo. Exceções: o checkbox (.inline), onde o
-   rótulo ao lado é o que a caixa significa; e o .search da busca-seleção,
-   que é um widget com o próprio <label class="search"> por dentro (lupa +
-   input na MESMA linha) - herdar o flex-direction: column daqui jogava a
-   lupa para cima do campo.
+/* Rótulo SEMPRE acima do campo. Exceções: o checkbox (.inline) e o
+   toggle (.switch), onde o rótulo ao lado é o que a caixa significa; e o
+   .search da busca-seleção, que é um widget com o próprio
+   <label class="search"> por dentro (lupa + input na MESMA linha) -
+   herdar o flex-direction: column daqui jogava a lupa para cima do campo.
    A tipografia é a mesma de .form-grid label - até 02/09/2026 este
    seletor declarava só layout, e o rótulo caía no body: saía com o mesmo
    tom, peso e tamanho do conteúdo do campo logo abaixo dele. */
-.form-grupo .campos label:not(.inline):not(.search) {
+.form-grupo .campos label:not(.inline):not(.search):not(.switch) {
   display: flex;
   flex-direction: column;
   gap: 5px;
