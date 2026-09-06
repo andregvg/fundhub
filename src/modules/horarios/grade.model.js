@@ -16,8 +16,12 @@ export const JANELA_FABRICA = { ini: paraMin(COBERTURA_INICIO), fim: paraMin(COB
 
 const paraIntervalo = (b) => ({ ini: paraMin(b.inicio), fim: paraMin(b.fim) });
 
-// Posição de um bloco na barra gráfica, em % da janela da escola.
-// Blocos fora da janela são recortados para não vazarem da barra.
+// Posição de um bloco na barra gráfica, em % da régua.
+//
+// O recorte continua, como rede de segurança para quem passar uma
+// janela não esticada - mas com `janelaDaGrade` ele não deve acontecer
+// mais. A flag `forade` saiu: ela era calculada, nenhuma view a lia, e
+// o trecho fora da janela sumia da tela em silêncio (D9).
 export function posicaoNaBarra(bloco, { ini, fim } = JANELA_FABRICA) {
   const janela = fim - ini;
   const i = Math.max(paraMin(bloco.inicio), ini);
@@ -25,8 +29,30 @@ export function posicaoNaBarra(bloco, { ini, fim } = JANELA_FABRICA) {
   return {
     esquerda: ((i - ini) / janela) * 100,
     largura: (Math.max(f - i, 0) / janela) * 100,
-    forade: paraMin(bloco.inicio) < ini || paraMin(bloco.fim) > fim,
   };
+}
+
+// A RÉGUA da grade: a janela de cobertura esticada para caber tudo que
+// a grade desenha. Em dia de TDC o horário de quem conduz vai muito
+// além do fim da janela (uma EMEF fecha 18:20 e o TDC vai a 20h10),
+// e antes disso a barra era recortada sem aviso.
+//
+// UMA régua por grade, nunca uma por dia: dias com réguas diferentes
+// deixam de ser comparáveis, que é o motivo de a grade existir.
+//
+// Recebe os blocos JÁ RESOLVIDOS pelo fallback de D4, não o retorno cru
+// de getBlocos - um bloco herdado esticaria a régua num dia em que ele
+// nem aparece.
+//
+// A régua é leitura; a JANELA continua sendo a regra: `lacunasCobertura`
+// não muda de contrato e segue recebendo a janela configurada.
+export function janelaDaGrade(janela, blocosDesenhados) {
+  let { ini, fim } = janela || JANELA_FABRICA;
+  for (const b of blocosDesenhados || []) {
+    ini = Math.min(ini, paraMin(b.inicio));
+    fim = Math.max(fim, paraMin(b.fim));
+  }
+  return { ini, fim };
 }
 
 // Marcas de hora cheia para o eixo da barra.
