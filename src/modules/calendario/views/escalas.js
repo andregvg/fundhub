@@ -13,15 +13,15 @@
 // ============================================================
 import { gerarPropostaTDC, getEscalasRede, getEscalasUnidade, definirEscalaRede,
   definirEscalaUnidade, limparEscalaUnidade, getCalendarioMes } from '../calendario.model.js';
-import { getEscalas, definirEscalaTipo, rotulaEscala, ESCALAS_PADRAO } from '../../horarios/escalas.model.js';
+import { getEscalas, rotulaEscala, ESCALAS_PADRAO } from '../../horarios/escalas.model.js';
 import { getLocais } from '../../escolas/escolas.model.js';
+import { abrirTiposEscala } from './tipos-escala.js';
 import { esc } from '../../../shared/dom.js';
 import { fmtData, fmtExtenso, hojeISO } from '../../../shared/format.js';
 import { ico } from '../../../shared/ui/icones.js';
 import { toast } from '../../../shared/ui/toast.js';
 import { confirmar } from '../../../shared/ui/confirmar.js';
 import { criarBuscaSelecao } from '../../../shared/ui/busca-selecao.js';
-import { abrirDrawer, drawerHead } from '../../../shared/ui/drawer.js';
 import { loading, emptyState, erroBox } from '../../../shared/ui/feedback.js';
 
 const anoAtual = () => Number(hojeISO().slice(0, 4));
@@ -73,7 +73,7 @@ export async function renderEscalas(box, ctx) {
   // volta antes deste resolver) pode ter religado os mesmos ids -
   // quem chegar por último ganha; os demais desistem aqui.
   if (minhaGeracao !== geracao) return;
-  document.getElementById('cal-esc-tipos')?.addEventListener('click', abrirTiposEscala);
+  document.getElementById("cal-esc-tipos")?.addEventListener("click", () => abrirTiposEscala({ onMudou: aoMudarCatalogo }));
 
   const locais = await getLocais().catch(() => []);
   if (minhaGeracao !== geracao) return;
@@ -141,24 +141,47 @@ function pintarRede(rows) {
           <span class="cal-esc-data">${esc(fmtExtenso(r.data))}</span>
           ${ctxAtual.podeEditar ? `
             <select class="cal-esc-sel" aria-label="Escala de ${esc(fmtData(r.data))}">
-              <option value="">Sem escala</option>
               ${catalogo.filter(e => e.chave !== 'normal').map(e =>
                 `<option value="${esc(e.chave)}" ${r.escala === e.chave ? 'selected' : ''}>${esc(e.rotulo)}</option>`).join('')}
-            </select>` : `<span class="tag">${esc(rotulaEscala(r.escala, catalogo))}</span>`}
+            </select>
+            <button type="button" class="mini-btn no cal-esc-del" aria-label="Remover ${esc(fmtData(r.data))} do calendário de TDC">${ico('excluir', { tam: 14 })}</button>`
+          : `<span class="tag">${esc(rotulaEscala(r.escala, catalogo))}</span>`}
         </div>`).join('')}
     </div>`;
 
   corpo.querySelectorAll('.cal-esc-sel').forEach(s => s.addEventListener('change', () => salvarRede(s)));
+  corpo.querySelectorAll('.cal-esc-del').forEach(b =>
+    b.addEventListener('click', () => removerDataRede(b.closest('.cal-esc-linha').dataset.data)));
 }
 
 async function salvarRede(select) {
   const data = select.closest('.cal-esc-linha').dataset.data;
   select.disabled = true;
   try {
-    await definirEscalaRede(data, select.value || null);
+    await definirEscalaRede(data, select.value);
     toast({ titulo: 'Escala da rede atualizada', texto: fmtData(data), tipo: 'sucesso' });
   } catch (err) {
     toast({ titulo: 'Não foi possível salvar', texto: err.message || String(err), tipo: 'erro' });
+  } finally {
+    carregar();
+  }
+}
+
+// "Sem escala" era uma opção do <select> que apagava a linha - remoção
+// disfarçada. Agora é um botão explícito: a data volta a valer a
+// jornada Normal para toda a rede. Os horários de TDC gravados não são
+// tocados (a jornada aponta para o NOME da escala, não para a data).
+async function removerDataRede(data) {
+  const ok = await confirmar(`Remover ${fmtData(data)} do calendário de TDC?`, {
+    detalhe: 'A data volta a valer a jornada Normal para toda a rede. Os horários de TDC já cadastrados não são apagados - só deixam de valer nesta data.',
+    textoOk: 'Remover', perigo: true,
+  });
+  if (!ok) return;
+  try {
+    await definirEscalaRede(data, null);
+    toast({ titulo: 'Data removida', texto: fmtData(data), tipo: 'sucesso' });
+  } catch (err) {
+    toast({ titulo: 'Não foi possível remover', texto: err.message || String(err), tipo: 'erro' });
   } finally {
     carregar();
   }
@@ -319,79 +342,9 @@ async function gravarProposta() {
   carregar();
 }
 
-// A gaveta que dá sentido a tudo isto: renomear "TDC Presencial"/"TDC
-// Virtual" (ou acrescentar uma terceira variante) sem depender de
-// deploy nenhum. Rótulo é editável; chave não - o campo de chave só
-// existe na criação de um tipo novo e desaparece na edição de um já
-// existente.
-function abrirTiposEscala() {
-  abrirDrawer(`
-    ${drawerHead('Tipos de escala', 'Rótulos usados no calendário e na jornada')}
-    <div class="drawer-body">
-      <p class="form-hint">O nome muda aqui; o que já foi gravado (as datas do
-        calendário, os blocos de jornada) continua apontando para a mesma escala -
-        só o rótulo na tela muda.</p>
-      <div id="et-lista"></div>
-      <form id="et-novo" class="esc-row">
-        <input id="et-chave" placeholder="chave (ex.: tdc-c)" required
-               pattern="[a-z0-9]+(-[a-z0-9]+)*" title="letras minúsculas, números e hífen"
-               aria-label="Chave do novo tipo de escala" />
-        <input id="et-rotulo" placeholder="rótulo (ex.: TDC C)" required
-               aria-label="Rótulo do novo tipo de escala" />
-        <button type="submit" class="mini-btn" aria-label="Criar tipo de escala">${ico('adicionar', { tam: 14 })}</button>
-      </form>
-    </div>`);
-  pintarTipos();
-  document.getElementById('et-novo').addEventListener('submit', criarTipo);
-}
-
-function pintarTipos() {
-  // #et-lista é reescrito por inteiro a cada chamada - os `.et-rotulo`
-  // de antes somem com os nós velhos; religar sobre os novos não
-  // acumula listener (mesmo raciocínio de pintarProposta acima).
-  document.getElementById('et-lista').innerHTML = catalogo.map(e => `
-    <div class="esc-row" data-chave="${esc(e.chave)}">
-      <input class="et-rotulo" value="${esc(e.rotulo)}" aria-label="Rótulo de ${esc(e.chave)}" />
-      <span class="form-hint">${esc(e.chave)}</span>
-    </div>`).join('');
-  document.getElementById('et-lista').querySelectorAll('.et-rotulo').forEach(inp => {
-    inp.addEventListener('change', () => renomear(inp.closest('[data-chave]').dataset.chave, inp.value));
-  });
-}
-
-async function renomear(chave, rotulo) {
-  try {
-    await definirEscalaTipo(chave, { rotulo });
-    catalogo = await getEscalas();
-    toast({ titulo: 'Rótulo atualizado', texto: rotulo, tipo: 'sucesso' });
-    // Se a proposta estava aberta atrás da gaveta, reflete o rótulo novo
-    // nela; senão, atualiza a tabela "do que já está gravado" (rede ou
-    // escola) - as duas leem `catalogo` direto e ficariam com o rótulo
-    // velho até a próxima troca de aba/unidade/ano sem isto.
-    if (proposta) pintarProposta(); else carregar();
-  } catch (err) {
-    toast({ titulo: 'Não foi possível renomear', texto: err.message || String(err), tipo: 'erro' });
-    pintarTipos();                                // desfaz visualmente
-  }
-}
-
-async function criarTipo(e) {
-  e.preventDefault();
-  const chave = document.getElementById('et-chave').value.trim();
-  const rotulo = document.getElementById('et-rotulo').value.trim();
-  if (!chave || !rotulo) return;
-  try {
-    await definirEscalaTipo(chave, { rotulo, ordem: catalogo.length });
-    catalogo = await getEscalas();
-    document.getElementById('et-chave').value = '';
-    document.getElementById('et-rotulo').value = '';
-    pintarTipos();
-    // Mesmo raciocínio de renomear(): a tabela de fundo (proposta ou
-    // "o que já está gravado") lê `catalogo` direto e precisa repintar
-    // para a chave nova aparecer nos <select>.
-    if (proposta) pintarProposta(); else carregar();
-    toast({ titulo: 'Tipo de escala criado', texto: rotulo, tipo: 'sucesso' });
-  } catch (err) {
-    toast({ titulo: 'Não foi possível criar', texto: err.message || String(err), tipo: 'erro' });
-  }
+// Ao mudar o catálogo pela gaveta de tipos: relê e repinta a tela de
+// fundo (proposta aberta, ou a tabela do que já está gravado).
+async function aoMudarCatalogo() {
+  catalogo = await getEscalas().catch(() => [...ESCALAS_PADRAO]);
+  if (proposta) pintarProposta(); else carregar();
 }

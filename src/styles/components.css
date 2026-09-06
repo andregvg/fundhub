@@ -97,6 +97,11 @@ a.tile:hover {
   flex-wrap: wrap;
   margin-bottom: 10px;
 }
+/* O seletor de busca da toolbar (Horários "Por escola"/"Por servidor")
+   estica até o contador. min-width: 0 é obrigatório - sem ele o item
+   flex não encolhe abaixo do conteúdo e empurra o .count para baixo. */
+.toolbar > div:has(> .bs) { flex: 1 1 auto; min-width: 0; }
+.toolbar > .count { flex: 0 0 auto; }
 /* Linhas extras de filtro abaixo da busca (segmento, flags). */
 .toolbar-linha { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
 .toolbar-linha:last-of-type { margin-bottom: 16px; }

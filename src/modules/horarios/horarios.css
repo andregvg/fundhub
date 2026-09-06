@@ -189,7 +189,7 @@
 
 .hg-grade { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
 .hg-linha { display: grid; grid-template-columns: 30px 1fr; align-items: start; gap: 8px; }
-.hg-dia { padding-top: 4px; color: var(--muted); font-size: 12px; font-weight: 700; }
+.hg-dia { padding-top: 4px; color: var(--muted); font-size: 12px; font-weight: 700; text-transform: uppercase; }
 .hg-track { position: relative; border-radius: 8px; background: var(--surface-2); }
 .hg-bloco {
   position: absolute; height: 22px; padding: 0 6px;
@@ -228,7 +228,8 @@
 
 .hg-marca { position: absolute; top: 0; bottom: 0; }
 .hg-marca i { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--border); }
-.hg-marca em { position: absolute; top: -14px; color: var(--muted); font-size: 10px; font-style: normal; }
+.hg-marca em { position: absolute; top: -14px; font-size: 9.5px; font-style: normal;
+  color: color-mix(in srgb, var(--muted) 65%, var(--surface)); }
 
 /* Fora da grade: lista recolhida de quem tem vínculo mas não aparece. */
 .hg-fora { margin-top: 14px; font-size: 13px; }

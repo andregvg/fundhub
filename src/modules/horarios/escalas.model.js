@@ -83,6 +83,30 @@ export async function definirEscalaTipo(chave, { rotulo, ordem } = {}) {
   _escalas = null;                          // escreveu, invalidou
 }
 
+// true se a escala está gravada em algum bloco de jornada OU em alguma
+// data do calendário - só então NÃO pode ser excluída do catálogo.
+export async function escalaEmUso(chave) {
+  if (!hasSupabase()) return false;
+  const [b, d] = await Promise.all([
+    sb().from('horario_bloco').select('id', { count: 'exact', head: true }).eq('escala', chave),
+    sb().from('dia_calendario').select('data', { count: 'exact', head: true }).eq('escala', chave),
+  ]);
+  return (b.count || 0) > 0 || (d.count || 0) > 0;
+}
+
+export async function excluirEscalaTipo(chave) {
+  if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
+  if (chave === 'normal') throw new Error('A escala Normal não pode ser excluída.');
+  if (await escalaEmUso(chave)) {
+    const e = new Error('Esta escala está em uso (no calendário ou em jornadas). Remova esses registros antes de excluí-la.');
+    e.amigavel = true;
+    throw e;
+  }
+  const { error } = await sb().from('escala_tipo').delete().eq('chave', chave);
+  if (error) throw error;
+  _escalas = null;
+}
+
 // Três estados, e a diferença entre os dois últimos é o motivo de
 // escala_unidade existir:
 //   sem linha             → a escola segue o calendário da rede;

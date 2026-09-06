@@ -119,7 +119,7 @@ export function gradeHtml(dias, { linhas, blocosDe, mostrarCobertura }) {
 
 function eixo() {
   return marcasDaBarra().map(m =>
-    `<span class="hg-marca" style="left:${m.pos}%"><i></i><em>${esc(m.hora.slice(0, 2))}</em></span>`).join('');
+    `<span class="hg-marca" style="left:${m.pos}%"><i></i><em>${esc(m.hora.slice(0, 2))}h</em></span>`).join('');
 }
 
 // Clicar numa barra destaca o servidor dela e esmaece o resto. É o

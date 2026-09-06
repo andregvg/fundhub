@@ -144,3 +144,12 @@
   .cal-esc-data { font-size: 13.5px; }
   .cal-prop-data { font-size: 13.5px; }
 }
+
+/* Modal "Tipos de escala": cada linha = campo com rótulo + botão de excluir. */
+.et-linha { display: flex; gap: 8px; align-items: end; margin-bottom: 8px; }
+.et-campo {
+  flex: 1 1 auto; display: flex; flex-direction: column; gap: 4px;
+  color: var(--form-label); font-size: 11.5px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .04em;
+}
+.et-campo input { min-height: var(--campo); line-height: 1.25; text-transform: none; font-weight: 400; letter-spacing: 0; }
