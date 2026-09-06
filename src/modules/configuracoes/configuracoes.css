@@ -41,3 +41,8 @@
 .cfg-mod { margin-bottom: 28px; }
 .cfg-mod-head { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
 .cfg-mod-head h2 { font-size: 15px; margin: 0; }
+
+/* Painéis de Horários: cobertura por tipo e dia da semana de escala. */
+.cfg-cob-linha, .cfg-dia-linha { display: flex; flex-wrap: wrap; align-items: end; gap: 8px 12px; margin-bottom: 10px; }
+.cfg-cob-tipo { flex: 0 0 100%; font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--form-label); }
+.cfg-cob-linha input[type="time"] { min-height: var(--campo); }

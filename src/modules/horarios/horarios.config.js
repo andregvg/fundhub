@@ -4,11 +4,13 @@
 // views/ (cargos.js) e neste arquivo; os acessos, aqui.
 import { conf, definirConf } from '../../core/configuracoes.js';
 import { segmentosDaUnidade } from '../../core/segmentos.js';
-import { paraMin, paraHora } from './horarios.model.js';
+import { paraMin, paraHora, DIAS } from './horarios.model.js';
 import { JANELA_FABRICA } from './grade.model.js';
+import { getEscalas, definirEscalaTipo } from './escalas.model.js';
 import { pintarCargosGestao } from './views/cargos.js';
 import { esc } from '../../shared/dom.js';
 import { toast } from '../../shared/ui/toast.js';
+import { loading, erroBox } from '../../shared/ui/feedback.js';
 
 // Os tipos de cobertura que a rede usa. EMEF_EJA é o único combinado -
 // uma EMEF que também atende EJA funciona até mais tarde.
@@ -50,8 +52,48 @@ export const DECLARACAO = {
       rotulo: 'Janela de cobertura por tipo de escola',
       dica: 'O horário em que precisa haver alguém da equipe gestora na unidade. O padrão é 07:00–18:20 para todos os tipos.',
       painel: pintarCoberturaPorTipo },
+    { chave: 'dia_semana_escala', escopo: 'rede', grupo: 'calendario',
+      rotulo: 'Dia da semana de cada escala',
+      dica: 'Em que dia o TDC costuma cair. O calendário ainda manda na resolução de cada data - isto só faz a escala aparecer na jornada antes de o calendário do ano ser lançado.',
+      painel: pintarDiasDeEscala },
   ],
 };
+
+async function pintarDiasDeEscala(box) {
+  if (!box) return;
+  box.innerHTML = loading();
+  let catalogo;
+  try { catalogo = await getEscalas(); }
+  catch (err) { box.innerHTML = erroBox(err); return; }
+
+  const escalas = catalogo.filter(e => e.chave !== 'normal');
+  if (!escalas.length) {
+    box.innerHTML = '<p class="form-hint">Nenhuma escala de TDC no catálogo ainda.</p>';
+    return;
+  }
+
+  box.innerHTML = `<div class="cfg-dias esc-form">${escalas.map(e => `
+    <div class="cfg-dia-linha campos" data-chave="${esc(e.chave)}">
+      <label>${esc(e.rotulo)}
+        <select class="cfg-dia-sel">
+          <option value="">sem dia fixo</option>
+          ${DIAS.map(d => `<option value="${d.n}" ${e.dia_semana === d.n ? 'selected' : ''}>${esc(d.nome)}</option>`).join('')}
+        </select>
+      </label>
+    </div>`).join('')}</div>`;
+
+  box.addEventListener('change', async (e) => {
+    const sel = e.target.closest('.cfg-dia-sel'); if (!sel) return;
+    const chave = sel.closest('[data-chave]').dataset.chave;
+    sel.disabled = true;
+    try {
+      await definirEscalaTipo(chave, { dia_semana: sel.value ? Number(sel.value) : null });
+      toast({ titulo: 'Dia da escala atualizado', tipo: 'sucesso' });
+    } catch (err) {
+      toast({ titulo: 'Não foi possível salvar', texto: err.message || String(err), tipo: 'erro' });
+    } finally { sel.disabled = false; }
+  });
+}
 
 function pintarCoberturaPorTipo(box) {
   if (!box) return;

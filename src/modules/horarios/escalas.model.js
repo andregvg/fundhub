@@ -30,9 +30,9 @@ import { getEscalasRede, getEscalasUnidade } from '../calendario/calendario.mode
 // tocar em código, porque o formato de TDC muda a cada calendário
 // escolar.
 export const ESCALAS_PADRAO = [
-  { chave: 'normal', rotulo: 'Normal' },
-  { chave: 'tdc-presencial', rotulo: 'TDC Presencial' },
-  { chave: 'tdc-virtual',    rotulo: 'TDC Virtual' },
+  { chave: 'normal', rotulo: 'Normal', dia_semana: null },
+  { chave: 'tdc-presencial', rotulo: 'TDC Presencial', dia_semana: null },
+  { chave: 'tdc-virtual',    rotulo: 'TDC Virtual', dia_semana: null },
 ];
 
 // PURA de propósito: recebe o catálogo já carregado. Sem ele, usa o
@@ -59,9 +59,16 @@ export async function getEscalas() {
   // módulo pelo resto da sessão do navegador.
   if (!hasSupabase()) { _escalas = [...ESCALAS_PADRAO]; return _escalas; }
   const { data, error } = await sb().from('escala_tipo')
-    .select('chave, rotulo, ordem').order('ordem');
+    .select('chave, rotulo, ordem, dia_semana').order('ordem');
   if (error) {
     if (error.code === '42P01') { _escalas = [...ESCALAS_PADRAO]; return _escalas; }
+    // Migration 027 ainda não rodou: sem a coluna dia_semana, refaz sem ela.
+    if (error.code === '42703') {
+      const retry = await sb().from('escala_tipo').select('chave, rotulo, ordem').order('ordem');
+      if (retry.error) throw retry.error;
+      _escalas = (retry.data?.length ? retry.data : ESCALAS_PADRAO).map(e => ({ ...e, dia_semana: null }));
+      return _escalas;
+    }
     throw error;
   }
   _escalas = data?.length ? data : [...ESCALAS_PADRAO];
@@ -73,12 +80,29 @@ export async function getEscalas() {
 // sem cascata que renomeie isso. Criar uma chave nova (uma terceira
 // variante de TDC, por exemplo) é só uma linha nova - upsert cobre
 // os dois casos.
-export async function definirEscalaTipo(chave, { rotulo, ordem } = {}) {
+// Cria ou atualiza um tipo de escala. Na CRIAÇÃO exige o rótulo; na
+// atualização, só toca as colunas passadas - "definir o dia da semana"
+// não pode zerar o rótulo. `dia_semana: null` é um valor válido (tira
+// o dia fixo), então distingue-se de "não passei dia_semana" pela
+// presença da chave no objeto.
+export async function definirEscalaTipo(chave, campos = {}) {
   if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
-  if (!rotulo?.trim()) throw new Error('Informe o rótulo.');
-  const row = { chave, rotulo: rotulo.trim(), criado_por: await emailAtual() };
-  if (ordem !== undefined) row.ordem = ordem;
-  const { error } = await sb().from('escala_tipo').upsert(row, { onConflict: 'chave' });
+  const patch = {};
+  if ('rotulo' in campos) {
+    if (!campos.rotulo?.trim()) throw new Error('Informe o rótulo.');
+    patch.rotulo = campos.rotulo.trim();
+  }
+  if ('ordem' in campos) patch.ordem = campos.ordem;
+  if ('dia_semana' in campos) patch.dia_semana = campos.dia_semana;
+
+  const { data: existe } = await sb().from('escala_tipo').select('chave').eq('chave', chave).maybeSingle();
+  let error;
+  if (existe) {
+    ({ error } = await sb().from('escala_tipo').update(patch).eq('chave', chave));
+  } else {
+    if (!patch.rotulo) throw new Error('Informe o rótulo.');
+    ({ error } = await sb().from('escala_tipo').insert({ chave, criado_por: await emailAtual(), ...patch }));
+  }
   if (error) throw error;
   _escalas = null;                          // escreveu, invalidou
 }
@@ -115,6 +139,15 @@ export async function excluirEscalaTipo(chave) {
 export function resolverEscala({ rede, override } = {}) {
   if (override !== undefined && override !== null) return override.escala || 'normal';
   return rede || 'normal';
+}
+
+// As escalas que devem aparecer na gaveta de jornada de um servidor:
+// as em uso no calendário do ano ∪ as já gravadas nos blocos dele ∪
+// as com dia_semana definido (aparecem mesmo com o calendário vazio).
+export function escalasParaJornada({ emUsoNoAno = [], blocosDoServidor = [], catalogo = [] }) {
+  const s = new Set(['normal', ...emUsoNoAno, ...blocosDoServidor.map(b => b.escala || 'normal')]);
+  for (const e of catalogo) if (e.dia_semana != null) s.add(e.chave);
+  return [...s];
 }
 
 // Blocos daquela escala. Sem nenhum, cai nos 'normal' - é o fallback

@@ -45,9 +45,12 @@ export function abrirJornada({ servidor, unidadeId, blocos, recarregar, escalasE
         .map(b => ({ id: b.id, inicio: hhmm(b.inicio), fim: hhmm(b.fim), obs: b.obs || '' }));
     }
   }
+  // { [escala]: dia_semana } - uma escala com dia fixo mostra só aquele dia.
+  const diasFixos = Object.fromEntries((catalogoEscalas || []).map(e => [e.chave, e.dia_semana ?? null]));
+
   estado = {
     servidor, unidadeId, escala: chaves.includes(escalaInicial) ? escalaInicial : 'normal',
-    porEscala, recarregar, escalasEmUso: chaves, catalogoEscalas,
+    porEscala, recarregar, escalasEmUso: chaves, catalogoEscalas, diasFixos,
   };
 
   const abas = chaves.length > 1 ? `
@@ -95,15 +98,49 @@ export function abrirJornada({ servidor, unidadeId, blocos, recarregar, escalasE
 }
 
 // Só faz sentido "copiar para todos os dias" quando a escala tem 5
-// dias. Uma escala com dia da semana fixo (Task 5) tem um dia só.
+// dias. Uma escala com dia da semana fixo tem um dia só.
 function podeCopiar() {
   return !estado.diasFixos?.[estado.escala];
+}
+
+// Blocos gravados em outros dias de uma escala que passou a ter dia
+// fixo. Não são apagados em silêncio (D5) - a tela avisa e oferece
+// remover.
+function orfaos() {
+  const fixo = estado.diasFixos?.[estado.escala];
+  if (!fixo) return [];
+  const dias = estado.porEscala[estado.escala];
+  return DIAS.filter(d => d.n !== fixo)
+    .flatMap(d => dias[d.n].filter(l => !l.excluir && l.id).map(l => ({ dia: d, linha: l })));
+}
+
+function orfaosHtml() {
+  const o = orfaos();
+  if (!o.length) return '';
+  return `<div class="hj-orfaos">
+    <p class="hj-prob n-aviso">${ico('atencao', { tam: 14 })}
+      ${o.length} bloco(s) desta escala em dias diferentes de
+      ${esc(DIAS.find(d => d.n === estado.diasFixos[estado.escala]).nome.toLowerCase())} -
+      não valem mais e não aparecem abaixo.</p>
+    <button type="button" class="mini-btn no" id="hj-limpar-orfaos">${ico('excluir', { tam: 14 })} Remover esses blocos</button>
+  </div>`;
+}
+
+// Os dias que a aba atual mostra: uma escala com dia da semana fixo
+// mostra só aquele dia (não faz sentido preencher a segunda de uma
+// escala que só acontece às quartas); as demais mostram seg–sex.
+function diasVisiveis() {
+  const fixo = estado.diasFixos?.[estado.escala];
+  return fixo ? DIAS.filter(d => d.n === fixo) : DIAS;
 }
 
 function pintarDica() {
   const dica = document.getElementById('hj-dica');
   if (!dica) return;
-  dica.textContent = estado.escala === 'normal' ? ''
+  if (estado.escala === 'normal') { dica.textContent = ''; return; }
+  const fixo = estado.diasFixos?.[estado.escala];
+  dica.textContent = fixo
+    ? `Deixe em branco para seguir a jornada Normal desta ${DIAS.find(d => d.n === fixo).nome.toLowerCase()}.`
     : 'Deixe um dia em branco aqui para ele seguir a jornada Normal nesta escala. Só preencha os dias que mudam.';
 }
 
@@ -145,7 +182,7 @@ function aoMudarCampo(e) {
 
 function pintar() {
   const box = document.getElementById('hj-dias');
-  box.innerHTML = DIAS.map(d => {
+  box.innerHTML = orfaosHtml() + diasVisiveis().map(d => {
     const linhas = estado.porEscala[estado.escala][d.n].filter(l => !l.excluir);
     const problemas = validarDia(linhas.filter(l => l.inicio && l.fim));
     const total = totalDoDia(linhas.filter(l => l.inicio && l.fim));
@@ -184,6 +221,11 @@ function pintar() {
     else dias[dia] = dias[dia].filter(l => l !== alvo);
     pintar();
   }));
+
+  box.querySelector('#hj-limpar-orfaos')?.addEventListener('click', () => {
+    for (const { linha } of orfaos()) linha.excluir = true;
+    pintar();
+  });
 
   box.querySelectorAll('.hj-copiar').forEach(b => b.addEventListener('click', async () => {
     const origem = Number(b.dataset.dia);

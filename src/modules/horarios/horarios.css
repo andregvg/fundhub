@@ -1,8 +1,9 @@
 /* ============================================================
    FundHub - modules/horarios/horarios.css
-   A barra de horário. A pista representa sempre a janela 7h00–18h20,
-   e cada bloco é posicionado em % dentro dela - por isso a barra
-   funciona igual no celular e no desktop, sem rolagem horizontal.
+   A barra de horário. A pista representa a janela de cobertura da
+   escola (varia por tipo - ver horarios.config.js), e cada bloco é
+   posicionado em % dentro dela - por isso a barra funciona igual no
+   celular e no desktop, sem rolagem horizontal.
 
    No celular a linha empilha (dia / barra / total); a partir de 720px
    vira uma linha só, com o dia à esquerda e o total à direita.
@@ -272,3 +273,7 @@
   .hj-ate { display: inline; }
   .hj-obs { grid-column: auto; }
 }
+
+/* Aviso de blocos órfãos numa escala que passou a ter dia fixo. */
+.hj-orfaos { margin-bottom: 14px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-2); }
+.hj-orfaos .hj-prob { margin-top: 0; }

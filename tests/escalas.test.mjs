@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { resolverEscala, escolherBlocos, diaDaSemana, jornadaEm, rotulaEscala }
+import { resolverEscala, escolherBlocos, diaDaSemana, jornadaEm, rotulaEscala, escalasParaJornada }
   from '../src/modules/horarios/escalas.model.js';
 import { gerarPropostaTDC } from '../src/modules/calendario/calendario.model.js';
 
@@ -180,4 +180,15 @@ test('naoLetivos aceita array, nao so Set', () => {
 
 test('sem opcoes nenhuma (nem naoLetivos), nao lanca e usa o padrao', () => {
   assert.equal(gerarPropostaTDC(2026).length, 24);
+});
+
+// ── escalasParaJornada ──
+test('escalasParaJornada une as tres origens e sempre inclui normal', () => {
+  const r = escalasParaJornada({
+    emUsoNoAno: ['tdc-presencial'],
+    blocosDoServidor: [{ escala: 'tdc-virtual' }],
+    catalogo: [{ chave: 'tdc-c', dia_semana: 4 }, { chave: 'tdc-d', dia_semana: null }],
+  });
+  assert.ok(r.includes('normal') && r.includes('tdc-presencial') && r.includes('tdc-virtual') && r.includes('tdc-c'));
+  assert.ok(!r.includes('tdc-d'));
 });

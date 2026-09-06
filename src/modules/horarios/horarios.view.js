@@ -65,6 +65,9 @@ export async function render(app, { perfil, params } = {}) {
     }
   } catch { /* sem migration, ou rede sem TDC: só 'normal' */ }
   const catalogoEscalas = await getEscalas().catch(() => [...ESCALAS_PADRAO]);
+  // Uma escala com dia da semana fixo aparece na jornada mesmo que a
+  // rede ainda não a tenha usado no calendário do ano (Bloco G, D4).
+  for (const e of catalogoEscalas) if (e.dia_semana != null) emUso.add(e.chave);
 
   // Abas/chips seguem a ordem do catálogo (escala_tipo.ordem), não a
   // ordem de inserção no Set - senão a ordem depende de qual data caiu
