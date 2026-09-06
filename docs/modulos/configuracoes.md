@@ -41,6 +41,11 @@ como se comporta.
 1. No menu lateral, em "Minha conta", abra **Configurações**.
 2. Cada módulo aparece como um bloco, com as opções agrupadas por assunto.
 
+Algumas configurações da rede são listas que você edita ali mesmo - por
+exemplo, em Escolas, os locais de trabalho internos da SME (gerências e
+subsecretarias). Você renomeia na própria linha e adiciona pelo campo no fim
+da lista.
+
 ## Regras que o sistema aplica
 
 - Toda mudança numa configuração da rede fica registrada no histórico, com
@@ -64,4 +69,4 @@ novo) ou é uma configuração da rede que você não tem permissão para mudar.
 **Minhas preferências somem quando eu saio?**
 Não. Elas são do seu e-mail, não do navegador.
 
-> Atualizado na versão 0.16.0.
+> Atualizado na versão 0.17.0.

@@ -9,6 +9,18 @@ versionamento **MINOR** = módulo novo ou mudança de modelo de dados, **PATCH**
 
 ---
 
+## [0.17.0] - 2026-09-06
+
+### Alterado
+- O que o sistema chamava de "vínculo" e "lotação" agora se chama **local de
+  trabalho** em todas as telas - o mesmo termo do sistema da Secretaria.
+
+### Adicionado
+- Gerências, subsecretarias e coordenadorias da SME podem ser cadastradas como
+  locais de trabalho (além das escolas e da Sede). O nome é editável nas
+  configurações de Escolas. Ao cadastrar um servidor, já dá para informar o
+  cargo e o local de trabalho na mesma tela.
+
 ## [0.16.0] - 2026-09-05
 
 ### Adicionado

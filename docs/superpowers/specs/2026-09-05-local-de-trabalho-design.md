@@ -232,3 +232,13 @@ quem tem `oculto` não vê o painel.
 10. Legível em 375px, nos dois temas.
 11. `node --test tests/` e `python .claude/scripts/verificar_arquitetura.py`
     sem falhas.
+
+## Nota de implementação (05/09/2026)
+
+Entregue sobre o mecanismo do Bloco A: o editor dos locais internos é um
+painel de configuração de rede em `escolas.config.js`. A modelagem foi a
+(b) da § 3 - `unidade_escolar.tipo = 'interno'`, sem tabela nova.
+`servidor.cargo`/`servidor.lotacao` seguem mortas; a modal de novo servidor
+cria o primeiro vínculo, o dado continua só no vínculo. `getLocaisInternos`
+degrada para `[]` sem a 023; `criarLocalInterno` devolve erro amigável em
+`23514` (028 ausente) e `23503` (FK, ao excluir com servidor lotado).
