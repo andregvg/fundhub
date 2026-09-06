@@ -26,6 +26,11 @@
   min-height: var(--campo); line-height: 1.25; max-width: 120px;
 }
 
+/* Painel de lista editável (ex.: locais de trabalho internos, em Escolas). */
+.cfg-locais { display: flex; flex-direction: column; gap: 8px; }
+.cfg-local { align-items: center; }
+.cfg-local .cfg-local-nome { flex: 1 1 auto; min-width: 0; }
+
 /* Tela agregadora: um bloco por módulo. */
 .cfg-mod { margin-bottom: 28px; }
 .cfg-mod-head { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
