@@ -11,6 +11,7 @@ import { drawerHtml, montarDrawer } from '../../shared/ui/drawer.js';
 import { criarFiltroSegmento } from '../../shared/ui/filtro-segmento.js';
 import { podeEscrever } from '../../core/permissoes.js';
 import { ico } from '../../shared/ui/icones.js';
+import { mostrarTelefonesNoCard } from './escolas.config.js';
 import { detalhe } from './views/detalhe.js';
 import { abrirForm, removerEscola } from './views/formulario.js';
 
@@ -133,10 +134,14 @@ function pintar() {
 }
 
 function cardHtml(u) {
+  const tel = mostrarTelefonesNoCard()
+    ? (u.telefones || []).find(t => t.principal) || (u.telefones || [])[0]
+    : null;
   const tags = [
     u.tem_transporte ? `<span class="tag bus">${ico('transporte', { tam: 12 })} Transporte</span>` : '',
     u.tem_eja ? `<span class="tag eja">${ico('noturno', { tam: 12 })} EJA</span>` : '',
     u.oferta ? `<span class="tag">${esc(u.oferta)}</span>` : '',
+    tel ? `<span class="tag">${ico('fixo', { tam: 12 })} ${esc(tel.numero)}</span>` : '',
   ].join('');
   // O card exibe o NOME da escola, em caixa alta - não o apelido. O
   // apelido ("Alcina") é uma abreviação de uso interno; quem procura

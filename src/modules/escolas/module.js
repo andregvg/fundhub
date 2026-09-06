@@ -7,5 +7,6 @@ export default {
   rota: '#/escolas',
   nav: true,
   ativo: true,
+  config: () => import('./escolas.config.js'),
   load: () => import('./escolas.view.js'),
 };

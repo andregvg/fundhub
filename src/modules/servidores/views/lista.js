@@ -6,6 +6,7 @@ import { rotulaCargo } from '../vinculos.model.js';
 import { esc, norm } from '../../../shared/dom.js';
 import { emptyState } from '../../../shared/ui/feedback.js';
 import { ico } from '../../../shared/ui/icones.js';
+import { mostrarTelefonesNoCard } from '../servidores.config.js';
 
 export function combina(s, ctx) {
   const { filtro, seg, idxUnidades, filtroUnidade } = ctx;
@@ -65,6 +66,10 @@ function card(s) {
         esc(v.unidade?.apelido || v.unidade?.nome || 'sem escola')}</span>`).join('')
     : `<span class="tag eja">${ico('atencao', { tam: 12 })} Sem vínculo</span>`;
 
+  const tel = mostrarTelefonesNoCard()
+    ? (s.telefones || []).find(t => t.principal) || (s.telefones || [])[0]
+    : null;
+
   // Nome completo em caixa alta (como nos sistemas oficiais); o
   // apelido logo abaixo, em caixa normal - não precisa de destaque.
   return `<article class="card" data-id="${esc(s.id)}" tabindex="0">
@@ -73,6 +78,6 @@ function card(s) {
       ${cargos}
     </div>
     ${s.apelido ? `<div class="apelido">${esc(s.apelido)}</div>` : ''}
-    <div class="tags">${lugares}</div>
+    <div class="tags">${lugares}${tel ? `<span class="tag">${ico('fixo', { tam: 12 })} ${esc(tel.numero)}</span>` : ''}</div>
   </article>`;
 }
