@@ -16,6 +16,7 @@ import { drawerHtml, montarDrawer } from '../../shared/ui/drawer.js';
 import { criarFiltroSegmento, indexarUnidades } from '../../shared/ui/filtro-segmento.js';
 import { podeEscrever } from '../../core/permissoes.js';
 import { ico } from '../../shared/ui/icones.js';
+import { cardsPorLinha } from './servidores.config.js';
 import { pintarLista } from './views/lista.js';
 import { detalhe } from './views/detalhe.js';
 import { formServidor, removerServidor } from './views/formulario.js';
@@ -148,5 +149,6 @@ async function recarregar() {
 
 function pintar() {
   const box = document.getElementById('sv-cards');
+  box.style.setProperty('--por-linha', String(cardsPorLinha()));
   pintarLista(box, lista, ctxAtual());
 }

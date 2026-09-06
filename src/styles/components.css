@@ -411,7 +411,7 @@ a.tile:hover {
 :is(div, form):has(> input, > select) > .mini-btn { min-height: var(--campo); }
 
 /* ── Cards ────────────────────────────────────────────────── */
-.cards { display: grid; gap: 12px; grid-template-columns: 1fr; }
+.cards { display: grid; gap: 12px; grid-template-columns: 1fr; --por-linha: 3; }
 .card {
   padding: 16px;
   background: var(--surface);
@@ -935,6 +935,10 @@ input[type="checkbox"] { width: 18px; height: 18px; }
 .form-grupo .campos label > input,
 .form-grupo .campos label > select,
 .form-grupo .campos label > textarea { width: 100%; }
+/* Toggle dentro do formulário: alinha à esquerda (não `end`, que o
+   .switch base traz para dividir linha com um select de filtro) e larga
+   a altura de botão - aqui ele é uma linha própria. */
+.form-grupo .campos label.switch { align-self: start; min-height: var(--campo); }
 
 /* Valor derivado, exibido no formulário mas editado em outro lugar
    (cargo e lotação vêm do vínculo). Parece campo, não é - e agora tem
@@ -1069,6 +1073,14 @@ hr.sep { margin: 20px 0; border: 0; border-top: 1px solid var(--border); }
     padding: 5px 8px;
     font-size: 13px;
   }
+}
+
+/* Acima de 900px a grade de cards obedece à preferência "cards por
+   linha" (--por-linha, escrita pela view a partir de <x>.config.js).
+   minmax(0,1fr) e não 1fr: um nome comprido não estica a coluna nem
+   estoura a grade. Abaixo de 900px continua o auto-fill do bloco 560. */
+@media (min-width: 900px) {
+  .cards { grid-template-columns: repeat(var(--por-linha), minmax(0, 1fr)); }
 }
 
 /* Em telas largas a gaveta ganha mais espaço: os formulários de

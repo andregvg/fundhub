@@ -27,7 +27,7 @@ export function abrirForm(u, ctx) {
         <fieldset class="form-grupo">
           <legend>Identificação</legend>
           <div class="campos auto">
-            <label>Nome <input name="nome" required value="${v('nome')}" />
+            <label class="col-full">Nome <input name="nome" required value="${v('nome')}" />
               <small class="form-hint">Como aparece nos cards e nas listas.</small></label>
             <label>Apelido <input name="apelido" value="${v('apelido')}" />
               <small class="form-hint">Forma curta de uso interno (ex.: “Alcina”).</small></label>
@@ -43,8 +43,10 @@ export function abrirForm(u, ctx) {
               <datalist id="segs"><option>EMEF</option><option>EMEI</option><option>CEI</option><option>EMEPB</option><option>CONVENIADA</option></datalist>
             </label>
             <label>Oferta <input name="oferta" placeholder="EF1/EF2" value="${v('oferta')}" /></label>
-            <label class="inline col-full"><input type="checkbox" name="tem_transporte" ${chk('tem_transporte')} /> Transporte de alunos</label>
-            <label class="inline col-full"><input type="checkbox" name="tem_eja" ${chk('tem_eja')} /> Atende EJA</label>
+            <label class="switch col-full"><input type="checkbox" name="tem_transporte" ${chk('tem_transporte')} />
+              <span class="switch-trilho" aria-hidden="true"></span> Transporte de alunos</label>
+            <label class="switch col-full"><input type="checkbox" name="tem_eja" ${chk('tem_eja')} />
+              <span class="switch-trilho" aria-hidden="true"></span> Atende EJA</label>
           </div>
         </fieldset>
 

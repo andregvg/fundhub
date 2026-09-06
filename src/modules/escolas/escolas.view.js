@@ -11,7 +11,7 @@ import { drawerHtml, montarDrawer } from '../../shared/ui/drawer.js';
 import { criarFiltroSegmento } from '../../shared/ui/filtro-segmento.js';
 import { podeEscrever } from '../../core/permissoes.js';
 import { ico } from '../../shared/ui/icones.js';
-import { mostrarTelefonesNoCard } from './escolas.config.js';
+import { mostrarTelefonesNoCard, mostrarServidoresNoCard, cardsPorLinha } from './escolas.config.js';
 import { detalhe } from './views/detalhe.js';
 import { abrirForm, removerEscola } from './views/formulario.js';
 
@@ -20,6 +20,24 @@ let perfil = null;
 let seg = null;                 // filtro de segmento (pré-preenchido pelo perfil)
 let podeEditar = false;
 let filtro = { q: '', oferta: '', transporte: false, eja: false };
+let contagemServidores = {};    // unidadeId → nº de locais de trabalho abertos (só quando a opção liga)
+
+// A contagem só é carregada quando a preferência "Exibir quantidade de
+// servidores" está ligada - a maioria não pediu, e a lista de servidores
+// não deve ser baixada por causa dela. O model de servidores tem cache
+// próprio, então quem navega para lá em seguida não paga duas vezes.
+async function carregarContagem() {
+  contagemServidores = {};
+  if (!mostrarServidoresNoCard()) return;
+  try {
+    const { getServidores, vinculosAbertos } = await import('../servidores/servidores.model.js');
+    for (const s of await getServidores()) {
+      for (const v of vinculosAbertos(s)) {
+        if (v.unidade_id) contagemServidores[v.unidade_id] = (contagemServidores[v.unidade_id] || 0) + 1;
+      }
+    }
+  } catch (_) { contagemServidores = {}; }   // degrada: card fica sem o número
+}
 
 export async function render(app, ctx = {}) {
   perfil = ctx.perfil || null;
@@ -58,6 +76,7 @@ export async function render(app, ctx = {}) {
 
   try {
     ALL = await getUnidades();
+    await carregarContagem();
   } catch (err) {
     document.getElementById('cards').innerHTML = erroBox(err);
     return;
@@ -122,6 +141,7 @@ function pintar() {
   const lista = ALL.filter(combina).sort((a, b) => a.nome.localeCompare(b.nome, 'pt'));
   document.getElementById('count').textContent = `${lista.length} de ${ALL.length} escolas`;
   const cards = document.getElementById('cards');
+  cards.style.setProperty('--por-linha', String(cardsPorLinha()));
   if (ALL.length) {
     cards.innerHTML = lista.map(cardHtml).join('')
       || emptyState(ico('buscar', { tam: 32 }), 'Nenhuma escola encontrada', 'Ajuste a busca ou os filtros.');
@@ -142,6 +162,9 @@ function cardHtml(u) {
     u.tem_eja ? `<span class="tag eja">${ico('noturno', { tam: 12 })} EJA</span>` : '',
     u.oferta ? `<span class="tag">${esc(u.oferta)}</span>` : '',
     tel ? `<span class="tag">${ico('fixo', { tam: 12 })} ${esc(tel.numero)}</span>` : '',
+    mostrarServidoresNoCard()
+      ? `<span class="tag">${ico('equipe', { tam: 12 })} ${contagemServidores[u.id] || 0} ${(contagemServidores[u.id] || 0) === 1 ? 'servidor' : 'servidores'}</span>`
+      : '',
   ].join('');
   // O card exibe o NOME da escola, em caixa alta - não o apelido. O
   // apelido ("Alcina") é uma abreviação de uso interno; quem procura
@@ -168,6 +191,7 @@ function porChave(key) {
 // trabalhar com dado velho.
 async function recarregar() {
   ALL = await getUnidades();
+  await carregarContagem();
   pintarOfertas();
   pintar();
   return ctxAtual();

@@ -17,6 +17,12 @@ export const DECLARACAO = {
     { chave: 'telefones_no_card', escopo: 'usuario', grupo: 'exibicao',
       tipo: 'switch', rotulo: 'Exibir telefone no card',
       dica: 'Mostra o telefone principal da escola na lista.', padrao: false },
+    { chave: 'servidores_no_card', escopo: 'usuario', grupo: 'exibicao',
+      tipo: 'switch', rotulo: 'Exibir quantidade de servidores',
+      dica: 'Conta quem tem local de trabalho aberto na unidade.', padrao: false },
+    { chave: 'cards_por_linha', escopo: 'usuario', grupo: 'exibicao',
+      tipo: 'numero', rotulo: 'Cards por linha (telas largas)',
+      min: 1, max: 6, padrao: 3 },
     { chave: 'locais_internos', escopo: 'rede', grupo: 'regras',
       rotulo: 'Locais de trabalho internos',
       dica: 'Gerências, subsecretarias e coordenadorias da SME onde há servidores lotados. As escolas se cadastram na própria tela.',
@@ -25,6 +31,11 @@ export const DECLARACAO = {
 };
 
 export const mostrarTelefonesNoCard = () => pref('escolas', 'telefones_no_card') ?? false;
+export const mostrarServidoresNoCard = () => pref('escolas', 'servidores_no_card') ?? false;
+export const cardsPorLinha = () => {
+  const n = Number(pref('escolas', 'cards_por_linha'));
+  return Number.isFinite(n) ? Math.max(1, Math.min(6, Math.round(n))) : 3;
+};
 
 async function pintarLocaisInternos(box) {
   if (!box) return;
