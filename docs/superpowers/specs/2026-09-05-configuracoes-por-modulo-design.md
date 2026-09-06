@@ -418,3 +418,17 @@ o kernel dispara, o módulo responde.
 9. Nenhuma view existente precisou ser alterada para ganhar a barra de ações.
 10. Legível em 375px, nos dois temas.
 11. `python .claude/scripts/verificar_arquitetura.py` sem violações.
+
+## Nota de implementação (05/09/2026)
+
+O Bloco A entregou o mecanismo + o módulo Configurações + a prova real
+`telefones_no_card` (Escolas e Servidores). `cards_por_linha`,
+`servidores_no_card` e os painéis de Horários/Dashboard entram nas specs
+E/F/G - cada uma acrescenta ao `<x>.config.js` o item que ela consome, em
+vez de o Bloco A declarar tudo antecipadamente (R13).
+
+Duas exceções nomeadas nasceram aqui: o roteador importa
+`modules/configuracoes/painel.js` por `import()` **dinâmico** no clique da
+engrenagem (registrada em `.claude/rules/arquitetura.md` e no verificador);
+e `shared/ui/drawer.js` ganhou `garantirDrawer()` para a gaveta abrir sem
+depender do markup que a view montou.

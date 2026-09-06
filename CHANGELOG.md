@@ -9,6 +9,14 @@ versionamento **MINOR** = módulo novo ou mudança de modelo de dados, **PATCH**
 
 ---
 
+## [0.15.0] - 2026-09-05
+
+### Adicionado
+- Tela de **Configurações** (em "Minha conta") e uma engrenagem no topo de
+  cada módulo que tem o que ajustar. Começa com uma opção: exibir o telefone
+  principal no card de Escolas e de Servidores. As preferências são suas e
+  seguem o seu login; o que for decisão da rede só quem tem permissão muda.
+
 ## [0.14.6] - 2026-09-05
 
 ### Corrigido
