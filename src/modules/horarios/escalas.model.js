@@ -183,6 +183,38 @@ export function escolherBlocos(blocos, escala, variante = 1) {
   return daEscala(lista, 'normal').filter(b => varDe(b) === 1);
 }
 
+// Os números de variante em uso numa (escala, dia) de uma unidade, em
+// ordem crescente. SEMPRE inclui a 1: um dia sem nenhum bloco escrito
+// ainda tem a variante 1 - a implícita, degrau final do fallback de D4.
+export function variantesDe(blocos, escala, dia) {
+  const ns = new Set([1]);
+  for (const b of blocos || []) {
+    if ((b.escala || 'normal') === escala && b.dia_semana === dia) ns.add(varDe(b));
+  }
+  return [...ns].sort((a, b) => a - b);
+}
+
+// Quem conduz o TDC naquela variante (o `servidor_id`), ou null.
+//
+// Null é estado VÁLIDO e previsto: na quarta-feira sem TDC que tem
+// revezamento não há responsável nenhum, e a tela cai em "Variante N".
+//
+// Nenhuma constraint impede dois marcados na mesma variante (seria um
+// índice parcial sobre um agregado - D5). Com dois, vence o primeiro
+// da `ordem` da grade: o desempate precisa ser determinístico, senão o
+// rótulo troca entre dois repintes da mesma tela. Marcado que não está
+// na ordem (saiu da grade) ainda é devolvido - o nome certo é melhor
+// que "variante N".
+export function conduzDaVariante(blocos, { escala, dia, variante, ordem = [] } = {}) {
+  const ids = new Set((blocos || [])
+    .filter(b => (b.escala || 'normal') === escala && b.dia_semana === dia
+              && varDe(b) === variante && b.conduz)
+    .map(b => b.servidor_id));
+  if (!ids.size) return null;
+  for (const id of ordem) if (ids.has(id)) return id;
+  return [...ids].sort()[0];
+}
+
 // 0=domingo … 6=sábado. O '+ T00:00:00' é obrigatório: sem ele o JS
 // lê a string como UTC e no Brasil o dia volta um.
 export function diaDaSemana(iso) {

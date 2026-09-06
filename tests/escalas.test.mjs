@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { resolverEscala, escolherBlocos, diaDaSemana, jornadaEm, rotulaEscala, escalasParaJornada, varDe }
+import { resolverEscala, escolherBlocos, diaDaSemana, jornadaEm, rotulaEscala, escalasParaJornada, varDe, variantesDe, conduzDaVariante }
   from '../src/modules/horarios/escalas.model.js';
 import { gerarPropostaTDC } from '../src/modules/calendario/calendario.model.js';
 
@@ -242,4 +242,54 @@ test('escalasParaJornada une as tres origens e sempre inclui normal', () => {
   });
   assert.ok(r.includes('normal') && r.includes('tdc-presencial') && r.includes('tdc-virtual') && r.includes('tdc-c'));
   assert.ok(!r.includes('tdc-d'));
+});
+
+// ── variantesDe / conduzDaVariante ──
+
+const BQ = (servidor_id, escala, variante, inicio, extra = {}) =>
+  ({ servidor_id, escala, variante, inicio, fim: '12:00', dia_semana: 3, ...extra });
+
+test('variantesDe: um dia sem nada ainda tem a variante 1', () => {
+  assert.deepEqual(variantesDe([], 'tdc-presencial', 3), [1]);
+});
+
+test('variantesDe: devolve em ordem, sem repetir', () => {
+  const blocos = [BQ('s1', 'tdc-presencial', 2, '06:45'), BQ('s2', 'tdc-presencial', 2, '11:10'),
+                  BQ('s1', 'tdc-presencial', 1, '11:10')];
+  assert.deepEqual(variantesDe(blocos, 'tdc-presencial', 3), [1, 2]);
+});
+
+test('variantesDe: nao mistura escala nem dia', () => {
+  const blocos = [BQ('s1', 'tdc-virtual', 3, '10:40'),
+                  { ...BQ('s1', 'tdc-presencial', 4, '10:40'), dia_semana: 5 }];
+  assert.deepEqual(variantesDe(blocos, 'tdc-presencial', 3), [1]);
+});
+
+test('conduzDaVariante: devolve quem esta marcado naquela variante', () => {
+  const blocos = [BQ('s1', 'tdc-presencial', 1, '11:10', { conduz: true }),
+                  BQ('s2', 'tdc-presencial', 1, '06:45'),
+                  BQ('s2', 'tdc-presencial', 2, '11:10', { conduz: true })];
+  assert.equal(conduzDaVariante(blocos, { escala: 'tdc-presencial', dia: 3, variante: 1 }), 's1');
+  assert.equal(conduzDaVariante(blocos, { escala: 'tdc-presencial', dia: 3, variante: 2 }), 's2');
+});
+
+test('conduzDaVariante: ninguem marcado e null - a quarta sem TDC que reveza', () => {
+  const blocos = [BQ('s1', 'normal', 2, '09:45'), BQ('s2', 'normal', 2, '06:50')];
+  assert.equal(conduzDaVariante(blocos, { escala: 'normal', dia: 3, variante: 2 }), null);
+});
+
+test('conduzDaVariante: com dois marcados, vence o primeiro da ordem da grade', () => {
+  // Estado que nenhuma constraint impede (D5). O desempate existe para
+  // o rotulo nao trocar entre dois repintes da mesma tela.
+  const blocos = [BQ('s1', 'tdc-presencial', 1, '11:10', { conduz: true }),
+                  BQ('s2', 'tdc-presencial', 1, '06:45', { conduz: true })];
+  assert.equal(conduzDaVariante(blocos, { escala: 'tdc-presencial', dia: 3, variante: 1, ordem: ['s2', 's1'] }), 's2');
+  assert.equal(conduzDaVariante(blocos, { escala: 'tdc-presencial', dia: 3, variante: 1, ordem: ['s1', 's2'] }), 's1');
+});
+
+test('conduzDaVariante: marcado fora da ordem ainda e devolvido', () => {
+  // Quem conduz pode ter saido da grade (deixou de ser exibido). Melhor
+  // rotular com o nome certo do que cair em "variante N".
+  const blocos = [BQ('s9', 'tdc-presencial', 1, '11:10', { conduz: true })];
+  assert.equal(conduzDaVariante(blocos, { escala: 'tdc-presencial', dia: 3, variante: 1, ordem: ['s1'] }), 's9');
 });
