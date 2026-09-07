@@ -23,13 +23,16 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      # fetch-depth: 0 traz o HISTORICO, nao so o ultimo commit. E o que
+      # permite descobrir QUANDO a versao mudou (passo "Carimbar a versao").
+      # Custa segundos aqui e nada para quem usa o site.
       - name: Checkout main
         uses: actions/checkout@v4
-        with: { ref: main, path: site-main }
+        with: { ref: main, path: site-main, fetch-depth: 0 }
 
       - name: Checkout dev
         uses: actions/checkout@v4
-        with: { ref: dev, path: site-dev }
+        with: { ref: dev, path: site-dev, fetch-depth: 0 }
         continue-on-error: true
 
       - name: Montar site (_site)
@@ -43,6 +46,63 @@ jobs:
             rm -rf _site/dev/.git _site/dev/.github
           fi
           touch _site/.nojekyll
+
+      # ── Carimbo da versao ────────────────────────────────────────
+      # Escreve _site/versao.json: um bilhete de ~600 bytes com a versao,
+      # QUANDO ela passou a valer, o commit e o resumo do que mudou. O
+      # rodape le isso so quando alguem passa o mouse sobre a versao -
+      # nunca no boot (ver shell/chrome.js).
+      #
+      # Tudo e DERIVADO do que ja esta no repositorio: nada aqui e uma
+      # terceira fonte de verdade para manter a mao. O ritual de release
+      # continua sendo o mesmo - subir CONFIG.versao e escrever o
+      # CHANGELOG.
+      #
+      # Este e o unico arquivo servido que nao existe no repositorio -
+      # excecao nomeada em CLAUDE.md. E metadado, nao codigo: nada e
+      # compilado nem transformado, e a regra "sem build" continua
+      # valendo integralmente para todo o codigo.
+      - name: Carimbar a versao
+        run: |
+          set -uo pipefail
+
+          # $1 = pasta do checkout (a fonte, com .git)  $2 = pasta no _site
+          # Cada ambiente carimba a SUA propria versao: dev anda na frente
+          # de main, e copiar o carimbo de um para o outro faria o site de
+          # testes mentir sobre o que esta rodando nele.
+          carimbar() {
+            local fonte="$1" destino="$2"
+            [ -d "$fonte" ] && [ -d "$destino" ] || return 0
+
+            local versao data sha resumo
+            versao=$(sed -n "s/.*versao: *'\([^']*\)'.*/\1/p" "$fonte/src/core/config.js")
+            if [ -z "$versao" ]; then
+              echo "::warning::versao nao encontrada em $fonte - sem carimbo"
+              return 0
+            fi
+
+            # O commit que SUBIU esta versao, nao a hora do deploy: um
+            # redeploy sem trocar de versao nao pode mover o carimbo, senao
+            # ele passa a dizer que a versao entrou em vigor hoje - que e
+            # exatamente o defeito que este carimbo existe para corrigir.
+            # -S casa o commit em que a string nasceu.
+            data=$(git -C "$fonte" log -1 --format=%cI -S"versao: '$versao'" -- src/core/config.js || true)
+            sha=$( git -C "$fonte" log -1 --format=%h  -S"versao: '$versao'" -- src/core/config.js || true)
+
+            # O resumo sao os negritos de abertura do bloco do topo do
+            # CHANGELOG - ja escritos para quem USA o sistema, entao nao ha
+            # texto novo para manter em lugar nenhum.
+            resumo=$(awk '/^## \[/{n++} n==1' "$fonte/CHANGELOG.md" 2>/dev/null \
+                     | sed -n 's/^- \*\*\([^*]*\)\*\*.*/\1/p' | sed 's/[.:]$//' | head -6)
+
+            jq -n --arg v "$versao" --arg d "$data" --arg s "$sha" \
+                  --argjson r "$(printf '%s' "$resumo" | jq -R -s 'split("\n") | map(select(length > 0))')" \
+                  '{versao:$v, data:$d, commit:$s, resumo:$r}' > "$destino/versao.json"
+            echo "$destino/versao.json:"; cat "$destino/versao.json"
+          }
+
+          carimbar site-main _site
+          carimbar site-dev  _site/dev
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

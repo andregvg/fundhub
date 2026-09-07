@@ -20,7 +20,7 @@ import { source } from '../core/supabase.js';
 import { signOut } from '../core/auth.js';
 import { limparPerfil, ultimoAcessoAnterior } from '../core/perfil.js';
 import { esc } from '../shared/dom.js';
-import { fmtDataHora, fmtData, hojeISO, agoraISO } from '../shared/format.js';
+import { fmtDataHora, agoraISO } from '../shared/format.js';
 import { ico } from '../shared/ui/icones.js';
 import { limparCaches } from '../shared/cache.js';
 import { toast } from '../shared/ui/toast.js';
@@ -130,7 +130,7 @@ export function setChrome(logado, user, perfil) {
     menu = document.createElement('div');
     menu.className = 'user-menu';
     menu.innerHTML = `
-      <button class="user-btn" id="user-btn" type="button" aria-label="Menu do usuário"
+      <button class="topbar-acao user-btn" id="user-btn" type="button" aria-label="Menu do usuário"
               aria-haspopup="true" aria-expanded="false">${ico('servidor', { tam: 20 })}</button>
       <div class="user-panel" id="user-panel" hidden>
         <div class="um-head">
@@ -229,7 +229,74 @@ export function marcarAtualizacao() {
   if (el) el.textContent = `atualizado ${fmtDataHora(agoraISO())}`;
 }
 
+// ── Carimbo da versão (rodapé) ───────────────────────────────
+// O rodapé mostra SÓ a versão. Antes ele imprimia `hojeISO()` ao lado
+// dela, o que fazia a data de hoje passar por "data da versão" - todo
+// dia dizia uma coisa diferente sobre a mesma versão.
+//
+// A data de verdade vem de `versao.json`, um bilhete de ~600 bytes que
+// o workflow de deploy escreve a partir do commit que subiu
+// `CONFIG.versao` (ver .github/workflows/pages.yml). É buscado no
+// PRIMEIRO hover/foco, nunca no boot: quem não passa o mouse não paga
+// requisição nenhuma, e quem passa paga uma só por sessão.
+//
+// Sem o arquivo (dev-local, ou antes do primeiro deploy) a caixinha
+// mostra só a versão. Degrada, não quebra.
+const CHANGELOG_URL = 'https://github.com/andregvg/fundhub/blob/main/CHANGELOG.md';
+
+let _carimbo;            // undefined = não buscado ainda; null = indisponível
+
+async function lerCarimbo() {
+  if (_carimbo !== undefined) return _carimbo;
+  _carimbo = null;                                  // não tenta de novo se falhar
+  try {
+    // Relativo ao documento SEM o hash: com `#/rota` no fim, uma URL
+    // sem barra final resolveria para o diretório pai (a raiz), e o
+    // /dev/ acabaria lendo o carimbo da produção.
+    const alvo = new URL('versao.json', location.href.split('#')[0]);
+    const r = await fetch(alvo, { cache: 'no-cache' });
+    if (r.ok) _carimbo = await r.json();
+  } catch (_) { /* sem carimbo: a caixinha mostra só a versão */ }
+  return _carimbo;
+}
+
+function cartaoHtml(c) {
+  const linhas = (c?.resumo || []).map(t => `<li>${esc(t)}</li>`).join('');
+  return `
+    <b class="bc-versao">Versão ${esc(CONFIG.versao)}</b>
+    <span class="bc-data">${c?.data
+      ? `no ar desde ${esc(fmtDataHora(c.data))}`
+      : '<i>data indisponível fora do site publicado</i>'}</span>
+    ${linhas ? `<ul class="bc-resumo">${linhas}</ul>` : ''}
+    <a class="bc-link" href="${CHANGELOG_URL}" target="_blank" rel="noopener noreferrer">
+      ${ico('externo', { tam: 13 })} Histórico completo</a>`;
+}
+
 export function carimboRodape() {
-  document.getElementById('build-info').textContent =
-    `v${CONFIG.versao} · ${fmtData(hojeISO())}`;
+  const btn = document.getElementById('build-info');
+  const card = document.getElementById('build-card');
+  if (!btn || !card) return;
+
+  btn.textContent = `v${CONFIG.versao}`;
+  btn.setAttribute('aria-label', `Versão ${CONFIG.versao} - ver o que mudou`);
+
+  let pintado = false;
+  const abrir = async () => {
+    if (!pintado) { card.innerHTML = cartaoHtml(await lerCarimbo()); pintado = true; }
+    card.hidden = false;
+    btn.setAttribute('aria-expanded', 'true');
+  };
+  const fechar = () => { card.hidden = true; btn.setAttribute('aria-expanded', 'false'); };
+
+  // Hover para quem usa mouse, foco para quem usa teclado, clique para
+  // quem está no celular - onde hover não existe.
+  const wrap = document.getElementById('build-wrap');
+  wrap.addEventListener('mouseenter', abrir);
+  wrap.addEventListener('mouseleave', fechar);
+  btn.addEventListener('focus', abrir);
+  btn.addEventListener('click', () => (card.hidden ? abrir() : fechar()));
+  wrap.addEventListener('focusout', (e) => {
+    if (!wrap.contains(e.relatedTarget)) fechar();
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') fechar(); });
 }

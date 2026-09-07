@@ -15,7 +15,7 @@
 </head>
 <body>
   <header class="topbar anon">
-    <button class="nav-toggle" id="nav-toggle" type="button" aria-label="Menu"
+    <button class="topbar-acao nav-toggle" id="nav-toggle" type="button" aria-label="Menu"
             aria-expanded="false" aria-controls="sidebar"></button>
 
     <a class="brand" href="#/">
@@ -49,8 +49,15 @@
       <main id="app" class="app"><div class="loading">Carregando…</div></main>
 
       <footer class="footer">
+        <!-- A versão vem ANTES do texto institucional e os dois andam
+             juntos, à direita: encostada na data de hoje, ela parecia
+             dizer que a versão entrou em vigor hoje. -->
+        <span class="build-wrap" id="build-wrap">
+          <button type="button" class="build-info" id="build-info"
+                  aria-haspopup="dialog" aria-expanded="false"></button>
+          <span class="build-card" id="build-card" hidden></span>
+        </span>
         <span>FundHub · Gerência de Ensino Fundamental · SME Ribeirão Preto</span>
-        <span id="build-info"></span>
       </footer>
     </div>
   </div>

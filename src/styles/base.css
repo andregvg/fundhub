@@ -54,21 +54,8 @@ a { color: var(--brand); text-decoration: none; }
    Acima de 720px muda para 10px e --topo muda para 61px. Se mexer
    no padding, atualize o token também. */
 
-.nav-toggle {
-  flex: 0 0 auto;
-  width: 34px;
-  height: 34px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-btn);
-  background: var(--surface-2);
-  color: var(--text);
-  font-size: 15px;
-  cursor: pointer;
-}
-.nav-toggle:hover { background: var(--surface-3); }
+/* Caixa, tamanho e hover vêm de .topbar-acao (components.css). */
+.nav-toggle { font-size: 15px; }
 
 /* Na tela de login (e no acesso pendente) não há para onde navegar. */
 .topbar.anon .nav-toggle { display: none; }
@@ -159,19 +146,8 @@ body.menu-aberto .sidebar { transform: translateX(0); }
 
 /* ── Menu de usuário (dropdown no canto superior direito) ──── */
 .user-menu { position: relative; }
-.user-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 34px;
-  height: 34px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-btn);
-  background: var(--surface-2);
-  color: var(--text);
-  cursor: pointer;
-}
-.user-btn:hover { border-color: color-mix(in srgb, var(--brand) 40%, var(--border)); }
+/* Caixa, tamanho e hover vêm de .topbar-acao (components.css); aqui só
+   o que é do usuário. */
 .user-btn.is-admin { color: var(--brand); border-color: color-mix(in srgb, var(--brand) 35%, var(--border)); }
 
 .user-panel {
@@ -237,10 +213,15 @@ body.menu-aberto .sidebar { transform: translateX(0); }
 }
 .loading { color: var(--muted); padding: 48px 0; text-align: center; }
 
+/* Os dois blocos andam juntos, empurrados à direita: a versão colada
+   no texto institucional se lê como identificação do sistema. Quando
+   ela ficava sozinha no canto oposto, ao lado de uma data, parecia
+   dizer que a versão tinha entrado em vigor naquele dia. */
 .footer {
   display: flex;
-  justify-content: space-between;
-  gap: 12px;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
   flex-wrap: wrap;
   padding: 14px;
   color: var(--muted);
@@ -248,6 +229,49 @@ body.menu-aberto .sidebar { transform: translateX(0); }
   border-top: 1px solid var(--border);
   background: var(--surface);
 }
+
+/* ── Carimbo da versão + caixinha do que mudou ─────────────── */
+.build-wrap { position: relative; display: inline-flex; }
+.build-info {
+  border: 0;
+  background: none;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+}
+.build-info:hover, .build-info:focus-visible { color: var(--text); }
+
+.build-card {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  right: 0;
+  z-index: 90;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: max-content;
+  max-width: min(320px, calc(100vw - 28px));
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-2);
+  box-shadow: var(--shadow);
+  color: var(--text);
+  text-align: left;
+  cursor: default;
+}
+.bc-versao { font-size: 13px; }
+.bc-data { color: var(--muted); }
+.bc-resumo { margin: 2px 0 0; padding-left: 16px; display: flex; flex-direction: column; gap: 3px; }
+.bc-resumo li { line-height: 1.35; }
+.bc-link {
+  display: inline-flex; align-items: center; gap: 5px;
+  margin-top: 2px; color: var(--brand); text-decoration: none; font-weight: 600;
+}
+.bc-link:hover { text-decoration: underline; }
 
 .page-head { margin-bottom: 18px; }
 .page-head h1 { margin: 0 0 4px; font-size: 22px; letter-spacing: -.02em; }
@@ -305,7 +329,7 @@ body.menu-aberto .sidebar { transform: translateX(0); }
    o visual compacto do desktop não vale a pena aqui. */
 @media (pointer: coarse) {
   .sidebar a { min-height: var(--toque); }
-  .nav-toggle, .user-btn { width: var(--toque); height: var(--toque); }
+  /* .nav-toggle e .user-btn já nascem em --toque por .topbar-acao. */
 }
 
 /* ── Impressão ────────────────────────────────────────────── */

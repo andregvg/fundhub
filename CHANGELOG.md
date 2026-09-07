@@ -27,8 +27,22 @@ versionamento **MINOR** = módulo novo ou mudança de modelo de dados, **PATCH**
 - **Controle de espaço à vista.** Pela engrenagem do módulo dá para ver quantos
   registros existem, quanto ocupam e qual a porcentagem já usada do banco - e
   apagar os mais antigos quando for preciso, com o aviso de que é definitivo.
+- **O número da versão, no rodapé, agora conta a história dela.** Passando o
+  mouse (ou clicando, no celular) aparece uma caixinha com desde quando aquela
+  versão está no ar, um resumo do que mudou e um atalho para o histórico
+  completo.
 
 ### Corrigido
+
+- **O rodapé mostrava a data de hoje ao lado da versão**, o que fazia parecer
+  que a versão tinha entrado em vigor naquele dia - e a data mudava sozinha
+  todo dia. Agora a versão fica junto do nome do sistema, e a data verdadeira
+  aparece na caixinha.
+- **O título das gavetas deixa de ser encoberto ao rolar.** Em telas com muito
+  conteúdo - as configurações, principalmente - o texto passava por cima do
+  título ao rolar. Valia para todas as gavetas do sistema.
+- **Os botões do topo ficaram todos do mesmo tamanho.** O de menu e o de
+  usuário eram menores que os de atualizar e notificações.
 
 - **Mudanças em papéis e permissões passam a ser registradas.** Alterar o que um
   papel pode fazer é uma mudança de segurança e, até agora, não deixava rastro

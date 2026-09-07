@@ -109,7 +109,7 @@ function montarSino() {
   const wrap = document.createElement('div');
   wrap.className = 'bell-wrap';
   wrap.innerHTML = `
-    <button class="bell" id="bell" type="button" title="Notificações" aria-label="Notificações">
+    <button class="topbar-acao" id="bell" type="button" title="Notificações" aria-label="Notificações">
       ${ico('sino', { tam: 18 })}<span class="bell-badge" id="bell-badge" hidden>0</span>
     </button>
     <div class="bell-panel" id="bell-panel" hidden>

@@ -839,9 +839,14 @@ input[type="checkbox"] { width: 18px; height: 18px; }
   transition: transform .22s ease;
 }
 .drawer.open { transform: translateX(0); }
+/* z-index: sem ele, `position: sticky` NÃO cria contexto de
+   empilhamento próprio, e qualquer conteúdo posicionado do corpo passa
+   por cima do título ao rolar - era o que acontecia em toda gaveta do
+   hub, visível primeiro no painel de configurações. */
 .drawer-head {
   position: sticky;
   top: 0;
+  z-index: 2;
   display: flex;
   justify-content: space-between;
   align-items: start;
@@ -1191,7 +1196,18 @@ hr.sep { margin: 20px 0; border: 0; border-top: 1px solid var(--border); }
   .atualizado { display: inline; }
 }
 
+/* O botão de ícone da barra de topo - UM só, para os quatro que existem:
+   ☰ (.nav-toggle), atualizar (#btn-atualizar), sino (.bell) e usuário
+   (.user-btn). Até 07/09/2026 eram quatro cópias em três arquivos
+   (components.css, base.css, notificacoes.css) e tinham DUAS alturas:
+   atualizar e sino a 40px, ☰ e usuário a 34px. O quarto a nascer
+   herdaria a divergência de quem ele copiasse.
+   Cada um acrescenta só o que é seu: o badge do sino, o `is-admin` do
+   usuário. `--toque` (40px) e não `--controle` porque são alvos de
+   toque só de ícone, sem rótulo que ajude a mirar. */
 .topbar-acao {
+  flex: 0 0 auto;
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
