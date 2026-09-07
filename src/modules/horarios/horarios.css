@@ -287,3 +287,14 @@
 /* Aviso de blocos órfãos numa escala que passou a ter dia fixo. */
 .hj-orfaos { margin-bottom: 14px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-2); }
 .hj-orfaos .hj-prob { margin-top: 0; }
+
+/* Segunda barra de abas da gaveta: as variantes da escala ativa. Mesmo
+   vocabulário de .tabbar/.tab; só um pouco menor, porque é o eixo
+   secundário - a escala é que manda. */
+.hj-variantes-bar { margin-top: -4px; }
+.hj-variantes-bar .tab { font-size: 12.5px; padding-top: 6px; padding-bottom: 6px; }
+.hj-variantes-bar .hj-var-nova { display: inline-flex; align-items: center; }
+/* O toggle é uma linha própria dentro do formulário: alinha à esquerda
+   e larga a altura de campo (mesma correção de .form-grupo .campos
+   label.switch - ver .claude/rules/ui.md R17). */
+.hj-conduz { align-self: start; min-height: var(--campo); margin-bottom: 6px; }

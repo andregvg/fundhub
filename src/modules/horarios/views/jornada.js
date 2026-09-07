@@ -13,7 +13,7 @@
 // ============================================================
 import { DIAS, criarBloco, atualizarBloco, excluirBloco,
   validarDia, totalDoDia, duracao } from '../horarios.model.js';
-import { rotulaEscala } from '../escalas.model.js';
+import { rotulaEscala, variantesDe, varDe } from '../escalas.model.js';
 import { esc, falha } from '../../../shared/dom.js';
 import { ico } from '../../../shared/ui/icones.js';
 import { drawerHead, abrirDrawer, fecharDrawer } from '../../../shared/ui/drawer.js';
@@ -22,34 +22,44 @@ import { toast } from '../../../shared/ui/toast.js';
 import { reportarErro } from '../../../shared/ui/feedback.js';
 
 const hhmm = (t) => String(t ?? '').slice(0, 5);
-// estado.porEscala = { [escala]: { [dia_semana]: linhas[] } } - a semana
-// inteira de TODAS as escalas em uso, carregada de uma vez. estado.escala
-// é só QUAL ABA está visível agora; trocar de aba não descarta o que foi
-// digitado nas outras - ver salvar().
-let estado = null;   // { servidor, unidadeId, escala, porEscala, recarregar, escalasEmUso, catalogoEscalas }
+// estado.porEscala = { [escala]: { [variante]: { [dia_semana]: linhas[] } } }
+// A semana inteira de TODAS as escalas e variantes, carregada de uma vez.
+// estado.escala/estado.variante são só QUAL ABA está visível: trocar de
+// aba nunca descarta o que foi digitado nas outras - ver salvar().
+let estado = null;   // { servidor, unidadeId, escala, variante, porEscala, recarregar, escalasEmUso, catalogoEscalas }
 
-// Uma linha é { id?, inicio, fim, obs, excluir? }. `id` ausente = nova.
-export function abrirJornada({ servidor, unidadeId, blocos, recarregar, escalasEmUso = ['normal'], catalogoEscalas = [], escalaInicial = 'normal' }) {
+// Uma linha é { id?, inicio, fim, obs, conduz?, excluir? }. `id` ausente = nova.
+export function abrirJornada({ servidor, unidadeId, blocos, recarregar, escalasEmUso = ['normal'], catalogoEscalas = [], escalaInicial = 'normal', varianteInicial = 1 }) {
   // Além das escalas em uso na rede hoje, inclui qualquer escala que já
   // esteja gravada nos blocos deste servidor - uma escala que caiu em
   // desuso (virada de ano, catálogo mudou) não pode ficar inalcançável
   // pela tela só porque a rede não a usa mais no calendário atual (achado
   // da revisão da Task 4, rodada 1).
   const chaves = [...new Set([...escalasEmUso, ...blocos.map(b => b.escala || 'normal')])];
+  const meus = blocos.filter(b => b.servidor_id === servidor.id);
   const porEscala = {};
   for (const chaveEsc of chaves) {
     porEscala[chaveEsc] = {};
-    for (const d of DIAS) {
-      porEscala[chaveEsc][d.n] = blocos
-        .filter(b => b.servidor_id === servidor.id && b.dia_semana === d.n && (b.escala || 'normal') === chaveEsc)
-        .map(b => ({ id: b.id, inicio: hhmm(b.inicio), fim: hhmm(b.fim), obs: b.obs || '' }));
+    // As variantes desta escala em QUALQUER dia, na unidade inteira: uma
+    // variante criada por outro gestor precisa aparecer aqui, senão a
+    // configuração fica pela metade e a cobertura dela nunca fecha.
+    const vs = [...new Set(DIAS.flatMap(d => variantesDe(blocos, chaveEsc, d.n)))].sort((a, b) => a - b);
+    for (const v of vs) {
+      porEscala[chaveEsc][v] = {};
+      for (const d of DIAS) {
+        porEscala[chaveEsc][v][d.n] = meus
+          .filter(b => b.dia_semana === d.n && (b.escala || 'normal') === chaveEsc && varDe(b) === v)
+          .map(b => ({ id: b.id, inicio: hhmm(b.inicio), fim: hhmm(b.fim), obs: b.obs || '', conduz: Boolean(b.conduz) }));
+      }
     }
   }
   // { [escala]: dia_semana } - uma escala com dia fixo mostra só aquele dia.
   const diasFixos = Object.fromEntries((catalogoEscalas || []).map(e => [e.chave, e.dia_semana ?? null]));
 
   estado = {
-    servidor, unidadeId, escala: chaves.includes(escalaInicial) ? escalaInicial : 'normal',
+    servidor, unidadeId,
+    escala: chaves.includes(escalaInicial) ? escalaInicial : 'normal',
+    variante: 1,
     porEscala, recarregar, escalasEmUso: chaves, catalogoEscalas, diasFixos,
   };
 
@@ -65,6 +75,7 @@ export function abrirJornada({ servidor, unidadeId, blocos, recarregar, escalasE
     <div class="drawer-body">
       <form id="hj-form" class="esc-form">
         ${abas}
+        <div id="hj-variantes"></div>
         <div id="hj-dias"></div>
         <div class="form-foot">
           <span id="hj-msg" class="auth-msg"></span>
@@ -74,6 +85,7 @@ export function abrirJornada({ servidor, unidadeId, blocos, recarregar, escalasE
     </div>`);
 
   pintarDica();
+  pintarVariantes();
   pintar();
   // Ligados uma vez só, aqui - o `<form>` é recriado a cada abertura da
   // gaveta, então não acumula. Ligar dentro de `pintar()` (que o próprio
@@ -88,12 +100,42 @@ export function abrirJornada({ servidor, unidadeId, blocos, recarregar, escalasE
   document.querySelector('.hj-escalas')?.addEventListener('click', (e) => {
     const b = e.target.closest('.tab'); if (!b) return;
     estado.escala = b.dataset.escala;
+    // A variante ativa pode não existir na escala nova.
+    if (!estado.porEscala[estado.escala][estado.variante]) estado.variante = 1;
     document.querySelectorAll('.hj-escalas .tab').forEach(t => {
       const on = t.dataset.escala === estado.escala;
       t.classList.toggle('on', on); t.setAttribute('aria-selected', String(on));
     });
     pintarDica();
+    pintarVariantes();
     pintar();
+  });
+
+  // Mesmo padrão das abas de escala: ligado uma vez, sobre o container
+  // estável do form. Trocar de variante só troca `estado.variante`.
+  document.getElementById('hj-variantes').addEventListener('click', (e) => {
+    const nova = e.target.closest('#hj-var-nova');
+    if (nova) {
+      const vs = Object.keys(estado.porEscala[estado.escala]).map(Number);
+      const proxima = Math.max(...vs) + 1;
+      estado.porEscala[estado.escala][proxima] = Object.fromEntries(DIAS.map(d => [d.n, []]));
+      estado.variante = proxima;
+      pintarVariantes(); pintar();
+      return;
+    }
+    const b = e.target.closest('[data-variante]'); if (!b) return;
+    estado.variante = Number(b.dataset.variante);
+    pintarVariantes(); pintar();
+  });
+
+  document.getElementById('hj-variantes').addEventListener('change', (e) => {
+    if (e.target.id !== 'hj-conduz') return;
+    // Marca as linhas DESTE servidor nesta escala e variante. É o que a
+    // grade lê para rotular a sub-linha com o nome de quem conduz.
+    const marcado = e.target.checked;
+    for (const d of DIAS) {
+      for (const l of estado.porEscala[estado.escala][estado.variante][d.n]) l.conduz = marcado;
+    }
   });
 }
 
@@ -109,7 +151,7 @@ function podeCopiar() {
 function orfaos() {
   const fixo = estado.diasFixos?.[estado.escala];
   if (!fixo) return [];
-  const dias = estado.porEscala[estado.escala];
+  const dias = estado.porEscala[estado.escala][estado.variante];
   return DIAS.filter(d => d.n !== fixo)
     .flatMap(d => dias[d.n].filter(l => !l.excluir && l.id).map(l => ({ dia: d, linha: l })));
 }
@@ -144,6 +186,31 @@ function pintarDica() {
     : 'Deixe um dia em branco aqui para ele seguir a jornada Normal nesta escala. Só preencha os dias que mudam.';
 }
 
+// A segunda barra de abas: as variantes da escala ativa. Só aparece
+// quando há mais de uma OU quando dá para criar a segunda - numa escola
+// sem revezamento a gaveta fica idêntica à de antes.
+function pintarVariantes() {
+  const box = document.getElementById('hj-variantes');
+  if (!box) return;
+  const vs = Object.keys(estado.porEscala[estado.escala]).map(Number).sort((a, b) => a - b);
+
+  const conduzAqui = DIAS.some(d =>
+    estado.porEscala[estado.escala][estado.variante][d.n].some(l => !l.excluir && l.conduz));
+
+  box.innerHTML = `
+    <div class="tabbar hj-variantes-bar" role="tablist">
+      ${vs.map(v => `<button type="button" class="tab ${v === estado.variante ? 'on' : ''}"
+        role="tab" aria-selected="${v === estado.variante}" data-variante="${v}">Variante ${v}</button>`).join('')}
+      <button type="button" class="tab hj-var-nova" id="hj-var-nova"
+        aria-label="Criar uma variante">${ico('adicionar', { tam: 13 })}</button>
+    </div>
+    <label class="switch hj-conduz">
+      <input type="checkbox" id="hj-conduz" ${conduzAqui ? 'checked' : ''} />
+      <span class="switch-trilho" aria-hidden="true"></span>
+      <span class="switch-txt">conduzo o TDC nesta variante</span>
+    </label>`;
+}
+
 // Atualiza só o total/avisos do dia para acompanhar o que se digita - NUNCA
 // mexe em `.hj-linhas` (onde ficam os <input>). Recriar o campo que acabou
 // de disparar o 'change' é o que causava a perda de foco: um input[type=time]
@@ -157,7 +224,7 @@ function atualizarDia(dia) {
   const fieldset = document.querySelector(`.hj-dia[data-dia="${dia}"]`);
   if (!fieldset) return;
   const d = DIAS.find(x => x.n === dia);
-  const linhas = estado.porEscala[estado.escala][dia].filter(l => !l.excluir);
+  const linhas = estado.porEscala[estado.escala][estado.variante][dia].filter(l => !l.excluir);
   const comHorario = linhas.filter(l => l.inicio && l.fim);
   const total = totalDoDia(comHorario);
   fieldset.querySelector('legend').innerHTML =
@@ -173,7 +240,7 @@ function avisosHtml(problemas) {
 function aoMudarCampo(e) {
   const linha = e.target.closest('.hj-linha'); if (!linha) return;
   const dia = Number(linha.dataset.dia);
-  const alvo = estado.porEscala[estado.escala][dia].filter(l => !l.excluir)[Number(linha.dataset.i)];
+  const alvo = estado.porEscala[estado.escala][estado.variante][dia].filter(l => !l.excluir)[Number(linha.dataset.i)];
   alvo.inicio = linha.querySelector('.hj-ini').value;
   alvo.fim = linha.querySelector('.hj-fim').value;
   alvo.obs = linha.querySelector('.hj-obs').value;
@@ -183,7 +250,7 @@ function aoMudarCampo(e) {
 function pintar() {
   const box = document.getElementById('hj-dias');
   box.innerHTML = orfaosHtml() + diasVisiveis().map(d => {
-    const linhas = estado.porEscala[estado.escala][d.n].filter(l => !l.excluir);
+    const linhas = estado.porEscala[estado.escala][estado.variante][d.n].filter(l => !l.excluir);
     const problemas = validarDia(linhas.filter(l => l.inicio && l.fim));
     const total = totalDoDia(linhas.filter(l => l.inicio && l.fim));
     return `<fieldset class="form-grupo hj-dia" data-dia="${d.n}">
@@ -209,13 +276,13 @@ function pintar() {
 
   box.querySelectorAll('.hj-add').forEach(b => b.addEventListener('click', () => {
     // Campos vazios de propósito - ver o cabeçalho deste arquivo.
-    estado.porEscala[estado.escala][Number(b.dataset.dia)].push({ inicio: '', fim: '', obs: '' });
+    estado.porEscala[estado.escala][estado.variante][Number(b.dataset.dia)].push({ inicio: '', fim: '', obs: '' });
     pintar();
   }));
   box.querySelectorAll('.hj-del').forEach(b => b.addEventListener('click', () => {
     const linha = b.closest('.hj-linha');
     const dia = Number(linha.dataset.dia);
-    const dias = estado.porEscala[estado.escala];
+    const dias = estado.porEscala[estado.escala][estado.variante];
     const alvo = dias[dia].filter(l => !l.excluir)[Number(linha.dataset.i)];
     if (alvo.id) alvo.excluir = true;               // já existe no banco
     else dias[dia] = dias[dia].filter(l => l !== alvo);
@@ -229,7 +296,7 @@ function pintar() {
 
   box.querySelectorAll('.hj-copiar').forEach(b => b.addEventListener('click', async () => {
     const origem = Number(b.dataset.dia);
-    const dias = estado.porEscala[estado.escala];
+    const dias = estado.porEscala[estado.escala][estado.variante];
     const fonte = dias[origem].filter(l => !l.excluir && l.inicio && l.fim);
     if (!fonte.length) return toast({ titulo: 'Nada para copiar', texto: 'Este dia não tem blocos preenchidos.', tipo: 'atencao' });
     const temOutros = DIAS.some(d => d.n !== origem && dias[d.n].some(l => !l.excluir && (l.inicio || l.fim)));
@@ -255,15 +322,21 @@ async function salvar(e) {
   // escalas, não só a aba visível - o que foi digitado numa aba não
   // vista precisa ser validado antes de salvar do mesmo jeito.
   for (const chaveEsc of Object.keys(estado.porEscala)) {
-    for (const d of DIAS) {
-      const linhas = estado.porEscala[chaveEsc][d.n].filter(l => !l.excluir);
-      const prefixo = estado.escalasEmUso.length > 1 ? `${rotulaEscala(chaveEsc, estado.catalogoEscalas)} - ${d.nome}` : d.nome;
-      for (const l of linhas) {
-        if (!l.inicio || !l.fim) return falha(msg, `${prefixo}: informe início e fim de todos os blocos.`);
-        if (l.fim <= l.inicio) return falha(msg, `${prefixo}: o fim precisa ser depois do início.`);
+    for (const chaveVar of Object.keys(estado.porEscala[chaveEsc])) {
+      for (const d of DIAS) {
+        const linhas = estado.porEscala[chaveEsc][chaveVar][d.n].filter(l => !l.excluir);
+        const nomeEsc = rotulaEscala(chaveEsc, estado.catalogoEscalas);
+        const temVar = Object.keys(estado.porEscala[chaveEsc]).length > 1;
+        const prefixo = estado.escalasEmUso.length > 1 || temVar
+          ? `${nomeEsc}${temVar ? ` (variante ${chaveVar})` : ''} - ${d.nome}`
+          : d.nome;
+        for (const l of linhas) {
+          if (!l.inicio || !l.fim) return falha(msg, `${prefixo}: informe início e fim de todos os blocos.`);
+          if (l.fim <= l.inicio) return falha(msg, `${prefixo}: o fim precisa ser depois do início.`);
+        }
+        const erro = validarDia(linhas).find(p => p.nivel === 'erro');
+        if (erro) return falha(msg, `${prefixo}: ${erro.texto}`);
       }
-      const erro = validarDia(linhas).find(p => p.nivel === 'erro');
-      if (erro) return falha(msg, `${prefixo}: ${erro.texto}`);
     }
   }
 
@@ -282,25 +355,30 @@ async function salvar(e) {
     // pessoa digitou nas outras abas antes de clicar "Salvar jornada"
     // uma vez só, no fim.
     for (const chaveEsc of Object.keys(estado.porEscala)) {
-      for (const d of DIAS) {
-        for (const l of [...estado.porEscala[chaveEsc][d.n]]) {
-          const payload = {
-            servidor_id: estado.servidor.id,
-            unidade_id: estado.unidadeId,
-            dia_semana: d.n,
-            inicio: l.inicio,
-            fim: l.fim,
-            obs: l.obs.trim() || null,
-            escala: chaveEsc,
-          };
-          if (l.excluir && l.id) {
-            await excluirBloco(l.id);
-            estado.porEscala[chaveEsc][d.n] = estado.porEscala[chaveEsc][d.n].filter(x => x !== l);
-          } else if (l.id) {
-            await atualizarBloco(l.id, payload);
-          } else if (!l.excluir) {
-            const novo = await criarBloco(payload);
-            l.id = novo.id;
+      for (const chaveVar of Object.keys(estado.porEscala[chaveEsc])) {
+        for (const d of DIAS) {
+          for (const l of [...estado.porEscala[chaveEsc][chaveVar][d.n]]) {
+            const payload = {
+              servidor_id: estado.servidor.id,
+              unidade_id: estado.unidadeId,
+              dia_semana: d.n,
+              inicio: l.inicio,
+              fim: l.fim,
+              obs: l.obs.trim() || null,
+              escala: chaveEsc,
+              variante: Number(chaveVar),
+              conduz: Boolean(l.conduz),
+            };
+            if (l.excluir && l.id) {
+              await excluirBloco(l.id);
+              estado.porEscala[chaveEsc][chaveVar][d.n] =
+                estado.porEscala[chaveEsc][chaveVar][d.n].filter(x => x !== l);
+            } else if (l.id) {
+              await atualizarBloco(l.id, payload);
+            } else if (!l.excluir) {
+              const novo = await criarBloco(payload);
+              l.id = novo.id;
+            }
           }
         }
       }
