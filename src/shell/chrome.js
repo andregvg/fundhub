@@ -20,7 +20,7 @@ import { source } from '../core/supabase.js';
 import { signOut } from '../core/auth.js';
 import { limparPerfil, ultimoAcessoAnterior } from '../core/perfil.js';
 import { esc } from '../shared/dom.js';
-import { fmtDataHora, agoraISO } from '../shared/format.js';
+import { fmtDataHora, fmtData, hojeISO, agoraISO } from '../shared/format.js';
 import { ico } from '../shared/ui/icones.js';
 import { limparCaches } from '../shared/cache.js';
 import { toast } from '../shared/ui/toast.js';
@@ -273,6 +273,12 @@ function cartaoHtml(c) {
 }
 
 export function carimboRodape() {
+  // A data de hoje, no canto oposto. Ela é só "hoje" - longe da versão,
+  // não há como confundi-la com a data em que a versão entrou em vigor,
+  // que era o defeito de quando as duas andavam coladas.
+  const hoje = document.getElementById('hoje-info');
+  if (hoje) hoje.textContent = fmtData(hojeISO());
+
   const btn = document.getElementById('build-info');
   const card = document.getElementById('build-card');
   if (!btn || !card) return;

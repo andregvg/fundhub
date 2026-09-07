@@ -213,13 +213,13 @@ body.menu-aberto .sidebar { transform: translateX(0); }
 }
 .loading { color: var(--muted); padding: 48px 0; text-align: center; }
 
-/* Os dois blocos andam juntos, empurrados à direita: a versão colada
-   no texto institucional se lê como identificação do sistema. Quando
-   ela ficava sozinha no canto oposto, ao lado de uma data, parecia
-   dizer que a versão tinha entrado em vigor naquele dia. */
+/* Identificação à esquerda (com a versão dentro dela), data de hoje à
+   direita. A versão colada no nome do sistema se lê como "qual FundHub
+   é este"; sozinha no canto, ao lado de uma data, parecia dizer que
+   tinha entrado em vigor naquele dia. */
 .footer {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
@@ -231,6 +231,9 @@ body.menu-aberto .sidebar { transform: translateX(0); }
 }
 
 /* ── Carimbo da versão + caixinha do que mudou ─────────────── */
+/* A identificação é uma frase só, e a versão é uma palavra dentro
+   dela: inline, para quebrar junto no celular em vez de virar bloco. */
+.rodape-id { display: inline; }
 .build-wrap { position: relative; display: inline-flex; }
 .build-info {
   border: 0;
@@ -244,10 +247,12 @@ body.menu-aberto .sidebar { transform: translateX(0); }
 }
 .build-info:hover, .build-info:focus-visible { color: var(--text); }
 
+/* Abre alinhada à ESQUERDA: a versão agora vive no começo do rodapé,
+   e uma caixa ancorada à direita sairia da tela em telas estreitas. */
 .build-card {
   position: absolute;
   bottom: calc(100% + 8px);
-  right: 0;
+  left: 0;
   z-index: 90;
   display: flex;
   flex-direction: column;

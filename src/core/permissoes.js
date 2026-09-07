@@ -43,10 +43,21 @@ export function limparMapa() { _mapa = {}; }
 
 export function mapaAtual() { return { ..._mapa }; }
 
-// Nível efetivo num módulo. Módulo desconhecido = oculto: a política
-// segura por omissão é esconder, não mostrar.
+// A chave curinga: vale para qualquer módulo que não tenha entrada
+// própria. Hoje só o admin a recebe (`{"*":"escrita"}`, migration 033).
+//
+// Existe porque o mapa do admin era montado a partir dos módulos
+// presentes em `papel_permissao` - então um módulo SÓ DE ADMIN, que
+// nenhum papel recebe, nascia `oculto` para o próprio admin. `usuarios`
+// escapava por estar escrito à mão no SQL; `auditoria` não escapou.
+// Admin não tem lista: `is_admin()` quer dizer tudo, e agora o mapa diz
+// isso, inclusive para módulos que ainda não existem.
+const CURINGA = '*';
+
+// Nível efetivo num módulo. Entrada própria vence o curinga; sem as
+// duas, oculto - a política segura por omissão é esconder, não mostrar.
 export function nivel(modulo) {
-  const v = _mapa[modulo];
+  const v = _mapa[modulo] ?? _mapa[CURINGA];
   return ORDEM[v] === undefined ? OCULTO : v;
 }
 

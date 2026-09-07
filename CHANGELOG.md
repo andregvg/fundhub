@@ -43,6 +43,10 @@ versionamento **MINOR** = módulo novo ou mudança de modelo de dados, **PATCH**
   título ao rolar. Valia para todas as gavetas do sistema.
 - **Os botões do topo ficaram todos do mesmo tamanho.** O de menu e o de
   usuário eram menores que os de atualizar e notificações.
+- **Administrador voltou a enxergar os módulos administrativos.** Um módulo
+  restrito a administradores aparecia como "acesso restrito" para o próprio
+  administrador. Agora quem é administrador vê tudo, inclusive os módulos que
+  vierem a existir.
 
 - **Mudanças em papéis e permissões passam a ser registradas.** Alterar o que um
   papel pode fazer é uma mudança de segurança e, até agora, não deixava rastro

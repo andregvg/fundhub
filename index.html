@@ -49,15 +49,20 @@
       <main id="app" class="app"><div class="loading">Carregando…</div></main>
 
       <footer class="footer">
-        <!-- A versão vem ANTES do texto institucional e os dois andam
-             juntos, à direita: encostada na data de hoje, ela parecia
-             dizer que a versão entrou em vigor hoje. -->
-        <span class="build-wrap" id="build-wrap">
-          <button type="button" class="build-info" id="build-info"
-                  aria-haspopup="dialog" aria-expanded="false"></button>
-          <span class="build-card" id="build-card" hidden></span>
+        <!-- A versão fica DENTRO da identificação, logo após o nome do
+             sistema: ali ela se lê como "qual FundHub é este". Antes
+             ficava no canto oposto, colada na data de hoje, e parecia
+             dizer que a versão tinha entrado em vigor hoje. -->
+        <span class="rodape-id">
+          FundHub
+          <span class="build-wrap" id="build-wrap">
+            <button type="button" class="build-info" id="build-info"
+                    aria-haspopup="dialog" aria-expanded="false"></button>
+            <span class="build-card" id="build-card" hidden></span>
+          </span>
+          · Gerência de Ensino Fundamental · SME Ribeirão Preto
         </span>
-        <span>FundHub · Gerência de Ensino Fundamental · SME Ribeirão Preto</span>
+        <span id="hoje-info"></span>
       </footer>
     </div>
   </div>
