@@ -9,6 +9,28 @@ versionamento **MINOR** = módulo novo ou mudança de modelo de dados, **PATCH**
 
 ---
 
+## [0.21.0] - 2026-09-07
+
+### Adicionado
+- **Dia de TDC agora aceita mais de uma configuração.** Quando os gestores
+  se revezam na condução do TDC, dá para registrar o horário de cada
+  situação em vez de escolher uma e torcer. A grade da escola mostra as
+  duas, uma embaixo da outra, cada uma com a própria faixa de cobertura -
+  identificada pelo nome de quem conduz.
+- **O mesmo vale para um dia comum, sem TDC.** Uma quarta-feira em que os
+  gestores alternam manhã e tarde a cada semana também pode ter as duas
+  configurações registradas.
+
+### Corrigido
+- **Horário que passa do fim do expediente não é mais cortado na tela.**
+  Antes, quem ficava até mais tarde numa escola com expediente mais curto
+  tinha o horário recortado sem aviso.
+
+### Alterado
+- **Supervisor(a) saiu da equipe gestora.** É cargo da Secretaria, não
+  compõe a gestão da escola, e não entra mais na grade nem no cálculo de
+  cobertura das unidades.
+
 ## [0.20.1] - 2026-09-06
 
 ### Alterado

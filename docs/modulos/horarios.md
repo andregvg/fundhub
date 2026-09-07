@@ -12,6 +12,8 @@
 - Montar ou ajustar a jornada de alguém numa gaveta - a semana inteira de uma
   vez.
 - Ver os dias de TDC como uma faixa abaixo do dia normal.
+- Registrar mais de uma configuração do mesmo dia, para quando ele muda
+  conforme quem está de plantão.
 
 ## Quem pode o quê
 
@@ -45,6 +47,36 @@ tirar quem não precisa aparecer.
 3. Se a escala tem um dia da semana fixo (configurado pela Gerência), a aba
    mostra só aquele dia.
 
+### Registrar o revezamento de um dia de TDC
+
+Em dia de TDC a escola tem duas configurações possíveis: a de quem conduz
+o encontro e a de quem cobre a escola. Como o rodízio muda a cada mês, o
+sistema guarda as duas em vez de uma.
+
+1. Abra **Horários** e escolha a escola.
+2. Clique no lápis do primeiro gestor.
+3. Escolha a aba da escala (por exemplo, **TDC Presencial**).
+4. Preencha o horário que ele cumpre quando **ele** conduz o TDC, e marque
+   **conduzo o TDC nesta variante**.
+5. Clique em **+** para criar uma segunda configuração (a tela passa a
+   mostrar **Variante 1** e **Variante 2**) e preencha o horário que ele
+   cumpre quando é **o outro** que conduz. Deixe a caixa desmarcada.
+6. Clique em **Salvar jornada**.
+7. Repita com o segundo gestor, invertendo: na Variante 1 o horário de
+   cobertura, na Variante 2 o horário de quem conduz (com a caixa
+   marcada).
+
+Na grade da escola aquele dia passa a mostrar as duas configurações, uma
+embaixo da outra, cada uma com a própria faixa de cobertura - identificada
+pelo nome de quem conduz, ou por "variante 1" / "variante 2" quando
+ninguém está marcado.
+
+O mesmo mecanismo serve para um dia comum, sem TDC, que também se
+reveza - por exemplo, uma quarta-feira em que os gestores alternam manhã
+e tarde a cada semana: crie a segunda variante do mesmo jeito, na aba
+**Normal**, só que sem a caixa "conduzo o TDC" (ela só aparece nas
+escalas de TDC).
+
 ### Ordem e cobertura na grade
 
 - Arraste os nomes na legenda para mudar a ordem, ou use as setas.
@@ -59,8 +91,15 @@ tirar quem não precisa aparecer.
   aparecem marcados na grade, mas deixam salvar.
 - A jornada de TDC de uma quarta e a jornada normal da mesma quarta são
   **dias alternativos**: não se somam para checar sobreposição.
-- A cobertura da escola é calculada só sobre a jornada normal; o TDC é
-  informativo.
+- A escola precisa estar coberta **em cada configuração registrada**, porque
+  qualquer uma delas pode ser a do próximo TDC (ou da próxima semana, num
+  revezamento sem TDC). Uma configuração com buraco é sinalizada sozinha,
+  sem afetar a outra. É **aviso**: dá para salvar e corrigir depois.
+- Quem não tem horário próprio numa segunda configuração segue o horário
+  da primeira, naquela mesma escala; sem horário nenhum na escala, segue a
+  jornada normal. Só preencha o que muda.
+- **Supervisor(a)** não faz parte da equipe gestora e não aparece mais na
+  grade nem no cálculo de cobertura das escolas.
 
 ## Ligações com outros módulos
 
@@ -82,4 +121,4 @@ trabalho atual naquela unidade. Confira em Servidores.
 Recarregue a página - a gaveta grava, mas a grade por baixo só relê ao
 reabrir a escola.
 
-> Atualizado na versão 0.20.0.
+> Atualizado na versão 0.21.0.
