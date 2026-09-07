@@ -23,8 +23,17 @@ create policy "<tabela>_write"  on <tabela> for all    using (is_admin()) with c
 grant select, insert, update, delete on <tabela> to authenticated;
 ```
 
-Mais: religar o trigger de auditoria e acrescentar a tabela ao array da `019`. A migration precisa
-ser **idempotente** (`if not exists`, `on conflict do nothing`) - ela pode ser rodada duas vezes.
+Mais: **terminar a migration com `select religar_auditoria();`**. Desde a `032` a auditoria é por
+exclusão - o gatilho vai para toda tabela de `public` que não esteja em `_audit_isentas()`, e não
+há mais array para manter. Mas migrations são aplicadas à mão: sem essa linha a tabela nova fica
+sem gatilho até alguém rodar a função de novo. A checagem 13 do verificador bloqueia se faltar.
+
+Se a tabela **não** deve ser auditada (preferência pessoal, log, metadado de infra), acrescente-a a
+`_audit_isentas()` **com o motivo** e espelhe em `ISENTAS_AUDITORIA` no verificador - a checagem 13
+bloqueia se as duas listas divergirem.
+
+A migration precisa ser **idempotente** (`if not exists`, `on conflict do nothing`) - ela pode ser
+rodada duas vezes.
 
 Rodar no SQL Editor do painel. Checklist completo em `.claude/rules/seguranca.md`.
 

@@ -93,6 +93,6 @@ só nascem no terceiro caso concreto.
 python .claude/scripts/verificar_arquitetura.py
 ```
 
-Doze checagens mecânicas das regras acima. Uma view que estourou o teto de linhas e não tem
+Treze checagens mecânicas das regras acima. Uma view que estourou o teto de linhas e não tem
 onde cortar declara `@superficie-indivisivel: <motivo>` no cabeçalho - ver `.claude/rules/arquitetura.md`. Rodar antes de commitar mudanças estruturais.
 Para revisão arquitetural com análise (não só o script): skill `architecture-review`.

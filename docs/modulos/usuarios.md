@@ -1,14 +1,15 @@
 # Usuários & Acessos
 
-> Quem pode entrar no FundHub, com qual papel - e o histórico de tudo que foi
-> alterado no sistema.
+> Quem pode entrar no FundHub e com qual papel.
 
 ## O que dá para fazer aqui
 
 - Ver a lista de quem tem acesso (a allowlist) e o papel de cada pessoa.
 - Adicionar, editar e remover acessos.
 - Ajustar, pessoa a pessoa, o nível em módulos específicos.
-- Consultar o histórico de alterações (aba **Auditoria**).
+- Ver quando cada pessoa entrou pela última vez.
+
+O histórico de alterações mudou de lugar: agora fica no módulo **Auditoria**.
 
 ## Quem pode o quê
 
@@ -29,7 +30,7 @@ níveis são:
 
 ### Adicionar um acesso
 
-1. Na aba **Usuários**, clique em **Adicionar acesso**.
+1. Clique em **Adicionar acesso**.
 2. Informe o e-mail institucional da pessoa.
 3. Escolha o **papel**. A descrição abaixo do campo explica o que ele libera.
 4. Marque os **segmentos** em que a pessoa atua (Ensino Fundamental, Educação
@@ -40,21 +41,15 @@ níveis são:
    que falta um papel novo.
 6. Salve.
 
-### Consultar o histórico
-
-1. Abra a aba **Auditoria**.
-2. Filtre por módulo, por tipo de operação ou por autor.
-3. Cada linha mostra o que mudou, com o valor antes e depois.
-
 ## Regras que o sistema aplica
 
 - **Só quem está na allowlist entra.** Ter um e-mail institucional não basta -
   o e-mail precisa estar cadastrado aqui.
 - **O nível decide o que a pessoa consegue ler de fato**, não só o que aparece
   na tela. Esconder um botão é conforto; a barreira é o banco de dados.
-- **O histórico não se apaga.** Ninguém tem permissão para alterar ou remover
-  registros de auditoria - nem por dentro do sistema, nem por acesso direto ao
-  banco.
+- **Toda mudança de acesso fica registrada.** Trocar o papel de alguém, desativar
+  um acesso ou criar uma exceção aparece no módulo **Auditoria**, com quem fez e
+  quando. Esse registro não se apaga.
 
 ## Ligações com outros módulos
 
@@ -64,6 +59,8 @@ níveis são:
 - Uma pessoa pode ser ligada ao seu cadastro de **servidor** - assim o sistema
   sabe que "quem entra" e "quem é" são a mesma pessoa, e "Meus dados" mostra o
   cargo e o local de trabalho dela.
+- **Auditoria** guarda o histórico: o que mudou em cada acesso, quem mudou e
+  quando, além de todas as entradas no sistema.
 
 ## Perguntas frequentes
 
@@ -74,4 +71,4 @@ que o e-mail está exatamente igual ao que a pessoa usa para entrar.
 **Posso dar acesso a um e-mail que não seja institucional?**
 Não. O login do FundHub é restrito ao domínio da Secretaria.
 
-> Atualizado na versão 0.16.0.
+> Atualizado na versão 0.22.0.

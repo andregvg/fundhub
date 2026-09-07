@@ -10,6 +10,7 @@
 // ============================================================
 import { sb, hasSupabase } from '../../core/supabase.js';
 import { registrarCache } from '../../shared/cache.js';
+import { registrarEvento, EVENTO } from '../../core/eventos.js';
 
 // Fallback caso a tabela `papel` não responda (banco antigo, offline).
 // A fonte de verdade é o banco - isto é só para a tela não quebrar.
@@ -76,6 +77,31 @@ function limpar(p) {
   return out;
 }
 
+// ── Evento de permissão ──────────────────────────────────────
+// O `audit_log` já grava a linha de `perfil` campo a campo, com o valor
+// de antes e o de depois - isto NÃO substitui aquilo. O que o evento
+// acrescenta é a frase legível que o admin lê sem traduzir uuid nem
+// abrir o diff: "fulano@… deixou de ser leitor e virou equipe_sme".
+//
+// Só sai quando muda algo que altera PODER: papel, exceções por módulo
+// ou o próprio acesso. Trocar o nome de alguém não é evento de permissão.
+function eventoPermissao(alvo, antes, depois) {
+  const mudou = {};
+  if ((antes?.papel ?? null) !== (depois?.papel ?? null)) {
+    mudou.papel = { de: antes?.papel ?? null, para: depois?.papel ?? null };
+  }
+  if ((antes?.ativo ?? null) !== (depois?.ativo ?? null)) {
+    mudou.ativo = { de: antes?.ativo ?? null, para: depois?.ativo ?? null };
+  }
+  const excAntes = JSON.stringify(antes?.permissoes ?? null);
+  const excDepois = JSON.stringify(depois?.permissoes ?? null);
+  if (excAntes !== excDepois) {
+    mudou.modulos = Object.keys(depois?.permissoes || {});
+  }
+  if (!Object.keys(mudou).length) return;
+  registrarEvento(EVENTO.PERMISSAO, { alvo, ...mudou });
+}
+
 export async function criarPerfil(payload) {
   if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
   const row = limpar(payload);
@@ -92,11 +118,15 @@ export async function criarPerfil(payload) {
     }
     throw error;
   }
+  eventoPermissao(row.email, null, row);
   return data;
 }
 
 // A chave primária é o e-mail - não se edita; para trocar, exclua e recrie.
-export async function atualizarPerfil(email, payload) {
+// `anterior` é a linha como estava: quem chama já a tem em mãos, e sem
+// ela o evento de permissão precisaria de uma leitura a mais só para
+// descobrir o "de".
+export async function atualizarPerfil(email, payload, anterior = null) {
   if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
   const patch = limpar(payload); delete patch.email;
   const { error } = await sb().from('perfil').update(patch).eq('email', email);
@@ -109,12 +139,14 @@ export async function atualizarPerfil(email, payload) {
     }
     throw error;
   }
+  eventoPermissao(email, anterior, patch);
 }
 
 export async function excluirPerfil(email) {
   if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
   const { error } = await sb().from('perfil').delete().eq('email', email);
   if (error) throw error;
+  registrarEvento(EVENTO.PERMISSAO, { alvo: email, acesso: 'removido' });
 }
 
 // ── Meus dados ───────────────────────────────────────────────

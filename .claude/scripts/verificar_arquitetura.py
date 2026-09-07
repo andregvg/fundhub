@@ -3,7 +3,7 @@
 """
 FundHub - verificacao arquitetural deterministica.
 
-Doze checagens mecanicas das regras de CLAUDE.md e .claude/rules/.
+Treze checagens mecanicas das regras de CLAUDE.md e .claude/rules/.
 Nao substitui revisao: cobre o que da para verificar sem julgamento.
 
 Uso:
@@ -550,6 +550,102 @@ def check_classes_orfas():
 
 
 # ------------------------------------------------------------------
+# 13. Cobertura da auditoria (spec 2026-09-07-registros-e-logs)
+# ------------------------------------------------------------------
+# Desde a migration 032 a auditoria e por EXCLUSAO: religar_auditoria()
+# poe trg_audit em toda tabela de `public` que nao esteja em
+# _audit_isentas(). Sobra um buraco que so uma checagem pega: migrations
+# sao aplicadas A MAO, entao uma tabela criada na 035 fica sem trigger
+# ate alguem rodar religar_auditoria() de novo. Por isso (a).
+#
+# Espelho de _audit_isentas() na migration 032. Divergir das duas listas
+# e o que (c) cobra - lista que deve concordar e ninguem confere sempre
+# diverge, e a checagem envelheceria em silencio.
+ISENTAS_AUDITORIA = {
+    'audit_log',            # auditar o log e recursao sem valor
+    'evento_log',           # idem
+    'preferencia_usuario',  # preferencia pessoal de tela; ruido puro
+    'schema_migrations',    # metadado de infraestrutura, nao cadastro
+}
+
+# A partir daqui a migration que cria tabela precisa religar a auditoria.
+# Antes disso a funcao nem existia.
+PRIMEIRA_MIGRATION_COM_RELIGAR = 32
+
+RE_CREATE_TABLE = re.compile(r'create\s+table\s+(?:if\s+not\s+exists\s+)?([a-z_][a-z0-9_]*)', re.I)
+# O corpo fica entre o PRIMEIRO e o SEGUNDO $$ depois da assinatura -
+# parar no primeiro pegaria so `returns text[] language sql ... as`.
+RE_ISENTAS = re.compile(
+    r'function\s+_audit_isentas\s*\(\s*\).*?\$\$(.*?)\$\$', re.I | re.S)
+RE_TABELAS_JS = re.compile(r'export\s+const\s+TABELAS\s*=\s*\{(.*?)\n\};', re.S)
+
+
+def check_auditoria():
+    mig_dir = os.path.join(RAIZ, 'supabase', 'migrations')
+    if not os.path.isdir(mig_dir):
+        return
+
+    criadas = {}          # tabela -> arquivo onde nasceu
+    isentas_sql = None    # a lista declarada no SQL mais recente
+
+    for nome in sorted(os.listdir(mig_dir)):
+        if not nome.endswith('.sql'):
+            continue
+        caminho = os.path.join(mig_dir, nome)
+        txt = ler(caminho)
+        try:
+            numero = int(nome.split('_')[0])
+        except ValueError:
+            continue
+
+        tabelas = [t for t in RE_CREATE_TABLE.findall(txt)]
+        for t in tabelas:
+            criadas.setdefault(t, caminho)
+
+        # (a) migration que cria tabela auditavel tem de religar o gatilho
+        auditaveis = [t for t in tabelas if t not in ISENTAS_AUDITORIA]
+        if (numero >= PRIMEIRA_MIGRATION_COM_RELIGAR and auditaveis
+                and 'religar_auditoria()' not in txt):
+            add('BLOQUEIA', 13, caminho, 0,
+                'cria %s e nao chama religar_auditoria() - a tabela nasce sem '
+                'gatilho de auditoria ate alguem lembrar de rodar'
+                % ', '.join(sorted(set(auditaveis))))
+
+        # a declaracao mais recente vence (o arquivo de maior numero)
+        m = RE_ISENTAS.search(txt)
+        if m:
+            isentas_sql = set(re.findall(r"'([a-z_][a-z0-9_]*)'", m.group(1)))
+
+    # (c) as duas listas de isencao concordam?
+    if isentas_sql is not None and isentas_sql != ISENTAS_AUDITORIA:
+        so_sql = isentas_sql - ISENTAS_AUDITORIA
+        so_py = ISENTAS_AUDITORIA - isentas_sql
+        detalhe = []
+        if so_sql:
+            detalhe.append('so no SQL: %s' % ', '.join(sorted(so_sql)))
+        if so_py:
+            detalhe.append('so nesta checagem: %s' % ', '.join(sorted(so_py)))
+        add('BLOQUEIA', 13, __file__, 0,
+            'ISENTAS_AUDITORIA diverge de _audit_isentas() no SQL (%s)'
+            % ' / '.join(detalhe))
+
+    # (b) tabela auditada sem rotulo amigavel na tela
+    modelo = os.path.join(SRC, 'modules', 'auditoria', 'auditoria.model.js')
+    if not os.path.exists(modelo):
+        return
+    m = RE_TABELAS_JS.search(ler(modelo))
+    if not m:
+        return
+    rotuladas = set(re.findall(r'^\s*([a-z_][a-z0-9_]*)\s*:', m.group(1), re.M))
+    for tabela, onde in sorted(criadas.items()):
+        if tabela in ISENTAS_AUDITORIA or tabela in rotuladas:
+            continue
+        add('AVISO', 13, modelo, 0,
+            'tabela "%s" (criada em %s) e auditada mas nao tem rotulo em TABELAS - '
+            'a aba Mudancas mostraria o nome cru' % (tabela, os.path.basename(onde)))
+
+
+# ------------------------------------------------------------------
 # Execucao
 # ------------------------------------------------------------------
 TITULOS = {
@@ -565,6 +661,7 @@ TITULOS = {
     10: '--  consistencia do registro',
     11: '--  tutorial por modulo',
     12: '--  classe CSS orfa',
+    13: 'R6  cobertura da auditoria',
 }
 
 
@@ -586,6 +683,7 @@ def main():
         check_registro()
         check_documentacao()
         check_classes_orfas()
+        check_auditoria()
 
     bloqueios = [p for p in problemas if p[0] == 'BLOQUEIA']
     avisos = [p for p in problemas if p[0] == 'AVISO']

@@ -1,32 +1,60 @@
 // ============================================================
-// FundHub - modules/usuarios/auditoria.model.js
-// Leitura do audit_log (preenchido pelo trigger fn_audit no banco -
-// ver migration 011). Só admin lê, pelo RLS. A tela nunca escreve
-// aqui: auditoria que se apaga não é auditoria.
+// FundHub - modules/auditoria/auditoria.model.js
+// Leitura do audit_log - o que MUDOU no dado. A tabela é preenchida
+// pelo trigger fn_audit() no Postgres (migration 011) e, desde a 032,
+// o trigger cobre toda tabela de `public` que não esteja em
+// _audit_isentas(). Só admin lê, pelo RLS.
+//
+// A tela NUNCA escreve aqui: auditoria que se apaga não é auditoria.
+// A única remoção possível é a poda por data (podar_logs), e ela mora
+// em auditoria.config.js, à vista do admin.
 // ============================================================
 import { sb, hasSupabase } from '../../core/supabase.js';
 
-// Rótulos amigáveis das tabelas auditadas (para o filtro e a lista).
+// Rótulos amigáveis das tabelas auditadas: é o que aparece no filtro e
+// na lista, no lugar do nome cru da tabela.
+//
+// A checagem 13 do verificador cobra (com aviso) toda tabela auditada
+// que não tenha rótulo aqui - sem isso a aba mostraria `papel_permissao`
+// para um usuário que não faz ideia do que é isso.
 export const TABELAS = {
+  // cadastros núcleo
   unidade_escolar: 'Escolas',
   regional: 'Regionais',
   servidor: 'Servidores',
   vinculo: 'Locais de trabalho',
+  telefone: 'Telefones',
+  local: 'Locais',
+  // acesso e permissão
   perfil: 'Usuários & Acessos',
+  papel: 'Papéis',
+  papel_permissao: 'Permissões por papel',
+  // SATE / transporte
   atividade_extraclasse: 'Atividades (SATE)',
   solicitacao_transporte: 'Solicitações (SATE)',
   oferta_onibus: 'Frota (SATE)',
+  // rotina da gerência
   dia_calendario: 'Calendário',
   afastamento: 'Afastamentos',
-  horario_bloco: 'Horários',
   ocorrencia: 'Ocorrências',
-  telefone: 'Telefones',
-  local: 'Locais',
+  relatorio_visita: 'Visitas',
+  ata_atendimento: 'Atas',
+  projeto: 'Projetos',
+  projeto_interesse: 'Interesse em projetos',
+  // horários
+  horario_bloco: 'Horários',
+  escala_unidade: 'Escalas',
+  escala_tipo: 'Tipos de escala',
+  cargo_gestao: 'Cargos de gestão',
+  horario_exibicao: 'Exibição de horários',
+  // configuração
+  config_modulo: 'Configurações',
 };
 
 export const OPERACOES = { INSERT: 'Criação', UPDATE: 'Alteração', DELETE: 'Exclusão' };
 
-// Rótulos legíveis de alguns campos que aparecem no diff.
+// Rótulos legíveis de alguns campos que aparecem no diff. Best-effort:
+// campo sem rótulo aparece com o nome cru, que é melhor que sumir.
 export const CAMPO_ROTULO = {
   nome: 'Nome', apelido: 'Apelido', nome_oficial: 'Nome oficial', email: 'E-mail',
   telefone: 'Telefone', telefones: 'Telefones', numero: 'Número', rotulo: 'Rótulo',
@@ -44,7 +72,9 @@ export const CAMPO_ROTULO = {
   destino_endereco: 'Endereço do destino', latitude: 'Latitude', longitude: 'Longitude',
   encaminhamentos: 'Encaminhamentos', constatacoes: 'Constatações', pauta: 'Pauta',
   deliberacoes: 'Deliberações', participantes: 'Participantes', prazo: 'Prazo',
-  processo: 'Processo', desembarque: 'Desembarque',
+  processo: 'Processo', permissoes: 'Exceções de permissão', segmentos: 'Segmentos',
+  nivel: 'Nível', modulo: 'Módulo', chave: 'Chave', descricao: 'Descrição',
+  ordem: 'Ordem', variante: 'Variante', conduz: 'Conduz', cargo: 'Cargo',
 };
 export const rotulaCampo = (k) => CAMPO_ROTULO[k] || k;
 
@@ -69,5 +99,6 @@ export function mostrarValor(v) {
   if (v === true) return 'sim';
   if (v === false) return 'não';
   if (Array.isArray(v)) return v.join(', ') || 'vazio';
+  if (typeof v === 'object') return JSON.stringify(v);
   return String(v);
 }

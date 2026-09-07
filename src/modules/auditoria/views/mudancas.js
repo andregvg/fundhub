@@ -1,8 +1,11 @@
 // ============================================================
-// FundHub - usuarios/views/auditoria.js  (aba Auditoria)
+// FundHub - auditoria/views/mudancas.js  (aba Mudanças)
 // Lê o audit_log e mostra, para cada alteração, quem fez, quando (fuso
 // São Paulo) e - o pedido central - O QUE mudou: campo a campo, o valor
 // de antes e o de depois. Nada aqui escreve no banco.
+//
+// A aba irmã (atividade.js) responde a outra pergunta: o que ACONTECEU
+// no sistema, e não o que mudou no dado.
 // ============================================================
 import {
   TABELAS, OPERACOES, getAuditoria, mostrarValor, rotulaCampo,
@@ -21,32 +24,32 @@ let filtro = { tabela: '', operacao: '', autor: '', de: addDias(hojeISO(), -30),
 export async function render(ctx) {
   ctx.box().innerHTML = `
     <div class="painel-filtros">
-      <label class="filtro-campo">De <input id="au-de" type="date" value="${filtro.de}" /></label>
-      <label class="filtro-campo">Até <input id="au-ate" type="date" value="${filtro.ate}" /></label>
-      <label class="filtro-campo">Módulo <select id="au-tab">
+      <label class="filtro-campo">De <input id="mu-de" type="date" value="${filtro.de}" /></label>
+      <label class="filtro-campo">Até <input id="mu-ate" type="date" value="${filtro.ate}" /></label>
+      <label class="filtro-campo">Módulo <select id="mu-tab">
         <option value="">Todos</option>
         ${Object.entries(TABELAS).map(([k, v]) => `<option value="${k}">${esc(v)}</option>`).join('')}
       </select></label>
-      <label class="filtro-campo">Ação <select id="au-op">
+      <label class="filtro-campo">Ação <select id="mu-op">
         <option value="">Todas</option>
         ${Object.entries(OPERACOES).map(([k, v]) => `<option value="${k}">${esc(v)}</option>`).join('')}
       </select></label>
       <label class="filtro-campo"><span>${ico('servidor', { tam: 13 })} Autor</span>
-        <input id="au-autor" type="search" placeholder="autor…" />
+        <input id="mu-autor" type="search" placeholder="autor…" />
       </label>
-      <span class="count" id="au-count"></span>
+      <span class="count" id="mu-count"></span>
     </div>
-    <div id="au-lista">${loading()}</div>
+    <div id="mu-lista">${loading()}</div>
     ${drawerHtml()}`;
 
   montarDrawer();
   const rec = () => carregar();
-  document.getElementById('au-de').addEventListener('change', e => { filtro.de = e.target.value; rec(); });
-  document.getElementById('au-ate').addEventListener('change', e => { filtro.ate = e.target.value; rec(); });
-  document.getElementById('au-tab').addEventListener('change', e => { filtro.tabela = e.target.value; rec(); });
-  document.getElementById('au-op').addEventListener('change', e => { filtro.operacao = e.target.value; rec(); });
+  document.getElementById('mu-de').addEventListener('change', e => { filtro.de = e.target.value; rec(); });
+  document.getElementById('mu-ate').addEventListener('change', e => { filtro.ate = e.target.value; rec(); });
+  document.getElementById('mu-tab').addEventListener('change', e => { filtro.tabela = e.target.value; rec(); });
+  document.getElementById('mu-op').addEventListener('change', e => { filtro.operacao = e.target.value; rec(); });
   let deb;
-  document.getElementById('au-autor').addEventListener('input', e => {
+  document.getElementById('mu-autor').addEventListener('input', e => {
     filtro.autor = e.target.value; clearTimeout(deb); deb = setTimeout(rec, 350);
   });
 
@@ -54,7 +57,7 @@ export async function render(ctx) {
 }
 
 async function carregar() {
-  const box = document.getElementById('au-lista');
+  const box = document.getElementById('mu-lista');
   box.innerHTML = loading();
   try {
     lista = await getAuditoria({
@@ -63,7 +66,7 @@ async function carregar() {
     });
   } catch (err) { box.innerHTML = erroBox(err); return; }
 
-  document.getElementById('au-count').textContent = `${lista.length} registro(s)`;
+  document.getElementById('mu-count').textContent = `${lista.length} registro(s)`;
   if (!lista.length) {
     box.innerHTML = emptyState(ico('documento', { tam: 32 }), 'Nada no período', 'Ajuste os filtros - ou ninguém alterou nada por aqui.');
     return;

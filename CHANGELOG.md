@@ -9,6 +9,34 @@ versionamento **MINOR** = módulo novo ou mudança de modelo de dados, **PATCH**
 
 ---
 
+## [0.22.0] - 2026-09-07
+
+### Adicionado
+
+- **Auditoria virou um módulo próprio**, no menu de Administração e só para
+  administradores. Antes o histórico era uma aba escondida dentro de Usuários
+  & Acessos; agora tem tela inteira, com duas perguntas separadas: **Mudanças**
+  ("o que mudou neste cadastro, e quem mudou?") e **Atividade** ("quem entrou,
+  quem exportou, quem tentou abrir o que não podia?").
+- **Registro de atividade do sistema.** Além das alterações de cadastro, que já
+  eram guardadas, o sistema passa a registrar quatro acontecimentos: entrada no
+  sistema, exportação de dados, mudança de permissão de alguém e tentativa de
+  abrir um módulo sem ter acesso.
+- **Mudança de permissão agora aparece em português.** Em vez de só o registro
+  técnico, a lista mostra a frase: quem mudou o papel de quem, e para qual.
+- **Controle de espaço à vista.** Pela engrenagem do módulo dá para ver quantos
+  registros existem, quanto ocupam e qual a porcentagem já usada do banco - e
+  apagar os mais antigos quando for preciso, com o aviso de que é definitivo.
+
+### Corrigido
+
+- **Mudanças em papéis e permissões passam a ser registradas.** Alterar o que um
+  papel pode fazer é uma mudança de segurança e, até agora, não deixava rastro
+  nenhum. Passa a deixar - assim como qualquer cadastro novo que venha a existir,
+  que agora entra no histórico automaticamente, sem depender de alguém lembrar.
+
+---
+
 ## [0.21.2] - 2026-09-07
 
 ### Corrigido

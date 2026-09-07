@@ -13,6 +13,7 @@
 import { moduloPorRota, caminhoDaRota, nivelEfetivo, REDIRECIONAMENTOS } from './registry.js';
 import { getPerfilAtual } from './perfil.js';
 import { OCULTO } from './permissoes.js';
+import { registrarEventoUnico, EVENTO } from './eventos.js';
 import { loading, emptyState } from '../shared/ui/feedback.js';
 import { ico } from '../shared/ui/icones.js';
 import { esc } from '../shared/dom.js';
@@ -72,6 +73,12 @@ export async function route({ manterScroll = false } = {}) {
       // módulo existe já é informação a mais para quem não tem acesso.
       outlet.innerHTML = emptyState(ico('restrito', { tam: 32 }), 'Acesso restrito',
         'Você não tem permissão para este módulo. Se precisa de acesso, fale com a Gerência de Ensino Fundamental.');
+      // Sinal de sondagem, para o admin ver na aba Atividade. Vai o id do
+      // módulo, não o hash: a query (`?servidor=…`) carrega uuid de gente,
+      // e o log é lido por todo admin (R7). Uma vez por módulo na sessão -
+      // insistir no F5 não vira dez linhas.
+      registrarEventoUnico(EVENTO.ACESSO_NEGADO, { modulo: mod.id },
+        `${EVENTO.ACESSO_NEGADO}:${mod.id}`);
     } else {
       const nv = nivelEfetivo(mod);
       // Estrutura estável: a barra de ações é IRMÃ da view, não mãe. A

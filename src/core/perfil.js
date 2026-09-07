@@ -13,6 +13,7 @@
 import { sb, hasSupabase } from './supabase.js';
 import { definirMapa, limparMapa, podeEscrever } from './permissoes.js';
 import { expandir } from './segmentos.js';
+import { registrarEventoUnico, limparEventos, EVENTO } from './eventos.js';
 
 let _cache;
 let _ultimoAcesso = null;   // o acesso ANTERIOR do usuário (para exibir no menu)
@@ -56,20 +57,30 @@ export async function getPerfilAtual() {
 
 // Carimba o acesso de agora e guarda o anterior. Chamado uma vez no boot.
 // A função no banco devolve o último acesso ANTERIOR (antes deste login).
+//
+// São dois registros com propósitos diferentes, e por isso os dois:
+// `perfil.ultimo_acesso` é o ESTADO ("quando essa pessoa entrou pela
+// última vez", que a lista de usuários mostra e o carimbo sobrescreve);
+// o evento `acesso` é o HISTÓRICO ("quem entrou, quando", que se
+// acumula e alimenta a aba Atividade).
 export async function registrarAcesso() {
   if (!hasSupabase()) return null;
   try {
     const { data } = await sb().rpc('registrar_acesso');
     _ultimoAcesso = data || null;
   } catch (_) { _ultimoAcesso = null; }
+  registrarEventoUnico(EVENTO.ACESSO);
   return _ultimoAcesso;
 }
 
 // ISO do acesso anterior do usuário (ou null se é o primeiro).
 export function ultimoAcessoAnterior() { return _ultimoAcesso; }
 
-// Chamar no logout: o próximo login recarrega o perfil do banco.
-export function limparPerfil() { _cache = undefined; _ultimoAcesso = null; limparMapa(); }
+// Chamar no logout: o próximo login recarrega o perfil do banco e volta
+// a registrar o evento de acesso da sessão nova.
+export function limparPerfil() {
+  _cache = undefined; _ultimoAcesso = null; limparMapa(); limparEventos();
+}
 
 // Força releitura sem deslogar - usado pela tela "Meus dados" depois
 // de salvar, e pelo módulo Usuários quando o admin muda o próprio papel.

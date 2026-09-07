@@ -68,7 +68,10 @@ Toda tabela nova, na mesma migration:
 2. policy de **select** por `is_autorizado()` (ou a função de nível do módulo);
 3. policy de **escrita** por `is_admin()` / a função de nível correspondente;
 4. `grant` para o papel `authenticated`;
-5. religar o **trigger de auditoria** e acrescentar a tabela ao array da `019`;
+5. terminar com `select religar_auditoria();` - desde a `032` a auditoria é **por exclusão**
+   (toda tabela de `public` fora de `_audit_isentas()` ganha o gatilho), mas migration é aplicada
+   à mão e sem essa chamada a tabela nasce sem trigger. Tabela que **não** deve ser auditada entra
+   em `_audit_isentas()` com o motivo, e o mesmo nome vai para `ISENTAS_AUDITORIA` no verificador;
 6. tornar a migration **idempotente** (`if not exists`, `on conflict do nothing`).
 
 Migrations são aplicadas **à mão, em ordem numérica**, pelo SQL Editor do painel. Não há ferramenta
@@ -80,12 +83,26 @@ Tabela ausente = Postgres `42P01`; coluna ausente = `42703`. Ver `telefones.mode
 
 ## Auditoria
 
-Toda alteração de cadastro é registrada por **trigger no Postgres** (`fn_audit`, migration 011) -
-antes, depois e diff campo a campo. Nunca por código de tela: assim é automático e à prova de
-bypass (alteração por SQL direto também fica registrada).
+São **duas** trilhas, e elas não se misturam - ver a spec
+`2026-09-07-registros-e-logs-design.md`.
 
-Ninguém escreve no `audit_log` - não há policy de insert/update/delete. Auditoria que se apaga não
-é auditoria.
+**`audit_log` - o que MUDOU no dado.** Toda alteração de cadastro é registrada por **trigger no
+Postgres** (`fn_audit`, migration 011) - antes, depois e diff campo a campo. Nunca por código de
+tela: assim é automático e à prova de bypass (alteração por SQL direto também fica registrada).
+Desde a `032` a cobertura é **por exclusão**: `religar_auditoria()` põe o gatilho em toda tabela de
+`public` fora de `_audit_isentas()`. Esquecer passou a significar auditar demais, nunca de menos.
+
+**`evento_log` - o que ACONTECEU no sistema.** Login, exportação, mudança de permissão, acesso
+negado. Emitido pelo front por `core/eventos.js` → `registrar_evento()`. Tipo é lista fechada
+(validada na função **e** por CHECK), `contexto` guarda metadado e **nunca** conteúdo ou dado
+pessoal (R7) - todo admin lê este log.
+
+**Por que duas tabelas e não uma:** o `audit_log` só é prova porque **ninguém escreve nele** - não
+há policy de insert/update/delete. Abrir insert ali para o front gravar evento permitiria forjar
+linha de auditoria. Auditoria que se apaga, ou que se inventa, não é auditoria.
+
+A única remoção possível nos dois é `podar_logs()`, por idade e só admin, exposta na engrenagem do
+módulo Auditoria - com o tamanho à vista antes do botão.
 
 ## CSRF
 
