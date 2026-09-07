@@ -194,7 +194,8 @@ async function carregar() {
     // calculada sobre ela, nunca sobre a régua esticada (D9, achado da
     // revisão do Task 6: sem isto, um dia sem TDC ganhava lacuna
     // fantasma só porque a quarta com TDC esticou a régua da semana).
-    + gradeHtml(DIAS, { linhas, blocosDe, mostrarCobertura, janela: regua, janelaCobertura: janela, subLinhas, blocosDeEscala })
+    + gradeHtml(DIAS, { linhas, blocosDe, mostrarCobertura, janela: regua, janelaCobertura: janela,
+        subLinhas, blocosDeEscala, blocosResolvidos })
     + (subLinhas.length ? `<p class="form-hint">Quem não tem horário próprio de TDC cumpre a jornada normal.</p>` : '')
     + naoExibidosHtml(fora);
   // `corpo.innerHTML` acabou de ser reconstruído - sem isto, quem
@@ -210,10 +211,18 @@ const blocosDe = (servidorId, dia) =>
   escolherBlocos(blocos.filter(b => b.servidor_id === servidorId && b.dia_semana === dia), escalaVista, 1);
 
 // Blocos EXATAMENTE daquela escala e variante (sem o fallback) - a
-// sub-linha só mostra quem tem horário próprio ali (D6.3).
+// sub-linha só DESENHA quem tem horário próprio ali (D6.3).
 const blocosDeEscala = (servidorId, dia, escala, variante = 1) =>
   blocos.filter(b => b.servidor_id === servidorId && b.dia_semana === dia
     && (b.escala || 'normal') === escala && varDe(b) === variante);
+
+// O que a pessoa CUMPRE naquela configuração, pelo fallback de três
+// degraus (D4): o horário próprio, senão o da variante 1 daquela
+// escala, senão a jornada normal. É este o conjunto que a tira de
+// cobertura da sub-linha usa - quem herda a jornada normal está na
+// escola, e contá-lo como ausente inventaria uma lacuna (D3).
+const blocosResolvidos = (servidorId, dia, escala, variante = 1) =>
+  escolherBlocos(blocos.filter(b => b.servidor_id === servidorId && b.dia_semana === dia), escala, variante);
 
 // "Voltar à ordem padrão" só faz sentido quando há o que voltar: sem
 // linha em `horario_exibicao`, a grade já está no padrão alfabético.

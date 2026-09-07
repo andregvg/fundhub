@@ -27,24 +27,72 @@ const subLinhas = [
   { dia: 3, escala: 'tdc-presencial', variante: 2, rotulo: 'TDC Presencial · variante 2' },
 ];
 
-test('cada variante vira uma sub-linha propria', () => {
+test('cada variante vira uma sub-linha própria', () => {
   const html = gradeHtml(DIAS_QUA, { linhas, blocosDe, mostrarCobertura: true, janela: J, subLinhas, blocosDeEscala });
   assert.equal(html.split('hg-sublinha').length - 1, 2);
   assert.ok(html.includes('quando Gestor 1 conduz'));
   assert.ok(html.includes('variante 2'));
 });
 
-test('cada sub-linha tem tira de cobertura propria (D3, substitui D6.2)', () => {
+test('cada sub-linha tem tira de cobertura própria (D3, substitui D6.2)', () => {
   const html = gradeHtml(DIAS_QUA, { linhas, blocosDe, mostrarCobertura: true, janela: J, subLinhas, blocosDeEscala });
   // Uma tira do dia regular + uma por sub-linha.
   assert.equal(html.split('hg-cobertura').length - 1, 3);
 });
 
-test('a variante com buraco marca lacuna e a outra nao', () => {
+test('a variante com buraco marca lacuna e a outra não', () => {
   const html = gradeHtml(DIAS_QUA, { linhas, blocosDe, mostrarCobertura: true, janela: J, subLinhas, blocosDeEscala });
   const [, v1, v2] = html.split('hg-sublinha');
   assert.ok(!v1.includes('hg-lacuna'), 'variante 1 cobre a janela inteira');
   assert.ok(v2.includes('hg-lacuna'), 'variante 2 deixa 17:00-20:10 descoberto');
+});
+
+// ── Desenho x cobertura: os dois papéis da sub-linha ────────────────
+// A BARRA é exata (D6.3: quem não tem horário próprio na configuração
+// não vira barra na sub-linha), mas a COBERTURA é da configuração
+// inteira (D3) - e as horas de cada pessoa nela saem do fallback de
+// três degraus de D4. Quem não tem horário próprio de TDC - o caso que
+// o tutorial manda deixar em branco - cumpre a jornada normal e ESTÁ
+// na escola: contá-lo como ausente inventa uma lacuna que não existe.
+const JANELA_ESCOLA = { ini: paraMin('07:00'), fim: paraMin('18:20') };
+const REGUA_TDC = { ini: paraMin('07:00'), fim: paraMin('20:10') };
+
+const subLinhaTdc = [{ dia: 3, escala: 'tdc-presencial', variante: 1, rotulo: 'TDC Presencial' }];
+
+// Gestor 1 tem horário próprio de TDC (11:10-20:10); Gestor 2 não tem
+// nenhum e herda a jornada normal (07:00-15:45).
+const exatosTdc = (id) => (id === 's1' ? [B('s1', '11:10', '20:10')] : []);
+const resolvidosTdc = (id) => (id === 's1' ? [B('s1', '11:10', '20:10')] : [B('s2', '07:00', '15:45')]);
+
+test('quem herda a jornada normal conta na cobertura da sub-linha (D4 x D3)', () => {
+  const html = gradeHtml(DIAS_QUA, {
+    linhas, blocosDe: () => [], mostrarCobertura: true,
+    janela: REGUA_TDC, janelaCobertura: JANELA_ESCOLA,
+    subLinhas: subLinhaTdc, blocosDeEscala: exatosTdc, blocosResolvidos: resolvidosTdc,
+  });
+  const sub = html.split('hg-sublinha')[1];
+  assert.ok(!sub.includes('hg-lacuna'),
+    'Gestor 2 cobre 07:00-15:45 pela jornada normal; não pode sobrar "Sem ninguém entre 07:00 e 11:10"');
+});
+
+test('a barra da sub-linha continua exata: quem herda não vira barra (D6.3)', () => {
+  const html = gradeHtml(DIAS_QUA, {
+    linhas, blocosDe: () => [], mostrarCobertura: true,
+    janela: REGUA_TDC, janelaCobertura: JANELA_ESCOLA,
+    subLinhas: subLinhaTdc, blocosDeEscala: exatosTdc, blocosResolvidos: resolvidosTdc,
+  });
+  const sub = html.split('hg-sublinha')[1];
+  assert.equal(sub.split('hg-bloco').length - 1, 1, 'só o Gestor 1 tem horário próprio de TDC');
+});
+
+test('sem `blocosResolvidos`, a cobertura cai no resolvedor exato (compatibilidade)', () => {
+  const html = gradeHtml(DIAS_QUA, {
+    linhas, blocosDe: () => [], mostrarCobertura: true,
+    janela: REGUA_TDC, janelaCobertura: JANELA_ESCOLA,
+    subLinhas: subLinhaTdc, blocosDeEscala: exatosTdc,
+  });
+  const sub = html.split('hg-sublinha')[1];
+  assert.ok(sub.includes('hg-lacuna'), 'sem o resolvedor novo, o comportamento é o de antes');
 });
 
 test('sem cobertura (a sede da SME), nenhuma tira em lugar nenhum', () => {

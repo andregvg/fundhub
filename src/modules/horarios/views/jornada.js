@@ -12,7 +12,7 @@
 // contínuas ficam marcados e deixam salvar. Ver .claude/rules/dados.md.
 // ============================================================
 import { DIAS, criarBloco, atualizarBloco, excluirBloco,
-  validarDia, totalDoDia, duracao } from '../horarios.model.js';
+  validarDia, totalDoDia, duracao, temVarianteNoBanco } from '../horarios.model.js';
 import { rotulaEscala, variantesDe, varDe } from '../escalas.model.js';
 import { esc, falha } from '../../../shared/dom.js';
 import { ico } from '../../../shared/ui/icones.js';
@@ -40,9 +40,11 @@ export function abrirJornada({ servidor, unidadeId, blocos, recarregar, escalasE
   const porEscala = {};
   for (const chaveEsc of chaves) {
     porEscala[chaveEsc] = {};
-    // As variantes desta escala em QUALQUER dia, na unidade inteira: uma
-    // variante criada por outro gestor precisa aparecer aqui, senão a
-    // configuração fica pela metade e a cobertura dela nunca fecha.
+    // As variantes desta escala em QUALQUER dia, dentro da lista `blocos`
+    // que a gaveta recebeu: a unidade inteira quando ela é aberta pela aba
+    // "Por escola" (aí uma variante criada por outro gestor aparece aqui,
+    // e a configuração não fica pela metade) e só os blocos deste servidor
+    // quando ela é aberta pela aba "Por servidor".
     const vs = [...new Set(DIAS.flatMap(d => variantesDe(blocos, chaveEsc, d.n)))].sort((a, b) => a - b);
     for (const v of vs) {
       porEscala[chaveEsc][v] = {};
@@ -113,9 +115,13 @@ export function abrirJornada({ servidor, unidadeId, blocos, recarregar, escalasE
 
   // Mesmo padrão das abas de escala: ligado uma vez, sobre o container
   // estável do form. Trocar de variante só troca `estado.variante`.
-  document.getElementById('hj-variantes').addEventListener('click', (e) => {
+  document.getElementById('hj-variantes').addEventListener('click', async (e) => {
+    if (e.target.closest('#hj-var-excluir')) { await excluirVariante(); return; }
     const nova = e.target.closest('#hj-var-nova');
     if (nova) {
+      // O próximo número sai de TODAS as chaves, não só das visíveis: uma
+      // variante marcada para exclusão ainda existe no banco até salvar,
+      // e reaproveitar o número dela misturaria as duas.
       const vs = Object.keys(estado.porEscala[estado.escala]).map(Number);
       const proxima = Math.max(...vs) + 1;
       estado.porEscala[estado.escala][proxima] = Object.fromEntries(DIAS.map(d => [d.n, []]));
@@ -186,36 +192,96 @@ function pintarDica() {
     : 'Deixe um dia em branco aqui para ele seguir a jornada Normal nesta escala. Só preencha os dias que mudam.';
 }
 
+// As variantes que a barra de abas MOSTRA: a 1 sempre (é o degrau final
+// do fallback de D4 e não pode ser excluída), a ativa sempre (uma
+// variante recém-criada ainda está vazia e precisa aparecer para ser
+// preenchida) e as demais enquanto tiverem alguma linha viva. Uma
+// variante excluída continua no estado, com as linhas marcadas, até o
+// "Salvar jornada" apagá-las no banco: ela sai da barra de abas, nunca
+// da lista de gravação.
+function variantesVisiveis() {
+  const dias = estado.porEscala[estado.escala];
+  return Object.keys(dias).map(Number).sort((a, b) => a - b)
+    .filter(v => v === 1 || v === estado.variante
+      || DIAS.some(d => dias[v][d.n].some(l => !l.excluir)));
+}
+
+// O estado do interruptor "conduzo o TDC nesta variante" como a pessoa
+// o vê agora. Lido do DOM porque uma variante sem nenhuma linha ainda
+// não tem onde guardar essa marca - é o que faz um bloco acrescentado
+// DEPOIS de marcar a caixa nascer com `conduz` certo.
+const conduzMarcado = () => Boolean(document.getElementById('hj-conduz')?.checked);
+
 // A segunda barra de abas: as variantes da escala ativa. As abas só
-// aparecem com mais de uma; o "+" é SEMPRE visível - inclusive numa
-// escola sem revezamento, senão ela nunca teria como criar o primeiro
-// (perder a capacidade é pior que um botão a mais). Fica fora do
-// role="tablist" (só aba é filha dele, mesmo motivo do .h-topo em
-// horarios.css). A caixa "conduzo o TDC" só aparece fora da normal.
+// aparecem com mais de uma; o "+" aparece mesmo numa escola sem
+// revezamento, senão ela nunca teria como criar a segunda configuração
+// (um botão a mais é melhor que a capacidade perdida). Fica fora do
+// role="tablist", porque só aba é filha de tablist. A caixa "conduzo o
+// TDC" só aparece fora da normal, e a lixeira só fora da variante 1.
+//
+// Enquanto a migration 030 não roda, o banco não tem onde guardar nem a
+// variante nem o "conduzo": o "+", a lixeira e a caixa somem e a dica
+// explica. Esconder o "+" é o que de fato evita o estrago - sem isso a
+// pessoa monta uma segunda configuração inteira, lê "Jornada salva" e
+// tudo cai empilhado na primeira.
 function pintarVariantes() {
   const box = document.getElementById('hj-variantes');
   if (!box) return;
-  const vs = Object.keys(estado.porEscala[estado.escala]).map(Number).sort((a, b) => a - b);
+  const disponivel = temVarianteNoBanco();
+  const vs = variantesVisiveis();
   const abas = vs.length > 1 ? `
     <div class="tabbar hj-variantes-bar" role="tablist">
       ${vs.map(v => `<button type="button" class="tab ${v === estado.variante ? 'on' : ''}"
         role="tab" aria-selected="${v === estado.variante}" data-variante="${v}">Variante ${v}</button>`).join('')}
     </div>` : '';
+  const acoes = disponivel ? `
+      <button type="button" class="mini-btn" id="hj-var-nova"
+        aria-label="Criar uma variante">${ico('adicionar', { tam: 13 })}</button>
+      ${estado.variante !== 1 ? `<button type="button" class="mini-btn no" id="hj-var-excluir"
+        aria-label="Excluir a variante ${estado.variante}">${ico('excluir', { tam: 13 })}</button>` : ''}` : '';
   const conduzAqui = DIAS.some(d =>
     estado.porEscala[estado.escala][estado.variante][d.n].some(l => !l.excluir && l.conduz));
-  const conduz = estado.escala === 'normal' ? '' : `
+  const conduz = (estado.escala === 'normal' || !disponivel) ? '' : `
     <label class="switch hj-conduz">
       <input type="checkbox" id="hj-conduz" ${conduzAqui ? 'checked' : ''} />
       <span class="switch-trilho" aria-hidden="true"></span>
       <span class="switch-txt">conduzo o TDC nesta variante</span>
     </label>`;
-  box.innerHTML = `
-    <div class="hj-variantes-topo">
-      ${abas}
-      <button type="button" class="mini-btn" id="hj-var-nova"
-        aria-label="Criar uma variante">${ico('adicionar', { tam: 13 })}</button>
-    </div>
-    ${conduz}`;
+  const semRecurso = disponivel ? '' : `
+    <p class="form-hint">Ainda não dá para registrar mais de uma configuração do
+      mesmo dia, nem quem conduz o TDC: este sistema ainda não foi atualizado.
+      Cada dia continua com uma configuração só.</p>`;
+  const topo = (abas || acoes) ? `<div class="hj-variantes-topo">${abas}${acoes}</div>` : '';
+  box.innerHTML = `${topo}${conduz}${semRecurso}`;
+}
+
+// Excluir a variante ativa: as linhas DESTE servidor nesta escala e
+// variante saem, e nada mais (D7 - a gaveta nunca escreve sobre dado de
+// outra pessoa; `estado.porEscala` só foi montado com os blocos dele).
+// A variante some da grade quando o último servidor deixa de ter bloco
+// nela - por isso aqui não se apaga nada de ninguém.
+//
+// Mesmo padrão do `.hj-del` de um bloco: linha já gravada é MARCADA
+// (o banco só muda no "Salvar jornada"), linha nunca gravada some.
+// A variante 1 não tem lixeira: é o degrau final do fallback de D4.
+async function excluirVariante() {
+  const v = estado.variante;
+  if (v === 1) return;
+  const dias = estado.porEscala[estado.escala][v];
+  const vivas = DIAS.some(d => dias[d.n].some(l => !l.excluir));
+  // Variante vazia não pede confirmação: não há o que perder.
+  if (vivas && !(await confirmar(`Excluir a variante ${v}?`, {
+    detalhe: `Os horários de ${estado.servidor.nome} nesta variante serão removidos ao salvar. O horário das outras pessoas não muda.`,
+    textoOk: 'Excluir', perigo: true,
+  }))) return;
+
+  for (const d of DIAS) {
+    dias[d.n] = dias[d.n].filter(l => l.id);
+    for (const l of dias[d.n]) l.excluir = true;
+  }
+  estado.variante = 1;
+  pintarVariantes();
+  pintar();
 }
 
 // Atualiza só o total/avisos do dia para acompanhar o que se digita - NUNCA
@@ -282,8 +348,12 @@ function pintar() {
   }).join('');
 
   box.querySelectorAll('.hj-add').forEach(b => b.addEventListener('click', () => {
-    // Campos vazios de propósito - ver o cabeçalho deste arquivo.
-    estado.porEscala[estado.escala][estado.variante][Number(b.dataset.dia)].push({ inicio: '', fim: '', obs: '' });
+    // Campos vazios de propósito - ver o cabeçalho deste arquivo. O
+    // `conduz`, não: ele é da VARIANTE, e uma linha que nasce sem ele
+    // depois de a caixa ter sido marcada gravaria `false` com a caixa
+    // marcada na tela (a caixa não é redesenhada por `pintar()`).
+    estado.porEscala[estado.escala][estado.variante][Number(b.dataset.dia)]
+      .push({ inicio: '', fim: '', obs: '', conduz: conduzMarcado() });
     pintar();
   }));
   box.querySelectorAll('.hj-del').forEach(b => b.addEventListener('click', () => {
@@ -313,8 +383,10 @@ function pintar() {
       if (d.n === origem) continue;
       // Blocos já gravados no banco viram exclusão; os novos entram sem
       // id. Cópia, não referência: editar um dia depois não mexe nos outros.
+      // `conduz` viaja junto: ele é da variante, não do dia - uma cópia
+      // sem ele desmarcaria quem conduz nos outros quatro dias.
       dias[d.n] = dias[d.n].filter(l => l.id).map(l => ({ ...l, excluir: true }))
-        .concat(fonte.map(l => ({ inicio: l.inicio, fim: l.fim, obs: l.obs })));
+        .concat(fonte.map(l => ({ inicio: l.inicio, fim: l.fim, obs: l.obs, conduz: Boolean(l.conduz) })));
     }
     pintar();
   }));
@@ -349,6 +421,11 @@ async function salvar(e) {
 
   const btn = document.getElementById('hj-save');
   btn.disabled = true; btn.textContent = 'Salvando…';
+  // Se o banco ainda não tem as colunas da 030, o model descobre isso na
+  // primeira gravação e passa a gravar sem elas. Quem chegou aqui com o
+  // "+" ainda visível (a gaveta abriu antes da descoberta) precisa saber
+  // que o que ela montou não foi guardado como duas configurações.
+  const tinhaVariante = temVarianteNoBanco();
   try {
     // O lote grava sequencialmente - se um item no meio falhar, uma nova
     // tentativa não pode repetir o que já foi gravado. Por isso cada
@@ -393,6 +470,13 @@ async function salvar(e) {
     fecharDrawer();
     await estado.recarregar();
     toast({ titulo: 'Jornada salva', texto: estado.servidor.nome, tipo: 'sucesso' });
+    if (tinhaVariante && !temVarianteNoBanco()) {
+      toast({
+        titulo: 'Só uma configuração foi guardada',
+        texto: 'Este sistema ainda não foi atualizado para guardar mais de uma configuração do mesmo dia. Os horários entraram todos na primeira. Avise a Gerência antes de refazer.',
+        tipo: 'atencao',
+      });
+    }
   } catch (err) {
     reportarErro(err, { msg, titulo: 'Não foi possível salvar a jornada' });
     btn.disabled = false; btn.textContent = 'Salvar jornada';

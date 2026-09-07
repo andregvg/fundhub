@@ -44,17 +44,25 @@ export const duracao = (min) => {
   return m ? `${h}h${String(m).padStart(2, '0')}` : `${h}h`;
 };
 
-// ── Degradacao sem a migration 030 ──
-// Sem a migration 030 as colunas `variante`/`conduz` nao existem e o
-// PostgREST devolve 42703 na escrita (a LEITURA nao quebra: o select e
+// ── Degradação sem a migration 030 ──
+// Sem a migration 030 as colunas `variante`/`conduz` não existem e o
+// PostgREST devolve 42703 na escrita (a LEITURA não quebra: o select é
 // `*`, que traz o que existir). Em vez de derrubar a gaveta, grava sem
-// elas - que e exatamente o comportamento anterior a 030: uma variante
-// so. `.claude/rules/dados.md`, degradacao por migration ausente.
+// elas - que é exatamente o comportamento anterior à 030: uma variante
+// só. `.claude/rules/dados.md`, degradação por migration ausente.
 export const semColunasNovas = ({ variante, conduz, ...resto }) => resto;
 
-// Lembrado entre chamadas: descobrir a ausencia uma vez por sessao
+// Lembrado entre chamadas: descobrir a ausência uma vez por sessão
 // evita pagar um round-trip perdido a cada bloco de um lote.
 let _temColunasNovas = true;
+
+// A tela precisa saber disso: sem as colunas, gravar uma segunda
+// variante a faz cair em cima da primeira, e a pessoa vê "Jornada
+// salva" sobre um dado que não é o que ela digitou. Quem esconde o
+// botão é a view; o model só conta o que descobriu. Começa OTIMISTA -
+// num banco já migrado nada muda, porque isto só vira false depois de
+// um 42703 de verdade.
+export const temVarianteNoBanco = () => _temColunasNovas;
 
 // ── Acesso a dados ───────────────────────────────────────────
 const SEL = '*, servidor:servidor(id, nome, apelido)';

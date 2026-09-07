@@ -295,10 +295,9 @@
 
 /* Segunda barra de abas da gaveta: as variantes da escala ativa. Mesmo
    vocabulário de .tabbar/.tab; só um pouco menor, porque é o eixo
-   secundário - a escala é que manda. O "+" (sempre visível, ver
-   jornada.js) fica FORA do role="tablist" - mesmo motivo do .h-topo
-   acima: só aba é filha de tablist. Quando não há tablist (uma
-   variante só), o "+" fica sozinho na linha. */
+   secundário - a escala é que manda. O "+" e a lixeira (ver jornada.js)
+   ficam FORA do role="tablist": só aba é filha de tablist. Quando não há
+   tablist (uma variante só), eles ficam sozinhos na linha. */
 .hj-variantes-topo { display: flex; align-items: center; gap: 8px; margin-top: -4px; margin-bottom: 8px; }
 .hj-variantes-bar { margin: 0; flex: 1 1 auto; }
 .hj-variantes-bar .tab { font-size: 12.5px; padding-top: 6px; padding-bottom: 6px; }

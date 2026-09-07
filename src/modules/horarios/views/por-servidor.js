@@ -7,7 +7,7 @@
 // ============================================================
 import { DIAS, getBlocosDoServidor, validarDia, totalDoDia, duracao } from '../horarios.model.js';
 import { escolherBlocos, rotulaEscala, variantesDe } from '../escalas.model.js';
-import { posicaoNaBarra, marcasDaBarra } from '../grade.model.js';
+import { posicaoNaBarra, marcasDaBarra, janelaDaGrade, JANELA_FABRICA } from '../grade.model.js';
 import { getServidores, vinculosAbertos } from '../../servidores/servidores.model.js';
 import { rotulaCargo } from '../../servidores/vinculos.model.js';
 import { esc, vazio } from '../../../shared/dom.js';
@@ -124,13 +124,30 @@ function painelLocal(s, local) {
   // todas e não finge saber (D8). Numa escola sem revezamento há uma
   // variante só e o resultado é idêntico ao de antes: `rotuloVariante`
   // vem vazio e `linhaDia` não desenha rótulo nenhum.
-  const semana = DIAS.flatMap(d => {
+  const aDesenhar = DIAS.flatMap(d => {
     const vs = variantesDe(doLocal, escalaVista, d.n);
-    return vs.map(v => linhaDia(s, d,
-      escolherBlocos(doLocal.filter(b => b.dia_semana === d.n), escalaVista, v),
-      { podeEditar: ctxAtual.podeEditar, unidadeId: local.id,
-        rotuloVariante: vs.length > 1 ? `Variante ${v}` : '' }));
-  }).join('');
+    return vs.map(v => ({
+      d, rotuloVariante: vs.length > 1 ? `Variante ${v}` : '',
+      doDia: escolherBlocos(doLocal.filter(b => b.dia_semana === d.n), escalaVista, v),
+    }));
+  });
+
+  // A régua é UMA por PAINEL e cobre todos os dias e variantes que ele
+  // desenha (D9). Uma régua por linha faria cada linha ter a própria
+  // escala horizontal, e comparar as linhas - um dia com o outro, e as
+  // variantes do mesmo dia uma sob a outra (D8) - deixaria de dizer
+  // qualquer coisa: barras do mesmo tamanho seriam horários diferentes.
+  // Sem régua, uma linha de variante (11:10-20:10 num TDC, ou um turno
+  // que começa 06:45) era recortada contra a janela de fábrica e a barra
+  // passava a discordar do próprio rótulo. A base é a janela de FÁBRICA: esta
+  // aba não carrega o tipo da unidade, então não tem a janela
+  // configurada dela - a régua estica sobre a de fábrica do mesmo jeito.
+  const regua = janelaDaGrade(JANELA_FABRICA, aDesenhar.flatMap(x => x.doDia));
+
+  const semana = aDesenhar.map(x => linhaDia(s, x.d, x.doDia, {
+    podeEditar: ctxAtual.podeEditar, unidadeId: local.id,
+    rotuloVariante: x.rotuloVariante, regua,
+  })).join('');
 
   // Soma só a variante 1: variantes são dias ALTERNATIVOS, e somá-las
   // inventaria carga semanal que ninguém cumpre.
@@ -186,12 +203,12 @@ function abrirJornadaLocal(unidadeId) {
 // que o lápis da grade passou a abrir a gaveta (views/jornada.js) em
 // vez de montar esta marcação para edição. Continua privada - não lê
 // nenhum estado de módulo, recebe os blocos do dia prontos.
-function linhaDia(s, d, doDia, { podeEditar, unidadeId: uni, rotuloVariante = '' }) {
+function linhaDia(s, d, doDia, { podeEditar, unidadeId: uni, rotuloVariante = '', regua = JANELA_FABRICA }) {
   const problemas = validarDia(doDia);
   const total = totalDoDia(doDia);
 
   const barras = doDia.map(b => {
-    const p = posicaoNaBarra(b);
+    const p = posicaoNaBarra(b, regua);
     const rotulo = `${hhmm(b.inicio)}–${hhmm(b.fim)}`;
     return `<button type="button" class="hb-bloco ${podeEditar ? 'editavel' : ''}"
       style="left:${p.esquerda}%;width:${p.largura}%"
@@ -211,7 +228,7 @@ function linhaDia(s, d, doDia, { podeEditar, unidadeId: uni, rotuloVariante = ''
   return `<div class="hb-linha ${problemas.some(p => p.nivel === 'erro') ? 'tem-erro' : ''}">
     <div class="hb-dia">${d.curto}${
       rotuloVariante ? `<small class="hb-variante">${esc(rotuloVariante)}</small>` : ''}</div>
-    <div class="hb-track">${eixoHb()}${barras || `<span class="hb-vazio">sem jornada</span>`}</div>
+    <div class="hb-track">${eixoHb(regua)}${barras || `<span class="hb-vazio">sem jornada</span>`}</div>
     <div class="hb-info">
       ${total ? `<b>${duracao(total)}</b>` : vazio('sem jornada')}
       ${addBtn}
@@ -223,8 +240,9 @@ function linhaDia(s, d, doDia, { podeEditar, unidadeId: uni, rotuloVariante = ''
 // O Postgres devolve `time` como '07:00:00' - a tela mostra '07:00'.
 const hhmm = (t) => String(t ?? '').slice(0, 5);
 
-// Eixo de horas ao fundo da barra .hb- (só desenhado uma vez por linha).
-function eixoHb() {
-  return marcasDaBarra().map(m =>
+// Eixo de horas ao fundo da barra .hb- (só desenhado uma vez por linha,
+// sempre com a régua do painel - senão as linhas deixam de casar).
+function eixoHb(regua) {
+  return marcasDaBarra(regua).map(m =>
     `<span class="hb-marca" style="left:${m.pos}%"><i></i><em>${m.hora.slice(0, 2)}</em></span>`).join('');
 }

@@ -71,6 +71,18 @@ embaixo da outra, cada uma com a própria faixa de cobertura - identificada
 pelo nome de quem conduz, ou por "variante 1" / "variante 2" quando
 ninguém está marcado.
 
+### Remover uma configuração
+
+1. Abra a gaveta da pessoa e escolha a aba da configuração (por exemplo,
+   **Variante 2**).
+2. Clique na **lixeira**, ao lado do **+**.
+3. Confirme e clique em **Salvar jornada**.
+
+Sai só o horário **daquela pessoa** naquela configuração - o das outras
+continua igual. A configuração some da grade quando a última pessoa
+deixa de ter horário nela. A **Variante 1** não tem lixeira: é a
+configuração base, de onde as outras herdam o que você não preencher.
+
 O mesmo mecanismo serve para um dia comum, sem TDC, que também se
 reveza - por exemplo, uma quarta-feira em que os gestores alternam manhã
 e tarde a cada semana: crie a segunda variante do mesmo jeito, na aba
@@ -120,5 +132,10 @@ trabalho atual naquela unidade. Confira em Servidores.
 **Editei a jornada mas a grade não mudou.**
 Recarregue a página - a gaveta grava, mas a grade por baixo só relê ao
 reabrir a escola.
+
+**Não aparece o + para criar uma segunda configuração.**
+O sistema desta escola ainda não foi atualizado para guardar mais de uma
+configuração do mesmo dia. No lugar do botão aparece um aviso dizendo
+isso. Avise a Gerência; enquanto isso, cada dia tem uma configuração só.
 
 > Atualizado na versão 0.21.0.

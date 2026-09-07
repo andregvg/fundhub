@@ -60,8 +60,17 @@ export function legendaHtml(linhas, { podeEditar }) {
   </div>`;
 }
 
+// `blocosDeEscala` responde "que horário esta pessoa tem PRÓPRIO nesta
+// configuração" (exato) e `blocosResolvidos`, "que horário ela CUMPRE
+// nesta configuração" (o fallback de três degraus de D4). São perguntas
+// diferentes e a sub-linha faz as duas: a barra é do horário próprio
+// (D6.3 - quem não tem não vira barra), a cobertura é do horário
+// cumprido (D3 - quem herda a jornada normal está na escola e não pode
+// contar como ausente). Sem o segundo, a cobertura cai no primeiro e o
+// comportamento é o de antes.
 export function gradeHtml(dias, { linhas, blocosDe, mostrarCobertura, janela = JANELA_FABRICA,
-    janelaCobertura = janela, subLinhas = [], blocosDeEscala = null }) {
+    janelaCobertura = janela, subLinhas = [], blocosDeEscala = null,
+    blocosResolvidos = blocosDeEscala }) {
   const serieDe = new Map(linhas.map(l => [l.servidor.id, l.serie]));
   const nomeDe = new Map(linhas.map(l => [l.servidor.id, l.servidor.nome]));
   const contam = new Set(linhas.filter(l => l.contaCobertura).map(l => l.servidor.id));
@@ -92,9 +101,14 @@ export function gradeHtml(dias, { linhas, blocosDe, mostrarCobertura, janela = J
   // configuração, nunca somados aos do dia regular (D6.1), e tira de
   // cobertura própria: se as variantes cobrem a escola de formas
   // diferentes, a única tira útil é a de cada uma (D3).
+  //
+  // A sub-linha existe quando ALGUÉM tem horário próprio ali - é o que
+  // a torna uma configuração distinta do dia regular. Quem não tem
+  // aparece na cobertura (pelas horas que herda), não como barra.
   const subLinhaHtml = (dia) => subLinhas.filter(s => s.dia === dia).map(s => {
     const doDia = linhas.flatMap(l => (blocosDeEscala?.(l.servidor.id, dia, s.escala, s.variante)) || []);
     if (!doDia.length) return '';
+    const cumpridos = linhas.flatMap(l => (blocosResolvidos?.(l.servidor.id, dia, s.escala, s.variante)) || []);
     const faixas = contarFaixas(doDia);
     const barras = empilhar(doDia).map(({ bloco, faixa }) => {
       const p = posicaoNaBarra(bloco, janela);
@@ -114,7 +128,7 @@ export function gradeHtml(dias, { linhas, blocosDe, mostrarCobertura, janela = J
     return `<div class="hg-sublinha">
       <div class="hg-sub-rotulo">${esc(s.rotulo)}</div>
       <div class="hg-track" style="height:${faixas * 26 + 4}px">${eixo(janela)}${barras}${marcasFalha}</div>
-      ${tiraHtml(doDia)}
+      ${tiraHtml(cumpridos)}
     </div>`;
   }).join('');
 

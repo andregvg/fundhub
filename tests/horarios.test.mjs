@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { validarDia, paraMin, semColunasNovas } from '../src/modules/horarios/horarios.model.js';
+import { validarDia, paraMin, semColunasNovas, temVarianteNoBanco } from '../src/modules/horarios/horarios.model.js';
 import { empilhar, contarFaixas, ordenarParaGrade, SERIES } from '../src/modules/horarios/grade.model.js';
 
 const b = (inicio, fim) => ({ inicio, fim });
@@ -213,7 +213,7 @@ test('a serie conta so quem e exibido; quem fica oculto nao consome cor', () => 
   assert.deepEqual(visiveis.map(x => x.serie), visiveis.map((_, i) => i % SERIES));
 });
 
-// ── degradacao sem a migration 030 ──
+// ── degradação sem a migration 030 ──
 test('semColunasNovas tira variante e conduz, preserva o resto', () => {
   const payload = {
     servidor_id: 's1', unidade_id: 'u1', dia_semana: 3,
@@ -229,8 +229,14 @@ test('semColunasNovas tira variante e conduz, preserva o resto', () => {
   });
 });
 
-test('semColunasNovas nao muda o objeto original', () => {
+test('semColunasNovas não muda o objeto original', () => {
   const payload = { escala: 'normal', variante: 2 };
   semColunasNovas(payload);
   assert.equal(payload.variante, 2);
+});
+
+// Otimista de propósito: num banco já migrado a gaveta não pode esconder
+// o "+" por precaução. A bandeira só cai depois de um 42703 de verdade.
+test('temVarianteNoBanco começa otimista', () => {
+  assert.equal(temVarianteNoBanco(), true);
 });

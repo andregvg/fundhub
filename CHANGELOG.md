@@ -20,11 +20,23 @@ versionamento **MINOR** = módulo novo ou mudança de modelo de dados, **PATCH**
 - **O mesmo vale para um dia comum, sem TDC.** Uma quarta-feira em que os
   gestores alternam manhã e tarde a cada semana também pode ter as duas
   configurações registradas.
+- **Dá para remover uma configuração** que não vale mais, pela lixeira ao
+  lado do "+". Sai só o horário da pessoa que está sendo editada; o das
+  outras continua igual. A primeira configuração não pode ser removida -
+  é dela que as outras herdam o que você não preencher.
 
 ### Corrigido
 - **Horário que passa do fim do expediente não é mais cortado na tela.**
   Antes, quem ficava até mais tarde numa escola com expediente mais curto
-  tinha o horário recortado sem aviso.
+  tinha o horário recortado sem aviso. Vale nas duas abas - por escola e
+  por servidor.
+- **Quem cumpre a jornada normal num dia de TDC deixou de ser contado
+  como ausente.** A faixa de cobertura daquela configuração acusava um
+  buraco que não existia, justamente para quem o sistema manda deixar em
+  branco.
+- **Se o sistema ainda não foi atualizado**, a tela avisa em vez de fingir
+  que guardou: os botões de segunda configuração não aparecem, e uma
+  gravação que caiu na configuração única mostra um alerta.
 
 ### Alterado
 - **Supervisor(a) saiu da equipe gestora.** É cargo da Secretaria, não
