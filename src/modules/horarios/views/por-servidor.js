@@ -6,7 +6,7 @@
 // encontrava onde cadastrar.
 // ============================================================
 import { DIAS, getBlocosDoServidor, validarDia, totalDoDia, duracao } from '../horarios.model.js';
-import { escolherBlocos, rotulaEscala } from '../escalas.model.js';
+import { escolherBlocos, rotulaEscala, variantesDe } from '../escalas.model.js';
 import { posicaoNaBarra, marcasDaBarra } from '../grade.model.js';
 import { getServidores, vinculosAbertos } from '../../servidores/servidores.model.js';
 import { rotulaCargo } from '../../servidores/vinculos.model.js';
@@ -119,11 +119,23 @@ function painelLocal(s, local) {
   // mesmo padrão de por-escola.js.
   const doLocal = blocos.filter(b => b.unidade_id === local.id);
   const vinc = vinculosAbertos(s).find(v => v.unidade_id === local.id);
-  const semana = DIAS.map(d => linhaDia(s, d,
-    escolherBlocos(doLocal.filter(b => b.dia_semana === d.n), escalaVista),
-    { podeEditar: ctxAtual.podeEditar, unidadeId: local.id })).join('');
+
+  // Qual variante vale numa data concreta ninguém sabe - a tela mostra
+  // todas e não finge saber (D8). Numa escola sem revezamento há uma
+  // variante só e o resultado é idêntico ao de antes: `rotuloVariante`
+  // vem vazio e `linhaDia` não desenha rótulo nenhum.
+  const semana = DIAS.flatMap(d => {
+    const vs = variantesDe(doLocal, escalaVista, d.n);
+    return vs.map(v => linhaDia(s, d,
+      escolherBlocos(doLocal.filter(b => b.dia_semana === d.n), escalaVista, v),
+      { podeEditar: ctxAtual.podeEditar, unidadeId: local.id,
+        rotuloVariante: vs.length > 1 ? `Variante ${v}` : '' }));
+  }).join('');
+
+  // Soma só a variante 1: variantes são dias ALTERNATIVOS, e somá-las
+  // inventaria carga semanal que ninguém cumpre.
   const totalSemana = DIAS.reduce((acc, d) =>
-    acc + totalDoDia(escolherBlocos(doLocal.filter(b => b.dia_semana === d.n), escalaVista)), 0);
+    acc + totalDoDia(escolherBlocos(doLocal.filter(b => b.dia_semana === d.n), escalaVista, 1)), 0);
 
   return `<section class="panel hb-painel">
     <h2>
@@ -169,12 +181,12 @@ function abrirJornadaLocal(unidadeId) {
   });
 }
 
-// A semana de UM servidor em UM local, num dia (marcação .hb-*).
+// Uma linha de UM servidor em UM local, num dia e variante (marcação .hb-*).
 // Movida de por-escola.js na Task 8: esta é a única leitora depois
 // que o lápis da grade passou a abrir a gaveta (views/jornada.js) em
 // vez de montar esta marcação para edição. Continua privada - não lê
 // nenhum estado de módulo, recebe os blocos do dia prontos.
-function linhaDia(s, d, doDia, { podeEditar, unidadeId: uni }) {
+function linhaDia(s, d, doDia, { podeEditar, unidadeId: uni, rotuloVariante = '' }) {
   const problemas = validarDia(doDia);
   const total = totalDoDia(doDia);
 
@@ -197,7 +209,8 @@ function linhaDia(s, d, doDia, { podeEditar, unidadeId: uni }) {
     : '';
 
   return `<div class="hb-linha ${problemas.some(p => p.nivel === 'erro') ? 'tem-erro' : ''}">
-    <div class="hb-dia">${d.curto}</div>
+    <div class="hb-dia">${d.curto}${
+      rotuloVariante ? `<small class="hb-variante">${esc(rotuloVariante)}</small>` : ''}</div>
     <div class="hb-track">${eixoHb()}${barras || `<span class="hb-vazio">sem jornada</span>`}</div>
     <div class="hb-info">
       ${total ? `<b>${duracao(total)}</b>` : vazio('sem jornada')}

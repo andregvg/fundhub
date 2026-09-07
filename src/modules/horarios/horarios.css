@@ -44,6 +44,11 @@
   text-transform: uppercase;
   letter-spacing: .04em;
 }
+
+/* Numa escola que reveza, o mesmo dia aparece uma vez por variante -
+   o rótulo abaixo da sigla do dia é o que distingue as duas linhas. */
+.hb-variante { display: block; font-size: 9.5px; font-weight: 400; color: var(--muted); line-height: 1.2; }
+
 .hb-info {
   grid-area: info;
   display: flex;
