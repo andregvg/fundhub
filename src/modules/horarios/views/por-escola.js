@@ -8,13 +8,13 @@
 // A cobertura é regra de ESCOLA - a sede da SME não entra nela.
 // ============================================================
 import { DIAS, getBlocos, paraHora } from '../horarios.model.js';
-import { escolherBlocos, rotulaEscala } from '../escalas.model.js';
+import { escolherBlocos, rotulaEscala, variantesDe, conduzDaVariante, varDe } from '../escalas.model.js';
 import { janelaDaUnidade } from '../horarios.config.js';
 // getExibicao/definirCobertura moram em exibicao.model.js e
 // ordenarParaGrade em grade.model.js desde a divisão da Task 6
 // (R11 - horarios.model.js estourou 250 linhas). Ver progress.md, Ruling 13.
 import { getExibicao, definirCobertura, salvarOrdem, limparExibicao } from '../exibicao.model.js';
-import { ordenarParaGrade } from '../grade.model.js';
+import { ordenarParaGrade, janelaDaGrade } from '../grade.model.js';
 import { getServidoresDaUnidade, vinculosAbertos } from '../../servidores/servidores.model.js';
 import { getCargosGestao, rotulaCargo } from '../../servidores/vinculos.model.js';
 import { getUnidades } from '../../escolas/escolas.model.js';
@@ -152,9 +152,32 @@ async function carregar() {
   const diasFixos = new Map((ctxAtual.catalogoEscalas || [])
     .filter(e => e.dia_semana != null).map(e => [e.chave, e.dia_semana]));
   const chipsEscala = (ctxAtual.escalasEmUso || []).filter(e => !diasFixos.has(e));
-  const subLinhas = [...diasFixos]
+
+  // Duas origens de sub-linha, mesmo desenho (D6):
+  //   • outra ESCALA no mesmo dia - o TDC, que já era assim;
+  //   • outra VARIANTE da escala visível - o revezamento da quarta sem
+  //     TDC, que assim não precisa de mecanismo próprio.
+  const subDeEscala = [...diasFixos]
     .filter(([chave]) => (ctxAtual.escalasEmUso || []).includes(chave))
-    .map(([chave, dia]) => ({ dia, escala: chave, rotulo: rotulaEscala(chave, ctxAtual.catalogoEscalas) }));
+    .flatMap(([chave, dia]) => variantesDe(blocos, chave, dia)
+      .map(v => ({ dia, escala: chave, variante: v, rotulo: rotuloSubLinha(chave, dia, v) })));
+
+  // `.slice(1)`: a variante 1 da escala visível JÁ é o dia regular, a
+  // faixa de cima. Repeti-la abaixo seria a mesma informação duas vezes.
+  const subDeVariante = DIAS.flatMap(d => variantesDe(blocos, escalaVista, d.n).slice(1)
+    .map(v => ({ dia: d.n, escala: escalaVista, variante: v, rotulo: rotuloSubLinha(escalaVista, d.n, v) })));
+
+  const subLinhas = [...subDeVariante, ...subDeEscala];
+
+  // A régua é UMA por grade e precisa caber tudo que a grade desenha -
+  // inclusive quem não conta na cobertura. Calculada sobre os blocos já
+  // RESOLVIDOS pelo fallback: um bloco herdado esticaria a régua num
+  // dia em que ele nem aparece (D9).
+  const desenhados = [
+    ...DIAS.flatMap(d => linhas.flatMap(l => blocosDe(l.servidor.id, d.n))),
+    ...subLinhas.flatMap(s => linhas.flatMap(l => blocosDeEscala(l.servidor.id, s.dia, s.escala, s.variante))),
+  ];
+  const regua = janelaDaGrade(janela, desenhados);
 
   const seletorEscala = chipsEscala.length > 1 ? `
     <div class="filters hg-escalas">
@@ -166,7 +189,7 @@ async function carregar() {
     + (mostrarCobertura ? `<p class="form-hint">Cobertura da escola: ${esc(paraHora(janela.ini).slice(0, 5))} às ${esc(paraHora(janela.fim).slice(0, 5))}.</p>` : '')
     + resetHtml()
     + legendaHtml(linhas, { podeEditar: ctxAtual.podeEditar })
-    + gradeHtml(DIAS, { linhas, blocosDe, mostrarCobertura, janela, subLinhas, blocosDeEscala })
+    + gradeHtml(DIAS, { linhas, blocosDe, mostrarCobertura, janela: regua, subLinhas, blocosDeEscala })
     + (subLinhas.length ? `<p class="form-hint">Quem não tem horário próprio de TDC cumpre a jornada normal.</p>` : '')
     + naoExibidosHtml(fora);
   // `corpo.innerHTML` acabou de ser reconstruído - sem isto, quem
@@ -176,13 +199,16 @@ async function carregar() {
   reaplicarSelecao(corpo);
 }
 
+// O dia regular desenha SEMPRE a variante 1 - as demais entram como
+// sub-linha (D6). O fallback de três degraus mora em escolherBlocos.
 const blocosDe = (servidorId, dia) =>
-  escolherBlocos(blocos.filter(b => b.servidor_id === servidorId && b.dia_semana === dia), escalaVista);
+  escolherBlocos(blocos.filter(b => b.servidor_id === servidorId && b.dia_semana === dia), escalaVista, 1);
 
-// Blocos EXATAMENTE daquela escala (sem o fallback para 'normal') - a
-// sub-linha só mostra quem tem horário próprio de TDC (D6.3).
-const blocosDeEscala = (servidorId, dia, escala) =>
-  blocos.filter(b => b.servidor_id === servidorId && b.dia_semana === dia && (b.escala || 'normal') === escala);
+// Blocos EXATAMENTE daquela escala e variante (sem o fallback) - a
+// sub-linha só mostra quem tem horário próprio ali (D6.3).
+const blocosDeEscala = (servidorId, dia, escala, variante = 1) =>
+  blocos.filter(b => b.servidor_id === servidorId && b.dia_semana === dia
+    && (b.escala || 'normal') === escala && varDe(b) === variante);
 
 // "Voltar à ordem padrão" só faz sentido quando há o que voltar: sem
 // linha em `horario_exibicao`, a grade já está no padrão alfabético.
@@ -372,4 +398,23 @@ function abrirEdicaoJornada(servidorId) {
     escalasEmUso: ctxAtual.escalasEmUso, catalogoEscalas: ctxAtual.catalogoEscalas,
     escalaInicial: escalaVista,
   });
+}
+
+// O rótulo de uma sub-linha. Sai de quem está marcado como condutor
+// (D5); sem ninguém marcado - a quarta que reveza sem ter TDC - cai no
+// número da variante, e o mesmo mecanismo continua servindo.
+// A ordem da grade entra como desempate determinístico.
+function rotuloSubLinha(escala, dia, variante) {
+  const nome = rotulaEscala(escala, ctxAtual.catalogoEscalas);
+  const so = variantesDe(blocos, escala, dia).length <= 1;
+  if (so && escala !== escalaVista) return nome;
+
+  const condutorId = conduzDaVariante(blocos, {
+    escala, dia, variante, ordem: linhas.map(l => l.servidor.id),
+  });
+  const condutor = condutorId
+    && (linhas.find(l => l.servidor.id === condutorId)?.servidor.nome
+        || servidores.find(s => s.id === condutorId)?.nome);
+  if (condutor) return `${nome} · quando ${condutor} conduz`;
+  return so ? nome : `${nome} · variante ${variante}`;
 }
