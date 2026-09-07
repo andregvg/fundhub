@@ -30,7 +30,23 @@ mundo, sempre. Quem protege os dados é o RLS.
 1. **Domínio institucional** - só entra `@educacao.pmrp.sp.gov.br` (`is_institucional()`).
 2. **Allowlist** - o e-mail precisa estar na tabela `perfil` (`is_autorizado()`).
 3. **Nível por módulo** - mapa `papel × módulo → nível` vindo do banco (`meu_mapa_permissoes`,
-   migration 021). Níveis: `oculto` · `proprios` · `leitura` · `escrita`.
+   migrations 021 e 034). Níveis: `oculto` · `proprios` · `leitura` · `escrita`.
+
+O mapa tem **duas partes**, e a segunda é a que se esquece:
+
+```json
+{ "padrao": "escrita", "modulos": {} }                    ← admin
+{ "padrao": "oculto",  "modulos": { "escolas": "leitura" } }
+```
+
+`padrao` é o nível de um módulo **sem regra própria**. Ele existe porque **admin não tem lista**:
+`is_admin()` quer dizer tudo, inclusive módulos que ainda não existem. Enquanto a lista do admin
+era montada a partir de `select distinct modulo from papel_permissao`, todo módulo só-de-admin
+nascia `oculto` **para o próprio admin** - `usuarios` só escapava por estar escrito à mão no SQL, e
+`auditoria` não escapou (migrations 033/034).
+
+**Ao criar um módulo administrativo, não há nada a fazer:** o `padrao` do admin já o cobre. O que
+**não** vale é voltar a listar módulos no ramo de admin.
 
 **Nenhuma policy concede acesso a `anon`.** Deslogado não lê absolutamente nada - é o comportamento
 desejado, não um bug.

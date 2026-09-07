@@ -32,32 +32,51 @@ export const NIVEIS = [
 
 export const rotulaNivel = (n) => NIVEIS.find(x => x.valor === n)?.rotulo || 'Oculto';
 
-// O mapa do usuário logado. Preenchido no boot por perfil.js.
-let _mapa = {};
+// O mapa do usuário logado. Preenchido no boot por perfil.js a partir
+// de `meu_mapa_permissoes()` (migration 034), que devolve:
+//
+//   { padrao: 'escrita', modulos: {} }                    ← admin
+//   { padrao: 'oculto',  modulos: { escolas: 'leitura' } } ← os demais
+//
+// `padrao` é o nível de um módulo SEM regra própria. Ele existe porque
+// admin não tem lista: `is_admin()` quer dizer tudo, inclusive módulos
+// que ainda não existem. Antes esse fato era um `return OCULTO` aqui
+// dentro - a política morava no JavaScript, longe do banco que decide
+// todo o resto.
+let _modulos = {};
+let _padrao = OCULTO;
 
+// Aceita o formato da 034 e também os dois anteriores. Migrations são
+// aplicadas à mão: entre o deploy deste arquivo e a execução do SQL o
+// banco ainda responde no formato velho, e a tela não pode quebrar
+// nessa janela (.claude/rules/dados.md).
 export function definirMapa(mapa) {
-  _mapa = mapa && typeof mapa === 'object' ? mapa : {};
+  if (!mapa || typeof mapa !== 'object') { _modulos = {}; _padrao = OCULTO; return; }
+
+  if (mapa.modulos && typeof mapa.modulos === 'object') {   // 034 em diante
+    _modulos = mapa.modulos;
+    _padrao = mapa.padrao || OCULTO;
+    return;
+  }
+
+  // Formato antigo: o objeto inteiro é o mapa de módulos. A chave '*' é
+  // o sentinela da 033, que esta migration substituiu - lido aqui só
+  // para atravessar a janela de deploy. Some quando a 034 estiver
+  // aplicada em todos os bancos.
+  const { '*': curingaAntigo, ...resto } = mapa;
+  _modulos = resto;
+  _padrao = curingaAntigo || OCULTO;
 }
 
-export function limparMapa() { _mapa = {}; }
+export function limparMapa() { _modulos = {}; _padrao = OCULTO; }
 
-export function mapaAtual() { return { ..._mapa }; }
+export function mapaAtual() { return { padrao: _padrao, modulos: { ..._modulos } }; }
 
-// A chave curinga: vale para qualquer módulo que não tenha entrada
-// própria. Hoje só o admin a recebe (`{"*":"escrita"}`, migration 033).
-//
-// Existe porque o mapa do admin era montado a partir dos módulos
-// presentes em `papel_permissao` - então um módulo SÓ DE ADMIN, que
-// nenhum papel recebe, nascia `oculto` para o próprio admin. `usuarios`
-// escapava por estar escrito à mão no SQL; `auditoria` não escapou.
-// Admin não tem lista: `is_admin()` quer dizer tudo, e agora o mapa diz
-// isso, inclusive para módulos que ainda não existem.
-const CURINGA = '*';
-
-// Nível efetivo num módulo. Entrada própria vence o curinga; sem as
-// duas, oculto - a política segura por omissão é esconder, não mostrar.
+// Nível efetivo num módulo: a regra própria vence o padrão. Nível
+// desconhecido cai em oculto - esconder é a falha segura, e um valor
+// estranho vindo do banco não pode abrir uma tela.
 export function nivel(modulo) {
-  const v = _mapa[modulo] ?? _mapa[CURINGA];
+  const v = _modulos[modulo] ?? _padrao;
   return ORDEM[v] === undefined ? OCULTO : v;
 }
 

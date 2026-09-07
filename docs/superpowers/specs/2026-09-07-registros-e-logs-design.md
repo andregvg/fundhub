@@ -228,6 +228,56 @@ migrar para Pro e o volume justificar — regra de três.
 9. `CLAUDE.md` — "Doze checagens" → "Treze checagens".
 10. `CONFIG.versao` = `0.22.0` + `CHANGELOG.md`.
 
+## Adendo (07/09/2026) — o módulo admin invisível para o admin
+
+Ao subir o módulo, `#/auditoria` respondeu **"Acesso restrito" ao próprio
+administrador**. Não era erro do módulo: era um defeito latente no mapa de
+permissões, que o primeiro módulo só-de-admin depois de `usuarios` ia
+inevitavelmente revelar.
+
+**A causa.** O ramo de admin de `meu_mapa_permissoes()` montava a lista de
+módulos assim:
+
+```sql
+select distinct modulo from papel_permissao
+```
+
+Módulo que **nenhum papel** recebe nunca aparece nessa consulta. Como
+`auditoria` é só de admin, ela não estava lá — e o admin, que pode tudo,
+recebia `oculto`. `usuarios` só escapava porque estava **escrito à mão** num
+literal ao lado. Ou seja: a lista era uma armadilha armada para o próximo.
+
+**A correção errada (migration 033).** Devolver `{"*": "escrita"}`. Funciona,
+mas é um **valor-sentinela**: uma chave que não é um módulo, dentro de um objeto
+cujo tipo é "módulo → nível". Quem lesse o mapa em outro lugar precisaria saber
+de um segredo que o formato não conta. Foi corretamente rejeitada pelo André.
+
+**A correção certa (migration 034).** O fato real nunca foi "existe um módulo
+chamado `*`". É que todo sistema de permissão tem um **nível padrão** — o que
+vale para módulo sem regra própria. Esse conceito **já existia** no FundHub;
+estava escondido num `return OCULTO` dentro de `core/permissoes.js`, ou seja: a
+política morava no JavaScript, longe do banco que decide todo o resto.
+
+```json
+{ "padrao": "escrita", "modulos": {} }                    ← admin
+{ "padrao": "oculto",  "modulos": { "escolas": "leitura" } }
+```
+
+O payload passa a se explicar sozinho, e a política "oculto por omissão" vira
+dado do banco — a mesma fonte que manda no resto (R6). Admin não tem lista, e
+módulo administrativo novo não precisa de nada.
+
+**A lição, que vale além deste caso:** quando a saída pede um valor especial
+dentro de uma estrutura, quase sempre falta um **campo** na estrutura. O
+sentinela é o sintoma; o campo ausente é a doença. Aqui o campo era `padrao`, e
+ele já vivia escondido no código — como costuma acontecer.
+
+`definirMapa()` aceita os três formatos (034, o sentinela da 033 e o plano
+anterior) porque migrations são aplicadas à mão: entre o deploy do JS e a
+execução do SQL o banco ainda responde no formato velho. Nível desconhecido cai
+em `oculto` — falha segura. Verificado nos sete casos, incluindo lixo vindo do
+banco.
+
 ## Riscos
 
 | Risco | Mitigação |
