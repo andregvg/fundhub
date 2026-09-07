@@ -161,12 +161,9 @@ span.gira-90, span.gira-menos90, span.gira-180 { display: inline-flex; }
   border: 1px solid var(--border);
   border-radius: var(--radius);
 }
-/* Em coluna, o eixo cruzado é o HORIZONTAL: o `align-self: end` que o
-   .switch e o .chip-filtro trazem os jogaria para a direita da tela. E o
-   .filtro-sep (afastamentos.css) cresceria na vertical em vez de na
-   horizontal. */
-.painel-filtros .switch,
-.painel-filtros .chip-filtro { align-self: start; }
+/* Em coluna, o eixo cruzado é o HORIZONTAL - e `align-items: stretch` do
+   painel esticaria o .filtro-sep (afastamentos.css) na vertical. O .switch
+   e o .chip-filtro não precisam de nada aqui: os dois já nascem `start`. */
 .painel-filtros .filtro-sep { flex: 0 0 auto; }
 /* O toggle nasce com a altura de BOTÃO (--controle). Dentro do painel ele
    divide a linha com campos, então precisa da altura de CAMPO: é o que faz
@@ -215,7 +212,7 @@ span.gira-90, span.gira-menos90, span.gira-180 { display: inline-flex; }
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  align-self: end;
+  align-self: start;   /* mesmo motivo do .switch, logo acima */
   padding: 5px 10px;
   border: 1px solid var(--brand);
   border-radius: 999px;
@@ -241,7 +238,14 @@ span.gira-90, span.gira-menos90, span.gira-180 { display: inline-flex; }
   display: inline-flex;
   align-items: center;
   gap: 9px;
-  align-self: end;
+  /* `start`, não `end`: um componente não sabe em que eixo o container dele
+     alinha, e o caso comum é uma coluna (formulário, item de configuração),
+     onde `end` joga o toggle na borda direita e `stretch` o estica pela
+     linha inteira. Quem quer alinhamento pela base é a linha de filtros no
+     desktop, e ela pede - ver `.painel-filtros` no @media. Até 07/09/2026 o
+     padrão era `end` e nenhum container o queria: os quatro que hospedam um
+     `.switch` o desfaziam, e o quinto a nascer herdava o defeito. */
+  align-self: start;
   min-height: var(--controle);
   color: var(--text);
   font-size: 14px;
@@ -951,10 +955,10 @@ input[type="checkbox"] { width: 18px; height: 18px; }
 .form-grupo .campos label > input,
 .form-grupo .campos label > select,
 .form-grupo .campos label > textarea { width: 100%; }
-/* Toggle dentro do formulário: alinha à esquerda (não `end`, que o
-   .switch base traz para dividir linha com um select de filtro) e larga
-   a altura de botão - aqui ele é uma linha própria. */
-.form-grupo .campos label.switch { align-self: start; min-height: var(--campo); }
+/* Toggle dentro do formulário: aqui ele é uma linha própria, então larga a
+   altura de botão e assume a de campo. O alinhamento à esquerda já vem do
+   padrão do .switch. */
+.form-grupo .campos label.switch { min-height: var(--campo); }
 
 /* Valor derivado, exibido no formulário mas editado em outro lugar
    (cargo e lotação vêm do vínculo). Parece campo, não é - e agora tem
@@ -1025,12 +1029,11 @@ hr.sep { margin: 20px 0; border: 0; border-top: 1px solid var(--border); }
 /* O "principal" dos telefones é um radio com aparência de switch:
    a exclusão mútua é do navegador, não de JS nosso. */
 .switch.radio { font-weight: 400; font-size: 13px; color: var(--muted); }
-/* O .switch nasce com `align-self: end` e altura de controle - o que serve
-   à linha de filtros, onde ele divide a linha com campos que têm rótulo
-   acima. Na linha de telefone ele é um trilho SEM texto ao lado: aí o
-   caminho certo é o label colapsar no tamanho do trilho e deixar a GRADE
-   centralizá-lo, em vez de esticar o label e tentar centralizar dentro
-   dele. Medido: desvio zero contra o centro do campo de número. */
+/* Na linha de telefone o .switch é um trilho SEM texto ao lado, e a linha é
+   uma GRADE: o caminho certo é o label colapsar no tamanho do trilho e
+   deixar a grade centralizá-lo, em vez de esticar o label e tentar
+   centralizar dentro dele. Medido: desvio zero contra o centro do campo de
+   número. É o único lugar que quer `center`. */
 .phone-row .switch { align-self: center; min-height: 0; }
 .switch input:checked ~ .switch-txt { color: var(--text); font-weight: 600; }
 /* O botão de remover é um .mini-btn.no como em toda lista; na grade da

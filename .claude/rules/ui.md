@@ -55,6 +55,14 @@ até 06/09/2026. O painel de configuração já nasce dentro de `.esc-form`
 (`configuracoes/painel.js`): **um `painel:` de módulo nunca declara
 `--campo`.**
 
+**Componente não decide como se alinha no container dos outros.** `align-self` é decisão de
+quem monta a linha, não do componente. O `.switch` e o `.chip-filtro` nascem `align-self: start`,
+que é o certo para o caso comum (container em coluna - formulário, item de configuração), e o
+único lugar que quer alinhamento pela base pede: `.painel-filtros` no `@media` de 1100px. Até
+07/09/2026 o padrão era `end` e **nenhum** container o queria - os quatro que hospedam um `.switch`
+o desfaziam, e o quinto a nascer herdava o toggle jogado na borda direita. Se você criar um
+container novo e precisar desfazer o padrão de um componente, o padrão é que está errado.
+
 **Rótulo de campo é a classe `.lbl`**, não um bloco de cinco declarações
 copiado. Ela vale sozinha (`<div class="lbl">`) e ao lado de uma classe de
 posicionamento do módulo (`class="lbl cfg-cob-tipo"`). Os `<label>` de
@@ -152,8 +160,8 @@ espaçamento. Identidade é o destaque, não um tema próprio.
 Não usar `confirm()` / `alert()` / `prompt()` nativos: são bloqueantes, não estilizáveis e ficam
 fora do design system. Usar `shared/ui/confirmar.js`.
 
-> Estado atual: `confirm()`/`alert()` ainda aparecem em ações destrutivas (afastamentos e outros).
-> Substituir quando tocar no arquivo; não vale abrir refatoração só para isso.
+Não há exceção pendente: desde 07/09/2026 não resta nenhuma chamada nativa em `src/`. Se você
+encontrar uma, ela é regressão - não precedente.
 
 ## Mobile-first de verdade
 

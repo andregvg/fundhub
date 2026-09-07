@@ -16,12 +16,11 @@
    Não é `.campos` porque ali o campo mora DENTRO do <label>, e aqui o
    rótulo e o controle são irmãos (o switch tem <label> próprio). */
 .cfg-item { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
-/* O `.switch` nasce com `align-self: end`. Em coluna o eixo cruzado é o
-   HORIZONTAL, então o toggle era jogado para a borda direita, longe do
-   rótulo que ele obedece. Aqui ele é uma linha própria: volta ao começo e
-   larga a altura de campo - a mesma correção que `.form-grupo .campos
-   label.switch` faz no formulário. */
-.cfg-item > .switch { align-self: start; min-height: var(--campo); }
+/* O toggle é uma linha própria dentro do item: larga a altura de botão e
+   assume a de campo. O alinhamento à esquerda vem do padrão do `.switch`
+   (components.css) - até 07/09/2026 vinha desta regra, porque o padrão era
+   `end` e jogava o toggle na borda direita. */
+.cfg-item > .switch { min-height: var(--campo); }
 /* `.lbl` empilha em coluna, que é o caso comum (rótulo acima do campo).
    Aqui o rótulo tem TRÊS filhos - texto, selo "rede" e dica - e só a dica
    deve quebrar linha: o selo pertence ao rótulo. Voltando a `block`, o
