@@ -58,4 +58,4 @@ Ou você não tem acesso a eles, ou o tutorial deles ainda não foi escrito.
 Não. Aquela descreve como o sistema funciona por dentro e é só para quem
 mantém o código. A Ajuda é para quem usa.
 
-> Atualizado na versão 0.20.1.
+> Atualizado na versão 0.21.1.

@@ -138,4 +138,4 @@ O sistema desta escola ainda não foi atualizado para guardar mais de uma
 configuração do mesmo dia. No lugar do botão aparece um aviso dizendo
 isso. Avise a Gerência; enquanto isso, cada dia tem uma configuração só.
 
-> Atualizado na versão 0.21.0.
+> Atualizado na versão 0.21.1.

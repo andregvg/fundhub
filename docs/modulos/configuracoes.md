@@ -70,4 +70,4 @@ novo) ou é uma configuração da rede que você não tem permissão para mudar.
 **Minhas preferências somem quando eu saio?**
 Não. Elas são do seu e-mail, não do navegador.
 
-> Atualizado na versão 0.20.0.
+> Atualizado na versão 0.21.1.

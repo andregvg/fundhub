@@ -9,6 +9,16 @@ versionamento **MINOR** = módulo novo ou mudança de modelo de dados, **PATCH**
 
 ---
 
+## [0.21.1] - 2026-09-07
+
+### Corrigido
+
+- **Chaves de liga/desliga voltam a ficar junto do rótulo que obedecem.** Em
+  algumas telas - as configurações, principalmente - a chavinha aparecia
+  encostada na borda direita, longe do texto que explicava o que ela fazia.
+
+---
+
 ## [0.21.0] - 2026-09-07
 
 ### Adicionado

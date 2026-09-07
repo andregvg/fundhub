@@ -427,11 +427,11 @@ def check_registro():
 # ------------------------------------------------------------------
 # 11. Tutorial por modulo (spec 2026-09-05-ajuda-por-modulo)
 # ------------------------------------------------------------------
-def _git_ct(caminho):
-    """Timestamp do ultimo commit que tocou `caminho` (0 se nao rastreado)."""
+def _git_ct(*pathspec):
+    """Timestamp do ultimo commit que tocou o pathspec (0 se nao rastreado)."""
     try:
         out = subprocess.run(
-            ['git', 'log', '-1', '--format=%ct', '--', caminho],
+            ['git', 'log', '-1', '--format=%ct', '--', *pathspec],
             cwd=RAIZ, capture_output=True, text=True, timeout=10)
         return int(out.stdout.strip()) if out.stdout.strip() else 0
     except Exception:
@@ -454,9 +454,15 @@ def check_documentacao():
         if not os.path.isfile(md):
             add('BLOQUEIA', 11, manifesto, 0,
                 'modulo declara doc:true mas nao ha docs/modulos/%s.md' % mod)
-        elif _git_ct(os.path.join('src', 'modules', mod)) > _git_ct(os.path.join('docs', 'modulos', mod + '.md')):
+        # O CSS fica de FORA da comparacao: `.claude/rules/documentacao.md` diz
+        # que layout que nao muda o que a pessoa faz nao conta, e uma checagem
+        # que grita lobo por causa de um ajuste de alinhamento e uma checagem
+        # que sera ignorada - e ai a deriva de verdade se esconde no ruido.
+        elif _git_ct('src/modules/%s' % mod, ':(exclude)src/modules/%s/*.css' % mod)                 > _git_ct(os.path.join('docs', 'modulos', mod + '.md')):
             add('AVISO', 11, md, 0,
-                'codigo de src/modules/%s/ mais novo que o tutorial - revisar' % mod)
+                'codigo de src/modules/%s/ mudou depois do tutorial - reveja o texto '
+                '(skill `atualizar-ajuda`) e, se nada mudou para quem usa, so recarimbe a versao'
+                % mod)
 
     if os.path.isdir(docs_dir):
         for f in sorted(os.listdir(docs_dir)):
