@@ -29,7 +29,7 @@ const hhmm = (t) => String(t ?? '').slice(0, 5);
 let estado = null;   // { servidor, unidadeId, escala, variante, porEscala, recarregar, escalasEmUso, catalogoEscalas }
 
 // Uma linha é { id?, inicio, fim, obs, conduz?, excluir? }. `id` ausente = nova.
-export function abrirJornada({ servidor, unidadeId, blocos, recarregar, escalasEmUso = ['normal'], catalogoEscalas = [], escalaInicial = 'normal', varianteInicial = 1 }) {
+export function abrirJornada({ servidor, unidadeId, blocos, recarregar, escalasEmUso = ['normal'], catalogoEscalas = [], escalaInicial = 'normal' }) {
   // Além das escalas em uso na rede hoje, inclui qualquer escala que já
   // esteja gravada nos blocos deste servidor - uma escala que caiu em
   // desuso (virada de ano, catálogo mudou) não pode ficar inalcançável
@@ -186,29 +186,36 @@ function pintarDica() {
     : 'Deixe um dia em branco aqui para ele seguir a jornada Normal nesta escala. Só preencha os dias que mudam.';
 }
 
-// A segunda barra de abas: as variantes da escala ativa. Só aparece
-// quando há mais de uma OU quando dá para criar a segunda - numa escola
-// sem revezamento a gaveta fica idêntica à de antes.
+// A segunda barra de abas: as variantes da escala ativa. As abas só
+// aparecem com mais de uma; o "+" é SEMPRE visível - inclusive numa
+// escola sem revezamento, senão ela nunca teria como criar o primeiro
+// (perder a capacidade é pior que um botão a mais). Fica fora do
+// role="tablist" (só aba é filha dele, mesmo motivo do .h-topo em
+// horarios.css). A caixa "conduzo o TDC" só aparece fora da normal.
 function pintarVariantes() {
   const box = document.getElementById('hj-variantes');
   if (!box) return;
   const vs = Object.keys(estado.porEscala[estado.escala]).map(Number).sort((a, b) => a - b);
-
-  const conduzAqui = DIAS.some(d =>
-    estado.porEscala[estado.escala][estado.variante][d.n].some(l => !l.excluir && l.conduz));
-
-  box.innerHTML = `
+  const abas = vs.length > 1 ? `
     <div class="tabbar hj-variantes-bar" role="tablist">
       ${vs.map(v => `<button type="button" class="tab ${v === estado.variante ? 'on' : ''}"
         role="tab" aria-selected="${v === estado.variante}" data-variante="${v}">Variante ${v}</button>`).join('')}
-      <button type="button" class="tab hj-var-nova" id="hj-var-nova"
-        aria-label="Criar uma variante">${ico('adicionar', { tam: 13 })}</button>
-    </div>
+    </div>` : '';
+  const conduzAqui = DIAS.some(d =>
+    estado.porEscala[estado.escala][estado.variante][d.n].some(l => !l.excluir && l.conduz));
+  const conduz = estado.escala === 'normal' ? '' : `
     <label class="switch hj-conduz">
       <input type="checkbox" id="hj-conduz" ${conduzAqui ? 'checked' : ''} />
       <span class="switch-trilho" aria-hidden="true"></span>
       <span class="switch-txt">conduzo o TDC nesta variante</span>
     </label>`;
+  box.innerHTML = `
+    <div class="hj-variantes-topo">
+      ${abas}
+      <button type="button" class="mini-btn" id="hj-var-nova"
+        aria-label="Criar uma variante">${ico('adicionar', { tam: 13 })}</button>
+    </div>
+    ${conduz}`;
 }
 
 // Atualiza só o total/avisos do dia para acompanhar o que se digita - NUNCA
