@@ -9,6 +9,17 @@ versionamento **MINOR** = módulo novo ou mudança de modelo de dados, **PATCH**
 
 ---
 
+## [0.21.2] - 2026-09-07
+
+### Corrigido
+
+- **Servidor com dois telefones digitados no mesmo campo agora fica com um
+  telefone por linha.** Alguns cadastros antigos traziam dois números
+  separados por barra num registro só; eles passavam batido pela conversão de
+  formato e não apareciam direito na ficha.
+
+---
+
 ## [0.21.1] - 2026-09-07
 
 ### Corrigido
