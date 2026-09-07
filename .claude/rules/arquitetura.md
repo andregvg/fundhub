@@ -82,6 +82,31 @@ responsabilidade por vários arquivos em vez de separar responsabilidades.
 **Piso anti-fragmentação:** não criar arquivo com menos de ~60 linhas, salvo manifesto ou coisa
 importada por 2+ arquivos. Um módulo de 80 linhas continua em um arquivo só.
 
+### Superfície indivisível - a única saída para quem estourou o teto
+
+Às vezes a view passa do limite e **não há por onde cortar**: a tela é uma superfície só, e as
+partes dela mutam um estado compartilhado. É o caso de uma gaveta com abas - em `jornada.js`,
+escala, variante e dia são três eixos do mesmo `estado`, e todo handler o altera. Dividir ali
+produz dois arquivos que só se leem juntos: exatamente o mal que esta regra evita ao proibir
+divisão por tipo técnico, de outro jeito.
+
+Nesse caso - e **só** nele - o arquivo declara a isenção no cabeçalho, **com motivo**:
+
+```js
+// @superficie-indivisivel: escala, variante e dia são três eixos do MESMO
+// `estado`, e todo handler daqui o muta.
+```
+
+O verificador para de cobrar e passa a listar o arquivo em **ISENÇÃO DECLARADA**, com o motivo à
+vista - visível sem ser ruído, auditável a qualquer momento. Marca sem motivo não vale: isso seria
+silenciar a checagem, não justificá-la. E a marca só é lida nas 40 primeiras linhas, porque uma
+isenção enterrada no meio do arquivo não é vista por quem abre para editar.
+
+**Antes de declarar, tire o que tem fronteira própria.** Uma responsabilidade com estado próprio,
+contrato claro e ninguém mais dependendo dela sai sem dor - foi assim que a reordenação da grade
+virou `views/ordenar.js` e devolveu `por-escola.js` de 434 para 324 linhas. A isenção é para o que
+sobra depois disso, não para evitar o trabalho.
+
 **Isentos do limite:** arquivos de conteúdo (`*.content.js`) - são dados, não código.
 
 ## R13 - Regra de três

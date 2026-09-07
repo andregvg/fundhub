@@ -350,15 +350,37 @@ def check_pii():
 # ------------------------------------------------------------------
 # 9. Limite de linhas  (R11)
 # ------------------------------------------------------------------
+# Uma view pode declarar que e uma SUPERFICIE INDIVISIVEL - uma tela cujas
+# partes mutam um estado so, onde cortar produz dois arquivos que precisam ser
+# lidos e editados juntos (o mesmo mal que a R11 evita ao proibir divisao por
+# tipo tecnico). A marca exige MOTIVO: sem ele e so silenciar a checagem.
+MARCA_INDIVISIVEL = re.compile(r'@superficie-indivisivel:\s*(\S.*?)\s*$', re.M)
+
+
+def isencao_declarada(texto):
+    # So vale no cabecalho: uma marca enterrada no meio do arquivo passa
+    # despercebida por quem abre para editar.
+    cabecalho = '\n'.join(texto.splitlines()[:40])
+    m = MARCA_INDIVISIVEL.search(cabecalho)
+    return m.group(1) if m else None
+
+
 def check_tamanho():
     for f in js:
         if f.endswith('.content.js'):
             continue                       # conteudo e isento
         n = len(textos[f].splitlines())
         if eh_view(f) and n > LIMITE_VIEW:
-            add('AVISO', 9, f, 0,
-                'view com %d linhas (limite %d) - dividir por superficie em views/'
-                % (n, LIMITE_VIEW))
+            motivo = isencao_declarada(textos[f])
+            if motivo:
+                add('ISENTO', 9, f, 0,
+                    'view com %d linhas (limite %d), superficie indivisivel: %s'
+                    % (n, LIMITE_VIEW, motivo))
+            else:
+                add('AVISO', 9, f, 0,
+                    'view com %d linhas (limite %d) - dividir por superficie em views/, '
+                    'ou declarar @superficie-indivisivel com o motivo'
+                    % (n, LIMITE_VIEW))
         elif f.endswith('.model.js') and n > LIMITE_MODEL:
             add('AVISO', 9, f, 0,
                 'model com %d linhas (limite %d) - avaliar separar um agregado'
@@ -562,7 +584,7 @@ def main():
     bloqueios = [p for p in problemas if p[0] == 'BLOQUEIA']
     avisos = [p for p in problemas if p[0] == 'AVISO']
 
-    for sev, rotulo in (('BLOQUEIA', 'BLOQUEIA'), ('AVISO', 'AVISO')):
+    for sev, rotulo in (('BLOQUEIA', 'BLOQUEIA'), ('AVISO', 'AVISO'), ('ISENTO', 'ISENCAO DECLARADA')):
         grupo = [p for p in problemas if p[0] == sev]
         if not grupo:
             continue
@@ -577,10 +599,14 @@ def main():
             print('      %s\n          %s' % (onde, msg))
 
     print('\n' + '-' * 62)
-    if not problemas:
-        print('OK - nenhuma violacao encontrada.')
+    isentos = [p for p in problemas if p[0] == 'ISENTO']
+    if not bloqueios and not avisos:
+        print('OK - nenhuma violacao encontrada.'
+              + (' %d isencao(oes) declarada(s).' % len(isentos) if isentos else ''))
     else:
-        print('%d bloqueante(s) . %d aviso(s)' % (len(bloqueios), len(avisos)))
+        print('%d bloqueante(s) . %d aviso(s)%s'
+              % (len(bloqueios), len(avisos),
+                 ' . %d isencao(oes)' % len(isentos) if isentos else ''))
     print('-' * 62)
 
     return 1 if bloqueios else 0

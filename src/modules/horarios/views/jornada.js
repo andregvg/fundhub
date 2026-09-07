@@ -10,6 +10,12 @@
 //
 // Sobreposição impede o salvamento; carga acima de 8h e mais de 6h
 // contínuas ficam marcados e deixam salvar. Ver .claude/rules/dados.md.
+//
+// @superficie-indivisivel: escala, variante e dia são três eixos do MESMO
+// `estado`, e todo handler daqui o muta. Cortar por eixo produziria dois
+// arquivos que só se leem juntos - o mesmo mal que a R11 evita ao proibir
+// divisão por tipo técnico. O que tinha fronteira própria já saiu: a
+// reordenação da grade virou views/ordenar.js em 07/09/2026.
 // ============================================================
 import { DIAS, criarBloco, atualizarBloco, excluirBloco,
   validarDia, totalDoDia, duracao, temVarianteNoBanco } from '../horarios.model.js';
