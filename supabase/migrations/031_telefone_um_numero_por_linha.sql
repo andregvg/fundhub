@@ -14,8 +14,8 @@
 -- repositorio e publico (R7), e de todo modo a regra e que precisa
 -- sobreviver a um rebuild, nao a linha.
 --
--- Depois desta migration o CHECK pode ser validado:
---   alter table telefone validate constraint telefone_e164;
+-- Ela tambem VALIDA o CHECK `telefone_e164` que a 029 deixou `not valid`,
+-- quando nao sobrar nenhuma linha fora do formato - ver a secao 3.
 --
 -- Idempotente: ao fim nenhuma linha tem separador, entao rodar de novo
 -- nao insere nem altera nada.
@@ -81,20 +81,37 @@ begin
      and t.numero !~ '^\+'
      and length(d.digitos) in (8, 9);
 
+  -- ── 3. Validar o CHECK, quando der ───────────────────────
+  -- A 029 criou `telefone_e164` como `not valid` para nao abortar por
+  -- causa do legado sujo, e deixou a validacao como passo MANUAL. Passo
+  -- manual e o que fica esquecido: ficou, da 029 ate aqui. Pior, num
+  -- rebuild a constraint ficaria `not valid` para sempre, porque ninguem
+  -- lembra de rodar um comando que nao esta em migration nenhuma.
+  --
+  -- A migration sabe a condicao, entao ela decide: limpou, valida. Sujo,
+  -- avisa e deixa passar - abortar aqui so travaria o rebuild inteiro por
+  -- causa de uma linha que alguem precisa olhar.
   select count(*) into n_fora from telefone where numero !~ '^\+[1-9][0-9]{7,14}$';
   if n_fora > 0 then
-    raise notice 'ATENCAO: % telefone(s) ainda fora de E.164 - rode a consulta do fim deste arquivo.', n_fora;
+    raise notice 'ATENCAO: % telefone(s) ainda fora de E.164 - rode a consulta do fim deste arquivo e corrija a mao. O CHECK segue NOT VALID.', n_fora;
+  elsif exists (select 1 from pg_constraint
+                 where conname = 'telefone_e164'
+                   and conrelid = 'telefone'::regclass
+                   and not convalidated) then
+    alter table telefone validate constraint telefone_e164;
+    raise notice 'Todos os telefones em E.164 - CHECK telefone_e164 validado.';
   else
-    raise notice 'Todos os telefones em E.164. Pode validar o CHECK.';
+    -- Ou a constraint ja foi validada (rodar de novo nao custa nada), ou a
+    -- 029 nao rodou neste banco - em nenhum dos dois casos ha o que fazer
+    -- aqui, e nos dois abortar seria pior que seguir.
+    raise notice 'Todos os telefones em E.164; CHECK ja validado ou ausente.';
   end if;
 end $$;
 
--- O que sobrou fora do formato (deve vir vazio):
+-- Se o aviso acima disse que sobrou telefone fora do formato, veja quais:
 --   select id, numero from telefone where numero !~ '^\+[1-9][0-9]{7,14}$';
---
--- Vindo vazia, o CHECK que a 029 criou como `not valid` passa a valer
--- para o legado tambem:
---   alter table telefone validate constraint telefone_e164;
+-- Corrija a mao e rode esta migration de novo - ela e idempotente, e na
+-- segunda passada valida o CHECK sozinha.
 
 -- telefone ja esta na auditoria da 019 - nada a religar.
 -- Nenhuma policy, nenhuma coluna: esta migration so redistribui dado.
