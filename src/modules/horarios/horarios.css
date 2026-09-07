@@ -273,10 +273,16 @@
   .hj-obs { grid-column: auto; }
 }
 
-/* Sub-linha de TDC: uma faixa fina abaixo do dia, só nos dias que têm
-   escala com dia da semana fixo (Bloco G, D6). */
+/* Sub-linha: uma faixa fina abaixo do dia para outra CONFIGURAÇÃO dele -
+   outra escala (o TDC) ou outra variante da mesma escala (spec
+   2026-09-06, D3; generaliza o Bloco G, D6). */
 .hg-sublinha { grid-column: 2; margin-top: 3px; padding-top: 4px; border-top: 1px dashed var(--border); }
 .hg-sub-rotulo { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 2px; }
+
+/* A sub-linha ganhou tira de cobertura própria (spec 2026-09-06, D3):
+   cada configuração do dia tem a sua. Mesmo desenho da tira do dia,
+   só um pouco mais discreta - a de cima é a do dia regular. */
+.hg-sublinha .hg-cobertura { opacity: .85; }
 
 /* Aviso de blocos órfãos numa escala que passou a ter dia fixo. */
 .hj-orfaos { margin-bottom: 14px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-2); }

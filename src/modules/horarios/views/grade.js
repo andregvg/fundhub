@@ -66,11 +66,27 @@ export function gradeHtml(dias, { linhas, blocosDe, mostrarCobertura, janela = J
   const nomeDe = new Map(linhas.map(l => [l.servidor.id, l.servidor.nome]));
   const contam = new Set(linhas.filter(l => l.contaCobertura).map(l => l.servidor.id));
 
-  // Uma faixa fina abaixo do dia, só nos dias que têm escala com dia
-  // fixo (TDC). Blocos e validação DAQUELA escala - nunca somados aos
-  // normais (D6.1); a cobertura (D6.2) segue do dia regular, acima.
+  // A tira de lacunas de UM conjunto de blocos. Extraída porque agora
+  // ela aparece duas vezes: sob o dia regular e sob CADA sub-linha -
+  // cada configuração do dia tem a própria cobertura (D3).
+  const tiraHtml = (doDia) => {
+    if (!mostrarCobertura) return '';
+    const lacunas = lacunasCobertura(doDia.filter(b => contam.has(b.servidor_id)), janela);
+    return `<div class="hg-cobertura">${lacunas.map(l => {
+      const pos = posDoIntervalo(l.ini, l.fim, janela);
+      return `<span class="hg-lacuna" style="left:${pos.esquerda}%;width:${pos.largura}%"
+        title="Sem ninguém entre ${esc(paraHora(l.ini))} e ${esc(paraHora(l.fim))}"></span>`;
+    }).join('')}</div>`;
+  };
+
+  // Uma faixa fina abaixo do dia para cada CONFIGURAÇÃO ALTERNATIVA
+  // dele - outra escala (o TDC) ou outra variante da mesma escala (o
+  // revezamento da quarta sem TDC). Blocos e validação daquela
+  // configuração, nunca somados aos do dia regular (D6.1), e tira de
+  // cobertura própria: se as variantes cobrem a escola de formas
+  // diferentes, a única tira útil é a de cada uma (D3).
   const subLinhaHtml = (dia) => subLinhas.filter(s => s.dia === dia).map(s => {
-    const doDia = linhas.flatMap(l => (blocosDeEscala?.(l.servidor.id, dia, s.escala)) || []);
+    const doDia = linhas.flatMap(l => (blocosDeEscala?.(l.servidor.id, dia, s.escala, s.variante)) || []);
     if (!doDia.length) return '';
     const faixas = contarFaixas(doDia);
     const barras = empilhar(doDia).map(({ bloco, faixa }) => {
@@ -81,7 +97,7 @@ export function gradeHtml(dias, { linhas, blocosDe, mostrarCobertura, janela = J
         <span>${esc(hhmm(bloco.inicio))}–${esc(hhmm(bloco.fim))}</span></span>`;
     }).join('');
     const marcasFalha = linhas.flatMap(l => {
-      const meus = (blocosDeEscala?.(l.servidor.id, dia, s.escala)) || [];
+      const meus = (blocosDeEscala?.(l.servidor.id, dia, s.escala, s.variante)) || [];
       return validarDia(meus).map(pb => {
         const pos = posDoIntervalo(pb.ini, pb.fim, janela);
         return `<span class="hg-falha n-${pb.nivel}" style="left:${pos.esquerda}%;width:${pos.largura}%"
@@ -91,6 +107,7 @@ export function gradeHtml(dias, { linhas, blocosDe, mostrarCobertura, janela = J
     return `<div class="hg-sublinha">
       <div class="hg-sub-rotulo">${esc(s.rotulo)}</div>
       <div class="hg-track" style="height:${faixas * 26 + 4}px">${eixo(janela)}${barras}${marcasFalha}</div>
+      ${tiraHtml(doDia)}
     </div>`;
   }).join('');
 
@@ -122,16 +139,7 @@ export function gradeHtml(dias, { linhas, blocosDe, mostrarCobertura, janela = J
       });
     }).join('');
 
-    const lacunas = mostrarCobertura
-      ? lacunasCobertura(doDia.filter(b => contam.has(b.servidor_id)), janela)
-      : [];
-    const tira = mostrarCobertura
-      ? `<div class="hg-cobertura">${lacunas.map(l => {
-          const pos = posDoIntervalo(l.ini, l.fim, janela);
-          return `<span class="hg-lacuna" style="left:${pos.esquerda}%;width:${pos.largura}%"
-            title="Sem ninguém entre ${esc(paraHora(l.ini))} e ${esc(paraHora(l.fim))}"></span>`;
-        }).join('')}</div>`
-      : '';
+    const tira = tiraHtml(doDia);
 
     return `<div class="hg-linha" data-dia="${d.n}">
       <div class="hg-dia">${esc(d.curto)}</div>
