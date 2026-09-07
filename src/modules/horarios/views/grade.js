@@ -61,7 +61,7 @@ export function legendaHtml(linhas, { podeEditar }) {
 }
 
 export function gradeHtml(dias, { linhas, blocosDe, mostrarCobertura, janela = JANELA_FABRICA,
-    subLinhas = [], blocosDeEscala = null }) {
+    janelaCobertura = janela, subLinhas = [], blocosDeEscala = null }) {
   const serieDe = new Map(linhas.map(l => [l.servidor.id, l.serie]));
   const nomeDe = new Map(linhas.map(l => [l.servidor.id, l.servidor.nome]));
   const contam = new Set(linhas.filter(l => l.contaCobertura).map(l => l.servidor.id));
@@ -69,9 +69,16 @@ export function gradeHtml(dias, { linhas, blocosDe, mostrarCobertura, janela = J
   // A tira de lacunas de UM conjunto de blocos. Extraída porque agora
   // ela aparece duas vezes: sob o dia regular e sob CADA sub-linha -
   // cada configuração do dia tem a própria cobertura (D3).
+  //
+  // `janela` é a RÉGUA (desenho - estica para caber o que a grade
+  // desenha) e `janelaCobertura` é a janela CONFIGURADA (regra - D9).
+  // A lacuna é CALCULADA contra a janela configurada (senão um dia sem
+  // TDC nenhum ganha lacuna fantasma só porque outro dia esticou a
+  // régua) e POSICIONADA contra a régua (senão ela desenha no lugar
+  // errado numa régua esticada) - as duas metades importam.
   const tiraHtml = (doDia) => {
     if (!mostrarCobertura) return '';
-    const lacunas = lacunasCobertura(doDia.filter(b => contam.has(b.servidor_id)), janela);
+    const lacunas = lacunasCobertura(doDia.filter(b => contam.has(b.servidor_id)), janelaCobertura);
     return `<div class="hg-cobertura">${lacunas.map(l => {
       const pos = posDoIntervalo(l.ini, l.fim, janela);
       return `<span class="hg-lacuna" style="left:${pos.esquerda}%;width:${pos.largura}%"

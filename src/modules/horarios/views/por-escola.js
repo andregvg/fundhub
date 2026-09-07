@@ -189,7 +189,12 @@ async function carregar() {
     + (mostrarCobertura ? `<p class="form-hint">Cobertura da escola: ${esc(paraHora(janela.ini).slice(0, 5))} às ${esc(paraHora(janela.fim).slice(0, 5))}.</p>` : '')
     + resetHtml()
     + legendaHtml(linhas, { podeEditar: ctxAtual.podeEditar })
-    + gradeHtml(DIAS, { linhas, blocosDe, mostrarCobertura, janela: regua, subLinhas, blocosDeEscala })
+    // `janela: regua` é a régua (desenho); `janelaCobertura: janela` é a
+    // janela configurada (regra) - `lacunasCobertura` continua sendo
+    // calculada sobre ela, nunca sobre a régua esticada (D9, achado da
+    // revisão do Task 6: sem isto, um dia sem TDC ganhava lacuna
+    // fantasma só porque a quarta com TDC esticou a régua da semana).
+    + gradeHtml(DIAS, { linhas, blocosDe, mostrarCobertura, janela: regua, janelaCobertura: janela, subLinhas, blocosDeEscala })
     + (subLinhas.length ? `<p class="form-hint">Quem não tem horário próprio de TDC cumpre a jornada normal.</p>` : '')
     + naoExibidosHtml(fora);
   // `corpo.innerHTML` acabou de ser reconstruído - sem isto, quem
