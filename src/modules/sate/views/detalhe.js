@@ -15,9 +15,10 @@
 // ============================================================
 import {
   porEmAnalise, confirmarSolicitacao, negarSolicitacao, cancelarSolicitacao,
-  pedirCancelamento, confirmarCancelamento, getEmbarques, saldoDoDia,
+  pedirCancelamento, confirmarCancelamento, getEmbarques,
   STATUS, PERIODOS,
 } from '../sate.model.js';
+import { saldoDoDia } from '../saldo.model.js';
 import { esc, vazio, val, falha } from '../../../shared/dom.js';
 import { fmtData, fmtDataHora } from '../../../shared/format.js';
 import { modalHead, abrirModal, fecharModal } from '../../../shared/ui/modal.js';

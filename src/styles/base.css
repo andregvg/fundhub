@@ -348,6 +348,25 @@ body.menu-aberto .sidebar { transform: translateX(0); }
 
 /* ── Impressão ────────────────────────────────────────────── */
 @media print {
+  /* O tema da TELA não vale no papel. Sem redefinir os tokens aqui, quem
+     estivesse no tema escuro imprimia texto claro sobre branco - ilegível -
+     e cada módulo acabava escrevendo cor literal no próprio CSS de
+     impressão para se defender, o que a R9 proíbe e o verificador acusa.
+     Redefinido em UM lugar, todo módulo imprime certo de graça.
+     Cor literal é aceitável aqui: base.css é kernel, não `src/modules/**`,
+     e papel não tem tema. */
+  :root {
+    --bg: #fff;
+    --surface: #fff;
+    --surface-2: #fff;
+    --surface-3: #eee;
+    --border: #ccc;
+    --border-forte: #999;
+    --text: #111;
+    --muted: #555;
+    --shadow: none;
+    --shadow-btn: none;
+  }
   .topbar, .footer, .sidebar, .sidebar-back, .no-print, .toasts, .bell-wrap { display: none !important; }
   .app { padding: 0; max-width: none; }
   body { background: #fff; }

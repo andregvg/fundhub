@@ -9,6 +9,24 @@ versionamento **MINOR** = módulo novo ou mudança de modelo de dados, **PATCH**
 
 ---
 
+## [0.28.0] - 2026-09-08
+
+### Adicionado
+
+- **As fichas de ônibus chegaram ao SATE**, no mesmo formato do sistema de
+  agendamentos da Feira. Na guia **Fichas**, escolha a data e o sistema monta
+  **uma ficha por veículo**, agrupada por período e numerada a partir de 1
+  dentro de cada um.
+- Cada ficha traz origem com endereço, **as paradas a mais** quando o ônibus
+  passa em outra escola, destino com endereço, horários de embarque e retorno,
+  e quantos lugares no ônibus e na van adaptada.
+- **Imprimir sai só o documento**: menu, abas e filtros ficam de fora, e
+  nenhuma ficha é cortada ao meio entre duas folhas.
+- **Viagem confirmada sem ônibus atribuído aparece numa lista à parte**, no
+  fim da página, para conferir antes de enviar à empresa. Um agendamento
+  confirmado que some da pilha de papel é o erro mais caro que existe aqui -
+  agora ele é apontado. Essa lista não é impressa.
+
 ## [0.27.0] - 2026-09-08
 
 > **Exige rodar a migration `036_sate_envolvimento_e_saldo.sql`** no SQL

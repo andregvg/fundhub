@@ -12,6 +12,7 @@ import { ESCRITA } from '../../core/permissoes.js';
 
 import * as abaSolicitacoes from './views/solicitacoes.js';
 import * as abaFrota from './views/frota.js';
+import * as abaFichas from './views/fichas.js';
 import * as abaCatalogo from './views/catalogo.js';
 import * as abaLocais from './views/locais.js';
 
@@ -20,6 +21,7 @@ const ABAS = {
   // da própria guia Solicitações em 08/09/2026 (bloco S3).
   solicitacoes: { rotulo: 'Solicitações', view: abaSolicitacoes },
   frota:        { rotulo: 'Frota', view: abaFrota, aprovador: true },
+  fichas:       { rotulo: 'Fichas', view: abaFichas, aprovador: true },
   catalogo:     { rotulo: 'Catálogo', view: abaCatalogo },
   locais:       { rotulo: 'Locais', view: abaLocais, aprovador: true },
 };

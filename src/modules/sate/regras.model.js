@@ -179,3 +179,64 @@ export function avaliarPedido(p) {
 
   return { erros, avisos, onibus, vans };
 }
+
+// ── Alocação em fichas de ônibus ─────────────────────────────
+// Uma ficha = UM veículo. É o documento que a empresa de transporte
+// recebe, e o `agendamentos-fil` chama de "folha".
+//
+// A alocação é bem mais simples aqui do que lá, e a razão é de MODELO:
+// no agendamentos-fil, duas turmas dividirem um ônibus era uma convenção
+// reconstruída por uma chave de texto (escola|embarque|retorno), e
+// qualquer divergência nesse texto fabricava ficha de ônibus inexistente.
+// No SATE, um ônibus que passa em duas escolas é UMA solicitação com dois
+// pontos de embarque - o compartilhamento é explícito no dado, então não
+// há o que inferir nem o que fabricar.
+//
+// PURA: sem DOM, sem banco. Recebe as confirmadas do dia, devolve as
+// fichas na ordem em que serão impressas.
+export function alocarFichas(confirmadas, { capacidade }) {
+  const ORDEM_PERIODO = { manha: 0, tarde: 1, noite: 2 };
+  const fichas = [];
+  // Por período, e dentro dele por horário de embarque: é a ordem em que
+  // os veículos saem, e a mesma em que a numeração faz sentido para quem
+  // recebe a pilha de papel.
+  const ordenadas = [...(confirmadas || [])].sort((a, b) =>
+    (ORDEM_PERIODO[a.periodo] ?? 9) - (ORDEM_PERIODO[b.periodo] ?? 9)
+    || String(a.horario_embarque || '').localeCompare(String(b.horario_embarque || '')));
+
+  // A numeração REINICIA a cada período - é o que o agendamentos-fil faz,
+  // e o que permite dizer "o terceiro ônibus da tarde" sem ambiguidade.
+  const contador = {};
+  for (const s of ordenadas) {
+    const n = Math.max(0, Number(s.qtd_onibus) || 0);
+    if (!n) continue;   // solicitação sem ônibus não gera ficha
+    const sobra = Math.max(0, (Number(s.qtd_alunos) || 0));
+    for (let i = 0; i < n; i++) {
+      contador[s.periodo] = (contador[s.periodo] || 0) + 1;
+      fichas.push({
+        solicitacao: s,
+        periodo: s.periodo,
+        numero: contador[s.periodo],
+        de: n,                       // "ônibus 1 de 2" da mesma solicitação
+        indice: i + 1,
+        // Lugares por veículo: os estudantes repartidos entre os ônibus da
+        // solicitação, nunca acima da capacidade de um.
+        lugares: Math.min(capacidade, Math.ceil(sobra / n)),
+        // A van vai na PRIMEIRA ficha da solicitação: é um veículo a mais,
+        // não um a cada ônibus, e repetir o número em todas faria a empresa
+        // mandar uma van por ônibus.
+        vans: i === 0 ? (Number(s.qtd_vans) || 0) : 0,
+        // Sinaliza turma acima da frota informada - erro de cadastro que a
+        // empresa não tem como adivinhar.
+        excedeCapacidade: sobra > n * capacidade,
+      });
+    }
+  }
+  return fichas;
+}
+
+// Solicitações confirmadas que NÃO viraram ficha nenhuma: têm estudantes
+// mas nenhum ônibus. Aparecem à parte, porque um pedido confirmado que
+// some da pilha de papel é o defeito mais caro possível aqui.
+export const pendenciasDeFicha = (confirmadas) =>
+  (confirmadas || []).filter(s => (Number(s.qtd_alunos) || 0) > 0 && !(Number(s.qtd_onibus) || 0));

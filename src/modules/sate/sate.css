@@ -138,3 +138,88 @@
 }
 .fr-nova input[type="number"] { width: 84px; }
 .fr-nova input[type="date"], .fr-nova select { min-width: 130px; }
+
+/* ── Fichas de ônibus (guia Fichas) ─────────────────────────
+   O documento que a empresa de transporte recebe. Ela NÃO entra no
+   sistema (o domínio institucional não foi afrouxado), então isto sai
+   impresso ou em PDF - e o layout de impressão é parte da entrega, não
+   um acabamento. */
+.fi-doc { max-width: 780px; }
+.fi-titulo { font-size: 15px; font-weight: 700; margin-bottom: 14px; }
+.fi-faixa {
+  margin: 22px 0 10px;
+  padding: 7px 12px;
+  border-radius: var(--radius-btn);
+  background: var(--surface-3);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.fi-ficha {
+  margin-bottom: 14px;
+  border: 1px solid var(--border-forte);
+  border-radius: var(--radius-btn);
+  background: var(--surface);
+  overflow: hidden;
+}
+.fi-cab {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 9px 12px;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.fi-num { font-weight: 700; }
+.fi-data { color: var(--muted); }
+.fi-grade { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.fi-grade th, .fi-grade td {
+  padding: 7px 12px;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--border);
+}
+.fi-grade th {
+  width: 1%;
+  white-space: nowrap;
+  color: var(--form-label);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.fi-grade tr:last-child th, .fi-grade tr:last-child td { border-bottom: 0; }
+.fi-end { color: var(--muted); font-size: 12.5px; margin-top: 2px; }
+.fi-parada + .fi-parada { margin-top: 3px; }
+.fi-num-grande { font-size: 17px; font-weight: 700; }
+.fi-rodape { padding: 6px 12px; color: var(--muted); font-size: 12px; border-top: 1px solid var(--border); }
+.fi-alerta {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 12px;
+  background: var(--atencao-bg);
+  font-size: 12.5px;
+}
+.fi-pendencias { margin-top: 26px; }
+
+/* Impressão: a ficha é o documento, então tudo o mais sai da página.
+   `break-inside: avoid` mantém a ficha inteira numa folha só - meia
+   ficha no fim da página é meia informação para o motorista. E a faixa
+   de período nunca fica órfã no pé (`break-after: avoid`). */
+@media print {
+  .tabbar, .page-head, .mod-acoes, .toolbar { display: none !important; }
+  .fi-doc { max-width: none; }
+  .fi-ficha {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    border-color: var(--border-forte);
+    margin-bottom: 10px;
+  }
+  .fi-faixa { break-after: avoid; page-break-after: avoid; background: none; border-bottom: 2px solid var(--text); }
+  .fi-cab { background: none; }
+}

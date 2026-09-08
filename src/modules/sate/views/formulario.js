@@ -11,7 +11,8 @@
 // legível de relance; em tela estreita eles são as âncoras que dizem
 // onde a pessoa está numa coluna longa.
 // ============================================================
-import { criarSolicitacao, saldoDoDia, livreManhaSeguinte, listSolicitacoes } from '../sate.model.js';
+import { criarSolicitacao, listSolicitacoes } from '../sate.model.js';
+import { saldoDoDia, livreManhaSeguinte } from '../saldo.model.js';
 import { avaliarPedido, onibusPara, vansPara } from '../regras.model.js';
 import { capacidadeOnibus, capacidadeVan, intervaloMinMin, antecedenciaMinDias } from '../sate.config.js';
 import { getDiaCalendario } from '../../calendario/calendario.model.js';

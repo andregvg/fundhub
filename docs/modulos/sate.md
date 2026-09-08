@@ -12,6 +12,7 @@
 - Ver, antes de pedir, quantos veículos ainda estão livres naquele dia.
 - Aprovar, negar e remanejar pedidos (para quem tem essa permissão).
 - Cadastrar a frota disponível e os reforços de período de evento.
+- Imprimir as **fichas de ônibus** que vão para a empresa de transporte.
 
 ## Quem pode o quê
 
@@ -115,6 +116,22 @@ tabela, ou clique no título de uma coluna para reorganizar. Os campos de data
 e situação no alto buscam no sistema; a caixa de busca estreita o que já está
 na tela.
 
+### Imprimir as fichas para a empresa
+
+1. Abra a guia **Fichas** e escolha a data. Dá para filtrar por período.
+2. A tela mostra **uma ficha por ônibus**, agrupadas por período e numeradas
+   a partir de 1 dentro de cada um - "o terceiro ônibus da tarde" não fica
+   ambíguo.
+3. Cada ficha traz origem com endereço, as paradas a mais (quando o ônibus
+   passa em outra escola), destino com endereço, horários de embarque e
+   retorno, quantos lugares no ônibus e quantos na van adaptada.
+4. Clique em **Imprimir**. Sai só o documento - menu, abas e filtros não vão
+   para o papel, e nenhuma ficha é cortada ao meio entre duas folhas.
+
+Se alguma viagem estiver confirmada **sem ônibus atribuído**, ela não gera
+ficha e aparece numa lista à parte, no fim da página, para você conferir antes
+de enviar. Essa lista não é impressa.
+
 ### Cancelar
 
 O que fazer depende de o pedido já ter sido aprovado ou não:
@@ -213,4 +230,4 @@ Negado é um pedido que **nunca** chegou a valer - foi recusado na análise.
 Cancelado é um pedido que **estava de pé** e foi desfeito. Os dois exigem
 justificativa.
 
-> Atualizado na versão 0.27.0.
+> Atualizado na versão 0.28.0.

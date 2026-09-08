@@ -3,9 +3,14 @@
 // Solicitações de transporte: leitura, ciclo de vida e saldo do dia.
 // Spec: 2026-09-08-sate-modelo-de-dados-design.md § D4, D5, D8.
 //
-// A frota mora em `frota.model.js` e as regras puras em
-// `regras.model.js` - os três são API pública do módulo. Aqui fica o
-// que precisa de banco e de estado: a solicitação e o saldo.
+// A frota mora em `frota.model.js`, as regras puras em `regras.model.js`
+// e a conta de vagas em `saldo.model.js` - os quatro são API pública do
+// módulo. Aqui fica a SOLICITAÇÃO: ler, criar e mover no ciclo de vida.
+//
+// O saldo saiu daqui em 08/09/2026, quando o arquivo passou do teto de
+// 250 linhas (R11). Não foi corte arbitrário para caber: "quantos
+// veículos estão livres" é um agregado próprio, que lê a frota E as
+// solicitações e não pertence a nenhuma das duas.
 //
 // O que mudou do v1: negar e cancelar deixaram de ser a mesma coisa,
 // justificativa é obrigatória nos dois (CHECK no banco, não só na tela),
@@ -14,8 +19,7 @@
 // ============================================================
 import { sb, hasSupabase, emailAtual } from '../../core/supabase.js';
 import { subscribeTabela } from '../../shared/realtime.js';
-import { agoraISO, addDias } from '../../shared/format.js';
-import { totalDoDia } from './frota.model.js';
+import { agoraISO } from '../../shared/format.js';
 
 export const PERIODOS = Object.freeze({ manha: 'Manhã', tarde: 'Tarde', noite: 'Noite' });
 
@@ -178,76 +182,6 @@ export async function salvarEmbarques(solicitacaoId, paradas) {
   }));
   const { error } = await sb().from('solicitacao_embarque').insert(linhas);
   if (error) throw error;
-}
-
-// ── Saldo ────────────────────────────────────────────────────
-// Veículos COMPROMETIDOS por período num dia. Só os status de reserva.
-export async function usoDoDia(dataISO) {
-  const base = { onibus: { manha: 0, tarde: 0, noite: 0 }, van_adaptada: { manha: 0, tarde: 0, noite: 0 } };
-  if (!hasSupabase() || !dataISO) return base;
-  const { data, error } = await sb().from('solicitacao_transporte')
-    .select('periodo, qtd_onibus, qtd_vans, status')
-    .eq('data', dataISO).in('status', STATUS_RESERVA);
-  if (error) { if (ausente(error)) return base; throw error; }
-  for (const r of data || []) {
-    if (!base.onibus[r.periodo]) continue;
-    base.onibus[r.periodo] += r.qtd_onibus || 0;
-    base.van_adaptada[r.periodo] += r.qtd_vans || 0;
-  }
-  return base;
-}
-
-// O saldo de um dia: total (do dia, § D4) menos o comprometido em cada
-// período. `livre` nunca é negativo na exibição - um dia estourado por
-// exceção de aprovador mostra zero livre, e o excesso aparece como
-// `estouro`, que é o número que interessa a quem aprova.
-//
-// A CONTA VEM DO BANCO, por `saldo_transporte()` (migration 036), e não
-// de somar as linhas aqui. O motivo é o RLS: uma escola só lê as
-// solicitações em que está envolvida, então somar pelo cliente daria a
-// ela o próprio uso e mais nada - "9 de 9 livres" num dia lotado, na
-// tela que existe justamente para avisar que as vagas acabaram.
-//
-// A função é `security definer` e devolve só CONTAGEM: nenhuma escola,
-// nenhum horário, nada que diga de quem é a reserva.
-export async function saldoDoDia(dataISO) {
-  const monta = (tipo, bruto) => {
-    const out = {};
-    for (const p of Object.keys(PERIODOS)) {
-      const t = bruto?.[tipo]?.[p]?.total || 0;
-      const u = bruto?.[tipo]?.[p]?.uso || 0;
-      out[p] = { total: t, uso: u, livre: Math.max(0, t - u), estouro: Math.max(0, u - t) };
-    }
-    return out;
-  };
-
-  if (hasSupabase()) {
-    const { data, error } = await sb().rpc('saldo_transporte', { p_data: dataISO });
-    if (!error && data) return { onibus: monta('onibus', data), van_adaptada: monta('van_adaptada', data) };
-    // QUALQUER falha cai na soma pelo cliente, sem relançar. O caso comum
-    // é a 036 ainda não ter rodado - e aí o PostgREST devolve `PGRST202`,
-    // não o `42883` do Postgres, o que faria uma checagem por código
-    // específico deixar a tela quebrar em vez de degradar. Como a rota
-    // alternativa É o comportamento anterior (certo para quem aprova,
-    // otimista para a escola), cair nela nunca é pior que falhar.
-    if (error) console.warn('[sate] saldo_transporte indisponível, somando no cliente:', error.message);
-  }
-
-  const [total, uso] = await Promise.all([totalDoDia(dataISO), usoDoDia(dataISO)]);
-  const bruto = {};
-  for (const tipo of ['onibus', 'van_adaptada']) {
-    bruto[tipo] = {};
-    for (const p of Object.keys(PERIODOS)) {
-      bruto[tipo][p] = { total: total[tipo] || 0, uso: uso[tipo][p] || 0 };
-    }
-  }
-  return { onibus: monta('onibus', bruto), van_adaptada: monta('van_adaptada', bruto) };
-}
-
-// Só o que a regra (b) precisa do dia seguinte: ônibus livres de manhã.
-export async function livreManhaSeguinte(dataISO) {
-  const s = await saldoDoDia(addDias(dataISO, 1));
-  return s.onibus.manha.livre;
 }
 
 // ── Realtime ─────────────────────────────────────────────────

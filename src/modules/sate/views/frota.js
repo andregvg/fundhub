@@ -8,12 +8,13 @@
 // lançamento de veículos com vigência (spec 2026-09-08-sate-modelo-de-
 // dados-design.md § D1), e cadastrar dia a dia deixou de fazer sentido.
 //
-// Por enquanto ela é só de LEITURA. O cadastro da frota vigente e dos
-// lotes de evento nasce no bloco S3, junto com o resto da interface -
-// deixar aqui um formulário meio-convertido seria pior que dizer, na
-// tela, onde a coisa está.
+// Esta guia é só de LEITURA. O cadastro da frota vigente, dos lotes de
+// evento e dos rótulos mora na ENGRENAGEM do módulo
+// (views/frota-painel.js): configurar é interrupção curta, e é o
+// critério que o hub usa para escolher entre a engrenagem e uma aba.
 // ============================================================
-import { saldoDoDia, PERIODOS } from '../sate.model.js';
+import { PERIODOS } from '../sate.model.js';
+import { saldoDoDia } from '../saldo.model.js';
 import { getFrotas, rotulaTipo } from '../frota.model.js';
 import { esc } from '../../../shared/dom.js';
 import { hojeISO, fmtData } from '../../../shared/format.js';
