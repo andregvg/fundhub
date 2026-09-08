@@ -27,7 +27,8 @@ import { NIVEIS, OCULTO, rotulaNivel } from '../../core/permissoes.js';
 import { SEGMENTOS, ATALHOS, expandir, atalhoDe, rotuloSelecao } from '../../core/segmentos.js';
 import { esc, val, checked, falha, vazio } from '../../shared/dom.js';
 import { fmtDataHora } from '../../shared/format.js';
-import { loading, emptyState, erroBox, reportarErro } from '../../shared/ui/feedback.js';
+import { loading, erroBox, reportarErro } from '../../shared/ui/feedback.js';
+import { montarTabela } from '../../shared/ui/tabela.js';
 import { drawerHtml, drawerHead, montarDrawer, abrirDrawer, fecharDrawer } from '../../shared/ui/drawer.js';
 import { criarBuscaSelecao } from '../../shared/ui/busca-selecao.js';
 import { confirmar } from '../../shared/ui/confirmar.js';
@@ -37,6 +38,10 @@ import { isInstitucional } from '../../core/auth.js';
 
 let lista = [], papeis = [], presets = {}, servidores = [];
 let rotulos = {};
+// A instância da tabela desta tela. Zerada no render(): o módulo é
+// module-level e a instância antiga apontaria para um nó já descartado
+// quando a rota volta para cá.
+let tabela = null;
 // Uma instância por gaveta aberta - "Editar" de duas pessoas seguidas
 // cria duas se ninguém destruir a de antes, e cada uma deixa um
 // listener de document vivo (mesma armadilha de por-escola.js).
@@ -48,13 +53,13 @@ const CONFIGURAVEIS = () =>
   MODULOS.filter(m => m.rota && !['modulos', 'meus_dados', 'meus-dados'].includes(m.id));
 
 export async function render(app) {
+  tabela = null;
   app.innerHTML = `
     <div class="page-head">
       <h1>Usuários &amp; Acessos</h1>
       <p>Quem tem acesso ao FundHub e com qual papel. O histórico de alterações fica em Auditoria.</p>
     </div>
     <div class="toolbar">
-      <span class="count" id="us-count"></span>
       <button id="us-novo" class="btn-primary">${ico('adicionar')} Adicionar acesso</button>
     </div>
     <div id="us-lista">${loading()}</div>
@@ -74,45 +79,54 @@ export async function render(app) {
 async function carregar() {
   const box = document.getElementById('us-lista');
   try { lista = await getPerfis(); }
-  catch (err) { box.innerHTML = erroBox(err); return; }
+  catch (err) { box.innerHTML = erroBox(err); tabela = null; return; }
 
-  document.getElementById('us-count').textContent = `${lista.length} acesso(s) cadastrado(s)`;
-  if (!lista.length) {
-    box.innerHTML = emptyState(ico('acesso', { tam: 32 }), 'Nenhum acesso cadastrado', 'Clique em “Adicionar acesso”.');
-    return;
-  }
-  box.innerHTML = lista.map(item).join('');
-  box.querySelectorAll('[data-edit]').forEach(b =>
-    b.addEventListener('click', () => abrirForm(lista.find(p => p.email === b.dataset.edit))));
-  box.querySelectorAll('[data-del]').forEach(b =>
-    b.addEventListener('click', () => remover(lista.find(p => p.email === b.dataset.del))));
+  if (tabela) { tabela.atualizar(lista); return; }
+  tabela = montarTabela(box, {
+    colunas: COLUNAS(),
+    linhas: lista,
+    chave: p => p.email,
+    acoes: [
+      { ico: 'editar', rotulo: 'Editar', ao: (p) => abrirForm(p) },
+      { ico: 'excluir', rotulo: 'Remover acesso', perigo: true, ao: (p) => remover(p) },
+    ],
+    buscarEm: ['pessoa', 'email', 'papel'],
+    ordem: { coluna: 'pessoa', dir: 'asc' },
+    substantivo: 'acessos',
+    vazio: {
+      ico: 'acesso', titulo: 'Nenhum acesso cadastrado',
+      texto: 'Clique em “Adicionar acesso”.',
+    },
+  });
 }
 
-function item(p) {
-  const papel = rotulos[p.papel] || p.papel;
-  const admin = p.papel === 'admin_sme';
-  const segs = expandir(p.segmentos);
-  const excecoes = Object.keys(p.permissoes || {}).length;
-
-  return `<div class="solic us-item ${p.ativo ? '' : 'inativo'}">
-    <div class="solic-main">
-      <div class="di-top">
-        <b>${esc(p.nome || p.servidor?.nome || p.email)}</b>
-        <span class="tag ${admin ? 'us-admin' : ''}">${esc(papel)}</span>
-        ${p.ativo ? '' : '<span class="tag st-negado">inativo</span>'}
-        ${segs.length ? `<span class="tag">${esc(rotuloSelecao(segs))}</span>` : ''}
-        ${excecoes ? `<span class="tag st-em_analise">${excecoes} exceção(ões)</span>` : ''}
-      </div>
-      <div class="di-meta">${esc(p.email)}</div>
-      ${p.servidor ? `<div class="di-meta">${ico('equipe', { tam: 14 })} ${esc(p.servidor.nome)}${p.servidor.cargo ? ` · ${esc(p.servidor.cargo)}` : ''}</div>` : ''}
-      <div class="di-meta">Último acesso: ${p.ultimo_acesso ? esc(fmtDataHora(p.ultimo_acesso)) : vazio('nunca acessou')}</div>
-    </div>
-    <div class="solic-acoes">
-      <button class="mini-btn" data-edit="${esc(p.email)}" aria-label="Editar">${ico('editar')}</button>
-      <button class="mini-btn no" data-del="${esc(p.email)}" aria-label="Remover">${ico('excluir')}</button>
-    </div>
-  </div>`;
-}
+// `valor` devolve texto puro (ordena e busca); `celula` devolve o HTML
+// exibido - ver a spec 2026-09-08-listas-e-modais-design.md § D2. Sem a
+// separação, ordenar "Papel" ordenaria pelo markup do chip.
+//
+// É função, e não constante: `rotulos` só existe depois do getPapeis()
+// no render(), e uma constante de módulo congelaria o objeto vazio.
+const COLUNAS = () => [
+  { id: 'pessoa', rotulo: 'Pessoa',
+    valor: p => p.nome || p.servidor?.nome || p.email },
+  { id: 'email', rotulo: 'E-mail', prioridade: 2 },
+  { id: 'papel', rotulo: 'Papel',
+    valor: p => rotulos[p.papel] || p.papel,
+    celula: p => `<span class="tag ${p.papel === 'admin_sme' ? 'us-admin' : ''}">`
+      + `${esc(rotulos[p.papel] || p.papel)}</span>` },
+  { id: 'situacao', rotulo: 'Situação', prioridade: 2,
+    valor: p => (p.ativo ? 'Ativo' : 'Inativo'),
+    celula: p => p.ativo
+      ? '<span class="tag st-confirmado">Ativo</span>'
+      : '<span class="tag st-negado">Inativo</span>' },
+  { id: 'segmentos', rotulo: 'Segmentos', prioridade: 3,
+    valor: p => { const s = expandir(p.segmentos); return s.length ? rotuloSelecao(s) : 'Todos'; } },
+  { id: 'excecoes', rotulo: 'Exceções', prioridade: 3, tipo: 'numero', alinhar: 'dir',
+    valor: p => Object.keys(p.permissoes || {}).length },
+  { id: 'acesso', rotulo: 'Último acesso', prioridade: 2, tipo: 'datahora',
+    valor: p => p.ultimo_acesso || '',
+    celula: p => (p.ultimo_acesso ? esc(fmtDataHora(p.ultimo_acesso)) : vazio('nunca acessou')) },
+];
 
 function abrirForm(p) {
   const novo = !p;

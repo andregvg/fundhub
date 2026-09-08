@@ -9,6 +9,42 @@ versionamento **MINOR** = módulo novo ou mudança de modelo de dados, **PATCH**
 
 ---
 
+## [0.23.0] - 2026-09-08
+
+### Adicionado
+
+- **As listas agora podem ser tabelas - e a primeira coisa que dá para fazer
+  nelas é ordenar.** Clicar no título de uma coluna organiza a lista por ela;
+  clicar de novo inverte. Vale para nome, data, número, o que estiver ali.
+- **Busca dentro da lista.** Uma caixa no alto da tabela vai estreitando a
+  lista conforme você digita, sem esperar carregamento e sem perder os
+  filtros que você já tinha escolhido. Ela ignora acento e maiúscula:
+  procurar por "varzea" encontra "Várzea".
+- **Páginas.** Listas longas passam a vir de 25 em 25, com a contagem à
+  vista ("1-25 de 140"). Antes a página inteira era montada de uma vez, o
+  que ia ficando pesado à medida que o histórico crescia.
+- **No celular, a lista ficou enxuta.** Em vez de cada item ocupar cinco
+  linhas da tela, aparecem só as informações principais - e **tocar na linha
+  abre o resto**, junto com os botões daquele item. Cabem 12 ou 15 itens na
+  tela em vez de 3, e **nunca é preciso arrastar a lista para o lado**.
+
+### Alterado
+
+- **Usuários & Acessos** e **Auditoria › Mudanças** passaram a usar a nova
+  lista. Em Usuários, "inativo" virou uma coluna própria em vez de deixar a
+  linha inteira apagada - dá para ler quem está inativo sem forçar a vista.
+- Em Auditoria, os filtros de cima (período, módulo, ação, autor) continuam
+  fazendo o que faziam: buscar no sistema. A caixa nova da tabela é outra
+  coisa - ela estreita o que já está na tela, na hora.
+
+### Corrigido
+
+- **Quem usa o teclado não é mais expulso das janelas.** Ao abrir uma ficha,
+  um formulário ou uma pergunta de confirmação, a tecla Tab ficava passeando
+  pelo menu atrás da janela, que estava anunciado como indisponível. Agora a
+  tabulação fica dentro da janela aberta, e ao fechá-la o foco volta para o
+  botão que a abriu.
+
 ## [0.22.0] - 2026-09-07
 
 ### Adicionado

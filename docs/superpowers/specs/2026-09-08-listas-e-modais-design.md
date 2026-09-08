@@ -46,6 +46,8 @@ todo módulo usa para editar, e centralizar era um desejo antigo.
 
 - `shared/ui/tabela.js` - o componente de lista tabular.
 - `shared/ui/modal.js` - o diálogo centralizado.
+- `shared/ui/foco.js` - a armadilha de foco, ligada nas três superfícies
+  modais do hub (modal, gaveta e confirmação). Ver D8.
 - As famílias `.tabela` e `.modal` em `styles/components.css`.
 - A regra escrita em `.claude/rules/ui.md` (R18 nova; R16 ampliada).
 - **Duas telas convertidas**, para provar o contrato: Usuários & Acessos
@@ -60,7 +62,6 @@ todo módulo usa para editar, e centralizar era um desejo antigo.
 | Escolher, esconder ou reordenar colunas pelo usuário | Nenhum caso concreto hoje |
 | Exportar direto da tabela | Nenhum caso concreto hoje |
 | Seleção múltipla e ação em lote | Nenhum caso concreto hoje |
-| Armadilha de foco (*focus trap*) | Ver D8 |
 
 ## 3. Decisões
 
@@ -262,11 +263,40 @@ formulário) e reescrevê-lo seria unificar duas coisas que só se parecem.
 O que muda é que ele passa a ler os mesmos tokens de fundo e de cartão,
 para haver uma linguagem visual única.
 
-**Armadilha de foco fica fora, de propósito.** A gaveta não tem, e
-acrescentar só no modal criaria dois níveis de acessibilidade no mesmo
-hub - o que é pior que ter um nível só. Se o hub for elevar esse
-patamar, que seja numa passada própria, nos dois componentes ao mesmo
-tempo.
+**Armadilha de foco: nas três superfícies, não só no modal.**
+
+A primeira versão desta spec deixava a armadilha de fora, com o
+argumento de que a gaveta não tinha e acrescentar só no modal criaria
+dois níveis de acessibilidade no mesmo hub. O argumento estava certo; a
+conclusão, não. A saída correta não era rebaixar o modal - era elevar as
+três, que é o que fica decidido aqui (decisão do André, 08/09/2026).
+
+O problema é concreto: `drawer` e `confirmar-card` já declaram
+`aria-modal="true"`, ou seja, **já afirmam** que o resto da página não
+existe enquanto estão abertos. Sem armadilha, o Tab atravessa e vai
+passear pelo menu lateral que o leitor de tela acabou de anunciar como
+inexistente. A afirmação e o comportamento discordavam - não era uma
+funcionalidade faltando, era uma promessa quebrada.
+
+`shared/ui/foco.js` expõe `prenderFoco(raiz)` → `soltar()`. Nasce em
+arquivo próprio, e não copiado três vezes, porque **são três**
+consumidores concretos (R13), e um laço de Tab duplicado é um bug
+duplicado. Detalhes que a implementação não pode perder:
+
+- A lista de focáveis é recalculada **a cada Tab**, nunca capturada na
+  abertura: o conteúdo é substituído por `innerHTML` (gaveta sobre
+  gaveta, formulário repintado) e uma lista capturada apontaria para nós
+  já descartados.
+- O filtro de "alcançável" usa `getClientRects().length`, não
+  `offsetParent`: este último também é `null` em elemento
+  `position: fixed`, que é exatamente o caso da gaveta e do modal.
+- O ouvinte é registrado em **captura**, para o laço valer mesmo que o
+  conteúdo trate `Tab` por conta própria.
+- Uma armadilha por **pilha**, não por superfície: o elemento é sempre o
+  mesmo nó, e prender de novo deixaria dois laços concorrendo.
+
+`confirmar.js` ganha de quebra o retorno de foco a quem abriu, que ele
+não fazia.
 
 ### D9 - O CSS mora em `components.css`; nenhum token novo
 

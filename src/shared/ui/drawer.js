@@ -10,11 +10,15 @@
 //   abrirDrawer(`<div class="drawer-head">…</div>…`);
 // ============================================================
 import { ico } from './icones.js';
+import { prenderFoco } from './foco.js';
 
 // Marcação a incluir no final do HTML da página.
+// `aria-modal` sem armadilha de foco era uma afirmação falsa: a gaveta
+// dizia que o resto da página não existe e o Tab saía passeando por ele.
+// Ver shared/ui/foco.js.
 export const drawerHtml = () => `
   <div class="drawer-back" id="drawer-back"></div>
-  <aside class="drawer" id="drawer" aria-hidden="true"></aside>`;
+  <aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-hidden="true"></aside>`;
 
 // Garante que o markup do drawer existe. As views que montam a própria
 // página já incluem `${drawerHtml()}` + `montarDrawer()`; a barra de
@@ -33,6 +37,7 @@ let escListener = null;
 // listeners, e a de baixo precisa voltar com dado recarregado.
 let voltarPara = null;
 let focoAnterior = null;
+let soltarFoco = null;
 
 export function montarDrawer() {
   document.getElementById('drawer-back')?.addEventListener('click', fecharDrawer);
@@ -70,6 +75,12 @@ export function abrirDrawer(html, { voltar = null } = {}) {
   }
 
   d.querySelector('.drawer-close')?.addEventListener('click', fecharDrawer);
+
+  // Uma armadilha por PILHA, não por gaveta: o elemento é sempre o mesmo
+  // (#drawer, com o innerHTML trocado), e prender de novo deixaria dois
+  // laços de Tab concorrendo sobre o mesmo nó.
+  if (!soltarFoco) soltarFoco = prenderFoco(d);
+
   (d.querySelector('.drawer-voltar') || d.querySelector('.drawer-close'))?.focus();
 }
 
@@ -86,6 +97,8 @@ export function fecharDrawer() {
   d?.classList.remove('open');
   d?.setAttribute('aria-hidden', 'true');
   document.getElementById('drawer-back')?.classList.remove('open');
+  soltarFoco?.();
+  soltarFoco = null;
   // ui.md sempre afirmou que a gaveta devolve o foco; até aqui, não devolvia.
   focoAnterior?.focus?.();
   focoAnterior = null;

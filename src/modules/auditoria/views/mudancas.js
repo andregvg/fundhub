@@ -12,16 +12,19 @@ import {
 } from '../auditoria.model.js';
 import { esc, vazio } from '../../../shared/dom.js';
 import { fmtDataHora, hojeISO, addDias } from '../../../shared/format.js';
-import { loading, emptyState, erroBox } from '../../../shared/ui/feedback.js';
+import { loading, erroBox } from '../../../shared/ui/feedback.js';
+import { montarTabela } from '../../../shared/ui/tabela.js';
 import { drawerHtml, drawerHead, montarDrawer, abrirDrawer } from '../../../shared/ui/drawer.js';
 import { ico } from '../../../shared/ui/icones.js';
 
 const OP_TAG = { INSERT: 'st-confirmado', UPDATE: 'st-em_analise', DELETE: 'st-negado' };
 
 let lista = [];
+let tabela = null;
 let filtro = { tabela: '', operacao: '', autor: '', de: addDias(hojeISO(), -30), ate: hojeISO() };
 
 export async function render(ctx) {
+  tabela = null;
   ctx.box().innerHTML = `
     <div class="painel-filtros">
       <label class="filtro-campo">De <input id="mu-de" type="date" value="${filtro.de}" /></label>
@@ -37,7 +40,6 @@ export async function render(ctx) {
       <label class="filtro-campo"><span>${ico('servidor', { tam: 13 })} Autor</span>
         <input id="mu-autor" type="search" placeholder="autor…" />
       </label>
-      <span class="count" id="mu-count"></span>
     </div>
     <div id="mu-lista">${loading()}</div>
     ${drawerHtml()}`;
@@ -58,7 +60,12 @@ export async function render(ctx) {
 
 async function carregar() {
   const box = document.getElementById('mu-lista');
+  // O painel de filtros recarrega do BANCO e a casca da tabela é
+  // descartada junto - por isso o loading() e o montarTabela de novo.
+  // A busca da tabela é outra coisa: ela estreita o que já está na tela,
+  // sem ida ao banco (spec § D6).
   box.innerHTML = loading();
+  tabela = null;
   try {
     lista = await getAuditoria({
       tabela: filtro.tabela || undefined, operacao: filtro.operacao || undefined,
@@ -66,15 +73,39 @@ async function carregar() {
     });
   } catch (err) { box.innerHTML = erroBox(err); return; }
 
-  document.getElementById('mu-count').textContent = `${lista.length} registro(s)`;
-  if (!lista.length) {
-    box.innerHTML = emptyState(ico('documento', { tam: 32 }), 'Nada no período', 'Ajuste os filtros - ou ninguém alterou nada por aqui.');
-    return;
-  }
-  box.innerHTML = lista.map(item).join('');
-  box.querySelectorAll('.au-item').forEach(el =>
-    el.addEventListener('click', () => detalhe(el.dataset.id)));
+  tabela = montarTabela(box, {
+    colunas: COLUNAS,
+    linhas: lista,
+    chave: e => e.id,
+    buscarEm: ['modulo', 'resumo', 'autor'],
+    ordem: { coluna: 'quando', dir: 'desc' },
+    substantivo: 'registros',
+    // Sem ações por linha: a tela é só de leitura. O clique na linha abre
+    // a gaveta com o de-para campo a campo, e a expansão fica no botão.
+    aoClicarLinha: (e) => detalhe(e.id),
+    vazio: {
+      ico: 'documento', titulo: 'Nada no período',
+      texto: 'Ajuste os filtros - ou ninguém alterou nada por aqui.',
+    },
+  });
 }
+
+const COLUNAS = [
+  { id: 'quando', rotulo: 'Quando', tipo: 'datahora',
+    valor: e => e.criado_em || '',
+    celula: e => esc(fmtDataHora(e.criado_em)) },
+  { id: 'modulo', rotulo: 'Módulo',
+    valor: e => TABELAS[e.tabela] || e.tabela },
+  { id: 'operacao', rotulo: 'Ação', prioridade: 2,
+    valor: e => OPERACOES[e.operacao] || e.operacao,
+    celula: e => `<span class="tag ${OP_TAG[e.operacao] || ''}">`
+      + `${esc(OPERACOES[e.operacao] || e.operacao)}</span>` },
+  { id: 'resumo', rotulo: 'O que mudou', prioridade: 2, ordenavel: false,
+    valor: e => resumo(e) },
+  { id: 'autor', rotulo: 'Autor', prioridade: 3,
+    valor: e => e.autor || '',
+    celula: e => (e.autor ? esc(e.autor) : vazio('autor não identificado')) },
+];
 
 // Resumo do que mudou, para a linha da lista.
 function resumo(e) {
@@ -83,19 +114,6 @@ function resumo(e) {
   const campos = Object.keys(e.alteracoes || {}).map(rotulaCampo);
   if (!campos.length) return 'Alteração';
   return 'Alterou ' + campos.slice(0, 3).join(', ') + (campos.length > 3 ? ` +${campos.length - 3}` : '');
-}
-
-function item(e) {
-  return `<div class="solic au-item" data-id="${e.id}" tabindex="0">
-    <div class="solic-main">
-      <div class="di-top">
-        <b>${esc(TABELAS[e.tabela] || e.tabela)}</b>
-        <span class="tag ${OP_TAG[e.operacao] || ''}">${esc(OPERACOES[e.operacao] || e.operacao)}</span>
-      </div>
-      <div class="di-meta">${esc(resumo(e))}</div>
-      <div class="di-meta">${esc(fmtDataHora(e.criado_em))} · ${ico('servidor', { tam: 12 })} ${e.autor ? esc(e.autor) : vazio('autor não identificado')}</div>
-    </div>
-  </div>`;
 }
 
 function detalhe(id) {

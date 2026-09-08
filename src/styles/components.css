@@ -918,6 +918,249 @@ input[type="checkbox"] { width: 18px; height: 18px; }
 .confirmar-card p { margin: 0 0 18px; color: var(--muted); font-size: 13.5px; line-height: 1.5; white-space: pre-line; }
 .confirmar-acoes { display: flex; justify-content: flex-end; gap: 8px; }
 
+/* ── Modal centralizado (shared/ui/modal.js) ─────────────────
+   O padrão de detalhe/edição a partir de 08/09/2026 - ver a spec
+   2026-09-08-listas-e-modais-design.md § D8. Convive com a gaveta
+   enquanto o bloco S0b não converte as telas antigas.
+
+   Mobile-first de verdade: a BASE é a tela inteira, e o cartão
+   centralizado é o que o corte de 560px ACRESCENTA. Um cartão de
+   420px numa tela de 360px é um cartão de 360px com margem inútil. */
+.modal-back {
+  position: fixed;
+  inset: 0;
+  z-index: 85;
+  display: grid;
+  place-items: center;
+  background: rgba(10, 15, 30, .5);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .18s;
+}
+.modal-back.open { opacity: 1; pointer-events: auto; }
+.modal {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100dvh;              /* dvh: descontar a barra do navegador móvel */
+  background: var(--surface);
+  transform: translateY(8px);
+  transition: transform .18s ease;
+}
+.modal-back.open .modal { transform: none; }
+.modal-head {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 12px;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--border);
+}
+.modal-head h2 { margin: 0 0 2px; font-size: 18px; letter-spacing: -.01em; }
+.modal-head h2 .nome-oficial { text-transform: uppercase; font-size: 16.5px; }
+.modal-head small { color: var(--muted); }
+/* A rolagem é do CORPO, não do cartão: é isso que mantém o cabeçalho e
+   o rodapé de formulário parados num modal longo. */
+.modal-body { flex: 1 1 auto; overflow-y: auto; padding: 18px; }
+.modal-close {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--toque);
+  height: var(--toque);
+  border: 0;
+  border-radius: 9px;
+  background: var(--surface-2);
+  color: var(--text);
+  cursor: pointer;
+}
+/* Modal aberto sobre outro: o ← desempilha (ver shared/ui/modal.js). */
+.modal-voltar {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--controle);
+  height: var(--controle);
+  margin-right: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-btn);
+  background: var(--surface-2);
+  color: var(--text);
+  cursor: pointer;
+}
+.modal-voltar:hover { background: var(--surface-3); }
+@media (pointer: coarse) {
+  .modal-voltar { width: var(--toque); height: var(--toque); }
+}
+@media (min-width: 560px) {
+  .modal-back { padding: 16px; }
+  .modal {
+    height: auto;
+    max-height: min(88dvh, 100%);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+  }
+  .modal.estreito { max-width: 420px; }
+  .modal.medio    { max-width: 560px; }
+  .modal.largo    { max-width: 760px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .modal { transform: none; transition: none; }
+}
+
+/* ── Tabela: o padrão de lista do hub ────────────────────────
+   Ver a spec 2026-09-08-listas-e-modais-design.md e a R18 em
+   .claude/rules/ui.md. Montada sempre por shared/ui/tabela.js -
+   nenhuma view escreve <table> à mão.
+
+   O mecanismo do celular é ESCONDER COLUNA, nunca rolar de lado:
+   o que sumiu reaparece na expansão da linha, para baixo. */
+.tabela-caixa {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.tabela-topo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+}
+/* A busca da TABELA (spec § D6) divide a barra com a contagem e por isso
+   não estica como a .search da toolbar, nem carrega sombra própria -
+   ela já está dentro de uma superfície. */
+.tabela-topo .search {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: var(--campo);
+  padding: 4px 10px;
+  border-radius: var(--radius-btn);
+  background: var(--surface-2);
+  box-shadow: none;
+}
+.tabela-topo .count { flex: 0 0 auto; white-space: nowrap; }
+
+/* Rede de segurança para uma tabela excepcionalmente larga no desktop.
+   No celular nunca dispara: lá a largura sempre cabe, por construção. */
+.tabela-rolagem { overflow-x: auto; }
+.tabela { width: 100%; border-collapse: collapse; font-size: 14px; }
+.tabela th, .tabela td {
+  padding: 9px 12px;
+  text-align: left;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--border);
+}
+.tabela thead th {
+  background: var(--surface-2);
+  color: var(--form-label);
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  white-space: nowrap;
+}
+.tabela .dir { text-align: right; }
+.tabela tbody tr:last-child td { border-bottom: 0; }
+
+.tabela .ord-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-transform: inherit;
+  letter-spacing: inherit;
+  cursor: pointer;
+}
+.tabela .ord-btn:hover { color: var(--text); }
+.tabela .ord-seta { opacity: 0; transition: transform .15s; }
+.tabela th.on { color: var(--brand); }
+.tabela th.on .ord-seta { opacity: 1; }
+/* O traçado do chevron aponta para BAIXO: descendente é o repouso e
+   ascendente é ele girado. */
+.tabela th.on:not(.desc) .ord-seta { transform: rotate(180deg); }
+
+.tabela .col-exp { width: 1%; padding-right: 0; }
+.tabela .exp {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--controle);
+  height: var(--controle);
+  border: 0;
+  border-radius: var(--radius-btn);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+.tabela .exp:hover { background: var(--surface-3); color: var(--text); }
+.tabela .exp .ico { transform: rotate(-90deg); transition: transform .15s; }
+.tabela tr.on .exp .ico { transform: none; }
+.tabela tr.on > td { background: var(--surface-2); }
+.tabela th.acoes, .tabela td.acoes { width: 1%; text-align: right; white-space: nowrap; }
+.tabela td.acoes .mini-btn { padding: 3px 7px; }
+.tabela tbody tr[tabindex] { cursor: pointer; }
+.tabela tbody tr[tabindex]:hover > td { background: var(--surface-2); }
+.tabela-nada td { padding: 26px 12px; text-align: center; color: var(--muted); }
+
+.tabela-detalhe > td { padding: 2px 12px 14px; background: var(--surface-2); }
+.det-par { display: flex; align-items: baseline; gap: 10px; padding: 5px 0; }
+.det-par .lbl { flex: 0 0 38%; }
+.det-acoes { display: flex; justify-content: flex-end; gap: 8px; padding-top: 10px; }
+
+.tabela-pe {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-top: 1px solid var(--border);
+}
+.tabela-pe-info { margin-right: auto; color: var(--muted); font-size: 12.5px; }
+
+/* Prioridade de coluna, mobile-first: a base mostra só prioridade 1, e
+   cada corte ACRESCENTA. Os seletores são qualificados por th/td de
+   propósito - `.tabela .p2` também pegaria o `.det-par.p2` lá dentro,
+   escondendo no detalhe justamente o que o detalhe existe para mostrar.
+
+   `data-exp` diz que há algo a esconder; `data-prio2`, que há coluna de
+   prioridade 2. São os dois sinais de que o botão de expandir precisa. */
+.tabela th.p2, .tabela td.p2,
+.tabela th.p3, .tabela td.p3,
+.tabela th.acoes, .tabela td.acoes { display: none; }
+.tabela .col-exp { display: none; }
+.tabela[data-exp="1"] .col-exp { display: table-cell; }
+
+/* Os seletores destes dois cortes são TODOS qualificados por atributo, e
+   não por conveniência: `.tabela[data-prio2="1"] .col-exp` tem
+   especificidade maior que `.tabela .col-exp`, e venceria mesmo vindo de
+   um @media anterior - media query não soma especificidade. Escrito da
+   forma "óbvia", o botão de expandir sobrevivia até 1200px, com todas as
+   colunas à vista. Mantenha os dois lados no mesmo peso. */
+@media (min-width: 720px) {
+  .tabela th.p3, .tabela td.p3,
+  .tabela th.acoes, .tabela td.acoes { display: table-cell; }
+  .tabela[data-exp="1"] .col-exp { display: none; }
+  .tabela[data-prio2="1"] .col-exp { display: table-cell; }
+  /* No detalhe a lógica é INVERSA: ele mostra o que a linha escondeu. */
+  .tabela-detalhe .det-par.p3, .tabela-detalhe .det-acoes { display: none; }
+}
+@media (min-width: 900px) {
+  .tabela th.p2, .tabela td.p2 { display: table-cell; }
+  .tabela[data-exp="1"] .col-exp,
+  .tabela[data-prio2="1"] .col-exp { display: none; }
+  .tabela-detalhe .det-par.p2 { display: none; }
+}
+
 /* ── Agrupamentos semânticos de formulário ────────────────────
    Só visual: quebram um formulário longo (a edição de escola tem
    16 campos) em blocos que se leem de relance. Não mudam o payload

@@ -37,7 +37,9 @@ Sempre conferir `src/styles/components.css` antes de escrever CSS novo. O que j�
 - **Botões:** `.btn-primary` · `.btn-secundario` · `.btn-perigo` (ação destrutiva, só em diálogo) · `.mini-btn` (com `.ok` / `.no`)
 - **Marcadores:** `.chip` · `.tag` · `.badge` · `.pill`
 - **Gaveta:** `.drawer` e família - usar sempre via `shared/ui/drawer.js`, nunca à mão
+- **Modal:** `.modal` e família - usar sempre via `shared/ui/modal.js`, nunca à mão
 - **Confirmação:** `.confirmar-back`/`.confirmar-card` - usar sempre via `shared/ui/confirmar.js`, nunca à mão
+- **Tabela:** `.tabela` e família - usar sempre via `shared/ui/tabela.js`, nunca à mão
 - **Busca:** `.search` (a caixa de busca por texto; `.compacta` = um controle único na toolbar)
 
 CSS de módulo (`<modulo>.css`) só **acrescenta** ao vocabulário comum; nunca redefine `.card`,
@@ -162,6 +164,96 @@ fora do design system. Usar `shared/ui/confirmar.js`.
 
 Não há exceção pendente: desde 07/09/2026 não resta nenhuma chamada nativa em `src/`. Se você
 encontrar uma, ela é regressão - não precedente.
+
+### As três superfícies sobrepostas, e quando usar cada uma
+
+| Componente | Papel | Quando |
+|---|---|---|
+| `shared/ui/modal.js` | **detalhe e edição** - o padrão desde 08/09/2026 | ficha, formulário, qualquer tela que interrompe |
+| `shared/ui/confirmar.js` | **decisão pontual** (`alertdialog`) | uma pergunta, dois botões, nada mais |
+| `shared/ui/drawer.js` | o padrão **anterior** de detalhe/edição | só onde ainda não foi convertido - ver o bloco S0b |
+
+**Superfície nova nasce em `modal.js`.** A gaveta continua no repositório porque ~8 módulos ainda
+a usam, não porque haja escolha entre as duas: as duas fazem a mesma coisa, e ter duas formas de
+abrir a mesma tela é o que a spec de 08/09/2026 veio encerrar.
+
+O modal centraliza nos dois eixos, tem três larguras (`estreito` 420px · `medio` 560px ·
+`largo` 760px), rola **no corpo** para o cabeçalho ficar parado, e **abaixo de 560px ocupa a tela
+inteira** - cartão de 420px em tela de 360px é cartão de 360px com margem inútil.
+
+**As três prendem o foco** (`shared/ui/foco.js`). Um elemento com `aria-modal="true"` está
+afirmando que o resto da página não existe; sem armadilha, o Tab atravessa e vai passear pelo menu
+que o leitor de tela acabou de anunciar como inexistente. Se você criar uma quarta superfície
+modal, ela prende o foco também - não é opcional.
+
+## R18 - O padrão de lista
+
+Spec: `docs/superpowers/specs/2026-09-08-listas-e-modais-design.md`.
+
+### Tabela ou cartão
+
+| Use **tabela** quando | Use **cartão** quando |
+|---|---|
+| as linhas se comparam entre si | cada item se lê sozinho |
+| há 4+ atributos do mesmo tipo em todas as linhas | os atributos variam de item para item |
+| a lista passa de ~20 itens com frequência | a lista é curta e navegável de olho |
+| ordenar por um atributo é uma pergunta real | a ordem é sempre a mesma |
+
+Escolas e Servidores são **cartão**: são fichas de identidade, e o que se faz ali é reconhecer,
+não comparar. Usuários, Auditoria e as solicitações do SATE são **tabela**.
+
+### Toda tabela é `shared/ui/tabela.js`
+
+Nenhuma view escreve `<table>` à mão. A view **declara** colunas, ações e dados:
+
+```js
+montarTabela(box, {
+  colunas: [{ id, rotulo, prioridade, ordenavel, tipo, alinhar, valor, celula }],
+  linhas, chave, acoes, buscarEm, porPagina, ordem, aoClicarLinha, substantivo, vazio,
+});
+```
+
+**`valor` ordena e busca; `celula` desenha.** `valor(linha)` devolve texto ou número puro - é o
+que o comparador recebe e o que a busca varre. `celula(linha)` devolve o HTML exibido. Sem a
+separação, ordenar uma coluna de chip ordenaria pelo markup, igual em todas as linhas.
+
+**O escape segue a R5, com o caminho seguro por default:** coluna só com `valor` é escapada pelo
+componente; coluna com `celula` devolve HTML e o `esc()` é de quem escreveu a view.
+
+**`tipo` decide o comparador** - nada é adivinhado pelo conteúdo. `texto` usa `localeCompare`
+pt-BR; `numero` compara numericamente; `data` e `datahora` comparam **como string**, porque
+`yyyy-mm-dd` e o ISO são ordenáveis lexicograficamente (R8) e nenhum `Date` precisa ser
+construído.
+
+### Celular: esconder coluna, nunca rolar de lado
+
+Cada coluna declara `prioridade`: **1** nunca some · **2** some abaixo de 900px · **3** abaixo de
+720px. A coluna de ações some abaixo de 720px. O que sumiu reaparece quando a linha é expandida -
+**para baixo**, em pares rótulo → valor, com as ações ao pé.
+
+O botão `▸` só aparece nas larguras em que há algo escondido; no desktop, com tudo à vista, ele
+some e a linha não abre. A rolagem lateral existe só como rede de segurança no desktop.
+
+**Tocar a linha expande** - salvo quando a tela declara `aoClicarLinha` (abrir gaveta, modal ou
+rota): aí a linha faz isso e a expansão fica só no botão.
+
+### Busca da tabela × painel de filtros
+
+São dois mecanismos e podem coexistir na mesma tela:
+
+| | `.painel-filtros` (da view) | busca da tabela (do componente) |
+|---|---|---|
+| Estreita | **o que é buscado no banco** | **o que já está na tela** |
+| Recarrega o model | sim | não |
+
+A busca da tabela mora **dentro** do componente, na barra `.tabela-topo`, junto da contagem. A
+regra de `.search` na `.toolbar` vale para lista de **cartões** e continua valendo lá.
+
+### Paginação no navegador
+
+O model traz tudo; a tabela pagina, ordena e busca em memória (25 por página por padrão). Os
+volumes do hub cabem com folga. **Não criar abstração de fonte paginável antes de existir uma
+lista que doa** - quando doer, ela nasce ali, com o caso real guiando o formato (R13).
 
 ## Mobile-first de verdade
 

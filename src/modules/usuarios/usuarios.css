@@ -5,7 +5,10 @@
    aba - agora vive em modules/auditoria/auditoria.css.
    ============================================================ */
 
-.us-item.inativo { opacity: .6; }
+/* O `.us-item.inativo { opacity: .6 }` saiu em 08/09/2026, com a lista
+   virando tabela: "inativo" passou a ser uma COLUNA com chip próprio, e
+   dizer a mesma coisa esmaecendo a linha inteira era pior - opacidade
+   também apaga o texto que a pessoa precisa ler para agir. */
 .tag.us-admin { color: var(--brand); background: color-mix(in srgb, var(--brand) 14%, transparent); }
 
 /* ── Permissões por módulo (formulário de acesso) ─────────────

@@ -9,9 +9,12 @@
 //   if (!(await confirmar('Excluir X?', { detalhe: '...', perigo: true }))) return;
 // ============================================================
 import { esc } from '../dom.js';
+import { prenderFoco } from './foco.js';
 
 let resolverAtual = null;
 let onEscAtual = null;
+let soltarFoco = null;
+let focoAnterior = null;
 
 function caixa() {
   let box = document.getElementById('confirmar-back');
@@ -33,6 +36,7 @@ export function confirmar(titulo, { detalhe = '', textoOk = 'Confirmar', textoCa
 
   return new Promise((resolve) => {
     resolverAtual = resolve;
+    focoAnterior = document.activeElement;
     const box = caixa();
     box.innerHTML = `
       <div class="confirmar-card" role="alertdialog" aria-modal="true" aria-labelledby="cf-titulo">
@@ -52,6 +56,10 @@ export function confirmar(titulo, { detalhe = '', textoOk = 'Confirmar', textoCa
     onEscAtual = (e) => { if (e.key === 'Escape') fechar(false); };
     document.addEventListener('keydown', onEscAtual);
 
+    // Diálogo com aria-modal="true" precisa segurar o Tab, senão a
+    // tabulação sai do "Confirmar" e vai para o menu da tela de trás.
+    soltarFoco = prenderFoco(box.querySelector('.confirmar-card'));
+
     box.querySelector('#cf-nao').focus();
   });
 }
@@ -66,8 +74,14 @@ function fechar(resultado) {
   box.classList.remove('open');
   box.removeEventListener('click', onCliqueFundo);
   if (onEscAtual) document.removeEventListener('keydown', onEscAtual);
+  soltarFoco?.();
+  soltarFoco = null;
   const resolve = resolverAtual;
   resolverAtual = null;
   onEscAtual = null;
+  // Devolve o foco a quem abriu - senão, depois de confirmar, o Tab
+  // recomeça do topo da página em vez de voltar ao botão de origem.
+  focoAnterior?.focus?.();
+  focoAnterior = null;
   resolve(resultado);
 }
