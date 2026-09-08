@@ -141,7 +141,7 @@ export function resolverEscala({ rede, override } = {}) {
   return rede || 'normal';
 }
 
-// As escalas que devem aparecer na gaveta de jornada de um servidor:
+// As escalas que devem aparecer no modal de jornada de um servidor:
 // as em uso no calendário do ano ∪ as já gravadas nos blocos dele ∪
 // as com dia_semana definido (aparecem mesmo com o calendário vazio).
 export function escalasParaJornada({ emUsoNoAno = [], blocosDoServidor = [], catalogo = [] }) {

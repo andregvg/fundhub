@@ -9,7 +9,7 @@
   valor que estava lá antes e o que ficou no lugar.
 - Ver quem entrou no sistema, quem exportou uma lista, quem mudou a permissão de
   alguém e quem esbarrou numa tela que não pode abrir.
-- Filtrar por período, por assunto e por pessoa.
+- Filtrar por período, por assunto e por pessoa, e ordenar por qualquer coluna.
 - Conferir quanto os registros ocupam e apagar os mais antigos.
 
 ## Quem pode o quê
@@ -31,11 +31,21 @@ que passou de um prazo e nunca um item escolhido a dedo.
    30 dias.
 3. Se souber onde procurar, escolha o **Módulo** e a **Ação** (Criação, Alteração
    ou Exclusão). Se souber quem, digite parte do e-mail em **Autor**.
-4. Clique na linha. Abre uma gaveta com a data, o autor e - campo a campo - o
+4. Para procurar dentro do que já está na tela, use a caixa **Buscar na lista**
+   logo acima da tabela. Ela é diferente dos filtros de cima: os filtros vão
+   buscar no sistema; a busca da lista apenas estreita o que já apareceu, na
+   hora.
+5. Clique no título de uma coluna para reorganizar - **Quando** já vem do mais
+   recente para o mais antigo. A lista vem de 25 em 25, com as setas e a
+   contagem no rodapé.
+6. Clique na linha. Abre uma janela com a data, o autor e - campo a campo - o
    valor de antes riscado em vermelho e o novo em verde.
 
-Numa criação ou numa exclusão não há "antes e depois": a gaveta mostra o retrato
+Numa criação ou numa exclusão não há "antes e depois": a janela mostra o retrato
 completo do registro como ele nasceu ou como estava quando foi apagado.
+
+No celular a lista mostra só a data e o módulo; toque na linha para ver a ação, o
+resumo e o autor.
 
 ### Descobrir quem fez o quê no sistema
 
@@ -103,4 +113,4 @@ que a pessoa entrou - um valor que é substituído a cada entrada. Aqui você v�
 **Apaguei registros por engano na poda. Dá para voltar?**
 Não. Não há backup no plano atual do banco de dados.
 
-> Atualizado na versão 0.22.0.
+> Atualizado na versão 0.24.0.

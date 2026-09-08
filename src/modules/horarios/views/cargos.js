@@ -6,10 +6,10 @@
 // grade por padrão.
 //
 // A tela é um PAINEL de configuração de rede (Bloco A): recebe um
-// elemento onde desenhar, não abre gaveta. O MODEL mora em
+// elemento onde desenhar, não abre modal. O MODEL mora em
 // servidores/vinculos.model.js, que é o dono do domínio "cargo".
 //
-// Ao mudar aqui, a grade aberta atrás da gaveta de configuração NÃO
+// Ao mudar aqui, a grade aberta atrás do modal de configuração NÃO
 // repinta ao vivo - o cache do model já foi invalidado por
 // definirCargoGestao, então a próxima abertura da escola lê fresco.
 // Aceitável: configurar a equipe gestora é raro.

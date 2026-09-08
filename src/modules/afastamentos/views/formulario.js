@@ -1,6 +1,6 @@
 // ============================================================
 // FundHub - afastamentos/views/formulario.js  (criar/editar)
-// Gaveta de criação e edição. Antes de salvar, integra com o
+// Modal de criação e edição. Antes de salvar, integra com o
 // Calendário: avisa (não bloqueia) se o período cai em dia marcado
 // "não conceder afastamentos" - o admin decide se registra mesmo assim.
 // ============================================================
@@ -8,7 +8,7 @@ import { TIPOS_AFASTAMENTO, diasAfastamento, criarAfastamento, atualizarAfastame
 import { getDiasBloqueiamAfastamento } from '../../calendario/calendario.model.js';
 import { esc, falha } from '../../../shared/dom.js';
 import { fmtData } from '../../../shared/format.js';
-import { drawerHead, abrirDrawer, fecharDrawer } from '../../../shared/ui/drawer.js';
+import { modalHead, abrirModal, fecharModal } from '../../../shared/ui/modal.js';
 import { confirmar } from '../../../shared/ui/confirmar.js';
 import { toast } from '../../../shared/ui/toast.js';
 import { reportarErro } from '../../../shared/ui/feedback.js';
@@ -23,9 +23,9 @@ export function abrirForm(a, ctx) {
   const optsTipo = TIPOS_AFASTAMENTO.map(t =>
     `<option ${a?.tipo === t ? 'selected' : ''}>${esc(t)}</option>`).join('');
 
-  abrirDrawer(`
-    ${drawerHead(novo ? 'Novo afastamento' : 'Editar afastamento')}
-    <div class="drawer-body">
+  abrirModal(`
+    ${modalHead(novo ? 'Novo afastamento' : 'Editar afastamento')}
+    <div class="modal-body">
       <form id="af-form" class="esc-form">
         <label>Servidor <select id="f-serv" required><option value="">Selecione…</option>${optsServ}</select></label>
         <label>Tipo <select id="f-tipo" required>${optsTipo}</select></label>
@@ -90,7 +90,7 @@ async function salvar(e, a, ctx) {
   try {
     if (a) await atualizarAfastamento(a.id, payload);
     else await criarAfastamento(payload);
-    fecharDrawer(); ctx.carregar();
+    fecharModal(); ctx.carregar();
     toast({ titulo: a ? 'Afastamento atualizado' : 'Afastamento lançado', texto: nomeServ, tipo: 'sucesso' });
   } catch (err) {
     // Erro de gravação: inline quando dá para corrigir no formulário

@@ -47,7 +47,7 @@ export const duracao = (min) => {
 // ── Degradação sem a migration 030 ──
 // Sem a migration 030 as colunas `variante`/`conduz` não existem e o
 // PostgREST devolve 42703 na escrita (a LEITURA não quebra: o select é
-// `*`, que traz o que existir). Em vez de derrubar a gaveta, grava sem
+// `*`, que traz o que existir). Em vez de derrubar o modal, grava sem
 // elas - que é exatamente o comportamento anterior à 030: uma variante
 // só. `.claude/rules/dados.md`, degradação por migration ausente.
 export const semColunasNovas = ({ variante, conduz, ...resto }) => resto;

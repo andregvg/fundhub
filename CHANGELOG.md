@@ -9,6 +9,32 @@ versionamento **MINOR** = módulo novo ou mudança de modelo de dados, **PATCH**
 
 ---
 
+## [0.24.0] - 2026-09-08
+
+### Alterado
+
+- **As janelas de detalhe e edição agora abrem no meio da tela.** Antes elas
+  deslizavam pela lateral direita; agora aparecem centralizadas, na frente do
+  que você estava vendo. Vale para todas: ficha de escola, ficha de servidor,
+  jornada da semana, ata, ocorrência, projeto, visita, calendário e o painel de
+  configurações da engrenagem.
+- **No celular a janela ocupa a tela inteira**, como já ocupava - só que agora
+  sem a faixa da tela antiga aparecendo na lateral.
+- **Ao abrir um formulário, o cursor já vai para o primeiro campo.** Antes ele
+  ficava no botão de fechar e era preciso tabular até o começo.
+- **O cabeçalho da janela não sai mais de vista.** Em formulários longos, o
+  título e o botão de fechar ficam parados no topo enquanto o conteúdo rola.
+- As janelas mais cheias - escola, servidor e jornada da semana - ficaram mais
+  largas do que as demais, porque têm muitos campos curtos lado a lado.
+
+### Corrigido
+
+- **Havia dois jeitos diferentes de abrir a mesma coisa** no sistema, e isso
+  acabou: existe um só. O jeito antigo foi removido, para não voltar por
+  distração.
+
+---
+
 ## [0.23.0] - 2026-09-08
 
 ### Adicionado
@@ -44,6 +70,8 @@ versionamento **MINOR** = módulo novo ou mudança de modelo de dados, **PATCH**
   pelo menu atrás da janela, que estava anunciado como indisponível. Agora a
   tabulação fica dentro da janela aberta, e ao fechá-la o foco volta para o
   botão que a abriu.
+
+---
 
 ## [0.22.0] - 2026-09-07
 

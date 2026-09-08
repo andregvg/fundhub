@@ -8,7 +8,7 @@ import { TIPOS, getAtas, criarAta, atualizarAta, excluirAta } from './atas.model
 import { esc, norm, val, falha } from '../../shared/dom.js';
 import { hojeISO, fmtData, fmtExtenso, addDias } from '../../shared/format.js';
 import { loading, emptyState, erroBox, reportarErro } from '../../shared/ui/feedback.js';
-import { drawerHtml, drawerHead, montarDrawer, abrirDrawer, fecharDrawer } from '../../shared/ui/drawer.js';
+import { modalHtml, modalHead, montarModal, abrirModal, fecharModal } from '../../shared/ui/modal.js';
 import { confirmar } from '../../shared/ui/confirmar.js';
 import { toast } from '../../shared/ui/toast.js';
 import { ico } from '../../shared/ui/icones.js';
@@ -41,9 +41,9 @@ export async function render(app, ctx = {}) {
     </div>
     <div id="at-lista" class="no-print">${loading()}</div>
     <div id="at-folha" class="ata-folha" aria-hidden="true"></div>
-    ${drawerHtml()}`;
+    ${modalHtml()}`;
 
-  montarDrawer();
+  montarModal();
   document.getElementById('at-q').addEventListener('input', e => { filtro.q = e.target.value; pintar(); });
   document.getElementById('at-de').addEventListener('change', e => { filtro.de = e.target.value; carregar(); });
   document.getElementById('at-ate').addEventListener('change', e => { filtro.ate = e.target.value; carregar(); });
@@ -108,15 +108,15 @@ function detalhe(a) {
   if (!ata) return;
   const campo = (l, v) => v ? `<div class="field"><div class="lbl">${l}</div><div class="val texto-completo">${v}</div></div>` : '';
   const acoes = perfil?.isAdmin ? `
-    <div class="drawer-acoes">
+    <div class="modal-acoes">
       <button class="mini-btn" id="at-edit">${ico('editar')} Editar</button>
       <button class="mini-btn no" id="at-del">${ico('excluir')} Excluir</button>
     </div>` : '';
 
-  abrirDrawer(`
-    ${drawerHead(`Ata nº ${esc(ata.numero ?? 's/nº')}/${esc(ata.ano)}`, esc(fmtData(ata.data)) + ' · ' + esc(TIPOS[ata.tipo] || ata.tipo))}
-    <div class="drawer-body">
-      <div class="drawer-acoes"><button class="btn-primary" id="at-print">${ico('imprimir')} Imprimir (papel timbrado)</button></div>
+  abrirModal(`
+    ${modalHead(`Ata nº ${esc(ata.numero ?? 's/nº')}/${esc(ata.ano)}`, esc(fmtData(ata.data)) + ' · ' + esc(TIPOS[ata.tipo] || ata.tipo))}
+    <div class="modal-body">
+      <div class="modal-acoes"><button class="btn-primary" id="at-print">${ico('imprimir')} Imprimir (papel timbrado)</button></div>
       ${acoes}
       ${campo('Local', esc(ata.local))}
       ${campo('Participantes', esc(ata.participantes))}
@@ -174,9 +174,9 @@ function abrirForm(a) {
   const optsTipo = Object.entries(TIPOS)
     .map(([k, v]) => `<option value="${k}" ${(a?.tipo || 'gestor') === k ? 'selected' : ''}>${esc(v)}</option>`).join('');
 
-  abrirDrawer(`
-    ${drawerHead(novo ? 'Nova ata' : `Editar ata nº ${esc(a.numero ?? '')}/${esc(a.ano ?? '')}`)}
-    <div class="drawer-body">
+  abrirModal(`
+    ${modalHead(novo ? 'Nova ata' : `Editar ata nº ${esc(a.numero ?? '')}/${esc(a.ano ?? '')}`)}
+    <div class="modal-body">
       <form id="at-form" class="esc-form">
         <div class="esc-row">
           <label>Data <input id="f-data" type="date" value="${esc(a?.data || hojeISO())}" required /></label>
@@ -218,7 +218,7 @@ async function salvar(e, a) {
   try {
     if (a) await atualizarAta(a.id, payload);
     else await criarAta(payload);
-    fecharDrawer(); carregar();
+    fecharModal(); carregar();
     toast({ titulo: a ? 'Ata atualizada' : 'Ata registrada', texto: payload.assunto, tipo: 'sucesso' });
   } catch (err) {
     // Erro de gravação: inline quando dá para corrigir no formulário
@@ -234,7 +234,7 @@ async function remover(a) {
   if (!ok) return;
   try {
     await excluirAta(a.id);
-    fecharDrawer(); carregar();
+    fecharModal(); carregar();
     toast({ titulo: 'Ata removida', texto: a.assunto, tipo: 'sucesso' });
   } catch (err) {
     reportarErro(err, { titulo: 'Não foi possível excluir' });

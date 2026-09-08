@@ -10,7 +10,7 @@ import { getEscalas, rotulaEscala } from '../horarios/escalas.model.js';
 import { esc, falha } from '../../shared/dom.js';
 import { MESES, DOW, hojeISO, fmtData } from '../../shared/format.js';
 import { loading, erroBox, reportarErro } from '../../shared/ui/feedback.js';
-import { drawerHtml, drawerHead, montarDrawer, abrirDrawer, fecharDrawer } from '../../shared/ui/drawer.js';
+import { modalHtml, modalHead, montarModal, abrirModal, fecharModal } from '../../shared/ui/modal.js';
 import { toast } from '../../shared/ui/toast.js';
 import { ico } from '../../shared/ui/icones.js';
 
@@ -35,9 +35,9 @@ export async function render(app, ctx = {}) {
         ${ico('horario')} Escalas (TDC)</button>
     </div>
     <div id="cal-corpo"></div>
-    ${drawerHtml()}`;
+    ${modalHtml()}`;
 
-  montarDrawer();
+  montarModal();
   // Ligado UMA vez sobre a barra (recriada por inteiro a cada render()
   // de rota) - trocar de aba só troca o conteúdo de #cal-corpo, nunca
   // religa este listener.
@@ -199,9 +199,9 @@ function abrirDia(iso) {
     </form>`;
 
   const diaSemana = DOW[new Date(iso + 'T00:00:00').getDay()];
-  abrirDrawer(`
-    ${drawerHead(fmtData(iso), diaSemana)}
-    <div class="drawer-body">${podeEditar ? form : visao}</div>`);
+  abrirModal(`
+    ${modalHead(fmtData(iso), diaSemana)}
+    <div class="modal-body">${podeEditar ? form : visao}</div>`);
 
   if (podeEditar) document.getElementById('dia-form').addEventListener('submit', (e) => salvar(e, iso));
 }
@@ -226,14 +226,14 @@ async function salvar(e, iso) {
   try {
     if (ate && ate > iso) {
       const n = await upsertPeriodo(dia, iso, ate);
-      fecharDrawer();
+      fecharModal();
       await carregar();               // recarrega o mês (o intervalo pode passar dele)
       toast({ titulo: 'Intervalo aplicado', texto: `${n} dia(s) atualizado(s).`, tipo: 'sucesso' });
       return;
     }
     await upsertDiaCalendario(dia);
     dias[iso] = dia;
-    fecharDrawer(); pintar();
+    fecharModal(); pintar();
     toast({ titulo: novo ? 'Dia gravado' : 'Dia atualizado', texto: fmtData(iso), tipo: 'sucesso' });
   } catch (err) {
     // Erro de gravação: inline quando dá para corrigir no formulário
@@ -248,9 +248,9 @@ async function salvar(e, iso) {
 //   data | letivo | tipo | evento | bloqueia_extraclasse | bloqueia_afastamento | obs
 // data aceita yyyy-mm-dd ou dd/mm/aaaa; booleanos: sim/não, x, 1/0, true/false.
 function abrirImportar() {
-  abrirDrawer(`
-    ${drawerHead('Importar calendário', 'Cole os dados com cabeçalho (TSV ou CSV)')}
-    <div class="drawer-body">
+  abrirModal(`
+    ${modalHead('Importar calendário', 'Cole os dados com cabeçalho (TSV ou CSV)')}
+    <div class="modal-body">
       <p class="form-hint">Colunas reconhecidas (por nome, em qualquer ordem):
         <b>data</b>, letivo, tipo, evento, bloqueia_extraclasse, bloqueia_afastamento, obs.
         A data aceita <code>aaaa-mm-dd</code> ou <code>dd/mm/aaaa</code>. Dias já existentes são atualizados.</p>
@@ -325,7 +325,7 @@ async function importar(e) {
   const btn = document.getElementById('imp-save'); btn.disabled = true; btn.textContent = 'Importando…';
   try {
     const n = await upsertDias(rows);
-    fecharDrawer();
+    fecharModal();
     await carregar();
     toast({
       titulo: 'Calendário importado',

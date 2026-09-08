@@ -8,6 +8,8 @@
 - Adicionar, editar e remover acessos.
 - Ajustar, pessoa a pessoa, o nível em módulos específicos.
 - Ver quando cada pessoa entrou pela última vez.
+- Ordenar a lista por qualquer coluna, buscar por nome ou e-mail e navegar por
+  páginas quando ela ficar longa.
 
 O histórico de alterações mudou de lugar: agora fica no módulo **Auditoria**.
 
@@ -27,6 +29,20 @@ níveis são:
 | Escrita | Vê e altera tudo do módulo. |
 
 ## Passo a passo
+
+### Encontrar um acesso na lista
+
+1. Digite qualquer parte do nome, do e-mail ou do papel na caixa **Buscar na
+   lista**. A lista vai estreitando enquanto você digita, sem precisar recarregar
+   nada. Acento e maiúscula não atrapalham.
+2. Para reorganizar, clique no título de uma coluna - por exemplo **Último
+   acesso**, para ver primeiro quem entrou há mais tempo. Clicar de novo inverte
+   a ordem.
+3. A lista vem de 25 em 25. Use as setas no rodapé para avançar; ao lado delas
+   fica a contagem ("1-25 de 63").
+
+No celular a lista mostra só nome e papel. **Toque na linha** para abrir o resto
+(e-mail, situação, segmentos, último acesso) e os botões de editar e remover.
 
 ### Adicionar um acesso
 
@@ -71,4 +87,4 @@ que o e-mail está exatamente igual ao que a pessoa usa para entrar.
 **Posso dar acesso a um e-mail que não seja institucional?**
 Não. O login do FundHub é restrito ao domínio da Secretaria.
 
-> Atualizado na versão 0.22.0.
+> Atualizado na versão 0.24.0.

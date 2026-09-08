@@ -1,13 +1,13 @@
 // ============================================================
 // FundHub - modules/escolas/escolas.view.js
-// Tela do módulo Escolas: busca, filtros e a lista de cards. A gaveta
+// Tela do módulo Escolas: busca, filtros e a lista de cards. O modal
 // de detalhe e os formulários (criar/editar/excluir) vivem em views/ -
 // é lá que a ficha e o CRUD de fato acontecem.
 // ============================================================
 import { getUnidades } from './escolas.model.js';
 import { esc, norm, vazio } from '../../shared/dom.js';
 import { emptyState, erroBox } from '../../shared/ui/feedback.js';
-import { drawerHtml, montarDrawer } from '../../shared/ui/drawer.js';
+import { modalHtml, montarModal } from '../../shared/ui/modal.js';
 import { criarFiltroSegmento } from '../../shared/ui/filtro-segmento.js';
 import { podeEscrever } from '../../core/permissoes.js';
 import { ico } from '../../shared/ui/icones.js';
@@ -71,9 +71,9 @@ export async function render(app, ctx = {}) {
       </label>
     </div>
     <div class="cards" id="cards"></div>
-    ${drawerHtml()}`;
+    ${modalHtml()}`;
 
-  montarDrawer();
+  montarModal();
 
   try {
     ALL = await getUnidades();

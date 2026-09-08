@@ -1,11 +1,11 @@
 // ============================================================
-// FundHub - escolas/views/detalhe.js  (gaveta de detalhe da escola)
+// FundHub - escolas/views/detalhe.js  (modal de detalhe da escola)
 // Atributos booleanos (transporte, EJA) viram chip no cabeçalho - um
 // campo inteiro para dizer "EJA: Não" ocupava espaço para informar
 // nada. Os demais campos ficam agrupados sob título de bloco.
 // ============================================================
 import { esc } from '../../../shared/dom.js';
-import { drawerHead, abrirDrawer } from '../../../shared/ui/drawer.js';
+import { modalHead, abrirModal } from '../../../shared/ui/modal.js';
 import { telefonesTexto } from '../../../shared/ui/phones.js';
 import { ico } from '../../../shared/ui/icones.js';
 
@@ -38,11 +38,11 @@ export function detalhe(u, ctx) {
 
   const campo = (l, v) => v ? `<div class="field"><div class="lbl">${l}</div><div class="val">${v}</div></div>` : '';
 
-  abrirDrawer(`
-    ${drawerHead(esc(u.nome), esc(u.nome_oficial || ''))}
-    <div class="drawer-body">
+  abrirModal(`
+    ${modalHead(esc(u.nome), esc(u.nome_oficial || ''))}
+    <div class="modal-body">
       ${chips ? `<div class="tags" style="margin-bottom:14px">${chips}</div>` : ''}
-      <div class="drawer-acoes">
+      <div class="modal-acoes">
         ${ctx.podeEditar ? `<button class="mini-btn" id="edit-esc">${ico('editar')} Editar</button>` : ''}
         <a class="mini-btn" href="#/horarios?unidade=${esc(u.id)}">${ico('horario')} Horários da equipe</a>
         ${ctx.podeEditar ? `<button class="mini-btn no" id="del-esc">${ico('excluir')} Excluir</button>` : ''}
@@ -69,7 +69,7 @@ export function detalhe(u, ctx) {
       <p class="form-hint" style="margin-top:10px">
         A equipe vem dos locais de trabalho atuais. Para incluir ou encerrar alguém, use Servidores.
       </p>
-    </div>`);
+    </div>`, { tamanho: 'largo' });
 
   if (ctx.podeEditar) {
     document.getElementById('edit-esc').addEventListener('click', () => ctx.abrirForm(u));

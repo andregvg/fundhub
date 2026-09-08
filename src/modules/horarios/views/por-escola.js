@@ -291,7 +291,7 @@ function ligarEventosCorpo(root) {
 
 }
 
-// Abre a gaveta da jornada semanal (views/jornada.js) para o servidor
+// Abre o modal da jornada semanal (views/jornada.js) para o servidor
 // clicado nesta escola - `blocos` já é a lista inteira da unidade;
 // `abrirJornada` filtra por servidor e dia internamente.
 function abrirEdicaoJornada(servidorId) {

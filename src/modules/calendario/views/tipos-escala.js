@@ -1,6 +1,6 @@
 // ============================================================
 // FundHub - calendario/views/tipos-escala.js
-// A gaveta "Tipos de escala": renomear "TDC Presencial"/"TDC Virtual",
+// O modal "Tipos de escala": renomear "TDC Presencial"/"TDC Virtual",
 // acrescentar uma variante ou excluir uma que não está em uso - sem
 // deploy nenhum, porque o formato de TDC muda a cada calendário
 // escolar. Rótulo é editável; a CHAVE não (é o que está gravado em
@@ -13,7 +13,7 @@
 import { getEscalas, definirEscalaTipo, excluirEscalaTipo, rotulaEscala } from '../../horarios/escalas.model.js';
 import { esc } from '../../../shared/dom.js';
 import { ico } from '../../../shared/ui/icones.js';
-import { abrirDrawer, drawerHead } from '../../../shared/ui/drawer.js';
+import { abrirModal, modalHead } from '../../../shared/ui/modal.js';
 import { toast } from '../../../shared/ui/toast.js';
 import { confirmar } from '../../../shared/ui/confirmar.js';
 
@@ -22,9 +22,9 @@ let aoMudar = () => {};
 
 export async function abrirTiposEscala({ onMudou = () => {} } = {}) {
   aoMudar = onMudou;
-  abrirDrawer(`
-    ${drawerHead('Tipos de escala', 'Rótulos usados no calendário e na jornada')}
-    <div class="drawer-body">
+  abrirModal(`
+    ${modalHead('Tipos de escala', 'Rótulos usados no calendário e na jornada')}
+    <div class="modal-body">
       <div class="esc-form">
         <p class="form-hint">O nome muda aqui; o que já foi gravado (as datas do
           calendário, os blocos de jornada) continua apontando para a mesma escala -

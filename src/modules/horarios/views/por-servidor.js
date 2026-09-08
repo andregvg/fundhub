@@ -183,7 +183,7 @@ function ligarEventos() {
   }));
 }
 
-// A gaveta edita a semana inteira de UM servidor em UMA escola - aqui
+// O modal edita a semana inteira de UM servidor em UMA escola - aqui
 // o servidor já é fixo (o selecionado no topo da tela), só o local
 // varia conforme o painel clicado.
 function abrirJornadaLocal(unidadeId) {
@@ -200,7 +200,7 @@ function abrirJornadaLocal(unidadeId) {
 
 // Uma linha de UM servidor em UM local, num dia e variante (marcação .hb-*).
 // Movida de por-escola.js na Task 8: esta é a única leitora depois
-// que o lápis da grade passou a abrir a gaveta (views/jornada.js) em
+// que o lápis da grade passou a abrir o modal (views/jornada.js) em
 // vez de montar esta marcação para edição. Continua privada - não lê
 // nenhum estado de módulo, recebe os blocos do dia prontos.
 function linhaDia(s, d, doDia, { podeEditar, unidadeId: uni, rotuloVariante = '', regua = JANELA_FABRICA }) {

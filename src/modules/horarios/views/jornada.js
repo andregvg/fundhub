@@ -1,6 +1,6 @@
 // ============================================================
 // FundHub - horarios/views/jornada.js
-// A semana inteira de UM servidor em UMA escola, numa gaveta só.
+// A semana inteira de UM servidor em UMA escola, num modal só.
 // Antes era um formulário de um bloco por vez, e montar a jornada de
 // um gestor do zero custava cinco aberturas e dez cliques.
 //
@@ -22,7 +22,7 @@ import { DIAS, criarBloco, atualizarBloco, excluirBloco,
 import { rotulaEscala, variantesDe, varDe } from '../escalas.model.js';
 import { esc, falha } from '../../../shared/dom.js';
 import { ico } from '../../../shared/ui/icones.js';
-import { drawerHead, abrirDrawer, fecharDrawer } from '../../../shared/ui/drawer.js';
+import { modalHead, abrirModal, fecharModal } from '../../../shared/ui/modal.js';
 import { confirmar } from '../../../shared/ui/confirmar.js';
 import { toast } from '../../../shared/ui/toast.js';
 import { reportarErro } from '../../../shared/ui/feedback.js';
@@ -47,7 +47,7 @@ export function abrirJornada({ servidor, unidadeId, blocos, recarregar, escalasE
   for (const chaveEsc of chaves) {
     porEscala[chaveEsc] = {};
     // As variantes desta escala em QUALQUER dia, dentro da lista `blocos`
-    // que a gaveta recebeu: a unidade inteira quando ela é aberta pela aba
+    // que o modal recebeu: a unidade inteira quando ela é aberta pela aba
     // "Por escola" (aí uma variante criada por outro gestor aparece aqui,
     // e a configuração não fica pela metade) e só os blocos deste servidor
     // quando ela é aberta pela aba "Por servidor".
@@ -78,9 +78,9 @@ export function abrirJornada({ servidor, unidadeId, blocos, recarregar, escalasE
     </div>
     <p class="form-hint" id="hj-dica"></p>` : '';
 
-  abrirDrawer(`
-    ${drawerHead('Jornada da semana', esc(servidor.nome))}
-    <div class="drawer-body">
+  abrirModal(`
+    ${modalHead('Jornada da semana', esc(servidor.nome))}
+    <div class="modal-body">
       <form id="hj-form" class="esc-form">
         ${abas}
         <div id="hj-variantes"></div>
@@ -90,15 +90,15 @@ export function abrirJornada({ servidor, unidadeId, blocos, recarregar, escalasE
           <button type="submit" id="hj-save" class="btn-primary">Salvar jornada</button>
         </div>
       </form>
-    </div>`);
+    </div>`, { tamanho: 'largo' });
 
   pintarDica();
   pintarVariantes();
   pintar();
   // Ligados uma vez só, aqui - o `<form>` é recriado a cada abertura da
-  // gaveta, então não acumula. Ligar dentro de `pintar()` (que o próprio
+  // modal, então não acumula. Ligar dentro de `pintar()` (que o próprio
   // handler chama de novo) dobrava o listener a cada campo confirmado:
-  // 1, 2, 4, 8... por volta do 14º a gaveta travava em repintes síncronos
+  // 1, 2, 4, 8... por volta do 14º o modal travava em repintes síncronos
   // empilhados (achado da rodada de correção 1).
   document.getElementById('hj-dias').addEventListener('change', aoMudarCampo);
   document.getElementById('hj-form').addEventListener('submit', salvar);
@@ -262,7 +262,7 @@ function pintarVariantes() {
 }
 
 // Excluir a variante ativa: as linhas DESTE servidor nesta escala e
-// variante saem, e nada mais (D7 - a gaveta nunca escreve sobre dado de
+// variante saem, e nada mais (D7 - o modal nunca escreve sobre dado de
 // outra pessoa; `estado.porEscala` só foi montado com os blocos dele).
 // A variante some da grade quando o último servidor deixa de ter bloco
 // nela - por isso aqui não se apaga nada de ninguém.
@@ -429,7 +429,7 @@ async function salvar(e) {
   btn.disabled = true; btn.textContent = 'Salvando…';
   // Se o banco ainda não tem as colunas da 030, o model descobre isso na
   // primeira gravação e passa a gravar sem elas. Quem chegou aqui com o
-  // "+" ainda visível (a gaveta abriu antes da descoberta) precisa saber
+  // "+" ainda visível (o modal abriu antes da descoberta) precisa saber
   // que o que ela montou não foi guardado como duas configurações.
   const tinhaVariante = temVarianteNoBanco();
   try {
@@ -473,7 +473,7 @@ async function salvar(e) {
         }
       }
     }
-    fecharDrawer();
+    fecharModal();
     await estado.recarregar();
     toast({ titulo: 'Jornada salva', texto: estado.servidor.nome, tipo: 'sucesso' });
     if (tinhaVariante && !temVarianteNoBanco()) {

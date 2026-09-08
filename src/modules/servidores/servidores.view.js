@@ -4,7 +4,7 @@
 // (escola, Sede ou gerência interna da SME). Cobre também quem é
 // lotado na SEDE (equipe de acompanhamento, agentes administrativos).
 //
-// Casca: busca, filtros e a lista de cards. A gaveta de detalhe (com
+// Casca: busca, filtros e a lista de cards. O modal de detalhe (com
 // os locais de trabalho) e os formulários vivem em views/.
 // ============================================================
 import { getServidores } from './servidores.model.js';
@@ -12,7 +12,7 @@ import { getUnidades, getLocais } from '../escolas/escolas.model.js';
 import { getCargos } from './vinculos.model.js';
 import { esc } from '../../shared/dom.js';
 import { loading, erroBox } from '../../shared/ui/feedback.js';
-import { drawerHtml, montarDrawer } from '../../shared/ui/drawer.js';
+import { modalHtml, montarModal } from '../../shared/ui/modal.js';
 import { criarFiltroSegmento, indexarUnidades } from '../../shared/ui/filtro-segmento.js';
 import { podeEscrever } from '../../core/permissoes.js';
 import { ico } from '../../shared/ui/icones.js';
@@ -58,9 +58,9 @@ export async function render(app, ctx = {}) {
       <span id="sv-chip-uni"></span>
     </div>
     <div class="cards" id="sv-cards">${loading()}</div>
-    ${drawerHtml()}`;
+    ${modalHtml()}`;
 
-  montarDrawer();
+  montarModal();
 
   try {
     [lista, unidades, locais, cargos] = await Promise.all([

@@ -1,6 +1,6 @@
 // ============================================================
 // FundHub - modules/configuracoes/painel.js
-// Renderizador ÚNICO das configurações: usado pela engrenagem (gaveta,
+// Renderizador ÚNICO das configurações: usado pela engrenagem (modal,
 // via roteador) e pela tela do módulo Configurações. Um item é um
 // CAMPO (switch/número/opção - renderizador genérico) ou um PAINEL
 // (função que o próprio módulo fornece - ex.: a tela de cargos de
@@ -16,20 +16,20 @@ import { conf, pref, definirConf, definirPref, GRUPOS } from '../../core/configu
 import { podeEscrever } from '../../core/permissoes.js';
 import { chavePerm, veModulo } from '../../core/registry.js';
 import { esc } from '../../shared/dom.js';
-import { abrirDrawer, drawerHead } from '../../shared/ui/drawer.js';
+import { abrirModal, modalHead } from '../../shared/ui/modal.js';
 import { toast } from '../../shared/ui/toast.js';
 import { loading, erroBox } from '../../shared/ui/feedback.js';
 
-// Abre a gaveta com o painel de UM módulo (clique na engrenagem).
+// Abre o modal com o painel de UM módulo (clique na engrenagem).
 export async function abrirPainelConfig(mod) {
-  abrirDrawer(`
-    ${drawerHead('Configurações', esc(mod.nome))}
-    <div class="drawer-body" id="cfg-drawer-body">${loading()}</div>`);
-  await pintarConfigDoModulo(document.getElementById('cfg-drawer-body'), mod, {});
+  abrirModal(`
+    ${modalHead('Configurações', esc(mod.nome))}
+    <div class="modal-body" id="cfg-modal-body">${loading()}</div>`);
+  await pintarConfigDoModulo(document.getElementById('cfg-modal-body'), mod, {});
 }
 
 // Desenha os grupos e itens de UM módulo dentro de `box`. Usado pela
-// gaveta e, um módulo por vez, pela tela agregadora.
+// modal e, um módulo por vez, pela tela agregadora.
 export async function pintarConfigDoModulo(box, mod, ctx = {}) {
   if (!box) return;
   const perm = chavePerm(mod);

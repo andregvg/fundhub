@@ -8,7 +8,7 @@
 //                             (shared/dom.js → falha/ok);
 //   • resultado da ação     → toast.
 // "Informe o e-mail" é inline: a correção é ali. "Acesso adicionado"
-// e "Não foi possível salvar" são toast: a gaveta já fechou.
+// e "Não foi possível salvar" são toast: o modal já fechou.
 //
 // Erro dura mais porque erro precisa ser lido - e costuma trazer um
 // texto do Postgres que a pessoa vai querer copiar. Por isso o hover

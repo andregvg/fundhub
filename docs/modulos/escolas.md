@@ -78,4 +78,4 @@ servidores não carregou - recarregue a página.
 Se você tem um segmento marcado no filtro, uma escola ainda sem segmento
 aparece mesmo assim. Se não aparecer, recarregue a página.
 
-> Atualizado na versão 0.20.1.
+> Atualizado na versão 0.24.0.

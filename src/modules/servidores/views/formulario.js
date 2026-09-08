@@ -7,7 +7,7 @@ import { eLocalInterno } from '../../escolas/escolas.model.js';
 import { sincronizarTelefones } from '../../telefones/telefones.model.js';
 import { esc, falha } from '../../../shared/dom.js';
 import { mascaraCPF, mascaraRG, cpfCru, rgCru, noPadraoCPF, noPadraoRG } from '../../../shared/format.js';
-import { drawerHead, abrirDrawer, fecharDrawer } from '../../../shared/ui/drawer.js';
+import { modalHead, abrirModal, fecharModal } from '../../../shared/ui/modal.js';
 import { phonesEditorHtml, montarPhonesEditor, lerPhonesEditor } from '../../../shared/ui/phones.js';
 import { criarBuscaSelecao } from '../../../shared/ui/busca-selecao.js';
 import { confirmar } from '../../../shared/ui/confirmar.js';
@@ -18,7 +18,7 @@ import { ico } from '../../../shared/ui/icones.js';
 
 const OUTRO = '::outro::';
 
-// Uma instância por gaveta aberta - reabrir "Novo servidor" sem destruir
+// Uma instância por modal aberta - reabrir "Novo servidor" sem destruir
 // a de antes deixa um listener de document vivo (mesma armadilha de vinculo.js).
 let buscaLocalNovo = null;
 
@@ -34,7 +34,7 @@ export function formServidor(s, ctx, { voltar = null } = {}) {
 
   // Cargo e local de trabalho continuam à vista na edição - são o que
   // identifica a pessoa -, mas não são editáveis aqui: vêm do vínculo,
-  // seu único dono. O botão de editar abre a gaveta do vínculo por cima.
+  // seu único dono. O botão de editar abre o modal do vínculo por cima.
   const derivado = (rotulo, valor, acao) => `
     <label>${rotulo}
       <span class="campo-derivado">
@@ -50,9 +50,9 @@ export function formServidor(s, ctx, { voltar = null } = {}) {
   const opcoesCargo = (ctx.cargos || [])
     .map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('');
 
-  abrirDrawer(`
-    ${drawerHead(novo ? 'Novo servidor' : 'Editar servidor', novo ? '' : esc(s.nome))}
-    <div class="drawer-body">
+  abrirModal(`
+    ${modalHead(novo ? 'Novo servidor' : 'Editar servidor', novo ? '' : esc(s.nome))}
+    <div class="modal-body">
       <form id="sv-form" class="esc-form">
 
         <fieldset class="form-grupo">
@@ -116,7 +116,7 @@ export function formServidor(s, ctx, { voltar = null } = {}) {
           <button type="submit" id="s-save" class="btn-primary">${novo ? 'Criar' : 'Salvar'}</button>
         </div>
       </form>
-    </div>`, { voltar });
+    </div>`, { voltar, tamanho: 'largo' });
 
   const form = document.getElementById('sv-form');
   montarPhonesEditor(form);
@@ -149,7 +149,7 @@ export function formServidor(s, ctx, { voltar = null } = {}) {
   mascarar('s-cpf', mascaraCPF);
   mascarar('s-rg', mascaraRG);
 
-  // O botão de editar cargo/local abre o vínculo sobre esta gaveta;
+  // O botão de editar cargo/local abre o vínculo sobre esto modal;
   // ao fechar, volta para cá com o servidor recarregado.
   form.querySelectorAll('[data-vinc]').forEach(b => b.addEventListener('click', async () => {
     const c = await ctx.recarregar();
@@ -170,7 +170,7 @@ async function salvarServidor(e, s, ctx, voltar) {
   const msg = document.getElementById('s-msg'); msg.className = 'auth-msg';
   const val = (id) => document.getElementById(id).value.trim();
   const payload = {
-    // Nome em caixa alta na origem: os cards e a gaveta exibem assim,
+    // Nome em caixa alta na origem: os cards e o modal exibem assim,
     // e gravar normalizado evita a lista misturar "Maria" e "MARIA".
     nome: val('s-nome').toUpperCase(),
     apelido: val('s-apelido') || null,
@@ -227,11 +227,11 @@ async function salvarServidor(e, s, ctx, voltar) {
                 texto: 'O local de trabalho não pôde ser salvo - adicione pela ficha.', tipo: 'atencao' });
       }
     }
-    // Recarrega ANTES de fechar: a gaveta de baixo precisa reabrir com o
+    // Recarrega ANTES de fechar: o modal de baixo precisa reabrir com o
     // dado novo, não com o `ctx` de antes da edição. Veio da ficha? volta
     // para ela. Mesmo padrão de views/vinculo.js § salvar.
     const novoCtx = await ctx.recarregar();
-    if (voltar) voltar(novoCtx); else fecharDrawer();
+    if (voltar) voltar(novoCtx); else fecharModal();
     toast({ titulo: s ? 'Servidor atualizado' : 'Servidor cadastrado', texto: payload.nome, tipo: 'sucesso' });
   } catch (err) {
     // Erro de gravação: inline quando dá para corrigir no formulário
@@ -250,7 +250,7 @@ export async function removerServidor(s, ctx) {
   if (!ok) return;
   try {
     await excluirServidor(s.id);
-    fecharDrawer();
+    fecharModal();
     await ctx.recarregar();
     toast({ titulo: 'Servidor removido', texto: s.nome, tipo: 'sucesso' });
   } catch (err) {

@@ -1,6 +1,6 @@
 // ============================================================
-// FundHub - servidores/views/detalhe.js  (gaveta de detalhe + vínculos)
-// A gaveta é o centro do módulo: abre a pessoa e, dentro dela, os
+// FundHub - servidores/views/detalhe.js  (modal de detalhe + vínculos)
+// O modal é o centro do módulo: abre a pessoa e, dentro dela, os
 // vínculos com escolas - que é onde a escola de fato entra na história.
 // ============================================================
 import { cargoDe, localDeTrabalhoDe } from '../servidores.model.js';
@@ -8,7 +8,7 @@ import { eLocalInterno } from '../../escolas/escolas.model.js';
 import { rotulaCargo } from '../vinculos.model.js';
 import { esc } from '../../../shared/dom.js';
 import { fmtData, fmtIdade, fmtCPF, fmtRG } from '../../../shared/format.js';
-import { drawerHead, abrirDrawer } from '../../../shared/ui/drawer.js';
+import { modalHead, abrirModal } from '../../../shared/ui/modal.js';
 import { telefonesTexto } from '../../../shared/ui/phones.js';
 import { formVinculo, removerVinculo } from './vinculo.js';
 import { ico } from '../../../shared/ui/icones.js';
@@ -32,18 +32,18 @@ export function detalhe(id, ctx) {
     .filter(Boolean).map(esc).join(' · ');
 
   const acoes = ctx.podeEditar ? `
-    <div class="drawer-acoes">
+    <div class="modal-acoes">
       <button class="mini-btn" id="sv-edit">${ico('editar')} Editar</button>
       <a class="mini-btn" href="#/horarios?servidor=${esc(s.id)}">${ico('horario')} Horário de trabalho</a>
       <button class="mini-btn no" id="sv-del">${ico('excluir')} Excluir</button>
     </div>` : `
-    <div class="drawer-acoes">
+    <div class="modal-acoes">
       <a class="mini-btn" href="#/horarios?servidor=${esc(s.id)}">${ico('horario')} Horário de trabalho</a>
     </div>`;
 
-  abrirDrawer(`
-    ${drawerHead(`<span class="nome-oficial">${esc(s.nome)}</span>`, sub)}
-    <div class="drawer-body">
+  abrirModal(`
+    ${modalHead(`<span class="nome-oficial">${esc(s.nome)}</span>`, sub)}
+    <div class="modal-body">
       ${acoes}
       ${campo('E-mail', s.email ? `<a href="mailto:${esc(s.email)}">${esc(s.email)}</a>` : '')}
       ${campo('Telefones', telefonesTexto(s.telefones))}
@@ -62,10 +62,10 @@ export function detalhe(id, ctx) {
         ${ctx.podeEditar ? `<button class="mini-btn" id="sv-vinc">${ico('adicionar')} Adicionar local de trabalho</button>` : ''}
       </div>
       <div class="people" id="sv-vinculos">${listaVinculos(s, ctx.podeEditar)}</div>
-    </div>`);
+    </div>`, { tamanho: 'largo' });
 
   if (ctx.podeEditar) {
-    // Editar a partir da ficha EMPILHA a gaveta: o ← devolve para cá, com o
+    // Editar a partir da ficha EMPILHA o modal: o ← devolve para cá, com o
     // dado recarregado. Sem isto, salvar fechava a pilha inteira e jogava a
     // pessoa de volta na lista, perdendo o contexto que ela mesma abriu.
     document.getElementById('sv-edit').addEventListener('click', () =>

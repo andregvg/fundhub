@@ -71,7 +71,7 @@ export const SECOES = [
           <tr><td><b>Moldura</b></td><td><code>src/shell/</code></td>
               <td>A casca do app: topo, navegação, rodapé e a home com os tiles. Monta-se a partir do registro.</td></tr>
           <tr><td><b>Compartilhado</b></td><td><code>src/shared/</code></td>
-              <td>Peças reusáveis sem domínio: escape de HTML, datas, gaveta lateral, toasts, estados de vazio/erro.</td></tr>
+              <td>Peças reusáveis sem domínio: escape de HTML, datas, tabela, modal, toasts, estados de vazio/erro.</td></tr>
           <tr><td><b>Módulos</b></td><td><code>src/modules/</code></td>
               <td>Uma pasta por ferramenta. É onde vive o domínio - e onde 90% do trabalho acontece.</td></tr>
         </tbody>
@@ -129,8 +129,8 @@ export const SECOES = [
 │   │   ├── format.js         datas em pt-BR, hojeISO(), fmtDataHora()…
 │   │   ├── realtime.js       assinatura de mudanças via Supabase Realtime
 │   │   ├── cache.js          registro de invalidação de cache, usado pelo botão Atualizar
-│   │   └── ui/               drawer.js · toast.js · feedback.js · phones.js · filtro-segmento.js ·
-│   │                         icones.js · confirmar.js
+│   │   └── ui/               tabela.js · modal.js · toast.js · feedback.js · phones.js ·
+│   │                         filtro-segmento.js · icones.js · confirmar.js · foco.js
 │   ├── modules/            ← UMA PASTA POR FERRAMENTA
 │   │   └── &lt;modulo&gt;/
 │   │       ├── module.js         manifesto (id, ícone, rota, permissão)
@@ -142,7 +142,7 @@ export const SECOES = [
 │       ├── main.css          @import de tudo (inclusive os CSS dos módulos)
 │       ├── tokens.css        cores, sombras, raios - claro e escuro
 │       ├── base.css          reset, topo, navegação, rodapé, impressão
-│       └── components.css    tiles, cards, formulários, gaveta, chips…
+│       └── components.css    tiles, cards, tabelas, formulários, modais, chips…
 ├── supabase/migrations/    ← o schema, em ordem numérica
 └── docs/                   ← BLUEPRINT, HANDOFF, SUPABASE (para quem desenvolve)</pre>
 
@@ -532,14 +532,14 @@ export async function criarOcorrencia(payload) {
       <pre class="doc-arvore">import { getOcorrencias } from './ocorrencias.model.js';
 import { esc } from '../../shared/dom.js';
 import { loading, emptyState, erroBox } from '../../shared/ui/feedback.js';
-import { drawerHtml, montarDrawer, abrirDrawer } from '../../shared/ui/drawer.js';
+import { modalHtml, montarModal, abrirModal } from '../../shared/ui/modal.js';
 
 export async function render(app, { perfil } = {}) {
   app.innerHTML = &#96;
     &lt;div class="page-head"&gt;&lt;h1&gt;Ocorrências&lt;/h1&gt;&lt;/div&gt;
     &lt;div id="oc-lista"&gt;&#36;{loading()}&lt;/div&gt;
-    &#36;{drawerHtml()}&#96;;
-  montarDrawer();
+    &#36;{modalHtml()}&#96;;
+  montarModal();
   // …carregar, pintar, ligar eventos
 }</pre>
 
@@ -568,8 +568,8 @@ export async function render(app, { perfil } = {}) {
       acréscimos via <code>@media (min-width: …)</code> - nunca o contrário. Os cortes usados são
       <b>560px</b>, <b>720px</b> e <b>900px</b>.</p>
       <p>Na prática, isso significa: um dedo alcança tudo, os alvos de toque têm no mínimo 40px,
-      a navegação vira um botão de menu, os formulários viram uma coluna só e a gaveta lateral ocupa a
-      largura inteira.</p>
+      a navegação vira um botão de menu, os formulários viram uma coluna só, o modal ocupa a tela
+      inteira e as tabelas escondem as colunas secundárias - que reaparecem ao tocar na linha.</p>
 
       <h3>Tokens</h3>
       <p>Cores, sombras e raios são variáveis CSS em <code>styles/tokens.css</code>, com o tema
@@ -587,7 +587,8 @@ export async function render(app, { perfil } = {}) {
           <tr><td>Filtro alternável</td><td><code>.chip</code> (classe <code>.on</code> quando ativo)</td></tr>
           <tr><td>Lista de fichas</td><td><code>.cards</code> + <code>.card</code></td></tr>
           <tr><td>Item de lista com ações</td><td><code>.solic</code> + <code>.solic-acoes</code> + <code>.mini-btn</code></td></tr>
-          <tr><td>Detalhe / formulário lateral</td><td><code>shared/ui/drawer.js</code></td></tr>
+          <tr><td>Lista com ordenação, busca e páginas</td><td><code>shared/ui/tabela.js</code></td></tr>
+          <tr><td>Detalhe / formulário sobreposto</td><td><code>shared/ui/modal.js</code></td></tr>
           <tr><td>Formulário em grade</td><td><code>.form-grid</code> (1 coluna no celular, 2 a partir de 560px)</td></tr>
           <tr><td>Vazio, carregando</td><td><code>shared/ui/feedback.js</code></td></tr>
           <tr><td>Aviso passageiro (resultado de uma ação)</td><td><code>shared/ui/toast.js</code></td></tr>

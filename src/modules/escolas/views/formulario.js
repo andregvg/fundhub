@@ -4,7 +4,7 @@
 import { criarUnidade, atualizarUnidade, excluirUnidade } from '../escolas.model.js';
 import { sincronizarTelefones } from '../../telefones/telefones.model.js';
 import { esc, falha } from '../../../shared/dom.js';
-import { drawerHead, abrirDrawer, fecharDrawer } from '../../../shared/ui/drawer.js';
+import { modalHead, abrirModal, fecharModal } from '../../../shared/ui/modal.js';
 import { phonesEditorHtml, montarPhonesEditor, lerPhonesEditor } from '../../../shared/ui/phones.js';
 import { confirmar } from '../../../shared/ui/confirmar.js';
 import { toast } from '../../../shared/ui/toast.js';
@@ -19,9 +19,9 @@ export function abrirForm(u, ctx) {
   // Os campos são muitos (16). Agrupá-los em blocos com título é só
   // visual - o payload continua o mesmo - mas transforma uma parede
   // de inputs numa ficha que se lê de relance.
-  abrirDrawer(`
-    ${drawerHead(novo ? 'Nova escola' : 'Editar escola', novo ? '' : esc(u.nome))}
-    <div class="drawer-body">
+  abrirModal(`
+    ${modalHead(novo ? 'Nova escola' : 'Editar escola', novo ? '' : esc(u.nome))}
+    <div class="modal-body">
       <form id="esc-form" class="esc-form">
 
         <fieldset class="form-grupo">
@@ -78,7 +78,7 @@ export function abrirForm(u, ctx) {
           <button type="submit" id="ef-save" class="btn-primary">${novo ? 'Criar' : 'Salvar'}</button>
         </div>
       </form>
-    </div>`);
+    </div>`, { tamanho: 'largo' });
 
   montarPhonesEditor(document.getElementById('esc-form'));
   document.getElementById('esc-form').addEventListener('submit', (e) => salvar(e, u, ctx));
@@ -108,7 +108,7 @@ async function salvar(e, u, ctx) {
   try {
     const id = u ? (await atualizarUnidade(u.id, payload), u.id) : (await criarUnidade(payload)).id;
     await sincronizarTelefones({ unidadeId: id }, telefones);
-    fecharDrawer();
+    fecharModal();
     await ctx.recarregar();
     toast({ titulo: u ? 'Escola atualizada' : 'Escola cadastrada', texto: payload.nome, tipo: 'sucesso' });
   } catch (err) {
@@ -125,7 +125,7 @@ export async function removerEscola(u, ctx) {
   if (!ok) return;
   try {
     await excluirUnidade(u.id);
-    fecharDrawer();
+    fecharModal();
     await ctx.recarregar();
     toast({ titulo: 'Escola removida', texto: u.nome, tipo: 'sucesso' });
   } catch (err) {

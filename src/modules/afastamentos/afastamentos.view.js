@@ -15,7 +15,7 @@ import { getCalendarioMes } from '../calendario/calendario.model.js';
 import { esc, norm } from '../../shared/dom.js';
 import { MESES, hojeISO } from '../../shared/format.js';
 import { loading, erroBox } from '../../shared/ui/feedback.js';
-import { drawerHtml, montarDrawer } from '../../shared/ui/drawer.js';
+import { modalHtml, montarModal } from '../../shared/ui/modal.js';
 import { criarFiltroSegmento, indexarUnidades } from '../../shared/ui/filtro-segmento.js';
 import { ico } from '../../shared/ui/icones.js';
 import { pintarLista } from './views/lista.js';
@@ -55,9 +55,9 @@ export async function render(app, ctx = {}) {
     <div id="af-seg" class="toolbar-linha"></div>
     <div class="painel-filtros" id="af-filtros"></div>
     <div id="af-body">${loading()}</div>
-    ${drawerHtml()}`;
+    ${modalHtml()}`;
 
-  montarDrawer();
+  montarModal();
 
   [servidores, unidades] = await Promise.all([
     getServidores().catch(() => []),

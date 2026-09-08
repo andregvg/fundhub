@@ -16,7 +16,7 @@ import { getEscalasRede } from '../calendario/calendario.model.js';
 import { getLocais } from '../escolas/escolas.model.js';
 import { podeEscrever } from '../../core/permissoes.js';
 import { erroBox } from '../../shared/ui/feedback.js';
-import { drawerHtml, montarDrawer } from '../../shared/ui/drawer.js';
+import { modalHtml, montarModal } from '../../shared/ui/modal.js';
 import { renderPorEscola } from './views/por-escola.js';
 import { renderPorServidor } from './views/por-servidor.js';
 import { ico } from '../../shared/ui/icones.js';
@@ -45,15 +45,15 @@ export async function render(app, { perfil, params } = {}) {
               aria-selected="${aba === 'servidor'}" data-aba="servidor">${ico('servidor')} Por servidor</button>
     </div>
     <div id="h-tab-body"></div>
-    ${drawerHtml()}`;
+    ${modalHtml()}`;
 
-  montarDrawer();
+  montarModal();
 
   let locais = [];
   try { locais = await getLocais(); }
   catch (err) { document.getElementById('h-tab-body').innerHTML = erroBox(err); return; }
 
-  // Escalas em uso na rede: só elas viram aba na gaveta de jornada e
+  // Escalas em uso na rede: só elas viram aba no modal de jornada e
   // chip na grade. Uma aba com uma opção só é ruído; e oferecer "TDC
   // Virtual" numa rede que nunca marcou essa escala convida a
   // preencher algo que não existe.

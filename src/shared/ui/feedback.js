@@ -40,7 +40,7 @@ const GENERICA = {
 
 // Erro de gravação: inline quando dá para consertar ali, toast quando não dá.
 // Rede, chave estrangeira (23503) e permissão negada pelo RLS (42501) não se
-// consertam no formulário - e a gaveta pode fechar antes de a pessoa ler.
+// consertam no formulário - e o modal pode fechar antes de a pessoa ler.
 //
 // Contrato de tradução: o texto cru do Postgres é em inglês e não vai
 // para a tela. Um model que traduziu o erro marca `err.amigavel = true`

@@ -11,7 +11,7 @@ import { getUnidades } from '../escolas/escolas.model.js';
 import { esc, norm, val, falha } from '../../shared/dom.js';
 import { hojeISO, fmtData, addDias } from '../../shared/format.js';
 import { loading, emptyState, erroBox, reportarErro } from '../../shared/ui/feedback.js';
-import { drawerHtml, drawerHead, montarDrawer, abrirDrawer, fecharDrawer } from '../../shared/ui/drawer.js';
+import { modalHtml, modalHead, montarModal, abrirModal, fecharModal } from '../../shared/ui/modal.js';
 import { confirmar } from '../../shared/ui/confirmar.js';
 import { toast } from '../../shared/ui/toast.js';
 import { criarFiltroSegmento, indexarUnidades } from '../../shared/ui/filtro-segmento.js';
@@ -66,9 +66,9 @@ export async function render(app, ctx = {}) {
       <span class="count" id="oc-count"></span>
     </div>
     <div id="oc-lista">${loading()}</div>
-    ${drawerHtml()}`;
+    ${modalHtml()}`;
 
-  montarDrawer();
+  montarModal();
 
   try { unidades = await getUnidades(); }
   catch (err) { document.getElementById('oc-lista').innerHTML = erroBox(err); return; }
@@ -171,14 +171,14 @@ function detalhe(id) {
     ? `<a href="tel:${esc(String(o.solicitante_contato).replace(/\D/g, ''))}">${esc(o.solicitante_contato)}</a>`
     : '';
   const acoes = perfil?.isAdmin ? `
-    <div class="drawer-acoes">
+    <div class="modal-acoes">
       <button class="mini-btn" id="oc-edit">${ico('editar')} Editar</button>
       <button class="mini-btn no" id="oc-del">${ico('excluir')} Excluir</button>
     </div>` : '';
 
-  abrirDrawer(`
-    ${drawerHead(esc(o.assunto), `${esc(fmtData(o.data))}${o.hora ? ' · ' + esc(o.hora.slice(0, 5)) : ''}`)}
-    <div class="drawer-body">
+  abrirModal(`
+    ${modalHead(esc(o.assunto), `${esc(fmtData(o.data))}${o.hora ? ' · ' + esc(o.hora.slice(0, 5)) : ''}`)}
+    <div class="modal-body">
       ${acoes}
       <div class="field"><div class="lbl">Situação</div>
         <div class="val"><span class="tag ${STATUS_TAG[o.status] || ''}">${esc(STATUS[o.status] || o.status)}</span></div></div>
@@ -206,9 +206,9 @@ function abrirForm(o) {
   const optsStatus = Object.entries(STATUS)
     .map(([k, v]) => `<option value="${k}" ${(o?.status || 'aberta') === k ? 'selected' : ''}>${esc(v)}</option>`).join('');
 
-  abrirDrawer(`
-    ${drawerHead(novo ? 'Nova ocorrência' : 'Editar ocorrência')}
-    <div class="drawer-body">
+  abrirModal(`
+    ${modalHead(novo ? 'Nova ocorrência' : 'Editar ocorrência')}
+    <div class="modal-body">
       <form id="oc-form" class="esc-form">
         <div class="esc-row">
           <label>Data <input id="f-data" type="date" value="${esc(o?.data || hojeISO())}" required /></label>
@@ -261,7 +261,7 @@ async function salvar(e, o) {
   try {
     if (o) await atualizarOcorrencia(o.id, payload);
     else await criarOcorrencia(payload);
-    fecharDrawer(); carregar();
+    fecharModal(); carregar();
     toast({ titulo: o ? 'Ocorrência atualizada' : 'Ocorrência registrada', texto: payload.assunto, tipo: 'sucesso' });
   } catch (err) {
     // Erro de gravação: inline quando dá para corrigir no formulário
@@ -277,7 +277,7 @@ async function remover(o) {
   if (!ok) return;
   try {
     await excluirOcorrencia(o.id);
-    fecharDrawer(); carregar();
+    fecharModal(); carregar();
     toast({ titulo: 'Ocorrência removida', texto: o.assunto, tipo: 'sucesso' });
   } catch (err) {
     reportarErro(err, { titulo: 'Não foi possível excluir' });

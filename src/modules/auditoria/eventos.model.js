@@ -25,7 +25,7 @@ export const TIPOS = {
 };
 
 // Frase legível de um evento, a partir do contexto. É o que a aba
-// Atividade mostra na linha - o jsonb cru fica na gaveta de detalhe.
+// Atividade mostra na linha - o jsonb cru fica no modal de detalhe.
 export function resumoEvento(e) {
   const c = e.contexto || {};
   switch (e.tipo) {

@@ -1,7 +1,7 @@
 // ============================================================
 // FundHub - modules/projetos/projetos.view.js
 // Projetos e pesquisas: lista + CRUD (admin) + manifestação de
-// interesse das escolas, na própria gaveta do projeto.
+// interesse das escolas, na próprio modal do projeto.
 // ============================================================
 import {
   TIPOS, STATUS, STATUS_TAG,
@@ -12,7 +12,7 @@ import { getUnidades } from '../escolas/escolas.model.js';
 import { esc, norm, val, checked, falha } from '../../shared/dom.js';
 import { fmtData } from '../../shared/format.js';
 import { loading, emptyState, erroBox, reportarErro } from '../../shared/ui/feedback.js';
-import { drawerHtml, drawerHead, montarDrawer, abrirDrawer, fecharDrawer } from '../../shared/ui/drawer.js';
+import { modalHtml, modalHead, montarModal, abrirModal, fecharModal } from '../../shared/ui/modal.js';
 import { criarFiltroSegmento } from '../../shared/ui/filtro-segmento.js';
 import { confirmar } from '../../shared/ui/confirmar.js';
 import { toast } from '../../shared/ui/toast.js';
@@ -49,9 +49,9 @@ export async function render(app, ctx = {}) {
     </div>
     <div id="pj-seg" class="toolbar-linha"></div>
     <div class="cards" id="pj-cards">${loading()}</div>
-    ${drawerHtml()}`;
+    ${modalHtml()}`;
 
-  montarDrawer();
+  montarModal();
 
   try { unidades = await getUnidades().catch(() => []); }
   catch (_) { unidades = []; }
@@ -125,14 +125,14 @@ async function detalhe(id) {
   const campo = (l, v) => v ? `<div class="field"><div class="lbl">${l}</div><div class="val texto-completo">${v}</div></div>` : '';
   const periodo = [p.inicio, p.fim].filter(Boolean).map(fmtData).join(' – ');
   const acoes = perfil?.isAdmin ? `
-    <div class="drawer-acoes">
+    <div class="modal-acoes">
       <button class="mini-btn" id="pj-edit">${ico('editar')} Editar</button>
       <button class="mini-btn no" id="pj-del">${ico('excluir')} Excluir</button>
     </div>` : '';
 
-  abrirDrawer(`
-    ${drawerHead(esc(p.titulo), esc(TIPOS[p.tipo] || p.tipo))}
-    <div class="drawer-body">
+  abrirModal(`
+    ${modalHead(esc(p.titulo), esc(TIPOS[p.tipo] || p.tipo))}
+    <div class="modal-body">
       ${acoes}
       <div class="field"><div class="lbl">Situação</div>
         <div class="val"><span class="tag ${STATUS_TAG[p.status] || ''}">${esc(STATUS[p.status] || p.status)}</span></div></div>
@@ -199,9 +199,9 @@ function formInteresse(p) {
     .sort((a, b) => a.nome.localeCompare(b.nome, 'pt'))
     .map(u => `<option value="${esc(u.id || u.numero)}">${esc(u.nome)}</option>`).join('');
 
-  abrirDrawer(`
-    ${drawerHead('Registrar interesse', esc(p.titulo))}
-    <div class="drawer-body">
+  abrirModal(`
+    ${modalHead('Registrar interesse', esc(p.titulo))}
+    <div class="modal-body">
       <form id="int-form" class="esc-form">
         <label>Escola <select id="i-uni" required><option value="">Selecione…</option>${opts}</select></label>
         <label>Observação <input id="i-obs" placeholder="Opcional" /></label>
@@ -243,9 +243,9 @@ function abrirForm(p) {
   const optsStatus = Object.entries(STATUS)
     .map(([k, v]) => `<option value="${k}" ${(p?.status || 'proposto') === k ? 'selected' : ''}>${esc(v)}</option>`).join('');
 
-  abrirDrawer(`
-    ${drawerHead(novo ? 'Novo projeto' : 'Editar projeto')}
-    <div class="drawer-body">
+  abrirModal(`
+    ${modalHead(novo ? 'Novo projeto' : 'Editar projeto')}
+    <div class="modal-body">
       <form id="pj-form" class="esc-form">
         <label>Título <input id="f-titulo" required value="${esc(p?.titulo || '')}" /></label>
         <label>Proponente (pesquisador/instituição) <input id="f-prop" value="${esc(p?.proponente || '')}" /></label>
@@ -300,7 +300,7 @@ async function salvar(e, p) {
   try {
     if (p) await atualizarProjeto(p.id, payload);
     else await criarProjeto(payload);
-    fecharDrawer(); carregar();
+    fecharModal(); carregar();
     toast({ titulo: p ? 'Projeto atualizado' : 'Projeto cadastrado', texto: payload.titulo, tipo: 'sucesso' });
   } catch (err) {
     // Erro de gravação: inline quando dá para corrigir no formulário
@@ -318,7 +318,7 @@ async function remover(p) {
   if (!ok) return;
   try {
     await excluirProjeto(p.id);
-    fecharDrawer(); carregar();
+    fecharModal(); carregar();
     toast({ titulo: 'Projeto removido', texto: p.titulo, tipo: 'sucesso' });
   } catch (err) {
     reportarErro(err, { titulo: 'Não foi possível excluir' });

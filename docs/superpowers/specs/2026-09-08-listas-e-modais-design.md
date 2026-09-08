@@ -46,8 +46,9 @@ todo módulo usa para editar, e centralizar era um desejo antigo.
 
 - `shared/ui/tabela.js` - o componente de lista tabular.
 - `shared/ui/modal.js` - o diálogo centralizado.
-- `shared/ui/foco.js` - a armadilha de foco, ligada nas três superfícies
-  modais do hub (modal, gaveta e confirmação). Ver D8.
+- `shared/ui/foco.js` - a armadilha de foco, ligada nas superfícies modais
+  do hub. Eram três em S0 (modal, gaveta e confirmação) e passaram a duas
+  quando S0b deletou a gaveta. Ver D8 e § 10.
 - As famílias `.tabela` e `.modal` em `styles/components.css`.
 - A regra escrita em `.claude/rules/ui.md` (R18 nova; R16 ampliada).
 - **Duas telas convertidas**, para provar o contrato: Usuários & Acessos
@@ -57,7 +58,7 @@ todo módulo usa para editar, e centralizar era um desejo antigo.
 
 | Fora | Onde vai |
 |---|---|
-| Converter as ~8 gavetas do hub para modal | Bloco **S0b**, spec própria |
+| ~~Converter as gavetas do hub para modal~~ | **Feito no bloco S0b**, 08/09/2026 - ver § 10 |
 | Paginação no banco (`range()` do PostgREST) | Só se uma lista concreta exigir (R13) |
 | Escolher, esconder ou reordenar colunas pelo usuário | Nenhum caso concreto hoje |
 | Exportar direto da tabela | Nenhum caso concreto hoje |
@@ -161,7 +162,7 @@ sempre cabe.
 | A tela declara | Tocar a linha faz | Expandir fica |
 |---|---|---|
 | nada | expande | na linha inteira e no `▸` |
-| `aoClicarLinha` | abre o detalhe (gaveta, modal, rota) | só no `▸` |
+| `aoClicarLinha` | abre o detalhe (modal ou rota) | só no `▸` |
 
 ### D5 - Ações são a última coluna, à direita, e ícone
 
@@ -485,7 +486,7 @@ Os blocos seguintes do SATE, já acordados e cada um com spec própria:
 
 | | Bloco | Depende de |
 |---|---|---|
-| **S0b** | Converter as gavetas do hub para modal | D8 |
+| ~~S0b~~ | ~~Converter as gavetas do hub para modal~~ | **entregue em 08/09/2026** (§ 10) |
 | **S1** | SATE como aplicação própria (`sate.html`, casca, cor verde, ícone de ônibus) | - |
 | **S2** | Modelo de dados v2: frota com vigência, ciclo de vida da solicitação, múltiplos embarques, vans adaptadas | - |
 | **S3** | Solicitações: modal de nova solicitação, tabela, aprovação, regras de agendamento | S0, S2 |
@@ -531,3 +532,44 @@ se perderem entre uma spec e outra:
   manhã e o embarque da tarde; (b) um agendamento noturno exige ônibus
   livre em um dos períodos do próprio dia **e** no período da manhã do
   dia seguinte.
+
+## 10. Adendo - o bloco S0b, entregue em 08/09/2026
+
+S0b não ganhou spec própria porque **não tomou nenhuma decisão nova**: ele
+executou o D8. Fica registrado aqui o que de fato aconteceu, com o que
+divergiu do previsto.
+
+**Alcance:** 23 arquivos de view convertidos, 24 chamadas de `abrirModal`.
+`shared/ui/drawer.js` foi **deletado no mesmo commit** - não mantido "por
+compatibilidade". Uma gaveta esquecida no repositório vira a forma que a
+próxima pessoa copia sem saber que foi aposentada.
+
+**A conversão foi de fato mecânica**, como o D8 previu: renomear os cinco
+símbolos e as duas classes de markup (`drawer-body`, `drawer-acoes`). Nenhuma
+view precisou ser reescrita - o que valida a decisão de espelhar a API em vez
+de projetar uma "melhor".
+
+**Nenhum CSS de módulo dependia de `.drawer*`.** As 17 ocorrências estavam
+todas em `components.css`, o que só foi possível porque a R12 já proibia
+módulo redefinir componente global.
+
+### O que divergiu do previsto
+
+**A largura deixou de ser função da tela.** A gaveta tinha 560px e engordava
+para 680px num `@media (min-width: 1280px)`, escrito para dois formulários
+específicos (escola e servidor) mas aplicado a todos. Isso virou o parâmetro
+`tamanho` na chamada: `largo` (760px) em escola, servidor e jornada da semana;
+`medio` (560px) no resto. Quem abre decide, não a largura da janela.
+
+**O `foco.js` passou de três consumidores para dois.** Com a gaveta deletada,
+sobraram `modal.js` e `confirmar.js`. O arquivo continua, e o cabeçalho dele
+registra o número novo sem maquiagem: a R13 proíbe a **abstração especulativa**
+- generalizar dois casos que só se parecem por coincidência -, e não é o caso.
+Modal e confirmação fazem a mesma coisa; o que está ali são trinta linhas de
+tratamento de `Tab` cheias de detalhe, e duas cópias seriam dois bugs. Se
+sobrar um consumidor só, o arquivo some.
+
+**O vocabulário mudou em toda a documentação.** "Gaveta" descrevia algo que
+deslizava da lateral e deixou de existir: virou "modal" no código e nas regras,
+e **"janela"** nos tutoriais de uso - `docs/modulos/` é escrito para quem usa o
+sistema, e ali "modal" é jargão.

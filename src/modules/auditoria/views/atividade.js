@@ -12,7 +12,7 @@ import { TIPOS, getEventos, resumoEvento } from '../eventos.model.js';
 import { esc, vazio } from '../../../shared/dom.js';
 import { fmtDataHora, hojeISO, addDias } from '../../../shared/format.js';
 import { loading, emptyState, erroBox } from '../../../shared/ui/feedback.js';
-import { drawerHtml, drawerHead, montarDrawer, abrirDrawer } from '../../../shared/ui/drawer.js';
+import { modalHtml, modalHead, montarModal, abrirModal } from '../../../shared/ui/modal.js';
 import { ico } from '../../../shared/ui/icones.js';
 
 // Acesso negado é o único que pede olhar; permissão é mudança de poder,
@@ -37,9 +37,9 @@ export async function render(ctx) {
       <span class="count" id="at-count"></span>
     </div>
     <div id="at-lista">${loading()}</div>
-    ${drawerHtml()}`;
+    ${modalHtml()}`;
 
-  montarDrawer();
+  montarModal();
   const rec = () => carregar();
   document.getElementById('at-de').addEventListener('change', e => { filtro.de = e.target.value; rec(); });
   document.getElementById('at-ate').addEventListener('change', e => { filtro.ate = e.target.value; rec(); });
@@ -98,9 +98,9 @@ function detalhe(id) {
       <div class="val">${esc(typeof v === 'object' && v !== null ? JSON.stringify(v) : String(v))}</div></div>`)
     .join('');
 
-  abrirDrawer(`
-    ${drawerHead(TIPOS[e.tipo] || e.tipo, resumoEvento(e))}
-    <div class="drawer-body">
+  abrirModal(`
+    ${modalHead(TIPOS[e.tipo] || e.tipo, resumoEvento(e))}
+    <div class="modal-body">
       <div class="field"><div class="lbl">Quando</div><div class="val">${esc(fmtDataHora(e.criado_em))}</div></div>
       <div class="field"><div class="lbl">Autor</div><div class="val">${e.autor ? esc(e.autor) : vazio('autor não identificado')}</div></div>
       ${ctxLinhas ? `<hr class="sep" /><div class="field"><div class="lbl">Detalhes</div></div>${ctxLinhas}` : ''}

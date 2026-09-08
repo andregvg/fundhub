@@ -99,7 +99,7 @@ export async function route({ manterScroll = false } = {}) {
 
 // A barra de ações do módulo: ajuda à esquerda, engrenagem à direita -
 // ordem fixa em toda tela. Ajuda NAVEGA (tutorial é texto para ler com
-// calma); engrenagem abre gaveta (configurar é interrupção curta).
+// calma); engrenagem abre modal (configurar é interrupção curta).
 // `import()` dinâmico do painel: o kernel dispara, o módulo responde -
 // mesma inversão de mod.load(). Sem ajuda e sem config, a barra fica
 // vazia (invisível, via .mod-acoes:empty).

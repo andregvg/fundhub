@@ -13,7 +13,8 @@ depósito:
 
 | Tem comportamento → componente JS | Só markup → classe CSS |
 |---|---|
-| `drawer.js` (abre/fecha, Esc, foco, fundo) | tabelas, listas, cards |
+| `modal.js` (abre/fecha, Esc, foco, pilha) | listas simples, cards |
+| `tabela.js` (ordem, página, busca, expansão) | grades estáticas de leitura |
 | `toast.js` (fila, timer, animação) | botões, badges, chips, tags |
 | `phones.js` (máscara, add/remover, cursor) | formulários, campos, rodapé de form |
 | `filtro-segmento.js` (seleção, memória de sessão) | grades, painéis, estados vazios |
@@ -36,7 +37,6 @@ Sempre conferir `src/styles/components.css` antes de escrever CSS novo. O que j�
 - **Formulário:** `.esc-form` · `.esc-row` · `.form-grid` · `.form-grupo` · `.form-foot` · `.form-hint` · `.field` · `.lbl`
 - **Botões:** `.btn-primary` · `.btn-secundario` · `.btn-perigo` (ação destrutiva, só em diálogo) · `.mini-btn` (com `.ok` / `.no`)
 - **Marcadores:** `.chip` · `.tag` · `.badge` · `.pill`
-- **Gaveta:** `.drawer` e família - usar sempre via `shared/ui/drawer.js`, nunca à mão
 - **Modal:** `.modal` e família - usar sempre via `shared/ui/modal.js`, nunca à mão
 - **Confirmação:** `.confirmar-back`/`.confirmar-card` - usar sempre via `shared/ui/confirmar.js`, nunca à mão
 - **Tabela:** `.tabela` e família - usar sempre via `shared/ui/tabela.js`, nunca à mão
@@ -52,7 +52,7 @@ ele muda no hub inteiro, que é o objetivo.
 `.form-grid` e `.filtro-campo` são o que concede altura de campo, reset de
 `date`/`time`, anel de foco e tipografia de rótulo. Quem desenha campo fora
 dos três acaba remendando `min-height` à mão, e desigualmente - foi o que
-aconteceu com os painéis de configuração e com a gaveta "Tipos de escala"
+aconteceu com os painéis de configuração e com o modal "Tipos de escala"
 até 06/09/2026. O painel de configuração já nasce dentro de `.esc-form`
 (`configuracoes/painel.js`): **um `painel:` de módulo nunca declara
 `--campo`.**
@@ -112,8 +112,8 @@ início/fim (`jornada.js`), descartar uma proposta ao lado do `<select>` de esca
 (`calendario/views/escalas.js`). A regra é **estrutural**, não por classe nova - pega qualquer
 `<div>`/`<form>` cujo filho direto seja `input`/`select` e que também tenha um `.mini-btn` como
 filho direto (`components.css`). Um módulo novo com esse mesmo desenho (linha = campo(s) + botão)
-ganha a altura certa sem precisar declarar nada. Não se aplica a botão de ação de lista/gaveta
-(`.drawer-acoes`, `.solic-acoes`) nem a `.campo-derivado` (não tem `input`/`select`, é `<span>`) -
+ganha a altura certa sem precisar declarar nada. Não se aplica a botão de ação de lista/modal
+(`.modal-acoes`, `.solic-acoes`) nem a `.campo-derivado` (não tem `input`/`select`, é `<span>`) -
 nenhum dos dois tem campo como filho direto do mesmo container.
 
 ## Filtros: um painel por tela de lista
@@ -165,25 +165,37 @@ fora do design system. Usar `shared/ui/confirmar.js`.
 Não há exceção pendente: desde 07/09/2026 não resta nenhuma chamada nativa em `src/`. Se você
 encontrar uma, ela é regressão - não precedente.
 
-### As três superfícies sobrepostas, e quando usar cada uma
+### As duas superfícies sobrepostas
 
 | Componente | Papel | Quando |
 |---|---|---|
-| `shared/ui/modal.js` | **detalhe e edição** - o padrão desde 08/09/2026 | ficha, formulário, qualquer tela que interrompe |
+| `shared/ui/modal.js` | **detalhe e edição** | ficha, formulário, qualquer tela que interrompe |
 | `shared/ui/confirmar.js` | **decisão pontual** (`alertdialog`) | uma pergunta, dois botões, nada mais |
-| `shared/ui/drawer.js` | o padrão **anterior** de detalhe/edição | só onde ainda não foi convertido - ver o bloco S0b |
 
-**Superfície nova nasce em `modal.js`.** A gaveta continua no repositório porque ~8 módulos ainda
-a usam, não porque haja escolha entre as duas: as duas fazem a mesma coisa, e ter duas formas de
-abrir a mesma tela é o que a spec de 08/09/2026 veio encerrar.
+**São duas, e só duas.** A gaveta lateral (`shared/ui/drawer.js`) foi deletada em 08/09/2026, com
+as ~20 telas convertidas no mesmo commit. Ela não foi mantida "por compatibilidade": duas formas de
+abrir a mesma tela é exatamente o que a spec veio encerrar, e uma gaveta esquecida no repositório
+vira a forma que alguém copia sem saber.
 
-O modal centraliza nos dois eixos, tem três larguras (`estreito` 420px · `medio` 560px ·
-`largo` 760px), rola **no corpo** para o cabeçalho ficar parado, e **abaixo de 560px ocupa a tela
-inteira** - cartão de 420px em tela de 360px é cartão de 360px com margem inútil.
+O modal centraliza nos dois eixos, rola **no corpo** para o cabeçalho e o rodapé de formulário
+ficarem parados, e **abaixo de 560px ocupa a tela inteira** - cartão de 420px em tela de 360px é
+cartão de 360px com margem inútil.
 
-**As três prendem o foco** (`shared/ui/foco.js`). Um elemento com `aria-modal="true"` está
+**Três larguras, declaradas na chamada:**
+
+| `tamanho` | | Para |
+|---|---|---|
+| `estreito` | 420px | confirmação com contexto, escolha curta |
+| `medio` | 560px (padrão) | quase tudo |
+| `largo` | 760px | formulário denso: escola, servidor, jornada da semana |
+
+A largura é decisão de **quem abre**, não de largura de tela. Até 07/09/2026 a gaveta engordava
+sozinha num `@media (min-width: 1280px)`, o que dava mais espaço a todo formulário do hub por causa
+de dois deles.
+
+**As duas prendem o foco** (`shared/ui/foco.js`). Um elemento com `aria-modal="true"` está
 afirmando que o resto da página não existe; sem armadilha, o Tab atravessa e vai passear pelo menu
-que o leitor de tela acabou de anunciar como inexistente. Se você criar uma quarta superfície
+que o leitor de tela acabou de anunciar como inexistente. Se você criar uma terceira superfície
 modal, ela prende o foco também - não é opcional.
 
 ## R18 - O padrão de lista
@@ -234,7 +246,7 @@ Cada coluna declara `prioridade`: **1** nunca some · **2** some abaixo de 900px
 O botão `▸` só aparece nas larguras em que há algo escondido; no desktop, com tudo à vista, ele
 some e a linha não abre. A rolagem lateral existe só como rede de segurança no desktop.
 
-**Tocar a linha expande** - salvo quando a tela declara `aoClicarLinha` (abrir gaveta, modal ou
+**Tocar a linha expande** - salvo quando a tela declara `aoClicarLinha` (abrir um modal ou uma
 rota): aí a linha faz isso e a expansão fica só no botão.
 
 ### Busca da tabela × painel de filtros
@@ -272,7 +284,7 @@ borda sutil, raio pequeno.
 - `aria-hidden="true"` em ícone decorativo (emoji, SVG ornamental);
 - `role="tablist"` / `role="tab"` + `aria-selected` nas barras de aba;
 - `aria-expanded` em toggle de menu ou dropdown;
-- gaveta fecha com `Esc` e devolve o foco (já tratado por `drawer.js`).
+- modal fecha com `Esc`, devolve o foco e prende o Tab (já tratado por `modal.js` + `foco.js`).
 
 ## CSS novo de módulo
 

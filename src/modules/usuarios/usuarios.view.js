@@ -29,7 +29,7 @@ import { esc, val, checked, falha, vazio } from '../../shared/dom.js';
 import { fmtDataHora } from '../../shared/format.js';
 import { loading, erroBox, reportarErro } from '../../shared/ui/feedback.js';
 import { montarTabela } from '../../shared/ui/tabela.js';
-import { drawerHtml, drawerHead, montarDrawer, abrirDrawer, fecharDrawer } from '../../shared/ui/drawer.js';
+import { modalHtml, modalHead, montarModal, abrirModal, fecharModal } from '../../shared/ui/modal.js';
 import { criarBuscaSelecao } from '../../shared/ui/busca-selecao.js';
 import { confirmar } from '../../shared/ui/confirmar.js';
 import { toast } from '../../shared/ui/toast.js';
@@ -42,7 +42,7 @@ let rotulos = {};
 // module-level e a instância antiga apontaria para um nó já descartado
 // quando a rota volta para cá.
 let tabela = null;
-// Uma instância por gaveta aberta - "Editar" de duas pessoas seguidas
+// Uma instância por modal aberta - "Editar" de duas pessoas seguidas
 // cria duas se ninguém destruir a de antes, e cada uma deixa um
 // listener de document vivo (mesma armadilha de por-escola.js).
 let buscaServidor = null;
@@ -63,9 +63,9 @@ export async function render(app) {
       <button id="us-novo" class="btn-primary">${ico('adicionar')} Adicionar acesso</button>
     </div>
     <div id="us-lista">${loading()}</div>
-    ${drawerHtml()}`;
+    ${modalHtml()}`;
 
-  montarDrawer();
+  montarModal();
   document.getElementById('us-novo').addEventListener('click', () => abrirForm(null));
 
   [papeis, presets, servidores] = await Promise.all([
@@ -139,14 +139,14 @@ function abrirForm(p) {
     .join('');
 
   // A instância anterior (se veio de outro "Editar" nesta mesma
-  // sessão) sai antes da gaveta nova reconstruir o DOM - senão o
+  // sessão) sai antes do modal nova reconstruir o DOM - senão o
   // listener de document dela sobrevive apontando para um nó já solto.
   buscaServidor?.destruir();
   buscaServidor = null;
 
-  abrirDrawer(`
-    ${drawerHead(novo ? 'Adicionar acesso' : 'Editar acesso', esc(p?.email || ''))}
-    <div class="drawer-body">
+  abrirModal(`
+    ${modalHead(novo ? 'Adicionar acesso' : 'Editar acesso', esc(p?.email || ''))}
+    <div class="modal-body">
       <form id="us-form" class="esc-form">
 
         <fieldset class="form-grupo">
@@ -299,7 +299,7 @@ async function salvar(e, p, lerSegs, lerExcecoes, buscaServidor) {
     // evento de permissão, sem custar uma leitura a mais.
     if (p) await atualizarPerfil(p.email, payload, p);
     else await criarPerfil(payload);
-    fecharDrawer(); carregar();
+    fecharModal(); carregar();
     toast({ titulo: p ? 'Acesso atualizado' : 'Acesso adicionado', texto: email, tipo: 'sucesso' });
   } catch (err) {
     // Erro de gravação: inline quando dá para corrigir no formulário

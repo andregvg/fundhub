@@ -96,4 +96,4 @@ trabalho aparece mesmo assim. Se não aparecer, recarregue a página.
 Encerre o local antigo (preencha o Término) e registre um novo. Assim o
 histórico fica correto.
 
-> Atualizado na versão 0.20.1.
+> Atualizado na versão 0.24.0.

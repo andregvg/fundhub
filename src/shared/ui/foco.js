@@ -4,16 +4,26 @@
 //
 // Um elemento com aria-modal="true" está afirmando que o resto da
 // página não existe enquanto ele está aberto. Sem armadilha, o Tab
-// atravessa a gaveta e vai passeando pelo menu e pelos botões da tela
+// atravessa o modal e vai passeando pelo menu e pelos botões da tela
 // de trás - que o leitor de tela acabou de anunciar como inexistentes.
 // A afirmação e o comportamento discordavam.
 //
-// Nasce em arquivo próprio, e não copiado, porque são TRÊS superfícies
-// com exatamente a mesma necessidade (R13): drawer.js, modal.js e
-// confirmar.js. Um laço de Tab duplicado é um bug duplicado.
+// Sobre morar em arquivo próprio: quando nasceu (bloco S0) eram TRÊS
+// consumidores - drawer.js, modal.js e confirmar.js. O bloco S0b
+// deletou a gaveta, e hoje são DOIS. Fica registrado assim, sem
+// maquiagem: a R13 conta casos, e o número mudou.
+//
+// Continua em arquivo próprio mesmo assim, e não por inércia. A R13
+// proíbe a ABSTRAÇÃO especulativa - generalizar dois casos que só se
+// parecem por coincidência. Não é o caso: modal e confirmação não se
+// parecem, elas fazem a MESMA coisa, e o que está aqui são trinta
+// linhas de tratamento de Tab cheias de detalhe (lista recalculada a
+// cada tecla, foco que voltou de fora da raiz, captura antes do
+// conteúdo). Duas cópias disso são dois bugs para consertar duas
+// vezes. Se um dia sobrar um consumidor só, aí o arquivo some.
 //
 // Uso:
-//   const soltar = prenderFoco(document.getElementById('drawer'));
+//   const soltar = prenderFoco(document.getElementById('modal'));
 //   …
 //   soltar();
 // ============================================================
@@ -27,7 +37,7 @@ const FOCAVEIS = [
 // `getClientRects()` vazio pega o que está escondido por qualquer via
 // (hidden, display:none, <details> fechado). offsetParent não serviria:
 // ele também é null em elemento `position: fixed`, que é justamente o
-// caso da gaveta e do modal.
+// caso do modal e do diálogo de confirmação.
 function focaveis(raiz) {
   return [...raiz.querySelectorAll(FOCAVEIS)]
     .filter(el => !el.disabled && el.getClientRects().length);
@@ -35,8 +45,8 @@ function focaveis(raiz) {
 
 // Prende o Tab dentro de `raiz`. Devolve a função que solta.
 //
-// A lista é recalculada a CADA Tab, de propósito: o conteúdo da gaveta
-// é substituído por innerHTML (abrir uma por cima de outra, repintar um
+// A lista é recalculada a CADA Tab, de propósito: o conteúdo do modal
+// é substituído por innerHTML (abrir um por cima de outro, repintar um
 // formulário), e uma lista capturada na abertura apontaria para nós já
 // descartados.
 export function prenderFoco(raiz) {

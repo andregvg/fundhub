@@ -14,7 +14,7 @@
 import { TIPOS_AFASTAMENTO, MAPA_TIPOS_PLANILHA, sincronizarPlanilha } from '../afastamentos.model.js';
 import { esc, norm, falha, ok } from '../../../shared/dom.js';
 import { agoraISO } from '../../../shared/format.js';
-import { drawerHead, abrirDrawer } from '../../../shared/ui/drawer.js';
+import { modalHead, abrirModal } from '../../../shared/ui/modal.js';
 
 const STATUS_PLANILHA = {
   ativo: 'ativo', importado: 'importado',
@@ -47,9 +47,9 @@ function parseCarimbo(v) {
 
 // `ctx`: { servidores, unidades, carregar } - ver afastamentos.view.js § ctxAtual().
 export function abrirSync(ctx) {
-  abrirDrawer(`
-    ${drawerHead('Sincronizar com a planilha', 'Aba “Lançamentos” do Drive')}
-    <div class="drawer-body">
+  abrirModal(`
+    ${modalHead('Sincronizar com a planilha', 'Aba “Lançamentos” do Drive')}
+    <div class="modal-body">
       <p class="form-hint">
         Copie da aba <b>Lançamentos</b> (com a linha de cabeçalho) e cole abaixo.
         Reconhece as colunas do Apps Script: <code>tipo, data_inicio, data_fim,

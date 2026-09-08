@@ -11,7 +11,7 @@ import { getUnidades } from '../escolas/escolas.model.js';
 import { esc, norm, val, falha } from '../../shared/dom.js';
 import { hojeISO, fmtData, addDias } from '../../shared/format.js';
 import { loading, emptyState, erroBox, reportarErro } from '../../shared/ui/feedback.js';
-import { drawerHtml, drawerHead, montarDrawer, abrirDrawer, fecharDrawer } from '../../shared/ui/drawer.js';
+import { modalHtml, modalHead, montarModal, abrirModal, fecharModal } from '../../shared/ui/modal.js';
 import { criarFiltroSegmento, indexarUnidades } from '../../shared/ui/filtro-segmento.js';
 import { confirmar } from '../../shared/ui/confirmar.js';
 import { toast } from '../../shared/ui/toast.js';
@@ -66,9 +66,9 @@ export async function render(app, ctx = {}) {
       <span class="count" id="vi-count"></span>
     </div>
     <div id="vi-lista">${loading()}</div>
-    ${drawerHtml()}`;
+    ${modalHtml()}`;
 
-  montarDrawer();
+  montarModal();
 
   try { unidades = await getUnidades(); }
   catch (err) { document.getElementById('vi-lista').innerHTML = erroBox(err); return; }
@@ -159,14 +159,14 @@ function detalhe(id) {
   if (!v) return;
   const campo = (l, val) => val ? `<div class="field"><div class="lbl">${l}</div><div class="val texto-completo">${val}</div></div>` : '';
   const acoes = perfil?.isAdmin ? `
-    <div class="drawer-acoes">
+    <div class="modal-acoes">
       <button class="mini-btn" id="vi-edit">${ico('editar')} Editar</button>
       <button class="mini-btn no" id="vi-del">${ico('excluir')} Excluir</button>
     </div>` : '';
 
-  abrirDrawer(`
-    ${drawerHead(ico('escola', { tam: 16 }) + ' ' + esc(v.unidade?.nome || 'sem escola'), esc(fmtData(v.data)) + ' · ' + esc(TIPOS[v.tipo] || v.tipo))}
-    <div class="drawer-body">
+  abrirModal(`
+    ${modalHead(ico('escola', { tam: 16 }) + ' ' + esc(v.unidade?.nome || 'sem escola'), esc(fmtData(v.data)) + ' · ' + esc(TIPOS[v.tipo] || v.tipo))}
+    <div class="modal-body">
       ${acoes}
       <div class="field"><div class="lbl">Situação</div>
         <div class="val"><span class="tag ${STATUS_TAG[v.status] || ''}">${esc(STATUS[v.status] || v.status)}</span></div></div>
@@ -191,9 +191,9 @@ function abrirForm(v) {
   const optsStatus = Object.entries(STATUS)
     .map(([k, s]) => `<option value="${k}" ${(v?.status || 'aberto') === k ? 'selected' : ''}>${esc(s)}</option>`).join('');
 
-  abrirDrawer(`
-    ${drawerHead(novo ? 'Novo relatório de visita' : 'Editar relatório')}
-    <div class="drawer-body">
+  abrirModal(`
+    ${modalHead(novo ? 'Novo relatório de visita' : 'Editar relatório')}
+    <div class="modal-body">
       <form id="vi-form" class="esc-form">
         <label>Escola <select id="f-uni" required><option value="">Selecione…</option>${optsUni}</select></label>
         <div class="esc-row">
@@ -243,7 +243,7 @@ async function salvar(e, v) {
   try {
     if (v) await atualizarVisita(v.id, payload);
     else await criarVisita(payload);
-    fecharDrawer(); carregar();
+    fecharModal(); carregar();
     toast({ titulo: v ? 'Visita atualizada' : 'Visita agendada', texto: escola, tipo: 'sucesso' });
   } catch (err) {
     // Erro de gravação: inline quando dá para corrigir no formulário
@@ -260,7 +260,7 @@ async function remover(v) {
   const escola = v.unidade?.apelido || v.unidade?.nome || '';
   try {
     await excluirVisita(v.id);
-    fecharDrawer(); carregar();
+    fecharModal(); carregar();
     toast({ titulo: 'Visita cancelada', texto: escola, tipo: 'sucesso' });
   } catch (err) {
     reportarErro(err, { titulo: 'Não foi possível excluir' });

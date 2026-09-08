@@ -12,7 +12,7 @@
 import { criarVinculo, atualizarVinculo, excluirVinculo, rotulaCargo } from '../vinculos.model.js';
 import { eLocalInterno } from '../../escolas/escolas.model.js';
 import { esc, falha } from '../../../shared/dom.js';
-import { drawerHead, abrirDrawer } from '../../../shared/ui/drawer.js';
+import { modalHead, abrirModal } from '../../../shared/ui/modal.js';
 import { criarBuscaSelecao } from '../../../shared/ui/busca-selecao.js';
 import { confirmar } from '../../../shared/ui/confirmar.js';
 import { toast } from '../../../shared/ui/toast.js';
@@ -22,7 +22,7 @@ import { ico } from '../../../shared/ui/icones.js';
 const OUTRO = '::outro::';   // sentinela: os dois-pontos garantem que
                              // nenhum cargo digitado colide com ele
 
-// Uma instância por gaveta aberta - "Adicionar"/"Editar" repetidos na
+// Uma instância por modal aberta - "Adicionar"/"Editar" repetidos na
 // mesma ficha do servidor criam uma instância a cada chamada; sem
 // destruir a de antes, cada uma deixa um listener de document vivo
 // (mesma armadilha de por-escola.js).
@@ -42,9 +42,9 @@ export function formVinculo(s, vinculo, ctx, { voltar = null } = {}) {
   const opcoesCargo = ctx.cargos.map(c =>
     `<option value="${esc(c)}" ${c === cargoAtual ? 'selected' : ''}>${esc(c)}</option>`).join('');
 
-  abrirDrawer(`
-    ${drawerHead(novo ? 'Adicionar local de trabalho' : 'Editar local de trabalho', esc(s.nome))}
-    <div class="drawer-body">
+  abrirModal(`
+    ${modalHead(novo ? 'Adicionar local de trabalho' : 'Editar local de trabalho', esc(s.nome))}
+    <div class="modal-body">
       <form id="vc-form" class="esc-form">
         <fieldset class="form-grupo">
           <legend>Local de trabalho</legend>
@@ -123,7 +123,7 @@ async function salvar(e, s, vinculo, ctx, voltar, buscaLocal) {
     if (vinculo) await atualizarVinculo(vinculo.id, { unidade_id, papel, ingresso, fim });
     else await criarVinculo({ servidor_id: s.id, unidade_id, papel, ingresso, fim });
     const novoCtx = await ctx.recarregar();
-    // Volta para a gaveta de baixo já com o dado novo: passamos o ctx
+    // Volta para o modal de baixo já com o dado novo: passamos o ctx
     // recarregado para quem chamou reconstruir a tela a partir dele.
     if (voltar) voltar(novoCtx); else novoCtx.abrirDetalhe(s.id);
     const encerrou = vinculo && !vinculo.fim && fim;

@@ -82,7 +82,7 @@ export async function renderEscalas(box, ctx) {
   // garante que mesmo com reentrada quem chega por último sempre
   // destrói o que estava lá antes de instalar o seu (sem isso, trocar
   // de aba e voltar empilharia um listener de clique-fora por
-  // reentrada - o mesmo bug que travou o seletor da gaveta de jornada
+  // reentrada - o mesmo bug que travou o seletor do modal de jornada
   // no B-1).
   busca?.destruir();
   busca = criarBuscaSelecao(document.getElementById('cal-esc-uni'), {
@@ -342,7 +342,7 @@ async function gravarProposta() {
   carregar();
 }
 
-// Ao mudar o catálogo pela gaveta de tipos: relê e repinta a tela de
+// Ao mudar o catálogo pelo modal de tipos: relê e repinta a tela de
 // fundo (proposta aberta, ou a tabela do que já está gravado).
 async function aoMudarCatalogo() {
   catalogo = await getEscalas().catch(() => [...ESCALAS_PADRAO]);

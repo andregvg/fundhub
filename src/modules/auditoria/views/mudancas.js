@@ -14,7 +14,7 @@ import { esc, vazio } from '../../../shared/dom.js';
 import { fmtDataHora, hojeISO, addDias } from '../../../shared/format.js';
 import { loading, erroBox } from '../../../shared/ui/feedback.js';
 import { montarTabela } from '../../../shared/ui/tabela.js';
-import { drawerHtml, drawerHead, montarDrawer, abrirDrawer } from '../../../shared/ui/drawer.js';
+import { modalHtml, modalHead, montarModal, abrirModal } from '../../../shared/ui/modal.js';
 import { ico } from '../../../shared/ui/icones.js';
 
 const OP_TAG = { INSERT: 'st-confirmado', UPDATE: 'st-em_analise', DELETE: 'st-negado' };
@@ -42,9 +42,9 @@ export async function render(ctx) {
       </label>
     </div>
     <div id="mu-lista">${loading()}</div>
-    ${drawerHtml()}`;
+    ${modalHtml()}`;
 
-  montarDrawer();
+  montarModal();
   const rec = () => carregar();
   document.getElementById('mu-de').addEventListener('change', e => { filtro.de = e.target.value; rec(); });
   document.getElementById('mu-ate').addEventListener('change', e => { filtro.ate = e.target.value; rec(); });
@@ -81,7 +81,7 @@ async function carregar() {
     ordem: { coluna: 'quando', dir: 'desc' },
     substantivo: 'registros',
     // Sem ações por linha: a tela é só de leitura. O clique na linha abre
-    // a gaveta com o de-para campo a campo, e a expansão fica no botão.
+    // o modal com o de-para campo a campo, e a expansão fica no botão.
     aoClicarLinha: (e) => detalhe(e.id),
     vazio: {
       ico: 'documento', titulo: 'Nada no período',
@@ -142,9 +142,9 @@ function detalhe(id) {
     corpo = `<div class="field"><div class="lbl">${e.operacao === 'DELETE' ? 'Registro excluído' : 'Registro criado'}</div></div>${linhas}`;
   }
 
-  abrirDrawer(`
-    ${drawerHead(TABELAS[e.tabela] || e.tabela, OPERACOES[e.operacao] || e.operacao)}
-    <div class="drawer-body">
+  abrirModal(`
+    ${modalHead(TABELAS[e.tabela] || e.tabela, OPERACOES[e.operacao] || e.operacao)}
+    <div class="modal-body">
       <div class="field"><div class="lbl">Quando</div><div class="val">${esc(fmtDataHora(e.criado_em))}</div></div>
       <div class="field"><div class="lbl">Autor</div><div class="val">${e.autor ? esc(e.autor) : vazio('autor não identificado')}</div></div>
       ${e.registro_id ? `<div class="field"><div class="lbl">Registro</div><div class="val au-id">${esc(e.registro_id)}</div></div>` : ''}

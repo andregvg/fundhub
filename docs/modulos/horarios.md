@@ -9,7 +9,7 @@
   grade só, com a tira de cobertura abaixo de cada dia.
 - **Por servidor:** ver e editar a semana de uma pessoa em todos os locais
   onde ela atua.
-- Montar ou ajustar a jornada de alguém numa gaveta - a semana inteira de uma
+- Montar ou ajustar a jornada de alguém numa janela - a semana inteira de uma
   vez.
 - Ver os dias de TDC como uma faixa abaixo do dia normal.
 - Registrar mais de uma configuração do mesmo dia, para quando ele muda
@@ -32,7 +32,7 @@ tirar quem não precisa aparecer.
 
 1. Na aba **Por escola**, escolha a unidade e clique no lápis ao lado do nome
    da pessoa. (Ou use a aba **Por servidor**.)
-2. Na gaveta, cada dia da semana tem uma linha por bloco de horário. Clique em
+2. Na janela, cada dia da semana tem uma linha por bloco de horário. Clique em
    **bloco** para acrescentar um; informe início e fim.
 3. Se a jornada é igual todos os dias, preencha um dia e clique em **copiar
    para todos os dias**.
@@ -41,7 +41,7 @@ tirar quem não precisa aparecer.
 
 ### Jornada dos dias de TDC
 
-1. A gaveta tem uma aba para cada escala em uso (Normal, TDC Presencial…).
+1. A janela tem uma aba para cada escala em uso (Normal, TDC Presencial…).
 2. Na aba de TDC, preencha só o que muda em relação ao dia normal. Um dia
    deixado em branco segue a jornada Normal.
 3. Se a escala tem um dia da semana fixo (configurado pela Gerência), a aba
@@ -73,7 +73,7 @@ ninguém está marcado.
 
 ### Remover uma configuração
 
-1. Abra a gaveta da pessoa e escolha a aba da configuração (por exemplo,
+1. Abra a janela da pessoa e escolha a aba da configuração (por exemplo,
    **Variante 2**).
 2. Clique na **lixeira**, ao lado do **+**.
 3. Confirme e clique em **Salvar jornada**.
@@ -130,7 +130,7 @@ Ou o cargo dele não está marcado como equipe gestora, ou ele não tem local de
 trabalho atual naquela unidade. Confira em Servidores.
 
 **Editei a jornada mas a grade não mudou.**
-Recarregue a página - a gaveta grava, mas a grade por baixo só relê ao
+Recarregue a página - a janela grava, mas a grade por baixo só relê ao
 reabrir a escola.
 
 **Não aparece o + para criar uma segunda configuração.**
@@ -138,4 +138,4 @@ O sistema desta escola ainda não foi atualizado para guardar mais de uma
 configuração do mesmo dia. No lugar do botão aparece um aviso dizendo
 isso. Avise a Gerência; enquanto isso, cada dia tem uma configuração só.
 
-> Atualizado na versão 0.21.1.
+> Atualizado na versão 0.24.0.

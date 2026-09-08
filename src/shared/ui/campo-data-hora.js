@@ -8,7 +8,7 @@
 // docs/superpowers/specs/2026-09-05-campos-data-hora-tab-design.md.
 //
 // Um ouvinte só, delegado em document, cobre os 32 campos de hoje e
-// qualquer campo futuro - inclusive um que nasça dentro de uma gaveta
+// qualquer campo futuro - inclusive um que nasça dentro de um modal
 // aberta bem depois deste módulo já ter sido ligado (uma vez, no boot).
 // ============================================================
 

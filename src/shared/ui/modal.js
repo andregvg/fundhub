@@ -3,11 +3,16 @@
 // Diálogo centralizado - o padrão de "detalhe/edição" do hub a partir
 // de 08/09/2026. Ver a spec 2026-09-08-listas-e-modais-design.md § D8.
 //
-// A API espelha shared/ui/drawer.js de PROPÓSITO: converter uma tela da
-// gaveta para o modal é troca de identificador, não reescrita. O que a
-// gaveta já resolveu (Esc, foco devolvido, clique no fundo, pilha) vem
-// junto, com a mesma implementação e pelas mesmas razões - inclusive
-// guardar a FUNÇÃO que reabre a de baixo, nunca o HTML dela.
+// Substituiu a gaveta lateral (`shared/ui/drawer.js`) em todo o hub no
+// bloco S0b (08/09/2026). A API nasceu espelhando a dela justamente
+// para que a conversão das ~20 telas fosse troca de identificador, e
+// não reescrita; o arquivo da gaveta foi deletado no mesmo commit, para
+// não restarem duas formas de abrir a mesma tela.
+//
+// O que a gaveta já tinha resolvido veio junto, com a mesma
+// implementação e pelas mesmas razões - inclusive guardar a FUNÇÃO que
+// reabre o de baixo, nunca o HTML dele: restaurar HTML deixaria os
+// ouvintes para trás, e o de baixo precisa voltar com dado recarregado.
 //
 // Uso na view:
 //   app.innerHTML = `… ${modalHtml()}`;
