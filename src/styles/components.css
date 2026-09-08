@@ -477,6 +477,11 @@ span.gira-90, span.gira-menos90, span.gira-180 { display: inline-flex; }
 .tag.st-confirmado { color: var(--ok); background: color-mix(in srgb, var(--ok) 16%, transparent); }
 .tag.st-em_analise, .tag.st-aguardando_transporte_adaptado { color: var(--accent); background: color-mix(in srgb, var(--accent) 16%, transparent); }
 .tag.st-negado, .tag.st-cancelado { color: var(--danger); background: color-mix(in srgb, var(--danger) 14%, transparent); }
+/* Os dois status que a migration 035 acrescentou ao SATE. `solicitado` é
+   neutro de propósito: ainda não houve decisão nenhuma, e pintá-lo de
+   âmbar como "em análise" diria que alguém já pegou o pedido. */
+.tag.st-solicitado { color: var(--muted); background: var(--surface-3); }
+.tag.st-pendente_cancelamento { color: var(--accent); background: color-mix(in srgb, var(--accent) 16%, transparent); }
 
 /* ── Item de lista com ações (solicitações, afastamentos) ── */
 .solic {
@@ -1119,7 +1124,17 @@ input[type="checkbox"] { width: 18px; height: 18px; }
 .form-grupo .campos label:not(.inline):not(.search):not(.switch) {
   min-width: 0;
 }
-.form-grupo .campos label > input,
+/* Campo dentro de um rótulo ocupa a linha inteira - EXCETO radio e
+   checkbox, que têm tamanho próprio. Sem a exclusão, um radio posto
+   direto num <label> de .form-grupo estica para a largura do rótulo e
+   empurra o texto da opção para a linha de baixo; apareceu no toggle
+   "catálogo / outra atividade" do SATE em 08/09/2026, mas valia para
+   qualquer formulário do hub.
+   A exclusão fica AQUI, e não numa regra mais específica depois: a
+   exceção de :is([type=checkbox],[type=radio]) lá em cima tem
+   especificidade menor que este seletor e perderia a disputa - consertar
+   a regra errada é mais honesto que empilhar outra por cima dela. */
+.form-grupo .campos label > input:not([type="checkbox"]):not([type="radio"]),
 .form-grupo .campos label > select,
 .form-grupo .campos label > textarea { width: 100%; }
 /* Toggle dentro do formulário: aqui ele é uma linha própria, então larga a

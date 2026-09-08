@@ -13,10 +13,13 @@
 // (CAP_ONIBUS = 44). Virou configuração pelo mesmo motivo: é um número
 // da operação, não do domínio.
 //
-// O CADASTRO da frota também é configuração do SATE, mas o painel dele
-// é tela e nasce em S3. Aqui só os números.
+// O CADASTRO da frota também é configuração, e o painel dele está aqui
+// como item de tipo `painel` (views/frota-painel.js): configurar é
+// interrupção curta, e é o critério que o hub usa para decidir entre a
+// engrenagem e uma aba.
 // ============================================================
 import { conf } from '../../core/configuracoes.js';
+import { pintarFrota } from './views/frota-painel.js';
 
 // Os padrões vivem AQUI, no acesso, e não em core/configuracoes.js -
 // aquele arquivo só sabe "o que foi gravado".
@@ -46,6 +49,12 @@ export const capacidadeVan = () => num('capacidade_van', PADRAO.capacidade_van) 
 
 export const DECLARACAO = {
   itens: [
+    {
+      chave: 'frota', escopo: 'rede', grupo: 'regras',
+      rotulo: 'Frota disponível',
+      dica: 'Quantos veículos existem e desde quando. Reforços de evento somam à frota vigente.',
+      painel: pintarFrota,
+    },
     {
       chave: 'intervalo_min_periodos', escopo: 'rede', grupo: 'regras',
       tipo: 'numero', padrao: PADRAO.intervalo_min_periodos, min: 0, max: 600,

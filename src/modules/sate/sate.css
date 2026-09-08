@@ -22,9 +22,10 @@
   padding-bottom: 14px;
   border-bottom: 1px solid var(--border);
 }
-.sate-form .m-livre { display: none; }
-.sate-form.is-livre .m-livre { display: flex; }
-.sate-form.is-livre .m-catalogo { display: none; }
+/* A alternância catálogo/livre é feita com o atributo `hidden` no JS, e
+   não com uma classe daqui: as regras de rótulo de `.form-grupo .campos`
+   somam cinco classes e venceriam qualquer `display: none` escrito neste
+   arquivo. Ver a nota de `[hidden]` em base.css. */
 
 /* Catálogo */
 .atv-field { margin: 4px 0; color: var(--muted); font-size: 13px; }
@@ -81,3 +82,59 @@
   background: var(--surface-2);
   font-size: 13.5px;
 }
+
+/* ── Saldo ao vivo no formulário (spec S3, D3) ──────────────── */
+.sol-saldo { margin: 4px 0 12px; display: flex; flex-direction: column; gap: 6px; }
+.sol-saldo-num { color: var(--muted); font-size: 13px; }
+.sol-saldo-num b { color: var(--text); font-size: 15px; }
+.sol-erro, .sol-aviso {
+  padding: 8px 11px;
+  border-radius: var(--radius-btn);
+  font-size: 13px;
+  line-height: 1.45;
+}
+.sol-erro   { background: var(--erro-bg);    color: var(--danger); }
+.sol-aviso  { background: var(--atencao-bg); color: var(--text); }
+
+/* ── Modal de detalhe ───────────────────────────────────────── */
+.det-status { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+/* As decisões ficam no pé, separadas do conteúdo por uma linha: elas
+   são o que a pessoa veio fazer, não mais um campo. */
+.det-acoes-pe {
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  margin: 18px 0 0;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+/* ── Painel de frota, na engrenagem ─────────────────────────── */
+.cfg-frota { display: flex; flex-direction: column; gap: 4px; }
+.fr-linha {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 7px 11px;
+  margin-bottom: 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-btn);
+  background: var(--surface-2);
+  font-size: 13.5px;
+}
+.fr-linha.inativo { opacity: .65; }
+/* O botão de excluir vai para a direita sozinho - sem isto ele encosta
+   no texto e a linha deixa de ter um ponto de ação previsível. */
+.fr-linha .mini-btn:last-child { margin-left: auto; }
+.fr-nova {
+  display: flex;
+  align-items: end;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 10px 0 4px;
+  padding: 12px;
+  border: 1px dashed var(--border-forte);
+  border-radius: var(--radius-btn);
+}
+.fr-nova input[type="number"] { width: 84px; }
+.fr-nova input[type="date"], .fr-nova select { min-width: 130px; }

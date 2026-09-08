@@ -1,166 +1,123 @@
 // ============================================================
-// FundHub - sate/views/solicitacoes.js  (aba Solicitações)
-// Lista as solicitações e, para admin, os botões de validação.
-// Ao CONFIRMAR, confere o saldo de frota do dia/período antes.
+// FundHub - sate/views/solicitacoes.js  (guia Solicitações)
+// A lista, agora sobre shared/ui/tabela.js.
+// Spec: 2026-09-08-sate-solicitacoes-design.md § D1, D6.
+//
+// Esta tela não escreve ordenação, busca, paginação nem o refluxo do
+// celular: tudo isso é do componente. Ela declara colunas e entrega os
+// dados.
+//
+// Sem coluna de ações, de propósito (§ D1): as decisões dependem do
+// status e da permissão, e seriam cinco botões condicionais espremidos
+// numa célula. A linha inteira abre o modal de detalhe, e as ações moram
+// lá, com espaço para a justificativa que três delas exigem.
 // ============================================================
-import {
-  listSolicitacoes, confirmarSolicitacao, negarSolicitacao, porEmAnalise,
-  aguardarAdaptado, saldoDoDia, STATUS, PERIODOS, STATUS_RESERVA,
-} from '../sate.model.js';
+import { listSolicitacoes, STATUS, PERIODOS } from '../sate.model.js';
+import { abrirFormulario } from './formulario.js';
+import { abrirDetalhe } from './detalhe.js';
 import { esc } from '../../../shared/dom.js';
-import { fmtData } from '../../../shared/format.js';
-import { loading, emptyState, erroBox, reportarErro } from '../../../shared/ui/feedback.js';
-import { criarFiltroSegmento, indexarUnidades } from '../../../shared/ui/filtro-segmento.js';
-import { confirmar } from '../../../shared/ui/confirmar.js';
-import { toast } from '../../../shared/ui/toast.js';
+import { fmtData, hojeISO, addDias } from '../../../shared/format.js';
+import { montarTabela } from '../../../shared/ui/tabela.js';
+import { modalHtml, montarModal } from '../../../shared/ui/modal.js';
+import { loading, erroBox } from '../../../shared/ui/feedback.js';
 import { ico } from '../../../shared/ui/icones.js';
 
-const FILTROS = ['', 'solicitado', 'em_analise', 'confirmado', 'negado'];
-
-let filtroStatus = '';
-let lista = [];
 let ctx = null;
-let seg = null, idxUnidades = {};
+let tabela = null;
+// O filtro do BANCO. A busca da tabela é outra coisa: estreita o que já
+// está na tela, sem ida ao servidor (spec de listas, D6).
+let filtro = { status: '', periodo: '', de: addDias(hojeISO(), -30), ate: addDias(hojeISO(), 120) };
 
-export async function render(contexto) {
+export function render(contexto) {
   ctx = contexto;
-  const box = ctx.box();
-  box.innerHTML = `
-    <div id="st-seg" class="toolbar-linha"></div>
-    <div class="filters" id="st-filtros">
-      ${FILTROS.map(s => `<button class="chip ${s === filtroStatus ? 'on' : ''}" data-st="${s}">${s ? STATUS[s] : 'Todas'}</button>`).join('')}
+  tabela = null;
+  // A guia expõe o recarregamento para o modal de detalhe e o de nova
+  // solicitação chamarem depois de gravar.
+  ctx.recarregar = carregar;
+
+  ctx.box().innerHTML = `
+    <div class="toolbar">
+      <span class="count">Pedidos de transporte para atividades fora da unidade.</span>
+      <button id="sol-nova" class="btn-primary">${ico('adicionar')} Nova solicitação</button>
     </div>
-    <div id="st-lista">${loading()}</div>`;
-
-  box.querySelector('#st-filtros').addEventListener('click', e => {
-    const c = e.target.closest('.chip'); if (!c) return;
-    filtroStatus = c.dataset.st;
-    render(ctx);
-  });
-
-  const el = document.getElementById('st-lista');
-  // As unidades já vêm da casca do SATE (sate.view.js) - não vale uma
-  // segunda ida ao banco só para saber o segmento de cada escola.
-  idxUnidades = indexarUnidades(ctx.unidades || []);
-  try { lista = await listSolicitacoes(filtroStatus ? { status: filtroStatus } : {}); }
-  catch (err) { el.innerHTML = erroBox(err); return; }
-
-  // `render` remonta a aba inteira a cada troca de filtro, então o
-  // componente é recriado - a memória de sessão preserva a escolha.
-  seg = criarFiltroSegmento(document.getElementById('st-seg'), {
-    perfil: ctx.perfil, chaveMemoria: 'fundhub:seg:sate', onChange: pintar,
-  });
-
-  pintar();
-}
-
-function noSegmento(s) {
-  if (!seg || !seg.selecionados().length) return true;
-  return !s.unidade_id || seg.combina(idxUnidades[s.unidade_id]);
-}
-
-function pintar() {
-  const el = document.getElementById('st-lista');
-  if (!el) return;
-  const vis = lista.filter(noSegmento);
-
-  if (!lista.length) {
-    el.innerHTML = emptyState(ico('vazio', { tam: 32 }), 'Nenhuma solicitação', 'Crie uma na aba “Nova solicitação”.');
-    return;
-  }
-  el.innerHTML = vis.map(item).join('')
-    || emptyState(ico('buscar', { tam: 32 }), 'Nenhuma solicitação neste segmento', 'Ajuste o filtro de segmento acima.');
-  el.querySelectorAll('[data-acao]').forEach(b =>
-    b.addEventListener('click', () => mudarStatus(b.dataset.id, b.dataset.acao)));
-}
-
-const botao = (id, acao, txt, kind = '') =>
-  `<button class="mini-btn ${kind}" data-id="${id}" data-acao="${acao}">${txt}</button>`;
-
-function item(s) {
-  const cor = s.atividade?.cor || 'var(--brand)';
-  const escola = s.unidade?.apelido || s.unidade?.nome || 'sem escola';
-  const nome = s.atividade?.nome || s.atividade_livre || 'Atividade';
-  const livre = !s.atividade?.nome && s.atividade_livre;
-  const horarios = [s.horario_embarque, s.horario_retorno].filter(Boolean).join(' → ');
-
-  const acoes = (ctx.perfil?.isAdmin && s.status !== 'cancelado') ? `
-    <div class="solic-acoes">
-      ${s.status !== 'em_analise' ? botao(s.id, 'em_analise', 'Em análise') : ''}
-      ${s.qtd_cadeirante > 0 && s.status !== 'aguardando_transporte_adaptado' ? botao(s.id, 'aguardando_transporte_adaptado', ico('acessibilidade', { tam: 12 }) + ' Adaptado') : ''}
-      ${s.status !== 'confirmado' ? botao(s.id, 'confirmado', 'Confirmar', 'ok') : ''}
-      ${s.status !== 'negado' ? botao(s.id, 'negado', 'Negar', 'no') : ''}
-    </div>` : '';
-
-  return `<div class="solic" style="border-left:3px solid ${esc(cor)}">
-    <div class="solic-main">
-      <div class="di-top">
-        <b>${esc(nome)}</b>
-        ${livre ? '<span class="tag">Organizada pela escola</span>' : ''}
-        <span class="tag st-${esc(s.status)}">${esc(STATUS[s.status] || s.status)}</span>
-      </div>
-      <div class="di-meta">${esc(escola)} · ${esc(fmtData(s.data))} · ${esc(PERIODOS[s.periodo] || s.periodo || '')}
-        ${s.turmas ? '· ' + esc(s.turmas) : ''}
-        ${s.qtd_alunos ? '· ' + esc(s.qtd_alunos) + ' alunos' : ''}
-        ${s.qtd_onibus ? '· ' + esc(s.qtd_onibus) + ' ônibus' : ''}
-        ${s.qtd_cadeirante > 0 ? '· ' + ico('acessibilidade', { tam: 12 }) + ' ' + esc(s.qtd_cadeirante) : ''}</div>
-      ${s.destino_nome ? `<div class="di-meta">Destino: ${esc(s.destino_nome)}${s.destino_endereco ? ' - ' + esc(s.destino_endereco) : ''}</div>` : ''}
-      ${horarios ? `<div class="di-meta">Horário: ${esc(horarios)}</div>` : ''}
-      ${s.contato_professor ? `<div class="di-meta">Contato: ${esc(s.contato_professor)}</div>` : ''}
+    <div class="painel-filtros">
+      <label class="filtro-campo">De <input id="sol-de" type="date" value="${filtro.de}" /></label>
+      <label class="filtro-campo">Até <input id="sol-ate" type="date" value="${filtro.ate}" /></label>
+      <label class="filtro-campo">Situação <select id="sol-st">
+        <option value="">Todas</option>
+        ${Object.entries(STATUS).map(([k, v]) => `<option value="${esc(k)}">${esc(v)}</option>`).join('')}
+      </select></label>
+      <label class="filtro-campo">Período <select id="sol-per">
+        <option value="">Todos</option>
+        ${Object.entries(PERIODOS).map(([k, v]) => `<option value="${esc(k)}">${esc(v)}</option>`).join('')}
+      </select></label>
     </div>
-    ${acoes}
-  </div>`;
+    <div id="sol-lista">${loading()}</div>
+    ${modalHtml()}`;
+
+  montarModal();
+  document.getElementById('sol-nova').addEventListener('click', () => abrirFormulario(ctx));
+
+  const rec = () => carregar();
+  document.getElementById('sol-de').addEventListener('change', e => { filtro.de = e.target.value; rec(); });
+  document.getElementById('sol-ate').addEventListener('change', e => { filtro.ate = e.target.value; rec(); });
+  document.getElementById('sol-st').addEventListener('change', e => { filtro.status = e.target.value; rec(); });
+  document.getElementById('sol-per').addEventListener('change', e => { filtro.periodo = e.target.value; rec(); });
+
+  carregar();
 }
 
-// As quatro transições que os botões da lista disparam. Confirmar é
-// sucesso pleno; negar não é erro do sistema, é uma decisão (aviso);
-// as demais só movem a solicitação de fase, sem fechar o assunto.
-const RESULTADO_STATUS = {
-  em_analise: { titulo: 'Solicitação em análise', tipo: 'info' },
-  aguardando_transporte_adaptado: { titulo: 'Solicitação adaptada', tipo: 'info' },
-  confirmado: { titulo: 'Solicitação confirmada', tipo: 'sucesso' },
-  negado: { titulo: 'Solicitação negada', tipo: 'atencao' },
-};
+async function carregar() {
+  const box = document.getElementById('sol-lista');
+  if (!box) return;
+  // O filtro recarrega do banco e a casca da tabela é descartada junto.
+  box.innerHTML = loading();
+  tabela = null;
 
-async function mudarStatus(id, status) {
-  if (status === 'confirmado' && !(await frotaLibera(id))) return;
-  const s = lista.find(x => x.id === id);
-  const identificador = s?.unidade?.apelido || s?.unidade?.nome || s?.atividade?.nome || s?.atividade_livre || '';
+  let lista;
   try {
-    // Negar exige justificativa (CHECK no banco, spec D5). Esta tela é
-    // a do v1 e ainda não tem campo de motivo - S3 traz o formulário; até
-    // lá, um texto padrão registra que a decisão veio daqui.
-    if (status === 'negado') await negarSolicitacao(id, 'Negado pela Gerência de Transporte.');
-    else if (status === 'confirmado') await confirmarSolicitacao(id);
-    else if (status === 'em_analise') await porEmAnalise(id);
-    else if (status === 'aguardando_transporte_adaptado') await aguardarAdaptado(id);
-    render(ctx);
-    const { titulo, tipo } = RESULTADO_STATUS[status] || { titulo: 'Solicitação atualizada', tipo: 'sucesso' };
-    toast({ titulo, texto: identificador, tipo });
-  } catch (err) {
-    reportarErro(err, { titulo: 'Não foi possível atualizar' });
-  }
+    lista = await listSolicitacoes({
+      status: filtro.status || undefined,
+      de: filtro.de || undefined,
+      ate: filtro.ate || undefined,
+    });
+  } catch (err) { box.innerHTML = erroBox(err); return; }
+
+  if (filtro.periodo) lista = lista.filter(s => s.periodo === filtro.periodo);
+
+  tabela = montarTabela(box, {
+    colunas: COLUNAS,
+    linhas: lista,
+    chave: s => s.id,
+    buscarEm: ['escola', 'atividade', 'situacao'],
+    ordem: { coluna: 'data', dir: 'desc' },
+    substantivo: 'solicitações',
+    aoClicarLinha: (s) => abrirDetalhe(s, ctx),
+    vazio: {
+      ico: 'transporte', titulo: 'Nenhuma solicitação no período',
+      texto: 'Ajuste os filtros acima ou clique em “Nova solicitação”.',
+    },
+  });
 }
 
-// Confere o saldo de ônibus do dia/período. Não bloqueia: avisa e deixa o
-// admin decidir (pode haver ônibus extra contratado fora do sistema).
-async function frotaLibera(id) {
-  const s = lista.find(x => x.id === id);
-  if (!s || !(s.qtd_onibus > 0)) return true;
-  try {
-    const saldo = await saldoDoDia(s.data);
-    const { total: cap, uso } = saldo.onibus[s.periodo];
-    const jaReserva = STATUS_RESERVA.includes(s.status);
-    const projetado = uso + (jaReserva ? 0 : s.qtd_onibus);
-    if (cap === 0) {
-      return confirmar('Confirmar mesmo assim?',
-        { detalhe: `Não há frota cadastrada para ${fmtData(s.data)}. Cadastre a frota vigente antes de confirmar.` });
-    }
-    if (projetado > cap) {
-      return confirmar('Confirmar mesmo assim?', {
-        detalhe: `Frota insuficiente: ${cap} veículo(s) no dia, o uso ficaria em ${projetado} em ${fmtData(s.data)} (${s.periodo}).`,
-      });
-    }
-  } catch (_) { /* se a checagem falhar, segue o fluxo normal */ }
-  return true;
-}
+// `valor` ordena e busca (texto puro); `celula` desenha (spec de listas,
+// D2). Sem a separação, ordenar "Situação" ordenaria pelo markup do chip.
+const COLUNAS = [
+  { id: 'escola', rotulo: 'Escola',
+    valor: s => s.unidade?.apelido || s.unidade?.nome || '' },
+  { id: 'data', rotulo: 'Data', tipo: 'data',
+    valor: s => s.data || '',
+    celula: s => esc(fmtData(s.data)) },
+  { id: 'situacao', rotulo: 'Situação',
+    valor: s => STATUS[s.status] || s.status,
+    celula: s => `<span class="tag st-${esc(s.status)}">${esc(STATUS[s.status] || s.status)}</span>` },
+  { id: 'periodo', rotulo: 'Período', prioridade: 2,
+    valor: s => PERIODOS[s.periodo] || s.periodo || '' },
+  { id: 'atividade', rotulo: 'Atividade', prioridade: 2,
+    valor: s => s.atividade?.nome || s.atividade_livre || '' },
+  { id: 'alunos', rotulo: 'Estudantes', prioridade: 3, tipo: 'numero', alinhar: 'dir',
+    valor: s => s.qtd_alunos || 0 },
+  { id: 'onibus', rotulo: 'Ônibus', prioridade: 3, tipo: 'numero', alinhar: 'dir',
+    valor: s => s.qtd_onibus || 0,
+    celula: s => `${s.qtd_onibus || 0}${s.qtd_vans ? ` <span class="tag bus">+${s.qtd_vans} van</span>` : ''}` },
+];

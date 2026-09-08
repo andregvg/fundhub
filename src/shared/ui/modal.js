@@ -99,20 +99,31 @@ export function abrirModal(html, { voltar = null, tamanho = 'medio' } = {}) {
   // Primeiro campo do formulário, se houver; senão o botão de fechar. Um
   // modal de edição que abre com o foco no × obriga a pessoa a tabular
   // até o começo do formulário toda vez.
-  const alvo = m.querySelector('.modal-body input, .modal-body select, .modal-body textarea')
+  //
+  // Rádio e caixa de seleção ficam de FORA da busca: neles as setas do
+  // teclado trocam a opção, então abrir com o foco ali muda a escolha de
+  // quem só ia navegar. Um campo de texto não tem esse efeito colateral.
+  const alvo = m.querySelector(
+      '.modal-body input:not([type="radio"]):not([type="checkbox"]), '
+      + '.modal-body select, .modal-body textarea')
     || m.querySelector('.modal-voltar') || m.querySelector('.modal-close');
   alvo?.focus();
 }
 
-export function fecharModal() {
+// `tudo: true` fecha a PILHA inteira em vez de desempilhar um nível.
+// Existe porque uma ação pode encerrar o fluxo todo: depois de negar uma
+// solicitação no modal de justificativa, voltar ao detalhe da mesma
+// solicitação para fechá-lo em seguida é trabalho visível e inútil.
+export function fecharModal({ tudo = false } = {}) {
   // Se há um modal embaixo, "fechar" é voltar para ele - e é ele que
   // chama abrirModal de novo, já com o dado atualizado.
-  if (voltarPara) {
+  if (voltarPara && !tudo) {
     const volta = voltarPara;
     voltarPara = null;
     volta();
     return;
   }
+  voltarPara = null;
   const m = document.getElementById('modal');
   document.getElementById('modal-back')?.classList.remove('open');
   m?.setAttribute('aria-hidden', 'true');

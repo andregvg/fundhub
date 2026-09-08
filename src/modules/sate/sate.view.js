@@ -1,32 +1,33 @@
 // ============================================================
 // FundHub - modules/sate/sate.view.js
-// Casca do SATE: carrega o que as quatro abas compartilham (perfil,
-// catálogo, escolas) e delega cada aba para o seu arquivo em views/.
-// A escola solicita o ônibus aqui; a SME (admin) valida.
+// Casca do SATE: carrega o que as abas compartilham (perfil, catálogo,
+// escolas) e delega cada aba para o seu arquivo em views/.
+// A escola solicita o ônibus aqui; quem tem escrita no módulo valida.
 // ============================================================
 import { getAtividades } from './atividades.model.js';
 import { getUnidades } from '../escolas/escolas.model.js';
 import { getLocais } from '../locais/locais.model.js';
 import { loading } from '../../shared/ui/feedback.js';
+import { ESCRITA } from '../../core/permissoes.js';
 
 import * as abaSolicitacoes from './views/solicitacoes.js';
-import * as abaNova from './views/nova.js';
 import * as abaFrota from './views/frota.js';
 import * as abaCatalogo from './views/catalogo.js';
 import * as abaLocais from './views/locais.js';
 
 const ABAS = {
+  // "Nova solicitação" era uma aba porque não havia modal. Virou botão
+  // da própria guia Solicitações em 08/09/2026 (bloco S3).
   solicitacoes: { rotulo: 'Solicitações', view: abaSolicitacoes },
-  nova:         { rotulo: 'Nova solicitação', view: abaNova },
-  frota:        { rotulo: 'Frota', view: abaFrota, admin: true },
+  frota:        { rotulo: 'Frota', view: abaFrota, aprovador: true },
   catalogo:     { rotulo: 'Catálogo', view: abaCatalogo },
-  locais:       { rotulo: 'Locais', view: abaLocais, admin: true },
+  locais:       { rotulo: 'Locais', view: abaLocais, aprovador: true },
 };
 
 let aba = 'solicitacoes';
 let ctx = null;
 
-export async function render(app, { perfil } = {}) {
+export async function render(app, { perfil, nivel } = {}) {
   app.innerHTML = `
     <div class="page-head">
       <h1>SATE · Transporte extraclasse</h1>
@@ -44,6 +45,10 @@ export async function render(app, { perfil } = {}) {
   // Contexto entregue a cada aba: dados compartilhados + navegação entre abas.
   ctx = {
     perfil, atividades, unidades, locais,
+    // Quem APROVA é quem tem escrita no módulo - não é o mesmo que ser
+    // admin do hub, e as regras tratam os dois de forma diferente
+    // (spec do modelo de dados, D7).
+    aprovador: nivel === ESCRITA,
     box: () => document.getElementById('sate-body'),
     irPara: (nova) => { aba = nova; pintarAbas(); renderAba(); },
     recarregarAtividades: async () => { ctx.atividades = await getAtividades(); },
@@ -52,7 +57,7 @@ export async function render(app, { perfil } = {}) {
 
   const barra = document.getElementById('sate-abas');
   barra.innerHTML = Object.entries(ABAS)
-    .filter(([, a]) => !a.admin || perfil?.isAdmin)
+    .filter(([, a]) => !a.aprovador || ctx.aprovador)
     .map(([id, a]) => `<button class="tab" role="tab" data-aba="${id}">${a.rotulo}</button>`)
     .join('');
   barra.addEventListener('click', e => {
@@ -60,7 +65,7 @@ export async function render(app, { perfil } = {}) {
     if (b) ctx.irPara(b.dataset.aba);
   });
 
-  if (ABAS[aba]?.admin && !perfil?.isAdmin) aba = 'solicitacoes';
+  if (ABAS[aba]?.aprovador && !ctx.aprovador) aba = 'solicitacoes';
   pintarAbas();
   renderAba();
 }

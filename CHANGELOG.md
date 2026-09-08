@@ -9,6 +9,44 @@ versionamento **MINOR** = módulo novo ou mudança de modelo de dados, **PATCH**
 
 ---
 
+## [0.26.0] - 2026-09-08
+
+### Adicionado
+
+- **"Nova solicitação" virou um botão da própria guia Solicitações** e abre
+  numa janela, em vez de ser uma aba separada. O formulário agora se divide
+  em quatro blocos - **o que**, **quando**, **quem vai**, **contato** - na
+  ordem em que a conversa acontece de verdade.
+- **A escola vê o saldo enquanto preenche.** Logo acima do botão de enviar
+  aparece quantos ônibus ainda estão livres naquela data e quantos o pedido
+  usa. Trocar a data, o período ou o número de estudantes atualiza a linha na
+  hora. **Se as vagas esgotarem, o botão de enviar desabilita** e a linha
+  explica o motivo - quem aprova continua podendo enviar, com o mesmo texto
+  como aviso.
+- **A lista de solicitações virou tabela**, com ordenação por qualquer coluna,
+  busca, páginas de 25 e, no celular, a linha que abre ao toque.
+- **Clicar numa solicitação abre a ficha dela**, com tudo o que ela é e, no pé,
+  só as decisões que cabem naquela situação: pôr em análise, confirmar, negar,
+  cancelar ou dar ciência num pedido de cancelamento.
+- **Negar e cancelar pedem a justificativa numa janela própria**, e o texto é
+  obrigatório. A escola vê o que foi escrito.
+- **A frota se cadastra pela engrenagem do módulo**: a frota vigente de cada
+  tipo de veículo, os reforços com prazo (Feira do Livro) e os rótulos que dão
+  nome a tudo isso.
+
+### Corrigido
+
+- **Botão de opção em formulário esticava pela linha inteira**, empurrando o
+  texto da opção para baixo e deixando a escolha confusa. Valia para qualquer
+  formulário do sistema, não só o do transporte.
+- **Esconder um campo de formulário podia simplesmente não funcionar**, sem
+  aviso: o campo continuava na tela. Corrigido, e a causa ficou registrada
+  para não voltar.
+- **Ao abrir uma janela de formulário, o cursor ia parar num botão de opção**
+  quando ele era o primeiro campo - e aí as setas do teclado trocavam a
+  escolha de quem só queria navegar. Agora o cursor pula para o primeiro
+  campo de digitação.
+
 ## [0.25.0] - 2026-09-08
 
 > **Esta versão exige rodar a migration `035_sate_v2.sql` no SQL Editor do

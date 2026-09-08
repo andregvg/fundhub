@@ -34,7 +34,16 @@ a { color: var(--brand); text-decoration: none; }
    navegador por ordem de origem no CSS de autor, e o elemento "escondido"
    continua visível. `!important` é necessário aqui: é a única forma de um
    atributo de estado vencer qualquer `display` de classe, sem ter que
-   listar cada seletor um a um. */
+   listar cada seletor um a um.
+
+   Vale também para RÓTULO DE FORMULÁRIO, e essa é a parte que engana: o
+   seletor `.form-grupo .campos label:not(.inline):not(.search):not(.switch)`
+   soma cinco classes, então esconder um campo por uma classe do módulo
+   (`.meu-form.modo-x .campo { display: none }`) perde a disputa em
+   silêncio - o campo fica na tela e nada avisa. Foi o que aconteceu na
+   alternância catálogo/livre do SATE em 08/09/2026. Esconder campo é
+   `el.hidden`, sempre; classe com `display` é o caminho que não
+   funciona. */
 [hidden] { display: none !important; }
 
 /* ── Topo ─────────────────────────────────────────────────── */

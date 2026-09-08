@@ -66,24 +66,36 @@ manhã seguinte para voltar e ser liberado.
 
 ### Pedir transporte
 
-1. Abra **Nova solicitação**.
-2. Escolha a atividade. Se for uma atividade organizada pela sua escola, marque
-   a opção de atividade livre e informe o destino.
-3. Informe a **data**, o **período** e quantos **estudantes** vão. O sistema
-   calcula sozinho quantos ônibus são necessários.
-4. Informe quantos estudantes usam **cadeira de rodas**, se houver. Isso
-   reserva van adaptada.
-5. Informe o horário de **embarque** e o de **retorno**.
-6. Confira o aviso de vagas. Se o dia estiver cheio, o pedido não é aceito -
-   escolha outra data.
+1. Na guia **Solicitações**, clique no botão **Nova solicitação**. Abre uma
+   janela com o formulário dividido em quatro partes: o que, quando, quem vai,
+   e contato.
+2. Em **O que**, escolha a atividade. Se for uma atividade organizada pela sua
+   escola, marque a opção de outra atividade e informe o destino.
+3. Em **Quando**, informe a data, o período e os horários de embarque e
+   retorno.
+4. Em **Quem vai**, informe a escola, as turmas, quantos estudantes vão e
+   quantos usam **cadeira de rodas**. O sistema calcula sozinho quantos ônibus
+   e quantas vans são necessários.
+5. **Acompanhe a linha de saldo** logo acima do botão de enviar. Ela mostra
+   quantos ônibus ainda estão livres naquela data e quantos o seu pedido usa,
+   e se atualiza sozinha quando você troca a data, o período ou o número de
+   estudantes.
+6. Se as vagas do dia esgotarem, a linha explica o motivo e o botão de enviar
+   fica desabilitado - escolha outra data.
 7. Envie. O pedido nasce **pendente de autorização**.
 
 ### Aprovar ou negar
 
-1. Abra a lista de solicitações e clique na que interessa.
-2. **Aprovar** confirma o transporte e reserva os veículos.
-3. **Negar** recusa o pedido. A justificativa é **obrigatória** - a escola
-   precisa saber por quê.
+1. Na guia **Solicitações**, **clique na linha** do pedido. Abre uma janela
+   com tudo o que ele é e, no pé, só as decisões que cabem naquela situação.
+2. **Confirmar** aprova o transporte e reserva os veículos.
+3. **Negar** recusa o pedido. Abre uma segunda janela pedindo a justificativa,
+   que é **obrigatória** - a escola vê o texto que você escrever.
+
+Para achar um pedido específico, use a caixa **Buscar na lista** acima da
+tabela, ou clique no título de uma coluna para reorganizar. Os campos de data
+e situação no alto buscam no sistema; a caixa de busca estreita o que já está
+na tela.
 
 ### Cancelar
 
@@ -177,4 +189,4 @@ Negado é um pedido que **nunca** chegou a valer - foi recusado na análise.
 Cancelado é um pedido que **estava de pé** e foi desfeito. Os dois exigem
 justificativa.
 
-> Atualizado na versão 0.25.0.
+> Atualizado na versão 0.26.0.
