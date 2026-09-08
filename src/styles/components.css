@@ -563,8 +563,7 @@ span.gira-90, span.gira-menos90, span.gira-180 { display: inline-flex; }
 .lbl,
 .form-grid label,
 .esc-form > label,
-.form-grupo .campos label:not(.inline):not(.search):not(.switch),
-.fr-of {
+.form-grupo .campos label:not(.inline):not(.search):not(.switch) {
   display: flex;
   flex-direction: column;
   gap: 5px;
@@ -575,8 +574,7 @@ span.gira-90, span.gira-menos90, span.gira-180 { display: inline-flex; }
   letter-spacing: .04em;
 }
 .form-grid input, .form-grid select, .form-grid textarea,
-.esc-form input, .esc-form select, .esc-form textarea,
-.fr-of input {
+.esc-form input, .esc-form select, .esc-form textarea {
   min-height: var(--campo);
   padding: 7px 10px;
   border: 1px solid var(--border);

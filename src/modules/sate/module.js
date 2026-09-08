@@ -8,5 +8,7 @@ export default {
   rota: '#/sate',
   nav: true,
   ativo: true,
+  doc: true,
+  config: () => import('./sate.config.js'),
   load: () => import('./sate.view.js'),
 };

@@ -9,6 +9,50 @@ versionamento **MINOR** = módulo novo ou mudança de modelo de dados, **PATCH**
 
 ---
 
+## [0.25.0] - 2026-09-08
+
+> **Esta versão exige rodar a migration `035_sate_v2.sql` no SQL Editor do
+> Supabase.** Até isso ser feito, o SATE segue funcionando com o modelo
+> antigo e a aba Frota avisa que não há frota cadastrada - ele degrada,
+> não quebra.
+
+### Adicionado
+
+- **O SATE ganhou tutorial e configurações.** O botão de ajuda no topo da
+  tela explica o módulo inteiro, com **as duas regras de agendamento em
+  destaque**; a engrenagem ao lado ajusta quatro números: o intervalo
+  mínimo entre períodos, os lugares por ônibus, os cadeirantes por van e a
+  antecedência mínima da escola.
+- **A frota passou a ser cadastrada por vigência, não dia a dia.** Em vez
+  de lançar cada dia do ano, registra-se **quantos veículos existem e desde
+  quando**. Cadastrar uma frota nova encerra a anterior - é assim que se
+  registra "a partir de março passamos a ter 12".
+- **Reforço de evento soma à frota vigente.** A Feira do Livro, que traz
+  veículos a mais por alguns dias, vira um lançamento com início e fim que
+  se soma ao normal, sem apagar nada.
+- **Van adaptada virou um recurso próprio**, com saldo separado do de
+  ônibus. Turma com cadeirante passa a consumir van, e não ônibus.
+- **Um ônibus pode passar em mais de uma escola.** Quem aprova pode
+  acrescentar pontos de embarque a uma viagem. A escola em que o ônibus
+  para também passa a ver aquele agendamento - ela precisa saber a que
+  horas o veículo chega.
+
+### Alterado
+
+- **Negar e cancelar deixaram de ser a mesma coisa.** Negar é recusar um
+  pedido que nunca valeu; cancelar é desfazer um que já estava de pé.
+  Depois de aprovado, a escola não cancela sozinha: ela **pede**, e o
+  pedido fica *pendente de cancelamento* até a Gerência de Transporte dar
+  ciência. A vaga volta ao saldo já no momento do pedido.
+- **Justificativa passou a ser obrigatória** em toda negativa e todo
+  cancelamento, e o sistema guarda quem decidiu e quando.
+- **A aba Frota mostra o saldo do dia** - quantos veículos existem, quantos
+  estão comprometidos em cada período e de onde eles vieram ("9 Regular +
+  16 Feira do Livro"). O cadastro em si vem na próxima entrega.
+- **O período deixou de ser uma cota separada.** Nove ônibus atendem nove
+  viagens de manhã e nove à tarde: é o mesmo veículo indo duas vezes. O que
+  limita não é uma cota por turno, é o intervalo entre uma viagem e outra.
+
 ## [0.24.0] - 2026-09-08
 
 ### Alterado

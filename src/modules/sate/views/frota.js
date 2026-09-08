@@ -1,18 +1,31 @@
 // ============================================================
 // FundHub - sate/views/frota.js  (aba Frota - só admin)
-// Oferta de ônibus por dia/período × uso já reservado = saldo.
+// Saldo do dia: quantos veículos existem, quantos estão comprometidos
+// em cada período e quanto sobra.
+//
+// Esta tela era o CADASTRO da oferta, dia a dia e período a período.
+// A migration 035 aposentou esse modelo: a frota passou a ser um
+// lançamento de veículos com vigência (spec 2026-09-08-sate-modelo-de-
+// dados-design.md § D1), e cadastrar dia a dia deixou de fazer sentido.
+//
+// Por enquanto ela é só de LEITURA. O cadastro da frota vigente e dos
+// lotes de evento nasce no bloco S3, junto com o resto da interface -
+// deixar aqui um formulário meio-convertido seria pior que dizer, na
+// tela, onde a coisa está.
 // ============================================================
-import { getOfertaDia, setOferta, getUsoDia, PERIODOS } from '../sate.model.js';
-import { falha, ok } from '../../../shared/dom.js';
-import { hojeISO } from '../../../shared/format.js';
-import { loading, erroBox } from '../../../shared/ui/feedback.js';
+import { saldoDoDia, PERIODOS } from '../sate.model.js';
+import { getFrotas, rotulaTipo } from '../frota.model.js';
+import { esc } from '../../../shared/dom.js';
+import { hojeISO, fmtData } from '../../../shared/format.js';
+import { loading, erroBox, emptyState } from '../../../shared/ui/feedback.js';
 import { ico } from '../../../shared/ui/icones.js';
 
 export function render(ctx) {
   ctx.box().innerHTML = `
     <div class="toolbar">
-      <label class="search compacta">${ico('calendario', { tam: 14 })} <input id="fr-data" type="date" value="${hojeISO()}" aria-label="Data" /></label>
-      <span class="count">Defina os ônibus disponíveis por período e acompanhe o saldo.</span>
+      <label class="search compacta">${ico('calendario', { tam: 14 })}
+        <input id="fr-data" type="date" value="${hojeISO()}" aria-label="Data" /></label>
+      <span class="count">Veículos disponíveis no dia e quanto já está comprometido.</span>
     </div>
     <div id="fr-body">${loading()}</div>`;
 
@@ -23,39 +36,53 @@ export function render(ctx) {
 async function carregar() {
   const data = document.getElementById('fr-data').value;
   const body = document.getElementById('fr-body');
+  if (!data) return;
+  body.innerHTML = loading();
 
-  let oferta = {}, uso = {};
-  try { [oferta, uso] = await Promise.all([getOfertaDia(data), getUsoDia(data)]); }
-  catch (err) { body.innerHTML = erroBox(err); return; }
+  let saldo, vigentes;
+  try {
+    [saldo, vigentes] = await Promise.all([saldoDoDia(data), getFrotas({ vigenteEm: data })]);
+  } catch (err) { body.innerHTML = erroBox(err); return; }
+
+  if (!vigentes.length) {
+    body.innerHTML = emptyState(ico('transporte', { tam: 32 }), 'Nenhuma frota vigente nesta data',
+      `Nada foi cadastrado para ${esc(fmtData(data))}. A frota vigente e os lotes de evento se cadastram nas configurações do SATE.`);
+    return;
+  }
 
   body.innerHTML = `
     <div class="frota">
+      ${['onibus', 'van_adaptada'].map(tipo => bloco(tipo, saldo[tipo])).join('')}
+    </div>
+    <div class="fr-composicao">
+      <div class="lbl">Composição do dia</div>
+      ${vigentes.map(f => `<div class="fr-lote">
+        <b>${esc(f.rotulo?.nome || 'sem rótulo')}</b>
+        <span class="tag">${esc(rotulaTipo(f.tipo))}</span>
+        <span>${f.quantidade} veículo(s)</span>
+        <span class="di-meta">${esc(fmtData(f.inicio))} → ${f.fim ? esc(fmtData(f.fim)) : 'em aberto'}</span>
+      </div>`).join('')}
+    </div>`;
+}
+
+// Um bloco por tipo de veículo. Se não há nenhum daquele tipo vigente na
+// data, o bloco não aparece - uma linha de zeros para vans num dia sem
+// van cadastrada é ruído, não informação.
+function bloco(tipo, porPeriodo) {
+  const total = porPeriodo.manha.total;
+  if (!total) return '';
+  return `
+    <div class="fr-tipo">
+      <div class="lbl">${esc(rotulaTipo(tipo))} · ${total} no dia</div>
       ${Object.keys(PERIODOS).map(p => {
-        const cap = oferta[p] || 0, u = uso[p] || 0, saldo = cap - u;
+        const s = porPeriodo[p];
         return `<div class="frota-row">
-          <div class="fr-per">${PERIODOS[p]}</div>
-          <label class="fr-of">Ônibus disponíveis
-            <input type="number" inputmode="numeric" min="0" data-per="${p}" value="${cap}" /></label>
-          <div class="fr-uso">Em uso <b>${u}</b></div>
-          <div class="fr-saldo ${saldo < 0 ? 'neg' : ''}">Saldo <b>${saldo}</b></div>
+          <div class="fr-per">${esc(PERIODOS[p])}</div>
+          <div class="fr-uso">Em uso <b>${s.uso}</b></div>
+          <div class="fr-saldo ${s.estouro ? 'neg' : ''}">
+            ${s.estouro ? `Estouro <b>${s.estouro}</b>` : `Livre <b>${s.livre}</b>`}
+          </div>
         </div>`;
       }).join('')}
-    </div>
-    <div class="form-foot">
-      <span id="fr-msg" class="auth-msg"></span>
-      <button id="fr-save" type="button">Salvar oferta</button>
     </div>`;
-
-  document.getElementById('fr-save').addEventListener('click', async () => {
-    const msg = document.getElementById('fr-msg'); msg.className = 'auth-msg';
-    try {
-      for (const inp of body.querySelectorAll('input[data-per]')) {
-        await setOferta(data, inp.dataset.per, parseInt(inp.value, 10) || 0);
-      }
-      ok(msg, 'Oferta salva.');
-      carregar();
-    } catch (err) {
-      falha(msg, 'Erro: ' + (err.message || err));
-    }
-  });
 }

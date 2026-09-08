@@ -5,9 +5,9 @@
 // Validações: data no passado, antecedência mínima (só p/ escola),
 // mínimo de participantes da atividade e bloqueios do calendário.
 // ============================================================
-import {
-  criarSolicitacao, onibusPara, CAP_ONIBUS, ANTECEDENCIA_MIN,
-} from '../sate.model.js';
+import { criarSolicitacao } from '../sate.model.js';
+import { onibusPara } from '../regras.model.js';
+import { capacidadeOnibus, antecedenciaMinDias } from '../sate.config.js';
 import { getDiaCalendario } from '../../calendario/calendario.model.js';
 import { esc, val, falha } from '../../../shared/dom.js';
 import { hojeISO, addDias, fmtData, isUuid } from '../../../shared/format.js';
@@ -20,7 +20,7 @@ let ctx = null;
 export function render(contexto) {
   ctx = contexto;
   const { perfil, atividades, unidades } = ctx;
-  const minData = perfil?.isAdmin ? hojeISO() : addDias(hojeISO(), ANTECEDENCIA_MIN);
+  const minData = perfil?.isAdmin ? hojeISO() : addDias(hojeISO(), antecedenciaMinDias());
 
   const optsAtiv = atividades.map(a => `<option value="${a.id}">${esc(a.nome)}</option>`).join('');
   const optsEsc = [...unidades].sort((a, b) => a.nome.localeCompare(b.nome, 'pt'))
@@ -114,7 +114,7 @@ function dica() {
     usaOnibus = a ? a.usa_onibus : true;
   }
   hint.textContent = usaOnibus
-    ? `≈ ${onibusPara(n)} ônibus (${CAP_ONIBUS} lugares)`
+    ? `≈ ${onibusPara(n, capacidadeOnibus())} ônibus (${capacidadeOnibus()} lugares)`
     : 'Sem ônibus';
 }
 
@@ -153,8 +153,8 @@ async function enviar(e) {
     return falha(msg, 'Preencha escola, data, período e nº de alunos.');
   }
   if (data < hojeISO()) return falha(msg, 'A data não pode ser no passado.');
-  if (!perfil?.isAdmin && data < addDias(hojeISO(), ANTECEDENCIA_MIN)) {
-    return falha(msg, `A escola deve solicitar com no mínimo ${ANTECEDENCIA_MIN} dias de antecedência.`);
+  if (!perfil?.isAdmin && data < addDias(hojeISO(), antecedenciaMinDias())) {
+    return falha(msg, `A escola deve solicitar com no mínimo ${antecedenciaMinDias()} dias de antecedência.`);
   }
   if (atividade?.min_participantes && qtd < atividade.min_participantes) {
     return falha(msg, `Esta atividade exige no mínimo ${atividade.min_participantes} participantes.`);
@@ -180,7 +180,7 @@ async function enviar(e) {
     data, periodo,
     qtd_alunos: qtd,
     qtd_cadeirante: cadeira,
-    qtd_onibus: usaOnibus ? onibusPara(qtd) : 0,
+    qtd_onibus: usaOnibus ? onibusPara(qtd, capacidadeOnibus()) : 0,
     turmas: val('f-turmas') || null,
     local_id: localId,
     destino_nome: destinoNome,

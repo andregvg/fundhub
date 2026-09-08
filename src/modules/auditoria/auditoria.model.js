@@ -32,7 +32,14 @@ export const TABELAS = {
   // SATE / transporte
   atividade_extraclasse: 'Atividades (SATE)',
   solicitacao_transporte: 'Solicitações (SATE)',
-  oferta_onibus: 'Frota (SATE)',
+  solicitacao_embarque: 'Pontos de embarque (SATE)',
+  frota: 'Frota (SATE)',
+  frota_rotulo: 'Rótulos de frota (SATE)',
+  // `oferta_onibus` foi aposentada pela migration 035, mas a tabela
+  // continua no banco com o histórico dela - e o audit_log guarda as
+  // alterações antigas. Sem este rótulo, o passado apareceria com o nome
+  // cru na aba Mudanças.
+  oferta_onibus: 'Frota, modelo antigo (SATE)',
   // rotina da gerência
   dia_calendario: 'Calendário',
   afastamento: 'Afastamentos',

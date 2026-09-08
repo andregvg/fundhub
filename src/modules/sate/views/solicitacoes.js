@@ -4,8 +4,8 @@
 // Ao CONFIRMAR, confere o saldo de frota do dia/período antes.
 // ============================================================
 import {
-  listSolicitacoes, atualizarStatusSolicitacao, getOfertaDia, getUsoDia,
-  STATUS, PERIODOS, STATUS_RESERVA,
+  listSolicitacoes, confirmarSolicitacao, negarSolicitacao, porEmAnalise,
+  aguardarAdaptado, saldoDoDia, STATUS, PERIODOS, STATUS_RESERVA,
 } from '../sate.model.js';
 import { esc } from '../../../shared/dom.js';
 import { fmtData } from '../../../shared/format.js';
@@ -127,7 +127,13 @@ async function mudarStatus(id, status) {
   const s = lista.find(x => x.id === id);
   const identificador = s?.unidade?.apelido || s?.unidade?.nome || s?.atividade?.nome || s?.atividade_livre || '';
   try {
-    await atualizarStatusSolicitacao(id, status);
+    // Negar exige justificativa (CHECK no banco, spec D5). Esta tela é
+    // a do v1 e ainda não tem campo de motivo - S3 traz o formulário; até
+    // lá, um texto padrão registra que a decisão veio daqui.
+    if (status === 'negado') await negarSolicitacao(id, 'Negado pela Gerência de Transporte.');
+    else if (status === 'confirmado') await confirmarSolicitacao(id);
+    else if (status === 'em_analise') await porEmAnalise(id);
+    else if (status === 'aguardando_transporte_adaptado') await aguardarAdaptado(id);
     render(ctx);
     const { titulo, tipo } = RESULTADO_STATUS[status] || { titulo: 'Solicitação atualizada', tipo: 'sucesso' };
     toast({ titulo, texto: identificador, tipo });
@@ -142,17 +148,17 @@ async function frotaLibera(id) {
   const s = lista.find(x => x.id === id);
   if (!s || !(s.qtd_onibus > 0)) return true;
   try {
-    const [oferta, uso] = await Promise.all([getOfertaDia(s.data), getUsoDia(s.data)]);
-    const cap = oferta[s.periodo] || 0;
+    const saldo = await saldoDoDia(s.data);
+    const { total: cap, uso } = saldo.onibus[s.periodo];
     const jaReserva = STATUS_RESERVA.includes(s.status);
-    const projetado = (uso[s.periodo] || 0) + (jaReserva ? 0 : s.qtd_onibus);
+    const projetado = uso + (jaReserva ? 0 : s.qtd_onibus);
     if (cap === 0) {
       return confirmar('Confirmar mesmo assim?',
-        { detalhe: `A oferta de ônibus não está definida para ${fmtData(s.data)} (${s.periodo}).` });
+        { detalhe: `Não há frota cadastrada para ${fmtData(s.data)}. Cadastre a frota vigente antes de confirmar.` });
     }
     if (projetado > cap) {
       return confirmar('Confirmar mesmo assim?', {
-        detalhe: `Frota insuficiente: oferta ${cap}, uso ficaria ${projetado} ônibus em ${fmtData(s.data)} (${s.periodo}).`,
+        detalhe: `Frota insuficiente: ${cap} veículo(s) no dia, o uso ficaria em ${projetado} em ${fmtData(s.data)} (${s.periodo}).`,
       });
     }
   } catch (_) { /* se a checagem falhar, segue o fluxo normal */ }
