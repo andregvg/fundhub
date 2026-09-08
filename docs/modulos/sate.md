@@ -17,13 +17,31 @@
 
 | Quem | O que faz |
 |---|---|
-| Escola | Pede transporte **para os próprios estudantes** e vê **os próprios pedidos** |
+| Escola | Pede transporte **para os próprios estudantes** e vê **os agendamentos em que está envolvida** |
 | Gerência de Transporte | Vê a rede inteira, aprova, nega, remaneja e cadastra a frota |
 | Equipe da SME | Vê a rede inteira, não decide |
 
-A escola também vê um pedido de outra escola quando o ônibus **passa na
-escola dela** para embarcar estudantes - ela precisa saber a que horas o
-veículo chega.
+### O que "envolvida" quer dizer
+
+A escola vê um agendamento quando ele é **dela**, e isso acontece de duas
+formas:
+
+1. **Ela mesma pediu.**
+2. **A Gerência de Transporte pediu por ela.** Um agendamento criado pela
+   gerência para a sua escola é seu do mesmo jeito: aparece na sua lista e
+   você acompanha o andamento dele.
+
+E vê também quando **o ônibus para na escola dela** para embarcar estudantes,
+mesmo que o pedido tenha sido aberto para outra unidade - ela precisa saber a
+que horas o veículo chega.
+
+Quando um ônibus atende mais de uma escola, **todas as escolas envolvidas veem
+o agendamento inteiro**, com os horários de cada parada e por onde mais o
+veículo passa. Isso é de propósito: quem embarca no mesmo ônibus precisa saber
+com quem está dividindo a viagem e em que ordem as paradas acontecem.
+
+O que a escola **não** vê é agendamento de escola nenhuma em que ela não
+entre - nem pedido, nem parada.
 
 Juntar duas escolas no mesmo ônibus é decisão de quem aprova. A escola não
 consegue fazer isso sozinha.
@@ -171,6 +189,12 @@ continuam com o nome deles.
 O saldo é por dia. Troque a data no formulário e o número de vagas se atualiza
 na hora.
 
+**O saldo que eu vejo conta os pedidos das outras escolas?**
+Conta. O número de veículos livres é o da rede inteira naquele dia, mesmo que
+você só enxergue os agendamentos em que a sua escola está envolvida - senão o
+aviso de vagas esgotadas não serviria para nada. O que aparece é só a
+contagem: você não vê de quem são as outras reservas.
+
 **Minha turma tem 50 estudantes. Quantos ônibus o sistema reserva?**
 Dois - a conta é por lugares por ônibus, hoje 44, arredondando para cima. Só
 os estudantes entram nessa conta; acompanhantes não requisitam um veículo a
@@ -189,4 +213,4 @@ Negado é um pedido que **nunca** chegou a valer - foi recusado na análise.
 Cancelado é um pedido que **estava de pé** e foi desfeito. Os dois exigem
 justificativa.
 
-> Atualizado na versão 0.26.0.
+> Atualizado na versão 0.27.0.

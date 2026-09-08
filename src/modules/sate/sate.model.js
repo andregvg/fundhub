@@ -201,18 +201,47 @@ export async function usoDoDia(dataISO) {
 // período. `livre` nunca é negativo na exibição - um dia estourado por
 // exceção de aprovador mostra zero livre, e o excesso aparece como
 // `estouro`, que é o número que interessa a quem aprova.
+//
+// A CONTA VEM DO BANCO, por `saldo_transporte()` (migration 036), e não
+// de somar as linhas aqui. O motivo é o RLS: uma escola só lê as
+// solicitações em que está envolvida, então somar pelo cliente daria a
+// ela o próprio uso e mais nada - "9 de 9 livres" num dia lotado, na
+// tela que existe justamente para avisar que as vagas acabaram.
+//
+// A função é `security definer` e devolve só CONTAGEM: nenhuma escola,
+// nenhum horário, nada que diga de quem é a reserva.
 export async function saldoDoDia(dataISO) {
-  const [total, uso] = await Promise.all([totalDoDia(dataISO), usoDoDia(dataISO)]);
-  const monta = (tipo) => {
-    const t = total[tipo] || 0;
+  const monta = (tipo, bruto) => {
     const out = {};
     for (const p of Object.keys(PERIODOS)) {
-      const u = uso[tipo][p] || 0;
+      const t = bruto?.[tipo]?.[p]?.total || 0;
+      const u = bruto?.[tipo]?.[p]?.uso || 0;
       out[p] = { total: t, uso: u, livre: Math.max(0, t - u), estouro: Math.max(0, u - t) };
     }
     return out;
   };
-  return { onibus: monta('onibus'), van_adaptada: monta('van_adaptada') };
+
+  if (hasSupabase()) {
+    const { data, error } = await sb().rpc('saldo_transporte', { p_data: dataISO });
+    if (!error && data) return { onibus: monta('onibus', data), van_adaptada: monta('van_adaptada', data) };
+    // QUALQUER falha cai na soma pelo cliente, sem relançar. O caso comum
+    // é a 036 ainda não ter rodado - e aí o PostgREST devolve `PGRST202`,
+    // não o `42883` do Postgres, o que faria uma checagem por código
+    // específico deixar a tela quebrar em vez de degradar. Como a rota
+    // alternativa É o comportamento anterior (certo para quem aprova,
+    // otimista para a escola), cair nela nunca é pior que falhar.
+    if (error) console.warn('[sate] saldo_transporte indisponível, somando no cliente:', error.message);
+  }
+
+  const [total, uso] = await Promise.all([totalDoDia(dataISO), usoDoDia(dataISO)]);
+  const bruto = {};
+  for (const tipo of ['onibus', 'van_adaptada']) {
+    bruto[tipo] = {};
+    for (const p of Object.keys(PERIODOS)) {
+      bruto[tipo][p] = { total: total[tipo] || 0, uso: uso[tipo][p] || 0 };
+    }
+  }
+  return { onibus: monta('onibus', bruto), van_adaptada: monta('van_adaptada', bruto) };
 }
 
 // Só o que a regra (b) precisa do dia seguinte: ônibus livres de manhã.

@@ -9,6 +9,35 @@ versionamento **MINOR** = módulo novo ou mudança de modelo de dados, **PATCH**
 
 ---
 
+## [0.27.0] - 2026-09-08
+
+> **Exige rodar a migration `036_sate_envolvimento_e_saldo.sql`** no SQL
+> Editor, depois da `035`. Sem ela o sistema continua abrindo, mas a escola
+> vê um saldo de vagas otimista demais.
+
+### Alterado
+
+- **A regra de quem vê o quê no transporte ficou mais precisa.** Antes:
+  "a escola vê os pedidos que ela mesma fez". Agora: **a escola vê os
+  agendamentos em que está envolvida** - os que ela pediu, os que a Gerência
+  de Transporte pediu por ela, e aqueles em que o ônibus para na escola dela
+  para embarcar estudantes.
+- **Quando um ônibus atende mais de uma escola, todas as escolas envolvidas
+  veem o agendamento inteiro**, com os horários de cada parada e por onde
+  mais o veículo passa. Quem divide o ônibus precisa saber a ordem das
+  paradas.
+- Ver não é mexer: a escola em que o ônibus só faz uma parada acompanha o
+  agendamento, mas quem cancela continua sendo a escola dona dele.
+
+### Corrigido
+
+- **O número de vagas livres estava errado para as escolas** - e justamente
+  na tela feita para avisar que as vagas acabaram. Como a escola só enxerga
+  os agendamentos em que está envolvida, a conta somava só os ônibus dela e
+  podia mostrar "9 de 9 livres" num dia lotado. Agora a contagem vem do
+  sistema e considera a rede inteira. **Continua sendo só a contagem**: a
+  escola vê quantos veículos restam, nunca de quem são as outras reservas.
+
 ## [0.26.0] - 2026-09-08
 
 ### Adicionado

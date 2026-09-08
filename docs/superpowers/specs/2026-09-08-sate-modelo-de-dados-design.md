@@ -207,14 +207,41 @@ um backfill e tornaria a posse ambígua.
 Escrever aqui exige `escrita` em `sate`: juntar escolas num ônibus é
 decisão de quem aprova, como o André definiu.
 
-**Uma assunção que precisa da sua confirmação.** "Escolas só veem as
-solicitações que elas mesmas fizeram" e "um ônibus pode passar em mais de
-uma escola" se chocam: a segunda escola tem alunos naquele ônibus e
-precisa saber a que horas ele chega, mas não foi quem pediu. Decidi que
-**a escola vê a solicitação se for a solicitante OU um ponto de
-embarque** - deixá-la no escuro sobre um ônibus que busca os alunos dela
-seria pior. Está no RLS assim; se você quiser o contrário, é uma linha de
-policy.
+### A regra de visibilidade (revista em 08/09/2026, migration 036)
+
+A formulação original - *"escolas só veem as solicitações que elas mesmas
+fizeram"* - se chocava com o embarque múltiplo, e a redação do André a
+substituiu por uma que não se choca com nada:
+
+> **A escola vê os agendamentos em que ela está envolvida.**
+
+Envolvida significa duas coisas, e a segunda é a que faltava:
+
+- **É a escola do pedido** - tanto faz se ela mesma o abriu ou se alguém
+  com escrita no SATE o abriu **por** ela. Quem digitou não é o critério;
+  de quem é o agendamento, sim.
+- **É um ponto de embarque** da viagem.
+
+A regra nova é mais simples que a antiga *e* cobre mais casos. Como o
+embarque múltiplo só pode ser montado por quem tem escrita, todas as
+escolas de um mesmo ônibus enxergam o agendamento inteiro - inclusive as
+outras paradas - por construção, e não por exceção. Elas dividem o
+veículo; precisam saber a ordem das paradas.
+
+**Ver não é agir.** Uma escola que é só ponto de embarque enxerga o
+agendamento mas não o cancela nem o edita: isso continua sendo do dono
+(`unidade_id`) e de quem tem escrita. Envolvimento governa visibilidade;
+posse governa ação.
+
+**O que essa revisão quebrou, e que ninguém tinha visto.** O saldo do dia
+era somado no cliente, lendo `solicitacao_transporte` - e o RLS filtra
+essa leitura. Uma escola somava só os próprios ônibus e via "9 de 9
+livres" num dia lotado, na tela que existe exatamente para avisar que as
+vagas acabaram. A conta passou a ser a função `saldo_transporte()`,
+`security definer`, que devolve **só contagem**: nenhuma escola, nenhum
+horário, nada que diga de quem é a reserva. Agregado não vaza - "3 de 9
+livres em 15/10" é o que a escola precisa e não conta nada sobre
+ninguém.
 
 ### D9 - Configuração do módulo
 
