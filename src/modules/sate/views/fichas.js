@@ -11,7 +11,8 @@
 // A alocação (quantas fichas, com que número) é regra de domínio e mora
 // em `regras.model.js`; aqui só se desenha o que ela devolveu.
 // ============================================================
-import { getViagensDoDia, getEmbarques, PERIODOS } from '../sate.model.js';
+import { getViagensDoDia, PERIODOS } from '../sate.model.js';
+import { getParticipacoesDe, ativa } from '../participacoes.model.js';
 import { alocarFichas, pendenciasDeFicha } from '../regras.model.js';
 import { capacidadeOnibus } from '../sate.config.js';
 import { esc } from '../../../shared/dom.js';
@@ -54,13 +55,12 @@ async function carregar() {
 
   if (filtro.periodo) confirmadas = confirmadas.filter(s => s.periodo === filtro.periodo);
 
-  // As paradas a mais de cada viagem: sem elas o motorista não sabe onde
-  // mais o ônibus para. Uma consulta por solicitação, e não um join, para
-  // manter a leitura simples - são poucas viagens por dia.
+  // As escolas de cada viagem, na ordem. Só as ATIVAS: uma escola que
+  // cancelou a participação não pode aparecer na ficha do motorista -
+  // ele iria buscar quem não vai.
+  const porViagem = await getParticipacoesDe(confirmadas.map(s => s.id)).catch(() => ({}));
   const paradas = {};
-  await Promise.all(confirmadas.map(async s => {
-    paradas[s.id] = await getEmbarques(s.id).catch(() => []);
-  }));
+  for (const s of confirmadas) paradas[s.id] = (porViagem[s.id] || []).filter(ativa);
 
   const fichas = alocarFichas(confirmadas, { capacidade: capacidadeOnibus() });
   const pendentes = pendenciasDeFicha(confirmadas);
@@ -104,17 +104,20 @@ async function carregar() {
 
 function ficha(f, cab, paradas) {
   const s = f.solicitacao;
-  const origem = s.unidade?.nome || '—';
+  // A primeira participação ativa é a origem; as demais são as paradas.
+  const [primeira, ...demais] = paradas;
+  const origem = primeira?.unidade?.nome || primeira?.local?.nome || s.unidade?.nome || '—';
+  const origemEnd = primeira?.unidade?.endereco || primeira?.local?.endereco || s.unidade?.endereco || '';
   const destino = s.destino_nome || s.atividade?.local_nome || '—';
   const destEnd = s.destino_endereco || s.atividade?.local_endereco || '';
 
   // Paradas a mais: uma linha por ponto, na ordem. Nunca concatenadas
   // numa linha só - o motorista precisa saber a sequência.
-  const extras = paradas.length ? `
+  const extras = demais.length ? `
     <tr>
       <th>Também embarca em</th>
-      <td colspan="3">${paradas.map((p, i) =>
-        `<div class="fi-parada">${i + 1}. ${esc(p.unidade?.apelido || p.unidade?.nome || p.local?.nome || '—')}`
+      <td colspan="3">${demais.map((p, i) =>
+        `<div class="fi-parada">${i + 2}. ${esc(p.unidade?.apelido || p.unidade?.nome || p.local?.nome || '—')}`
         + `${p.horario ? ` · ${esc(p.horario)}` : ''}`
         + `${p.qtd_alunos ? ` · ${p.qtd_alunos} estudante(s)` : ''}</div>`).join('')}</td>
     </tr>` : '';
@@ -129,7 +132,7 @@ function ficha(f, cab, paradas) {
         <tbody>
           <tr>
             <th>Origem</th>
-            <td colspan="3">${esc(origem)}${s.unidade?.endereco ? `<div class="fi-end">${esc(s.unidade.endereco)}</div>` : ''}</td>
+            <td colspan="3">${esc(origem)}${origemEnd ? `<div class="fi-end">${esc(origemEnd)}</div>` : ''}</td>
           </tr>
           ${extras}
           <tr>

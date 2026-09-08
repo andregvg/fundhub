@@ -9,6 +9,34 @@ versionamento **MINOR** = módulo novo ou mudança de modelo de dados, **PATCH**
 
 ---
 
+## [0.29.0] - 2026-09-08
+
+> **Exige rodar a migration `037_sate_participacao.sql`**, depois da `036`.
+
+### Adicionado
+
+- **Uma escola pode sair de uma viagem sem cancelá-la para as outras.** Quando
+  o ônibus atende mais de uma escola e só uma desiste, ela clica em **Sair da
+  viagem** e escreve o motivo. A vaga volta ao saldo na hora e as demais
+  escolas seguem normalmente.
+- Confirmada a saída, a participação fica **cancelada** - e a escola continua
+  vendo o agendamento e o registro de que saiu. A informação não desaparece.
+- **Ao confirmar uma saída, a Gerência pode pôr outra escola no lugar** e
+  reordenar as paradas, sem mexer no resto da viagem.
+- O agendamento passou a mostrar a lista **Escolas nesta viagem**, com a ordem
+  das paradas, quantos estudantes cada uma leva e a situação de cada uma.
+
+### Alterado
+
+- **Um agendamento com mais de uma escola deixou de ter uma "escola dona".**
+  Ele é de todas as escolas envolvidas, e cada uma entra como uma participação
+  com os próprios estudantes e a própria situação. Uma escola pedindo sozinha
+  continua exatamente como era - ela é o caso de uma participação só.
+- Na lista de solicitações, a coluna **Escolas** mostra a primeira e a
+  contagem das demais ("Escola Exemplo +2").
+- **A ficha do motorista só traz as escolas ativas.** Quem saiu da viagem não
+  aparece nela - o ônibus não iria buscar quem não vai.
+
 ## [0.28.0] - 2026-09-08
 
 ### Adicionado

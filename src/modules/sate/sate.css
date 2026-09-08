@@ -223,3 +223,39 @@
   .fi-faixa { break-after: avoid; page-break-after: avoid; background: none; border-bottom: 2px solid var(--text); }
   .fi-cab { background: none; }
 }
+
+/* ── As escolas de uma viagem (modal de detalhe) ─────────────
+   Uma linha por participação. A cancelada FICA na lista, esmaecida -
+   é por ela ficar que a escola que desistiu continua vendo o registro
+   do que aconteceu. Some da ficha do motorista, não daqui. */
+.det-partes { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
+.det-parte {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 8px 11px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-btn);
+  background: var(--surface-2);
+  font-size: 13.5px;
+}
+.det-parte.fora { opacity: .7; }
+.det-parte-ordem {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: var(--surface-3);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+/* O motivo ocupa a linha inteira: é texto de gente, não um metadado
+   curto, e espremê-lo ao lado do nome o cortaria. */
+.det-parte-motivo { flex: 1 1 100%; font-style: italic; }
+.det-parte .mini-btn { margin-left: auto; }
+.det-parte .mini-btn + .mini-btn { margin-left: 0; }

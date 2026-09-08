@@ -3,9 +3,14 @@
 // Solicitações de transporte: leitura, ciclo de vida e saldo do dia.
 // Spec: 2026-09-08-sate-modelo-de-dados-design.md § D4, D5, D8.
 //
-// A frota mora em `frota.model.js`, as regras puras em `regras.model.js`
-// e a conta de vagas em `saldo.model.js` - os quatro são API pública do
-// módulo. Aqui fica a SOLICITAÇÃO: ler, criar e mover no ciclo de vida.
+// A frota mora em `frota.model.js`, as regras puras em `regras.model.js`,
+// a conta de vagas em `saldo.model.js` e as escolas de cada viagem em
+// `participacoes.model.js` - os cinco são API pública do módulo. Aqui
+// fica a VIAGEM: ler, criar e mover no ciclo de vida.
+//
+// `qtd_alunos` e `qtd_cadeirante` no cabeçalho são CACHE da soma das
+// participações ativas, mantido por gatilho (migration 037). Nunca
+// escrever esses campos daqui: a verdade é a participação.
 //
 // O saldo saiu daqui em 08/09/2026, quando o arquivo passou do teto de
 // 250 linhas (R11). Não foi corte arbitrário para caber: "quantos
@@ -85,10 +90,16 @@ export async function getViagensDoDia(dataISO) {
 }
 
 // ── Escrita ──────────────────────────────────────────────────
-export async function criarSolicitacao(payload) {
+// Criar viagem é UM ato que nasce em duas tabelas - o cabeçalho e a
+// participação da escola que pediu. Vai por RPC porque, em duas chamadas
+// do PostgREST, uma falha no meio deixaria uma viagem sem ninguém
+// dentro: visível só para quem escreve, com zero alunos, e sem nada na
+// tela explicando de onde veio.
+export async function criarSolicitacao(viagem, participacao) {
   if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
-  const row = { ...payload, criado_por: await emailAtual(), status: 'solicitado' };
-  const { data, error } = await sb().from('solicitacao_transporte').insert(row).select().single();
+  const { data, error } = await sb().rpc('criar_viagem', {
+    p_viagem: viagem, p_participacao: participacao,
+  });
   if (error) throw error;
   return data;
 }
@@ -147,42 +158,6 @@ export function pedirCancelamento(id, motivo) {
 // A ciência de quem aprova fecha o ciclo. Não pede motivo novo: herda o
 // que a escola escreveu no pedido.
 export const confirmarCancelamento = (id) => transicionar(id, 'cancelado');
-
-// ── Pontos de embarque ───────────────────────────────────────
-// Só quem aprova escreve aqui (RLS): juntar escolas num mesmo ônibus é
-// decisão da Gerência de Transporte, não da escola.
-export async function getEmbarques(solicitacaoId) {
-  if (!hasSupabase()) return [];
-  const { data, error } = await sb().from('solicitacao_embarque')
-    .select('*, unidade:unidade_escolar(nome,apelido,endereco), local:local(nome,endereco)')
-    .eq('solicitacao_id', solicitacaoId).order('ordem');
-  if (error) { if (ausente(error)) return []; throw error; }
-  return data || [];
-}
-
-// Substitui a lista inteira. Apagar e reinserir, em vez de casar linha a
-// linha: a lista tem poucos itens e a ordem é reescrita junto - um
-// upsert por `ordem` deixaria órfã a parada removida do fim.
-export async function salvarEmbarques(solicitacaoId, paradas) {
-  if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
-  const { error: eDel } = await sb().from('solicitacao_embarque')
-    .delete().eq('solicitacao_id', solicitacaoId);
-  if (eDel) throw eDel;
-  if (!paradas?.length) return;
-
-  const linhas = paradas.map((p, i) => ({
-    solicitacao_id: solicitacaoId,
-    ordem: i + 1,
-    // Chaves sempre presentes, com null explícito: chave `undefined`
-    // some do JSON e quebra o lote inteiro (.claude/rules/dados.md).
-    unidade_id: p.unidadeId || null,
-    local_id: p.localId || null,
-    horario: p.horario || null,
-    qtd_alunos: p.qtdAlunos ?? null,
-  }));
-  const { error } = await sb().from('solicitacao_embarque').insert(linhas);
-  if (error) throw error;
-}
 
 // ── Realtime ─────────────────────────────────────────────────
 export function subscribeSolicitacoes(handler) {

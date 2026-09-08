@@ -13,6 +13,7 @@
 // lá, com espaço para a justificativa que três delas exigem.
 // ============================================================
 import { listSolicitacoes, STATUS, PERIODOS } from '../sate.model.js';
+import { getParticipacoesDe, resumoEscolas } from '../participacoes.model.js';
 import { abrirFormulario } from './formulario.js';
 import { abrirDetalhe } from './detalhe.js';
 import { esc } from '../../../shared/dom.js';
@@ -85,6 +86,11 @@ async function carregar() {
 
   if (filtro.periodo) lista = lista.filter(s => s.periodo === filtro.periodo);
 
+  // As escolas de cada viagem, numa consulta só. Sem isto a coluna
+  // "Escolas" faria uma ida ao banco por linha da tabela.
+  const porViagem = await getParticipacoesDe(lista.map(s => s.id)).catch(() => ({}));
+  for (const s of lista) s._escolas = resumoEscolas(porViagem[s.id] || []);
+
   tabela = montarTabela(box, {
     colunas: COLUNAS,
     linhas: lista,
@@ -103,8 +109,10 @@ async function carregar() {
 // `valor` ordena e busca (texto puro); `celula` desenha (spec de listas,
 // D2). Sem a separação, ordenar "Situação" ordenaria pelo markup do chip.
 const COLUNAS = [
-  { id: 'escola', rotulo: 'Escola',
-    valor: s => s.unidade?.apelido || s.unidade?.nome || '' },
+  // "Escolas", no plural: uma viagem pode ter várias, e a coluna mostra
+  // a primeira mais a contagem ("Escola Exemplo +2").
+  { id: 'escola', rotulo: 'Escolas',
+    valor: s => s._escolas || s.unidade?.apelido || s.unidade?.nome || '' },
   { id: 'data', rotulo: 'Data', tipo: 'data',
     valor: s => s.data || '',
     celula: s => esc(fmtData(s.data)) },

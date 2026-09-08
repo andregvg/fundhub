@@ -32,6 +32,9 @@ export const TABELAS = {
   // SATE / transporte
   atividade_extraclasse: 'Atividades (SATE)',
   solicitacao_transporte: 'Solicitações (SATE)',
+  solicitacao_participacao: 'Escolas na viagem (SATE)',
+  // Nome anterior da mesma tabela, renomeada na 037. O rótulo fica para
+  // o histórico anterior à renomeação não aparecer com o nome cru.
   solicitacao_embarque: 'Pontos de embarque (SATE)',
   frota: 'Frota (SATE)',
   frota_rotulo: 'Rótulos de frota (SATE)',

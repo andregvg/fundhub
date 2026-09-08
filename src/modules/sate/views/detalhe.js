@@ -15,9 +15,13 @@
 // ============================================================
 import {
   porEmAnalise, confirmarSolicitacao, negarSolicitacao, cancelarSolicitacao,
-  pedirCancelamento, confirmarCancelamento, getEmbarques,
+  pedirCancelamento, confirmarCancelamento,
   STATUS, PERIODOS,
 } from '../sate.model.js';
+import {
+  getParticipacoes, pedirSaida, confirmarSaida, voltarAtras,
+  STATUS_PART, ativa,
+} from '../participacoes.model.js';
 import { saldoDoDia } from '../saldo.model.js';
 import { esc, vazio, val, falha } from '../../../shared/dom.js';
 import { fmtData, fmtDataHora } from '../../../shared/format.js';
@@ -29,6 +33,7 @@ import { ico } from '../../../shared/ui/icones.js';
 
 let ctx = null;
 let atual = null;
+let partes = [];
 
 export async function abrirDetalhe(solicitacao, contexto) {
   ctx = contexto;
@@ -39,11 +44,12 @@ export async function abrirDetalhe(solicitacao, contexto) {
     ${modalHead(esc(nomeAtividade(s)), esc(s.unidade?.apelido || s.unidade?.nome || ''))}
     <div class="modal-body" id="det-corpo">${loading()}</div>`, { tamanho: 'medio' });
 
-  // Embarques e saldo vêm do banco; o resto já está na linha da tabela.
+  // Participações e saldo vêm do banco; o resto já está na linha da tabela.
   const [paradas, saldo] = await Promise.all([
-    getEmbarques(s.id).catch(() => []),
+    getParticipacoes(s.id).catch(() => []),
     saldoDoDia(s.data).catch(() => null),
   ]);
+  partes = paradas;
   const corpo = document.getElementById('det-corpo');
   if (!corpo) return;   // fechou enquanto carregava
 
@@ -54,7 +60,6 @@ export async function abrirDetalhe(solicitacao, contexto) {
     </div>
 
     ${campo('Data', `${esc(fmtData(s.data))} · ${esc(PERIODOS[s.periodo] || s.periodo)}`)}
-    ${campo('Escola', esc(s.unidade?.nome || '') || vazio('não informada'))}
     ${campo('Turma(s)', s.turmas ? esc(s.turmas) : vazio('não informadas'))}
     ${campo('Estudantes', `${s.qtd_alunos || 0}${s.qtd_cadeirante ? ` · ${s.qtd_cadeirante} cadeirante(s)` : ''}`)}
     ${campo('Veículos', `${s.qtd_onibus || 0} ônibus${s.qtd_vans ? ` · ${s.qtd_vans} van(s) adaptada(s)` : ''}`)}
@@ -65,11 +70,11 @@ export async function abrirDetalhe(solicitacao, contexto) {
     ${s.contato_professor ? campo('Contato', esc(s.contato_professor)) : ''}
     ${s.observacao ? campo('Observação', esc(s.observacao)) : ''}
 
-    ${paradas.length ? `
-      <hr class="sep" />
-      ${campo('Pontos de embarque a mais', paradas.map((p, i) =>
-        `<div>${i + 1}. ${esc(p.unidade?.apelido || p.unidade?.nome || p.local?.nome || '—')}`
-        + `${p.horario ? ` · ${esc(p.horario)}` : ''}${p.qtd_alunos ? ` · ${p.qtd_alunos} estudante(s)` : ''}</div>`).join(''))}` : ''}
+    <hr class="sep" />
+    <div class="field"><div class="lbl">Escolas nesta viagem</div>
+      <div class="det-partes">${paradas.length
+        ? paradas.map(linhaParte).join('')
+        : vazio('nenhuma escola vinculada')}</div></div>
 
     ${s.motivo ? `<hr class="sep" />${campo('Justificativa', esc(s.motivo))}` : ''}
     ${s.decidido_por ? campo('Decidido por', `${esc(s.decidido_por)}${s.decidido_em ? ` · ${esc(fmtDataHora(s.decidido_em))}` : ''}`) : ''}
@@ -77,6 +82,35 @@ export async function abrirDetalhe(solicitacao, contexto) {
     <div class="modal-acoes det-acoes-pe">${acoes(s)}</div>`;
 
   corpo.addEventListener('click', aoClicarAcao);
+}
+
+// Uma linha por escola na viagem. A escola vê a SUA com o botão de pedir
+// saída; quem aprova vê todas, com a confirmação de quem pediu para sair.
+// Cancelada continua na lista, e é por ela ficar que a escola que
+// desistiu continua vendo o registro do que aconteceu.
+function linhaParte(p) {
+  const nome = p.unidade?.apelido || p.unidade?.nome || p.local?.nome || '—';
+  const minha = !ctx.aprovador && (ctx.perfil?.unidades || []).includes(p.unidade_id);
+  const ap = !!ctx.aprovador;
+
+  let acao = '';
+  if (p.status === 'ativa' && (minha || ap)) {
+    acao = `<button type="button" class="mini-btn no" data-sair="${esc(p.id)}">Sair da viagem</button>`;
+  } else if (p.status === 'pendente_cancelamento') {
+    acao = ap
+      ? `<button type="button" class="mini-btn" data-desfazer="${esc(p.id)}">Manter</button>`
+        + `<button type="button" class="mini-btn no" data-confirmar-saida="${esc(p.id)}">Confirmar saída</button>`
+      : `<button type="button" class="mini-btn" data-desfazer="${esc(p.id)}">Desistir do pedido</button>`;
+  }
+
+  return `<div class="det-parte ${p.status !== 'ativa' ? 'fora' : ''}">
+    <span class="det-parte-ordem">${p.ordem}</span>
+    <b>${esc(nome)}</b>
+    <span class="di-meta">${p.qtd_alunos || 0} estudante(s)${p.qtd_cadeirante ? ` · ${p.qtd_cadeirante} cadeirante(s)` : ''}${p.horario ? ` · ${esc(p.horario)}` : ''}</span>
+    ${p.status !== 'ativa' ? `<span class="tag st-${esc(p.status === 'cancelada' ? 'cancelado' : 'em_analise')}">${esc(STATUS_PART[p.status])}</span>` : ''}
+    ${p.motivo ? `<span class="di-meta det-parte-motivo">${esc(p.motivo)}</span>` : ''}
+    ${acao}
+  </div>`;
 }
 
 const campo = (rotulo, html) =>
@@ -110,6 +144,21 @@ function acoes(s) {
 }
 
 function aoClicarAcao(e) {
+  // Ações de PARTICIPAÇÃO: mexem numa escola, não na viagem inteira.
+  const sair = e.target.closest('[data-sair]');
+  if (sair) {
+    const p = partes.find(x => x.id === sair.dataset.sair);
+    return pedirMotivo({
+      titulo: 'Sair da viagem', botao: 'Enviar pedido',
+      rotulo: `Por que ${esc(p?.unidade?.apelido || p?.unidade?.nome || 'esta escola')} precisa sair?`,
+      fn: (_id, motivo) => pedirSaida(sair.dataset.sair, motivo),
+    });
+  }
+  const desf = e.target.closest('[data-desfazer]');
+  if (desf) return executarParte(() => voltarAtras(desf.dataset.desfazer), 'Participação mantida');
+  const conf = e.target.closest('[data-confirmar-saida]');
+  if (conf) return executarParte(() => confirmarSaida(conf.dataset.confirmarSaida), 'Saída confirmada');
+
   const btn = e.target.closest('[data-acao]');
   if (!btn) return;
   const acao = btn.dataset.acao;
@@ -167,6 +216,21 @@ function pedirMotivo({ titulo, rotulo, botao, fn }) {
       btn.disabled = false;
     }
   });
+}
+
+// Diferente de decidir a viagem: aqui a pilha NÃO fecha. Quem aprova
+// acabou de tirar uma escola e, no caso real que motivou este modelo,
+// vai pôr outra no lugar em seguida - fechar tudo o obrigaria a
+// reabrir a mesma viagem.
+async function executarParte(fn, titulo) {
+  try {
+    await fn();
+    toast({ titulo, texto: nomeAtividade(atual), tipo: 'sucesso' });
+    await abrirDetalhe(atual, ctx);
+    ctx.recarregar?.();
+  } catch (err) {
+    reportarErro(err, { titulo: 'Não foi possível concluir' });
+  }
 }
 
 async function executar(fn, titulo) {

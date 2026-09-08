@@ -259,13 +259,16 @@ async function enviar(e) {
     } catch (_) { /* sem calendário carregado, segue */ }
   }
 
-  const payload = {
+  const unidadeId = isUuid(escId) ? escId : null;
+
+  // O cabeçalho é a VIAGEM. `qtd_alunos` e `qtd_cadeirante` NÃO entram
+  // aqui: são cache da soma das participações, mantido por gatilho no
+  // banco (migration 037). Escrevê-los daqui seria disputar com ele.
+  const viagem = {
     atividade_id: atividade ? atividade.id : null,
     atividade_livre: atividadeLivre,
-    unidade_id: isUuid(escId) ? escId : null,
+    unidade_id: unidadeId,          // quem ABRIU o pedido, não quem é dono
     data, periodo,
-    qtd_alunos: qtd,
-    qtd_cadeirante: cadeira,
     qtd_onibus: usaOnibus ? onibusPara(qtd, capacidadeOnibus()) : 0,
     qtd_vans: vansPara(cadeira, capacidadeVan()),
     turmas: val('f-turmas') || null,
@@ -278,11 +281,20 @@ async function enviar(e) {
     observacao: val('f-obs') || null,
   };
 
+  // A escola que pede é a primeira participação. Uma viagem com várias
+  // escolas é a Gerência acrescentando as outras depois - mesma estrutura.
+  const participacao = {
+    unidade_id: unidadeId,
+    qtd_alunos: qtd,
+    qtd_cadeirante: cadeira,
+    horario: val('f-emb') || null,
+  };
+
   const escola = (ctx.unidades || []).find(u => (u.id || u.numero) === escId)?.nome || '';
   const btn = document.getElementById('f-submit');
   btn.disabled = true; btn.textContent = 'Enviando…';
   try {
-    await criarSolicitacao(payload);
+    await criarSolicitacao(viagem, participacao);
     fecharModal();
     ctx.recarregar?.();
     toast({ titulo: 'Solicitação enviada', texto: escola, tipo: 'sucesso' });

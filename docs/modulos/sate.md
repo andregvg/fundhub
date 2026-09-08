@@ -24,6 +24,10 @@
 
 ### O que "envolvida" quer dizer
 
+Um agendamento com mais de uma escola **não é de uma delas** - é de todas. Cada
+escola entra como uma **participação**, com os próprios estudantes, a própria
+posição na ordem das paradas e a própria situação.
+
 A escola vê um agendamento quando ele é **dela**, e isso acontece de duas
 formas:
 
@@ -144,6 +148,22 @@ O que fazer depende de o pedido já ter sido aprovado ou não:
 A vaga volta ao saldo **no momento do pedido**, não no da ciência - assim o
 ônibus não fica parado esperando uma formalidade.
 
+### Sair de uma viagem sem cancelá-la para todo mundo
+
+Quando o ônibus atende mais de uma escola e **só uma** precisa desistir, ela
+não cancela a viagem inteira: ela **sai da viagem**.
+
+1. Abra o agendamento e encontre a sua escola na lista **Escolas nesta viagem**.
+2. Clique em **Sair da viagem** e escreva o motivo.
+3. A sua participação fica como *pedido de saída*, e a vaga já volta ao saldo.
+   As outras escolas seguem normalmente.
+4. Quando a Gerência de Transporte confirmar, a sua participação fica
+   **cancelada**. Você continua vendo o agendamento e o registro de que a sua
+   escola saiu - a informação não some.
+
+Do outro lado, ao confirmar uma saída a Gerência pode **pôr outra escola no
+lugar** e **reordenar** as paradas, sem mexer no resto da viagem.
+
 ---
 
 ## Regras que o sistema aplica
@@ -230,4 +250,4 @@ Negado é um pedido que **nunca** chegou a valer - foi recusado na análise.
 Cancelado é um pedido que **estava de pé** e foi desfeito. Os dois exigem
 justificativa.
 
-> Atualizado na versão 0.28.0.
+> Atualizado na versão 0.29.0.
