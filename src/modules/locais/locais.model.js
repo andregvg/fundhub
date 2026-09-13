@@ -20,7 +20,7 @@ import { norm } from '../../shared/dom.js';
 const COLS = 'id, nome, endereco, desembarque, latitude, longitude, maps_url, ativo, obs';
 
 let _cache = null;
-export function limparCacheLocais() { _cache = null; }
+function limparCacheLocais() { _cache = null; }
 registrarCache(limparCacheLocais);
 
 // Lista os locais (por padrão todos; { somenteAtivos:true } filtra).

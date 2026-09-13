@@ -21,14 +21,6 @@ import { agoraISO } from '../../shared/format.js';
 import { distanciaPorEstrada, temCoordenada, getLocais } from '../locais/locais.model.js';
 import { getParticipacoes, ativa } from './participacoes.model.js';
 
-export const STATUS_TRAJETO = Object.freeze({
-  ok: 'Calculado',
-  sem_coordenada: 'Parada sem localização',
-  sem_destino: 'Destino sem localização',
-  sem_rota: 'Sem rota',
-  erro: 'Serviço de mapa indisponível',
-});
-
 // ── Puras ────────────────────────────────────────────────────
 
 const nomeDe = (p) => p.unidade?.apelido || p.unidade?.nome || p.local?.nome || 'parada';

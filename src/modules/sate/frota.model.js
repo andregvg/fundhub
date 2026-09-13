@@ -9,6 +9,7 @@
 // `abrir_frota()` do banco, numa transação só, porque em duas chamadas
 // um erro no meio deixaria o dia sem frota nenhuma.
 // ============================================================
+import { registrarCache } from '../../shared/cache.js';
 import { sb, hasSupabase } from '../../core/supabase.js';
 
 export const TIPOS = Object.freeze([
@@ -199,4 +200,7 @@ export async function manterLote(id) {
   _frotas = null;
 }
 
-export function limparCacheFrota() { _rotulos = null; _frotas = null; }
+// O botão Atualizar do cabeçalho limpa este cache junto com os outros.
+// Até 13/09/2026 a função existia sem estar registrada - rótulo ou lote
+// criado em outra aba só aparecia depois de recarregar a página.
+registrarCache(() => { _rotulos = null; _frotas = null; });

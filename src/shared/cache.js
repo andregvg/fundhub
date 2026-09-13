@@ -9,7 +9,7 @@
 // conhece manifestos e este não conhece nada - só guarda funções
 // anônimas. Assim a R1 (kernel nunca importa modules/) fica intacta.
 //
-// Hoje são seis models com cache: escolas, locais, servidores,
+// Hoje são sete models com cache: escolas, locais, servidores, sate/frota,
 // vinculos (cargos), sate/atividades e usuarios (papéis).
 // ============================================================
 

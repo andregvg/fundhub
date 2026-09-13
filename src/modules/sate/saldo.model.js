@@ -20,7 +20,7 @@ const ausente = (err) => err?.code === '42P01' || err?.code === '42703';
 
 // ── Saldo ────────────────────────────────────────────────────
 // Veículos COMPROMETIDOS por período num dia. Só os status de reserva.
-export async function usoDoDia(dataISO) {
+async function usoDoDia(dataISO) {
   const base = { onibus: { manha: 0, tarde: 0, noite: 0 }, van_adaptada: { manha: 0, tarde: 0, noite: 0 } };
   if (!hasSupabase() || !dataISO) return base;
   const { data, error } = await sb().from('solicitacao_transporte')
