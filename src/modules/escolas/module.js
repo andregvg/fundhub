@@ -9,5 +9,6 @@ export default {
   ativo: true,
   doc: true,
   config: () => import('./escolas.config.js'),
+  ficha: () => import('./views/detalhe.js'),
   load: () => import('./escolas.view.js'),
 };

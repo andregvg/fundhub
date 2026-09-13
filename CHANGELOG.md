@@ -9,6 +9,37 @@ versionamento **MINOR** = módulo novo ou mudança de modelo de dados, **PATCH**
 
 ---
 
+## [0.30.0] - 2026-09-13
+
+Escolas e Servidores passam a se ligar: dá para ir da escola à ficha de
+alguém da equipe, e da ficha da pessoa à escola onde ela trabalha, sem sair da
+tela em que você está.
+
+### Adicionado
+
+- **Da escola para a pessoa.** Na ficha de uma escola, clicar no card de alguém
+  da **Equipe** abre a ficha dessa pessoa por cima. A seta **←** volta para a
+  escola.
+- **Editar direto da escola.** O card da equipe ganhou um **lápis** que abre o
+  formulário da pessoa. Ao salvar, você volta para a escola com a equipe já
+  atualizada. Só aparece para quem pode editar servidores.
+- **Da pessoa para a escola.** Na ficha de um servidor, clicar no card de um
+  local de trabalho que é escola abre a ficha da escola por cima. A Sede e as
+  gerências não têm ficha e continuam sem clique.
+- Dá para encadear: escola, pessoa, outra escola dela, outra pessoa. A seta **←**
+  refaz o caminho passo a passo.
+
+### Alterado
+
+- O card da equipe mostra só o nome completo, sem o apelido ao lado.
+- Editar uma escola a partir da ficha volta para a ficha ao salvar, em vez de
+  fechar tudo.
+
+### Corrigido
+
+- O telefone no card da equipe aparecia sem formatação. Agora segue o mesmo
+  formato do resto do sistema.
+
 ## [0.29.2] - 2026-09-13
 
 ### Corrigido

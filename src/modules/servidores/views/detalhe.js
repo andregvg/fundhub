@@ -1,25 +1,75 @@
 // ============================================================
-// FundHub - servidores/views/detalhe.js  (modal de detalhe + vínculos)
+// FundHub - servidores/views/detalhe.js  (a FICHA do servidor)
 // O modal é o centro do módulo: abre a pessoa e, dentro dela, os
 // vínculos com escolas - que é onde a escola de fato entra na história.
+//
+// É também a `ficha` do manifesto: `abrir(id, opts)` monta o próprio
+// contexto a partir dos models, e por isso abre igual por cima da lista
+// de Servidores ou da ficha de uma escola. Spec
+// 2026-09-13-fichas-entre-modulos-design.md.
 // ============================================================
-import { cargoDe, localDeTrabalhoDe } from '../servidores.model.js';
-import { eLocalInterno } from '../../escolas/escolas.model.js';
-import { rotulaCargo } from '../vinculos.model.js';
+import { getServidores, cargoDe, localDeTrabalhoDe } from '../servidores.model.js';
+import { getLocais, eLocalInterno } from '../../escolas/escolas.model.js';
+import { getCargos, rotulaCargo } from '../vinculos.model.js';
+import { podeEscrever } from '../../../core/permissoes.js';
+import { abrirFicha, podeAbrirFicha } from '../../../core/registry.js';
 import { esc } from '../../../shared/dom.js';
 import { fmtData, fmtIdade, fmtCPF, fmtRG } from '../../../shared/format.js';
 import { modalHead, abrirModal } from '../../../shared/ui/modal.js';
 import { telefonesTexto } from '../../../shared/ui/phones.js';
+import { toast } from '../../../shared/ui/toast.js';
 import { formVinculo, removerVinculo } from './vinculo.js';
+import { formServidor, removerServidor } from './formulario.js';
 import { ico } from '../../../shared/ui/icones.js';
 
-// `ctx`: { lista, podeEditar, cargos, locais, recarregar, abrirFormServidor, removerServidor }
-// - ver servidores.view.js § ctxAtual(). Os locais do formulário de
-// vínculo vêm de ctx.locais (getLocais() de escolas.model.js), não de
-// ctx.unidades (que aqui é só escola - ver escolas.model.js § getUnidades).
-export function detalhe(id, ctx) {
+// `opts`:
+//   voltar  - reabre o modal de baixo (a pilha). Repassado a TUDO que esta
+//             ficha empilha e reabre, para o ← nunca perder a origem.
+//   editar  - abre direto o formulário de edição, com o `voltar` de quem
+//             chamou. Sem permissão de escrita, cai na ficha.
+//   aoMudar - chamada depois de uma gravação, para a tela de BAIXO repintar.
+export async function abrir(id, opts = {}) {
+  const ctx = await contexto(opts);
+  const s = ctx.lista.find(x => x.id === id);
+  if (!s) {
+    toast({ titulo: 'Servidor não encontrado', texto: 'O cadastro pode ter sido excluído.', tipo: 'atencao' });
+    return;
+  }
+  if (opts.editar && ctx.podeEditar) {
+    formServidor(s, ctx, { voltar: opts.voltar });
+    return;
+  }
+  detalhe(s.id, ctx, opts);
+}
+
+// O contexto que as views deste módulo esperam, lido dos models - que
+// guardam cache, então por cima da lista de Servidores isto não refaz
+// consulta. `recarregar` avisa a tela de baixo PRIMEIRO: se ela for a lista
+// de Servidores, é ela quem busca de novo, e o contexto novo lê o cache já
+// atualizado em vez de repetir a consulta.
+async function contexto(opts) {
+  const [lista, cargos, locais] = await Promise.all([
+    getServidores(),
+    getCargos().catch(() => []),
+    getLocais().catch(() => []),
+  ]);
+  const ctx = {
+    lista, cargos, locais,
+    podeEditar: podeEscrever('servidores'),
+    recarregar: async () => { await opts.aoMudar?.(); return contexto(opts); },
+    abrirDetalhe: (id) => abrir(id, { ...opts, editar: false }),
+    abrirFormServidor: (s, o) => formServidor(s, ctx, o),
+    removerServidor: (s) => removerServidor(s, ctx),
+  };
+  return ctx;
+}
+
+function detalhe(id, ctx, opts) {
   const s = ctx.lista.find(x => x.id === id);
   if (!s) return;
+  // Reabrir esta ficha - a partir do formulário, do vínculo ou da escola -
+  // sempre com o MESMO `opts`: é o que mantém o ← até a origem.
+  const reabrir = () => abrir(s.id, { ...opts, editar: false });
 
   const campo = (l, v) => v ? `<div class="field"><div class="lbl">${l}</div><div class="val">${v}</div></div>` : '';
 
@@ -62,21 +112,26 @@ export function detalhe(id, ctx) {
         ${ctx.podeEditar ? `<button class="mini-btn" id="sv-vinc">${ico('adicionar')} Adicionar local de trabalho</button>` : ''}
       </div>
       <div class="people" id="sv-vinculos">${listaVinculos(s, ctx.podeEditar)}</div>
-    </div>`, { tamanho: 'largo' });
+    </div>`, { tamanho: 'largo', voltar: opts.voltar });
+
+  const box = document.getElementById('sv-vinculos');
+
+  // O card de um local que é ESCOLA abre a ficha dela por cima desta.
+  box.querySelectorAll('[data-abrir-escola]').forEach(b => b.addEventListener('click', () =>
+    abrirFicha('escolas', b.dataset.abrirEscola, { voltar: reabrir, aoMudar: opts.aoMudar })));
 
   if (ctx.podeEditar) {
     // Editar a partir da ficha EMPILHA o modal: o ← devolve para cá, com o
     // dado recarregado. Sem isto, salvar fechava a pilha inteira e jogava a
     // pessoa de volta na lista, perdendo o contexto que ela mesma abriu.
     document.getElementById('sv-edit').addEventListener('click', () =>
-      ctx.abrirFormServidor(s, { voltar: (freshCtx) => detalhe(s.id, freshCtx || ctx) }));
+      ctx.abrirFormServidor(s, { voltar: reabrir }));
     document.getElementById('sv-del').addEventListener('click', () => ctx.removerServidor(s));
     document.getElementById('sv-vinc').addEventListener('click', () =>
-      formVinculo(s, null, ctx, { voltar: (freshCtx) => detalhe(s.id, freshCtx || ctx) }));
-    const box = document.getElementById('sv-vinculos');
+      formVinculo(s, null, ctx, { voltar: reabrir }));
     box.querySelectorAll('[data-edit-vinc]').forEach(b => b.addEventListener('click', () => {
       const v = s.vinculos.find(x => x.id === b.dataset.editVinc);
-      formVinculo(s, v, ctx, { voltar: (freshCtx) => detalhe(s.id, freshCtx || ctx) });
+      formVinculo(s, v, ctx, { voltar: reabrir });
     }));
     box.querySelectorAll('[data-del-vinc]').forEach(b =>
       b.addEventListener('click', () => removerVinculo(s, b.dataset.delVinc, ctx)));
@@ -90,6 +145,7 @@ function listaVinculos(s, podeEditar) {
   const ordenados = [...s.vinculos].sort((a, b) =>
     (Number(Boolean(a.fim)) - Number(Boolean(b.fim)))
     || String(b.ingresso || '').localeCompare(String(a.ingresso || '')));
+  const verEscola = podeAbrirFicha('escolas');
 
   return ordenados.map(v => {
     const encerrado = Boolean(v.fim);
@@ -102,9 +158,17 @@ function listaVinculos(s, podeEditar) {
         <button class="mini-btn" data-edit-vinc="${esc(v.id)}" aria-label="Editar local de trabalho">${ico('editar')}</button>
         <button class="mini-btn no" data-del-vinc="${esc(v.id)}" aria-label="Excluir local de trabalho">${ico('excluir')}</button>
       </div>` : '';
-    return `<div class="person ${encerrado ? 'inativo' : ''}">
+    // Local interno (Sede, gerências) não tem ficha: o card fica só texto.
+    const interno = v.unidade && eLocalInterno(v.unidade);
+    const nome = esc(v.unidade?.nome || 'sem local');
+    const clicavel = verEscola && v.unidade_id && v.unidade && !interno;
+    const pname = clicavel
+      ? `<button type="button" class="pname person-abrir" data-abrir-escola="${esc(v.unidade_id)}"
+           aria-label="Abrir ficha da escola ${nome}">${nome}</button>`
+      : `<div class="pname">${interno ? ico('sede', { tam: 12 }) + ' ' : ''}${nome}</div>`;
+    return `<div class="person ${encerrado ? 'inativo' : ''} ${clicavel ? 'clicavel' : ''}">
       <div class="role">${esc(rotulaCargo(v.papel))}${encerrado ? ' · encerrado' : ''}</div>
-      <div class="pname">${v.unidade && eLocalInterno(v.unidade) ? ico('sede', { tam: 12 }) + ' ' : ''}${esc(v.unidade?.nome || 'sem local')}</div>
+      ${pname}
       <div class="pmeta">
         ${periodo ? `<span>${esc(periodo)}</span>` : ''}
         ${acoes}

@@ -11,6 +11,7 @@
 - Registrar um local de trabalho da pessoa - uma escola, a Sede ou uma
   gerência/subsecretaria da SME - com cargo e período.
 - Encerrar um local de trabalho quando a pessoa deixa de atuar ali.
+- Abrir, a partir da ficha, a ficha da escola onde a pessoa trabalha.
 - Ajustar o card (na engrenagem): exibir o telefone e escolher quantos cards
   cabem por linha em telas largas.
 
@@ -47,6 +48,16 @@ local de trabalho.
    local atual.
 5. Clique em **Adicionar**.
 
+### Abrir a escola de um local de trabalho
+
+1. Na ficha do servidor, em **Locais de trabalho**, clique no card da escola.
+2. A ficha da escola abre por cima, com a equipe dela.
+3. Para voltar ao servidor, use a seta **←** no topo (ou a tecla Esc).
+
+A Sede e as gerências da SME não têm ficha própria: esses cards não abrem nada.
+Os botões de lápis e lixeira do card continuam editando e excluindo o local de
+trabalho.
+
 ### Encerrar um local de trabalho
 
 1. Na ficha do servidor, clique no lápis ao lado do local.
@@ -80,7 +91,8 @@ local de trabalho.
 
 - **Afastamentos** e **Horários** apontam para o servidor cadastrado aqui.
 - A equipe que aparece na ficha de uma **escola** é a lista de locais de
-  trabalho atuais daquela unidade.
+  trabalho atuais daquela unidade. Pela ficha da escola dá para abrir a de
+  cada pessoa - ou ir direto à edição dela - e voltar à escola com a seta ←.
 - O **segmento** de um servidor é o das escolas em que ele atua - por isso quem
   só trabalha na SME aparece em qualquer filtro de segmento.
 - As gerências e subsecretarias disponíveis como local de trabalho são
@@ -96,4 +108,4 @@ trabalho aparece mesmo assim. Se não aparecer, recarregue a página.
 Encerre o local antigo (preencha o Término) e registre um novo. Assim o
 histórico fica correto.
 
-> Atualizado na versão 0.29.2.
+> Atualizado na versão 0.30.0.

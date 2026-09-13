@@ -18,8 +18,8 @@ import { podeEscrever } from '../../core/permissoes.js';
 import { ico } from '../../shared/ui/icones.js';
 import { cardsPorLinha } from './servidores.config.js';
 import { pintarLista } from './views/lista.js';
-import { detalhe } from './views/detalhe.js';
-import { formServidor, removerServidor } from './views/formulario.js';
+import { abrir as abrirFicha } from './views/detalhe.js';
+import { formServidor } from './views/formulario.js';
 
 let perfil = null, lista = [], unidades = [], idxUnidades = {};
 let cargos = [], locais = [], filtroUnidade = '';
@@ -122,17 +122,19 @@ function pintarChipUnidade() {
   });
 }
 
-// Estado corrente entregue às views/ (lista, detalhe, formulário) -
-// reconstruído a cada chamada, é leitura barata. unidades só é
-// carregado uma vez em render() e não muda.
+// Estado corrente entregue às views/ (lista e formulário de novo
+// servidor) - reconstruído a cada chamada, é leitura barata. unidades só
+// é carregado uma vez em render() e não muda.
+//
+// A ficha NÃO usa este contexto: ela monta o dela a partir dos models
+// (views/detalhe.js § abrir), para abrir igual por cima de outro módulo.
+// Daqui ela só recebe `aoMudar`, para a lista repintar depois de salvar.
 function ctxAtual() {
   return {
     perfil, lista, unidades, idxUnidades, podeEditar, filtro, seg,
     cargos, locais, filtroUnidade,
     recarregar,
-    abrirDetalhe: (id) => detalhe(id, ctxAtual()),
-    abrirFormServidor: (s, opts) => formServidor(s, ctxAtual(), opts),
-    removerServidor: (s) => removerServidor(s, ctxAtual()),
+    abrirDetalhe: (id) => abrirFicha(id, { aoMudar: recarregar }),
   };
 }
 

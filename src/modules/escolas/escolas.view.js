@@ -13,8 +13,8 @@ import { podeEscrever } from '../../core/permissoes.js';
 import { ico } from '../../shared/ui/icones.js';
 import { exibirTelefone } from '../../shared/ui/phones.js';
 import { mostrarTelefonesNoCard, mostrarServidoresNoCard, cardsPorLinha } from './escolas.config.js';
-import { detalhe } from './views/detalhe.js';
-import { abrirForm, removerEscola } from './views/formulario.js';
+import { abrir as abrirFicha } from './views/detalhe.js';
+import { abrirForm } from './views/formulario.js';
 
 let ALL = [];
 let perfil = null;
@@ -150,7 +150,7 @@ function pintar() {
   cards.querySelectorAll('.card').forEach(c =>
     c.addEventListener('click', () => {
       const u = porChave(c.dataset.id);
-      if (u) detalhe(u, ctxAtual());
+      if (u) abrirFicha(u.id || u.numero, { aoMudar: recarregar });
     }));
 }
 
@@ -198,12 +198,10 @@ async function recarregar() {
   return ctxAtual();
 }
 
-// Estado corrente entregue às views/ (detalhe, formulário) -
-// reconstruído a cada chamada, é leitura barata.
+// Estado corrente entregue ao formulário de nova escola - reconstruído a
+// cada chamada, é leitura barata. A ficha NÃO usa este contexto: monta o
+// dela a partir dos models (views/detalhe.js § abrir), para abrir igual por
+// cima de outro módulo; daqui recebe só `aoMudar`.
 function ctxAtual() {
-  return {
-    perfil, podeEditar, recarregar,
-    abrirForm: (u) => abrirForm(u, ctxAtual()),
-    removerEscola: (u) => removerEscola(u, ctxAtual()),
-  };
+  return { perfil, podeEditar, recarregar };
 }

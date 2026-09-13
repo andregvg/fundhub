@@ -8,6 +8,8 @@
   equipe.
 - Filtrar por segmento, por oferta, e por "tem transporte" / "atende EJA".
 - Abrir a ficha de uma escola: contatos, endereço, cadastros e a equipe.
+- Da equipe, abrir a ficha de uma pessoa - ou já a edição dela - sem sair da
+  escola.
 - Cadastrar uma escola nova e editar os dados de uma existente.
 - Ajustar o que aparece no card (na engrenagem, no topo da tela).
 
@@ -45,11 +47,22 @@ sistema, nos bastidores.
 Essas três são preferências suas - seguem o seu login e não mudam a tela de
 mais ninguém.
 
-### Editar a equipe de uma escola
+### Ver ou editar alguém da equipe
 
-A equipe **não** se edita aqui. Na ficha da escola há um atalho para
-**Servidores**, já filtrado por aquela unidade - é lá que se inclui ou encerra
-o local de trabalho de alguém.
+1. Abra a ficha da escola.
+2. Em **Equipe**, clique no card da pessoa. A ficha dela abre por cima da
+   escola.
+3. Para voltar à escola, use a seta **←** no topo da ficha (ou a tecla Esc).
+
+Para ir direto à edição, clique no **lápis** do card: o formulário da pessoa
+abre por cima da escola e, ao **Salvar**, você volta para a escola com a equipe
+já atualizada. O lápis só aparece para quem pode editar servidores.
+
+### Incluir ou encerrar alguém na equipe
+
+A equipe vem dos locais de trabalho de cada pessoa. Na ficha da escola, o botão
+**Gerir em Servidores** abre a lista de Servidores já filtrada por aquela
+unidade - é lá que se inclui ou encerra o local de trabalho de alguém.
 
 ## Regras que o sistema aplica
 
@@ -63,6 +76,8 @@ o local de trabalho de alguém.
 ## Ligações com outros módulos
 
 - A **equipe** vem dos locais de trabalho abertos, cadastrados em Servidores.
+  Cada card abre a ficha da pessoa, e da ficha dela dá para abrir de volta a
+  escola - a seta ← refaz o caminho passo a passo.
 - **SATE**, **Afastamentos**, **Calendário** e **Horários** apontam para as
   escolas cadastradas aqui.
 - As gerências e subsecretarias da SME **não** são escolas - elas se cadastram
@@ -78,4 +93,8 @@ servidores não carregou - recarregue a página.
 Se você tem um segmento marcado no filtro, uma escola ainda sem segmento
 aparece mesmo assim. Se não aparecer, recarregue a página.
 
-> Atualizado na versão 0.24.0.
+**Clico no card da equipe e nada acontece.**
+A ficha de uma pessoa só abre para quem tem acesso ao módulo Servidores. Sem
+esse acesso, a equipe continua visível para leitura.
+
+> Atualizado na versão 0.30.0.

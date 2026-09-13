@@ -1258,6 +1258,37 @@ input[type="checkbox"] { width: 18px; height: 18px; }
 .person .role { color: var(--brand); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; }
 .person .pname { margin: 2px 0; font-weight: 600; }
 .person .pmeta { display: flex; flex-direction: column; gap: 2px; color: var(--muted); font-size: 12.5px; }
+/* Card que abre uma FICHA (a do servidor na equipe da escola, a da escola
+   no local de trabalho) - spec 2026-09-13-fichas-entre-modulos-design.md.
+
+   Padrão "link esticado". O card tem filhos interativos (e-mail, telefone,
+   botões), então não pode ser um <button> nem um div role="button": seria
+   elemento interativo dentro de elemento interativo. O NOME é o botão de
+   verdade (.person-abrir - alvo do Tab e do leitor de tela), e o ::after
+   dele estende a área de clique ao card inteiro. Os outros links e botões
+   sobem acima dessa camada e continuam clicáveis. */
+.person.clicavel { position: relative; transition: border-color .15s, background .15s; }
+.person.clicavel:hover { border-color: var(--border-forte); background: var(--surface-3); }
+.person-abrir {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+.person-abrir::after { content: ''; position: absolute; inset: 0; border-radius: 11px; }
+.person-abrir:focus-visible { outline: none; }
+.person-abrir:focus-visible::after { outline: 2px solid var(--brand); outline-offset: 2px; }
+.person.clicavel :is(a, button:not(.person-abrir)) { position: relative; z-index: 1; }
+/* Ação do card (✎ editar) no canto; o card reserva a faixa para o texto
+   não correr por baixo do botão. */
+.person-acoes { position: absolute; top: 8px; right: 8px; z-index: 1; display: flex; gap: 6px; }
+.person:has(> .person-acoes) { padding-right: 56px; }
 hr.sep { margin: 20px 0; border: 0; border-top: 1px solid var(--border); }
 
 /* ── Editor de telefones (shared/ui/phones.js) ────────────── */

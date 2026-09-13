@@ -20,5 +20,6 @@ export default {
   ativo: true,
   doc: true,
   config: () => import('./servidores.config.js'),
+  ficha: () => import('./views/detalhe.js'),
   load: () => import('./servidores.view.js'),
 };

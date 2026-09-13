@@ -107,8 +107,18 @@ export default {
   perm: '<x>',                 // opcional - default é o próprio id
   ativo: true,
   load: () => import('./<x>.view.js'),
+  ficha: () => import('./views/detalhe.js'),   // opcional - ver abaixo
 };
 ```
+
+`ficha` (opcional) deixa **outro módulo abrir a ficha deste** por cima da
+própria tela - a escola abre a ficha do servidor, o servidor abre a da escola.
+O arquivo apontado exporta `abrir(id, { voltar, editar, aoMudar })`, que monta
+o próprio contexto a partir dos models (não depende de estar na tela do
+módulo). Quem abre usa `abrirFicha(moduloId, id, opts)` e decide se o card vira
+clicável com `podeAbrirFicha(moduloId)`, ambos em `core/registry.js`. Nenhuma
+view importa a view de outro módulo (R2). Spec
+`2026-09-13-fichas-entre-modulos-design.md`.
 
 `publico: true` (opcional) diz que o módulo é **de todo mundo por desenho** -
 sem dados próprios, esconder não protegeria nada. Só os quatro de serviço ao

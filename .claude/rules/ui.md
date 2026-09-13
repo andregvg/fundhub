@@ -32,6 +32,7 @@ Sempre conferir `src/styles/components.css` antes de escrever CSS novo. O que j�
 - **Filtros:** `.painel-filtros` (o contêiner) + `.filtro-campo` · `.switch` · `.filters` · `.chip-filtro`
 - **Abas:** `.tabbar` + `.tab` (`.on` para a ativa)
 - **Listas:** `.solic` (+ `.solic-main`, `.solic-acoes`) · `.dash-item` (+ `.di-top`, `.di-meta`)
+- **Pessoa/vínculo em ficha:** `.people` + `.person` (+ `.role`, `.pname`, `.pmeta`); **card que abre outra ficha:** `.person.clicavel` + `.person-abrir` (o nome, como `<button>`) + `.person-acoes` (ação no canto) - padrão "link esticado", ver abaixo
 - **Cards e grades:** `.card` · `.cards` · `.tile` · `.tiles` · `.panel` · `.dash-grid` · `.md-grid`
 - **Stats:** `.stat-row` · `.stat-tile` · `.stat-num` · `.stat-label`
 - **Formulário:** `.esc-form` · `.esc-row` · `.form-grid` · `.form-grupo` · `.form-foot` · `.form-hint` · `.field` · `.lbl`
@@ -198,6 +199,24 @@ de dois deles.
 afirmando que o resto da página não existe; sem armadilha, o Tab atravessa e vai passear pelo menu
 que o leitor de tela acabou de anunciar como inexistente. Se você criar uma terceira superfície
 modal, ela prende o foco também - não é opcional.
+
+## Card que abre outra ficha: link esticado
+
+Spec `2026-09-13-fichas-entre-modulos-design.md`, D7.
+
+Um card com filhos interativos (e-mail, telefone, botões) **não pode** virar
+`<button>` nem `div role="button"`: seria elemento interativo dentro de
+elemento interativo, inválido e mal lido pelo leitor de tela. O desenho é:
+
+- o **nome** é o `<button type="button" class="pname person-abrir">`, com
+  `aria-label` ("Abrir ficha de …") - alvo do Tab, do Enter e do leitor;
+- o `::after` dele cobre o card inteiro, então clicar em qualquer ponto abre;
+- os demais `a` e `button` do card sobem acima dessa camada
+  (`.person.clicavel :is(a, button:not(.person-abrir))`) e continuam clicáveis;
+- ação do próprio card (✎) vai em `.person-acoes`, no canto.
+
+Sem delegação de clique em JS e sem `e.target.closest('a')`. Um card novo
+desse tipo reusa as classes; não reinventa o clique.
 
 ## Rolagem discreta nos contêineres de moldura
 

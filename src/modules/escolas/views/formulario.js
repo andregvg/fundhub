@@ -10,8 +10,9 @@ import { confirmar } from '../../../shared/ui/confirmar.js';
 import { toast } from '../../../shared/ui/toast.js';
 import { reportarErro } from '../../../shared/ui/feedback.js';
 
-// `ctx`: { recarregar } - ver escolas.view.js § ctxAtual().
-export function abrirForm(u, ctx) {
+// `ctx`: { recarregar } - ver escolas.view.js § ctxAtual() e views/detalhe.js.
+// `voltar`: aberto sobre a ficha, salvar devolve para ela (a pilha do modal).
+export function abrirForm(u, ctx, { voltar = null } = {}) {
   const novo = !u;
   const v = (k) => esc(u?.[k] ?? '');
   const chk = (k) => (u?.[k] ? 'checked' : '');
@@ -78,7 +79,7 @@ export function abrirForm(u, ctx) {
           <button type="submit" id="ef-save" class="btn-primary">${novo ? 'Criar' : 'Salvar'}</button>
         </div>
       </form>
-    </div>`, { tamanho: 'largo' });
+    </div>`, { tamanho: 'largo', voltar });
 
   montarPhonesEditor(document.getElementById('esc-form'));
   document.getElementById('esc-form').addEventListener('submit', (e) => salvar(e, u, ctx));
@@ -108,8 +109,10 @@ async function salvar(e, u, ctx) {
   try {
     const id = u ? (await atualizarUnidade(u.id, payload), u.id) : (await criarUnidade(payload)).id;
     await sincronizarTelefones({ unidadeId: id }, telefones);
-    fecharModal();
+    // Recarrega ANTES de fechar: com `voltar`, fechar reabre a ficha, e ela
+    // deve ler a lista já atualizada - não disputar a mesma consulta.
     await ctx.recarregar();
+    fecharModal();
     toast({ titulo: u ? 'Escola atualizada' : 'Escola cadastrada', texto: payload.nome, tipo: 'sucesso' });
   } catch (err) {
     // Erro de gravação: inline quando dá para corrigir no formulário
