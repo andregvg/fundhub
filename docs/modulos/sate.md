@@ -126,6 +126,33 @@ manhã seguinte para voltar e ser liberado.
 3. **Negar** recusa o pedido. Abre uma segunda janela pedindo a justificativa,
    que é **obrigatória** - a escola vê o texto que você escrever.
 
+### Confirmar quando a frota do dia não comporta
+
+Ao clicar em **Confirmar**, o sistema confere se ainda há veículos naquele
+período. Se faltarem, abre a janela **Faltam veículos neste dia**, dizendo
+quantos ônibus e vans adaptadas faltam.
+
+1. Escolha o **rótulo** que explica os veículos a mais (por exemplo, "Cirem").
+   Se ainda não existir, escolha **+ Novo rótulo…** e digite o nome.
+2. Clique em **Confirmar com frota extra**. O sistema cria uma frota **só para
+   aquele dia**, com exatamente o que falta, e confirma o pedido - as duas
+   coisas juntas.
+3. Se o que falta é **van adaptada** e ela ainda vai ser providenciada, clique
+   em **Aguardar van adaptada**. O pedido reserva os ônibus e fica *aguardando
+   transporte adaptado*; quando a van estiver resolvida, abra o pedido e
+   clique em **Confirmar** de novo.
+
+### Remanejar um pedido
+
+1. Abra o pedido e clique em **Remanejar**, no canto esquerdo do rodapé.
+2. Altere o que for preciso: data, período, horários, destino (da lista de
+   locais) e número de ônibus e vans. Estudantes e escolas não mudam aqui -
+   ajuste-os em **Escolas nesta viagem**.
+3. Clique em **Salvar**. Se o destino mudou, o tempo de viagem é recalculado.
+4. Se o pedido já reserva veículos e a nova data não comporta, abre a janela
+   **Faltam veículos neste dia** para criar a frota extra - ou **Agora não**,
+   para decidir depois.
+
 Para achar um pedido específico, use a caixa **Buscar na lista** acima da
 tabela, ou clique no título de uma coluna para reorganizar. Os campos de data
 e situação no alto buscam no sistema; a caixa de busca estreita o que já está
@@ -264,8 +291,9 @@ pedido segue normalmente.
   para um lugar ainda não localizado.
 - **Intervalo entre períodos apertado** (regra 1). O retorno pode adiantar, e
   quem aprova é que sabe se a folga real dá. Fica sinalizado, não bloqueado.
-- **Cadeirante sem van adaptada livre.** O pedido segue e fica *aguardando
-  transporte adaptado* até a van ser resolvida.
+- **Cadeirante sem van adaptada livre.** O pedido segue. Ao confirmar, quem
+  aprova cria a van extra ou deixa o pedido *aguardando transporte adaptado*
+  até a van ser resolvida.
 - **Estourar a frota, para quem aprova.** Quem aprova pode e às vezes precisa
   passar do limite. Quando isso acontece, o sistema **cria um veículo extra
   só para aquele dia** e pede um rótulo que explique o motivo (por exemplo,
@@ -287,6 +315,12 @@ A frota não se cadastra dia a dia. Cadastra-se **quantos veículos existem** e
 Cada lançamento tem um **rótulo** ("Regular", "Feira do Livro", "Cirem"). É o
 rótulo que permite entender, olhando um dia com 25 ônibus, que são 9 da frota
 regular mais 16 da Feira.
+
+**Frota extra sem pedido.** Se um pedido que ganhou frota extra é negado,
+cancelado ou remanejado para outra data, os veículos extras **não somem
+sozinhos**. Eles aparecem no topo da guia **Frota**, em *Frota extra sem
+pedido*, com dois botões: **Manter** (os veículos continuam, como um reforço
+comum daquele dia) e **Remover**.
 
 Um rótulo que nunca foi usado pode ser excluído. Um que já está em uso só pode
 ser **arquivado**: ele some da lista de escolha, mas os lançamentos antigos
@@ -334,8 +368,9 @@ os estudantes entram nessa conta; acompanhantes não requisitam um veículo a
 mais.
 
 **Por que meu pedido ficou "aguardando transporte adaptado"?**
-Há cadeirante na turma e ainda não há van adaptada livre naquele dia. O pedido
-não foi recusado - está aguardando a van ser resolvida.
+Há cadeirante na turma e não havia van adaptada livre naquele dia. A Gerência
+de Transporte reservou os ônibus e está providenciando a van. O pedido não foi
+recusado - ele é confirmado quando a van estiver resolvida.
 
 **Aprovaram meu pedido e agora a atividade foi desmarcada.**
 Peça o cancelamento pela própria solicitação, com o motivo. Ele fica pendente
@@ -346,4 +381,4 @@ Negado é um pedido que **nunca** chegou a valer - foi recusado na análise.
 Cancelado é um pedido que **estava de pé** e foi desfeito. Os dois exigem
 justificativa.
 
-> Atualizado na versão 0.31.0.
+> Atualizado na versão 0.33.0.

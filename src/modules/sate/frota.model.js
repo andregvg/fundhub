@@ -142,14 +142,6 @@ export async function excluirFrota(id) {
   _frotas = null;
 }
 
-// Encerra uma frota aberta numa data, sem abrir outra no lugar.
-export async function encerrarFrota(id, fim) {
-  if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
-  const { error } = await sb().from('frota').update({ fim }).eq('id', id);
-  if (error) throw error;
-  _frotas = null;
-}
-
 // ── Total do dia ─────────────────────────────────────────────
 // A soma de TODA frota vigente na data, por tipo. É "quantos veículos
 // existem naquele dia" - não uma cota por período: o mesmo ônibus serve
@@ -167,47 +159,44 @@ export async function totalDoDia(dataISO) {
   return base;
 }
 
-// Totais de vários dias numa consulta só - o painel de saldo de um mês
-// faria 30 idas ao banco sem isto. Devolve { 'yyyy-mm-dd': {...} }.
-export async function totalPorDia(deISO, ateISO) {
-  if (!hasSupabase() || !deISO || !ateISO) return {};
-  const { data, error } = await sb().from('frota')
-    .select('tipo, quantidade, inicio, fim')
-    .lte('inicio', ateISO)
-    .or(`fim.is.null,fim.gte.${deISO}`);
-  if (error) { if (ausente(error)) return {}; throw error; }
-
-  const out = {};
-  for (let d = deISO; d <= ateISO; d = proximoDia(d)) {
-    const base = { onibus: 0, van_adaptada: 0 };
-    for (const f of data || []) {
-      if (f.inicio <= d && (!f.fim || f.fim >= d)) base[f.tipo] = (base[f.tipo] || 0) + (f.quantidade || 0);
-    }
-    out[d] = base;
-  }
-  return out;
+// Decide um pedido criando a frota extra do dia, numa transação (RPC da
+// migration 040). `status` null só cria o lote - é o remanejamento, que
+// não muda a situação do pedido. Spec 2026-09-13-sate-ciclo-de-aprovacao.
+export async function decidirComFrota({ solicitacaoId, status = null, rotuloId, onibus = 0, vans = 0 }) {
+  if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
+  const { data, error } = await sb().rpc('decidir_com_frota', {
+    p_solicitacao: solicitacaoId, p_status: status, p_rotulo: rotuloId, p_onibus: onibus, p_vans: vans,
+  });
+  if (error) throw error;
+  _frotas = null;
+  return data;
 }
 
-// Aritmética de calendário local ao arquivo: `addDias` de shared/format
-// resolveria, mas ele já é importado por sate.model.js e este é o único
-// uso aqui. Comparação e incremento sobre `yyyy-mm-dd` (R8).
-function proximoDia(iso) {
-  const [a, m, d] = iso.split('-').map(Number);
-  const dt = new Date(a, m - 1, d + 1);
-  return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`;
-}
-
-// Lotes que nasceram de uma solicitação que não está mais de pé. Não
-// somem sozinhos (decisão registrada na spec D2): a tela avisa e quem
-// aprova decide manter ou remover.
+// Lotes que nasceram de um pedido e deixaram de fazer sentido (spec D3):
+// o pedido foi negado ou cancelado, ou foi REMANEJADO para uma data que o
+// lote não cobre. Não somem sozinhos - quem aprova decide.
 export async function getFrotasOrfas() {
   if (!hasSupabase()) return [];
   const { data, error } = await sb().from('frota')
-    .select('*, rotulo:frota_rotulo(nome), solicitacao:solicitacao_transporte(id, status, data)')
+    .select('*, rotulo:frota_rotulo(nome), solicitacao:solicitacao_transporte(id, status, data, atividade_livre)')
     .not('solicitacao_id', 'is', null);
   if (error) { if (ausente(error)) return []; throw error; }
-  const MORTOS = ['negado', 'cancelado'];
-  return (data || []).filter(f => !f.solicitacao || MORTOS.includes(f.solicitacao.status));
+  return (data || []).filter(ehOrfa);
+}
+
+// Pura, exportada para teste.
+export function ehOrfa(f) {
+  const s = f.solicitacao;
+  if (!s || ['negado', 'cancelado'].includes(s.status)) return true;
+  return !(f.inicio <= s.data && (!f.fim || f.fim >= s.data));
+}
+
+// "Manter": o lote deixa de ser do pedido e vira reforço comum.
+export async function manterLote(id) {
+  if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
+  const { error } = await sb().from('frota').update({ solicitacao_id: null }).eq('id', id);
+  if (error) throw error;
+  _frotas = null;
 }
 
 export function limparCacheFrota() { _rotulos = null; _frotas = null; }

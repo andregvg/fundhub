@@ -130,7 +130,7 @@ export function avaliarPedido(p) {
     if (vans > livreVanPeriodo) {
       avisos.push({
         codigo: 'sem_van',
-        texto: `Não há van adaptada livre para ${qtdCadeirantes} cadeirante(s). O pedido segue como "aguardando transporte adaptado".`,
+        texto: `Não há van adaptada livre para ${qtdCadeirantes} cadeirante(s). O pedido segue, e a Gerência providencia a van ou o deixa aguardando transporte adaptado.`,
       });
     }
   }

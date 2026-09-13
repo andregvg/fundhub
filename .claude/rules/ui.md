@@ -36,7 +36,7 @@ Sempre conferir `src/styles/components.css` antes de escrever CSS novo. O que j�
 - **Cards e grades:** `.card` · `.cards` · `.tile` · `.tiles` · `.panel` · `.dash-grid` · `.md-grid`
 - **Stats:** `.stat-row` · `.stat-tile` · `.stat-num` · `.stat-label`
 - **Formulário:** `.esc-form` · `.esc-row` · `.form-grid` · `.form-grupo` · `.form-foot` · `.form-hint` · `.field` · `.lbl`
-- **Botões:** `.btn-primary` · `.btn-secundario` · `.btn-perigo` (ação destrutiva, só em diálogo) · `.mini-btn` (com `.ok` / `.no`)
+- **Botões:** `.btn-primary` · `.btn-secundario` · `.btn-perigo` (ação destrutiva de decisão: confirmar() ou rodapé de decisão de modal) · `.mini-btn` (com `.ok` / `.no`)
 - **Marcadores:** `.chip` · `.tag` · `.badge` · `.pill`
 - **Modal:** `.modal` e família - usar sempre via `shared/ui/modal.js`, nunca à mão
 - **Confirmação:** `.confirmar-back`/`.confirmar-card` - usar sempre via `shared/ui/confirmar.js`, nunca à mão

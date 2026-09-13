@@ -63,14 +63,6 @@ export async function listSolicitacoes({ status, de, ate, unidadeId } = {}) {
   return data || [];
 }
 
-export async function getSolicitacaoPorId(id) {
-  if (!hasSupabase()) return null;
-  const { data, error } = await sb().from('solicitacao_transporte')
-    .select(SELECT_BASE).eq('id', id).maybeSingle();
-  if (error) throw error;
-  return data;
-}
-
 // Solicitações de um dia (Dashboard).
 export async function getSolicitacoesDoDia(dataISO) {
   if (!hasSupabase()) return [];
@@ -104,6 +96,8 @@ export async function criarSolicitacao(viagem, participacao) {
   return data;
 }
 
+// Remanejar (quem aprova): data, período, horários, destino, veículos.
+// Os totais de estudantes NÃO entram - são cache das participações.
 export async function editarSolicitacao(id, payload) {
   if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
   const { error } = await sb().from('solicitacao_transporte')
@@ -135,7 +129,6 @@ async function transicionar(id, status, motivo = null) {
 
 // Aprovar e negar: só quem tem escrita em `sate` (o RLS confirma).
 export const porEmAnalise = (id) => transicionar(id, 'em_analise');
-export const aguardarAdaptado = (id) => transicionar(id, 'aguardando_transporte_adaptado');
 export const confirmarSolicitacao = (id) => transicionar(id, 'confirmado');
 
 export function negarSolicitacao(id, motivo) {

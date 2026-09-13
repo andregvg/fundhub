@@ -9,6 +9,34 @@ versionamento **MINOR** = módulo novo ou mudança de modelo de dados, **PATCH**
 
 ---
 
+## [0.33.0] - 2026-09-13
+
+> **Exige rodar a migration `040_sate_decisao_com_frota.sql`.**
+
+### Adicionado
+
+- **Confirmar acima da frota cria a frota extra do dia.** Quando o pedido não
+  cabe nos veículos daquele período, o SATE mostra quantos faltam, pede um
+  rótulo (dá para criar um novo ali mesmo) e cria os veículos só para aquele
+  dia, ligados ao pedido, junto com a confirmação.
+- **Aguardar van adaptada.** Se o que falta é van, quem aprova pode reservar os
+  ônibus e deixar o pedido aguardando transporte adaptado até a van ser
+  resolvida.
+- **Remanejar pedidos.** Quem aprova altera data, período, horários, destino e
+  número de veículos de um pedido. Mudando o destino, o tempo de viagem é
+  recalculado; mudando para uma data sem folga, o sistema oferece criar a frota
+  extra.
+- **Frota extra sem pedido.** Veículos extras cujo pedido foi negado, cancelado
+  ou mudou de data aparecem no topo da guia Frota, para manter ou remover.
+
+### Corrigido
+
+- Os botões vermelhos de decisão (**Negar**, **Cancelar**) apareciam com o
+  tamanho padrão do navegador, menores que os outros. Agora têm o mesmo
+  tamanho, e o rodapé do pedido quebra de linha sem espremer nenhum botão.
+
+---
+
 ## [0.32.0] - 2026-09-13
 
 ### Adicionado

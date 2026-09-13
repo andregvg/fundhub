@@ -82,6 +82,26 @@ export async function saldoDoDia(dataISO) {
   return { onibus: monta('onibus', bruto), van_adaptada: monta('van_adaptada', bruto) };
 }
 
+// Quantos veículos FALTAM para este pedido caber no período (spec
+// 2026-09-13-sate-ciclo-de-aprovacao, D1). Pura.
+//
+// `jaReservado`: o pedido já está no uso do dia (`em_analise` e
+// `aguardando_transporte_adaptado` reservam; `solicitado` não). Sem
+// descontar, o que ele mesmo ocupa contaria duas vezes e nasceria frota
+// extra a mais.
+export function faltaParaConfirmar(s, saldo, { jaReservado = false } = {}) {
+  const falta = (tipo, pedido) => {
+    const p = saldo?.[tipo]?.[s.periodo];
+    if (!p || !pedido) return 0;
+    const livre = p.total - p.uso + (jaReservado ? pedido : 0);
+    return Math.max(0, pedido - livre);
+  };
+  return {
+    onibus: falta('onibus', Number(s.qtd_onibus) || 0),
+    vans: falta('van_adaptada', Number(s.qtd_vans) || 0),
+  };
+}
+
 // Só o que a regra (b) precisa do dia seguinte: ônibus livres de manhã.
 export async function livreManhaSeguinte(dataISO) {
   const s = await saldoDoDia(addDias(dataISO, 1));

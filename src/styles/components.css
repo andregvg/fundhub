@@ -388,6 +388,7 @@ span.gira-90, span.gira-menos90, span.gira-180 { display: inline-flex; }
    menor usada dentro de modais e listas. */
 .btn-primary,
 .btn-secundario,
+.btn-perigo,
 .mini-btn,
 .form-foot button[type="submit"] {
   display: inline-flex;
@@ -428,9 +429,11 @@ span.gira-90, span.gira-menos90, span.gira-180 { display: inline-flex; }
 .btn-secundario:hover,
 .mini-btn:hover { background: var(--surface-3); border-color: var(--border-forte); }
 
-/* Ação destrutiva num diálogo (confirmar.js) - mesmo peso do .btn-primary,
-   cor de perigo. Não usar fora de um confirmar(): a excluir/cancelar de
-   itens em lista continua .mini-btn.no (ícone, não botão preenchido). */
+/* Ação destrutiva de DECISÃO - num confirmar(), ou no rodapé de decisão
+   de um modal (Negar, Cancelar). Mesmo peso do .btn-primary, cor de
+   perigo. A geometria vem da lista acima: até 13/09/2026 ela não incluía
+   esta classe, e fora do confirmar() o botão saía com o padding nativo
+   do navegador. Excluir/cancelar item de LISTA continua .mini-btn.no. */
 .btn-perigo {
   border: 1px solid transparent;
   background: var(--danger);

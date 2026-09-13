@@ -117,6 +117,11 @@
   padding-top: 16px;
   border-top: 1px solid var(--border);
 }
+/* Botão não encolhe: com quatro no rodapé, o flex espremia "Negar" até
+   o texto vazar. Quebra de linha inteiro. Remanejar vai para a esquerda,
+   separado das decisões, porque não decide nada. */
+.det-acoes-pe > button { flex: 0 0 auto; }
+.det-acoes-pe > [data-acao="remanejar"] { margin-right: auto; }
 
 /* ── Painel de frota, na engrenagem ─────────────────────────── */
 .cfg-frota { display: flex; flex-direction: column; gap: 4px; }
@@ -286,3 +291,16 @@
   display: inline-flex; flex-wrap: wrap; justify-content: flex-end;
   align-items: center; gap: 6px; margin-left: auto;
 }
+
+/* Frota extra sem pedido: pendência no topo da guia Frota. Fundo de
+   atenção porque pede decisão; as ações vão para a direita da linha. */
+.fr-orfas {
+  display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px;
+  padding: 12px 14px; border-radius: var(--radius); background: var(--atencao-bg);
+}
+.fr-orfas .form-hint { margin: 0 0 4px; }
+.fr-orfa-acoes { display: inline-flex; gap: 6px; margin-left: auto; }
+
+/* Texto do modal da frota extra: é a explicação da consequência, e fica
+   em tamanho de leitura, não de dica. */
+.fx-texto { margin: 0 0 12px; font-size: 14px; line-height: 1.5; }

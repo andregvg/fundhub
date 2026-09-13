@@ -16,11 +16,13 @@
 import {
   porEmAnalise, confirmarSolicitacao, negarSolicitacao, cancelarSolicitacao,
   pedirCancelamento, confirmarCancelamento,
-  STATUS, PERIODOS,
+  STATUS, PERIODOS, STATUS_RESERVA,
 } from '../sate.model.js';
+import { abrirFrotaExtra } from './frota-extra.js';
+import { abrirRemanejar } from './remanejar.js';
 import { getParticipacoes } from '../participacoes.model.js';
 import { blocoHtml, ligarParticipantes } from './participantes.js';
-import { saldoDoDia } from '../saldo.model.js';
+import { saldoDoDia, faltaParaConfirmar } from '../saldo.model.js';
 import { pontosDaViagem, explicarTrajeto, atualizarTrajeto, retratoTrajeto } from '../rota.model.js';
 import { linkRota } from '../../locais/locais.model.js';
 import { velocidadeOnibusKmh, margemParadaMin } from '../sate.config.js';
@@ -148,6 +150,12 @@ function acoes(s) {
   const b = (acao, rotulo, classe = 'btn-secundario', icone = null) =>
     `<button type="button" class="${classe}" data-acao="${acao}">${icone ? ico(icone) + ' ' : ''}${esc(rotulo)}</button>`;
 
+  const remanejar = ap && !['negado', 'cancelado'].includes(s.status)
+    ? b('remanejar', 'Remanejar', 'btn-secundario', 'editar') : '';
+  return remanejar + decisoes(s, ap, b);
+}
+
+function decisoes(s, ap, b) {
   if (s.status === 'solicitado') {
     return ap
       ? b('analisar', 'Pôr em análise') + b('negar', 'Negar', 'btn-perigo') + b('confirmar', 'Confirmar', 'btn-primary', 'ok')
@@ -178,12 +186,35 @@ function aoClicarAcao(e) {
   };
   if (COM_MOTIVO[acao]) return pedirMotivo(COM_MOTIVO[acao]);
 
+  if (acao === 'remanejar') return abrirRemanejar(atual, ctx, () => abrirDetalhe(atual, ctx));
+  if (acao === 'confirmar') return confirmar(btn);
+
   const DIRETA = {
     analisar: { fn: porEmAnalise, titulo: 'Solicitação em análise' },
-    confirmar: { fn: confirmarSolicitacao, titulo: 'Solicitação confirmada' },
     ciencia: { fn: confirmarCancelamento, titulo: 'Cancelamento confirmado' },
   };
   if (DIRETA[acao]) return executar(DIRETA[acao].fn, DIRETA[acao].titulo);
+}
+
+// Confirmar olha a frota ANTES (spec 2026-09-13-sate-ciclo-de-aprovacao,
+// D1). Cabe: confirma direto. Não cabe: o modal da frota extra decide - e
+// é por ele que "aguardando transporte adaptado" passa a acontecer (D2).
+// Saldo relido no clique, não o da abertura do detalhe: outro aprovador
+// pode ter confirmado algo no meio tempo.
+async function confirmar(btn) {
+  const s = atual;
+  btn.disabled = true;
+  try {
+    const falta = faltaParaConfirmar(s, await saldoDoDia(s.data), { jaReservado: STATUS_RESERVA.includes(s.status) });
+    if (falta.onibus || falta.vans) {
+      return abrirFrotaExtra({ solicitacao: s, falta, modo: 'confirmar', ctx, reabrir: () => abrirDetalhe(s, ctx) });
+    }
+    await executar(confirmarSolicitacao, 'Solicitação confirmada');
+  } catch (err) {
+    reportarErro(err, { titulo: 'Não foi possível confirmar' });
+  } finally {
+    btn.disabled = false;
+  }
 }
 
 // Modal POR CIMA do detalhe. `voltar` reabre o detalhe com o dado
