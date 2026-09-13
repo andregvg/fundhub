@@ -9,6 +9,27 @@ versionamento **MINOR** = módulo novo ou mudança de modelo de dados, **PATCH**
 
 ---
 
+## [0.29.1] - 2026-09-13
+
+### Corrigido
+
+- **Acrescentar escola e reordenar as paradas agora funcionam de verdade.** A
+  versão anterior anunciava que a Gerência podia pôr outra escola no lugar de
+  uma que saiu e mudar a ordem das paradas, mas os botões não existiam. Agora,
+  no agendamento, quem aprova tem **Acrescentar escola**, pode **arrastar** as
+  escolas para mudar a ordem e, no celular, usar as **setas** de subir e descer.
+- Quem aprova pode **cancelar a participação** de uma escola direto, com
+  justificativa, quando a escola avisou por fora. O registro fica, e a escola
+  continua vendo que saiu. Para uma escola posta por engano, há **Remover**,
+  que apaga a linha.
+- Ao clicar em **Manter** ou **Desistir do pedido**, a justificativa do pedido
+  desfeito continuava gravada e aparecia na linha da escola, como se ela
+  tivesse saído. Agora ela é apagada junto.
+- No Dashboard, soltar um painel fora da grade desfaz a mudança em vez de
+  deixar a tela numa ordem que não foi salva.
+
+---
+
 ## [0.29.0] - 2026-09-08
 
 > **Exige rodar a migration `037_sate_participacao.sql`**, depois da `036`.

@@ -75,6 +75,12 @@ a.tile:hover {
 /* Num <span> que embrulha o icone, `transform` precisa de uma caixa, e
    inline nao tem. O proprio <svg>.ico ja e inline-block e nao entra aqui. */
 span.gira-90, span.gira-menos90, span.gira-180 { display: inline-flex; }
+
+/* O item sendo arrastado (shared/ui/arrastar.js). O componente poe e tira
+   a classe; o realce e daqui, e nao de cada modulo - o Dashboard e a
+   legenda de horarios tinham a mesma declaracao em dois arquivos. Quem
+   quiser mais que a transparencia acrescenta no proprio CSS. */
+.arrastando { opacity: .5; }
 .tile h3 { margin: 2px 0 0; font-size: 16px; padding-right: 60px; }
 .tile p { margin: 0; color: var(--muted); font-size: 13px; }
 

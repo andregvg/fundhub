@@ -161,8 +161,25 @@ não cancela a viagem inteira: ela **sai da viagem**.
    **cancelada**. Você continua vendo o agendamento e o registro de que a sua
    escola saiu - a informação não some.
 
-Do outro lado, ao confirmar uma saída a Gerência pode **pôr outra escola no
-lugar** e **reordenar** as paradas, sem mexer no resto da viagem.
+### Montar e ajustar as paradas (quem aprova)
+
+1. Abra o agendamento. Em **Escolas nesta viagem**, clique em **Acrescentar
+   escola**, escolha a unidade e informe estudantes, cadeirantes e horário de
+   embarque. Ela entra no fim da fila; o total de estudantes da viagem é
+   recalculado sozinho.
+2. Para mudar a ordem, **arraste** a escola pela alça à esquerda do número. No
+   celular, use as **setas** de subir e descer. A ordem é a que sai na ficha
+   do ônibus.
+3. Para tirar uma escola há dois botões, e eles não fazem a mesma coisa:
+
+| Botão | Quando usar | O que acontece |
+|---|---|---|
+| **Cancelar participação** | a escola avisou que não vai | pede justificativa; a escola continua vendo o registro de que saiu |
+| **Remover** | a escola foi posta por engano | apaga a linha; a escola deixa de ver o agendamento |
+
+Quando uma escola pediu para sair, a linha dela mostra **Manter** e
+**Confirmar saída**. Confirmada a saída, é o momento de acrescentar outra
+escola no lugar e reordenar, sem mexer no resto da viagem.
 
 ---
 
@@ -250,4 +267,4 @@ Negado é um pedido que **nunca** chegou a valer - foi recusado na análise.
 Cancelado é um pedido que **estava de pé** e foi desfeito. Os dois exigem
 justificativa.
 
-> Atualizado na versão 0.29.0.
+> Atualizado na versão 0.29.1.

@@ -78,10 +78,18 @@ export async function remover(id) {
 }
 
 // ── Ciclo de vida da participação ────────────────────────────
+// `motivo` tem TRÊS estados, e os três são usados:
+//
+//   texto      grava a justificativa (pedir saída, cancelar);
+//   null       APAGA - voltar a `ativa` precisa limpar o texto do pedido
+//              desfeito, senão a linha da escola exibe a justificativa
+//              de um cancelamento que não aconteceu;
+//   ausente    PRESERVA - confirmar a saída mantém o motivo que a
+//              escola escreveu ao pedir. É o registro dela, não nosso.
 async function mover(id, status, motivo) {
   if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
   const patch = { status };
-  if (motivo != null) patch.motivo = String(motivo).trim();
+  if (motivo !== undefined) patch.motivo = motivo == null ? null : String(motivo).trim();
   if (status === 'cancelada') {
     patch.decidido_por = await emailAtual();
     patch.decidido_em = agoraISO();
@@ -106,8 +114,18 @@ export function pedirSaida(id, motivo) {
 // a escola continua vendo que o agendamento dela foi cancelado.
 export const confirmarSaida = (id) => mover(id, 'cancelada');
 
-// Desfaz o pedido, antes da confirmação. Volta a ocupar lugar.
+// Desfaz o pedido, antes da confirmação. Volta a ocupar lugar, e o
+// motivo do pedido desfeito é apagado junto.
 export const voltarAtras = (id) => mover(id, 'ativa', null);
+
+// Quem aprova tira a escola COM registro - o caso do telefonema: a
+// escola avisou por fora e não vai abrir pedido. Diferente de
+// `remover`, que apaga a linha: aqui a escola continua vendo que a
+// participação dela foi cancelada, e por quê.
+export function cancelarParticipacao(id, motivo) {
+  if (!String(motivo || '').trim()) throw new Error('Informe o motivo do cancelamento.');
+  return mover(id, 'cancelada', motivo);
+}
 
 // Reordena a viagem inteira. Recebe os ids na ordem desejada.
 //

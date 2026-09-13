@@ -5,9 +5,14 @@
 //
 // Saiu de `por-escola.js` em 07/09/2026, quando aquele arquivo passou
 // do teto de 400 linhas da R11. A fronteira não é técnica: reordenar é
-// uma responsabilidade inteira, com estado próprio (`origemArrasto`),
-// um contrato de três funções e nenhum outro trecho da aba dependendo
-// dela. O que ficou lá é a aba; o que veio para cá é o rearranjo.
+// uma responsabilidade inteira, com contrato próprio e nenhum outro
+// trecho da aba dependendo dela. O que ficou lá é a aba; o que veio
+// para cá é o rearranjo.
+//
+// A mecânica do arrasto saiu daqui em 09/09/2026 para
+// `shared/ui/arrastar.js`, no terceiro caso (R13). O que sobrou é o que
+// é DESTA tela: o que se arrasta, onde se grava, e as setas - a via de
+// reordenar em toque, que arrasto nativo não atende.
 //
 // A ordem gravada vale para a UNIDADE, não para quem está olhando -
 // quem reordena muda a grade de todo mundo. Por isso toda gravação
@@ -16,14 +21,10 @@
 // ============================================================
 import { salvarOrdem, limparExibicao } from '../exibicao.model.js';
 import { ico } from '../../../shared/ui/icones.js';
+import { ligarArrasto } from '../../../shared/ui/arrastar.js';
 import { toast } from '../../../shared/ui/toast.js';
 import { confirmar } from '../../../shared/ui/confirmar.js';
 import { reportarErro } from '../../../shared/ui/feedback.js';
-
-// O chip sendo arrastado agora. Fora do handler porque `dragover` e
-// `drop` disparam de novo a cada pixel e precisam achar o mesmo
-// elemento que o `dragstart` marcou.
-let origemArrasto = null;
 
 // O botão "Voltar à ordem padrão". Só faz sentido quando há o que
 // voltar: sem linha em `horario_exibicao` a grade já está no padrão
@@ -52,49 +53,12 @@ export function ligarReordenacao(root, { unidadeId, ordemAtual, recarregar }) {
 
   // Arrasto na LEGENDA, não nas barras: arrastar uma barra moveria o
   // horário, que é outra coisa. Reordenar a legenda reordena as faixas
-  // e as cores. Eventos de drag borbulham como qualquer outro, então
-  // delegar aqui (em vez de religar em cada `#hg-legenda` recriado)
-  // segue o padrão dos demais listeners da aba.
-  root.addEventListener('dragstart', (e) => {
-    const chip = e.target.closest('.hg-chip');
-    if (!chip || !chip.draggable) return;
-    origemArrasto = chip;
-    chip.classList.add('arrastando');
-    e.dataTransfer.effectAllowed = 'move';
-    // Firefox só inicia o arrasto se houver dado no dataTransfer.
-    e.dataTransfer.setData('text/plain', chip.dataset.servidor);
-  });
-
-  root.addEventListener('dragend', (e) => {
-    origemArrasto?.classList.remove('arrastando');
-    origemArrasto = null;
-    // Soltar FORA de #hg-legenda: `drop` não roda (ou roda sem achar a
-    // legenda) e ninguém desfez o `insertBefore` que o `dragover` já
-    // aplicou ao vivo - a legenda ficaria mostrando uma ordem que não
-    // foi gravada e nem bate com as cores das barras abaixo, sem toast
-    // nem erro. `dropEffect` só vira algo diferente de 'none' quando um
-    // `dragover` válido (dentro da legenda) chamou `preventDefault()`.
-    if (e.dataTransfer?.dropEffect === 'none') recarregar();
-  });
-
-  root.addEventListener('dragover', (e) => {
-    if (!origemArrasto) return;
-    const legenda = e.target.closest('#hg-legenda');
-    if (!legenda) return;
-    e.preventDefault();      // exigido pela API nativa para o drop disparar
-    const alvo = e.target.closest('.hg-chip');
-    if (!alvo || alvo === origemArrasto) return;
-    const r = alvo.getBoundingClientRect();
-    const depois = (e.clientX - r.left) > r.width / 2;
-    legenda.insertBefore(origemArrasto, depois ? alvo.nextSibling : alvo);
-  });
-
-  root.addEventListener('drop', async (e) => {
-    const legenda = e.target.closest('#hg-legenda');
-    if (!origemArrasto || !legenda) return;
-    e.preventDefault();
-    const ids = [...legenda.querySelectorAll('.hg-chip')].map(c => c.dataset.servidor);
-    await salvarNovaOrdem(ids, ctx);
+  // e as cores.
+  ligarArrasto(root, {
+    item: '.hg-chip', lista: '#hg-legenda', eixo: 'x',
+    chave: (el) => el.dataset.servidor,
+    aoSoltar: (ids) => salvarNovaOrdem(ids, ctx),
+    aoCancelar: () => recarregar(),
   });
 }
 

@@ -257,5 +257,22 @@
 /* O motivo ocupa a linha inteira: é texto de gente, não um metadado
    curto, e espremê-lo ao lado do nome o cortaria. */
 .det-parte-motivo { flex: 1 1 100%; font-style: italic; }
-.det-parte .mini-btn { margin-left: auto; }
-.det-parte .mini-btn + .mini-btn { margin-left: 0; }
+/* O cabeçalho do bloco divide a linha com "Acrescentar escola". O `.lbl`
+   nasce empilhado (components.css), certo para um rótulo que embrulha
+   campo - aqui são dois irmãos lado a lado, então a direção é desfeita. */
+.det-partes-cab { flex-direction: row; align-items: center; justify-content: space-between; gap: 8px; }
+.det-partes-cab .mini-btn { text-transform: none; letter-spacing: normal; }
+
+/* A alça só aparece quando a linha é arrastável, e por isso o cursor
+   vai NELA e na linha: quem aprova precisa ver onde pegar. */
+.det-parte[draggable="true"] { cursor: grab; }
+.det-parte-alca { flex: 0 0 auto; display: inline-flex; color: var(--muted); }
+.det-parte-setas { flex: 0 0 auto; display: inline-flex; gap: 2px; }
+.det-parte-setas .mini-btn { padding-inline: 6px; }
+
+/* Setas e botões são UM bloco, empurrado para a direita e quebrando de
+   linha inteiro - nunca metade ao lado do nome e metade embaixo. */
+.det-parte-acoes {
+  display: inline-flex; flex-wrap: wrap; justify-content: flex-end;
+  align-items: center; gap: 6px; margin-left: auto;
+}

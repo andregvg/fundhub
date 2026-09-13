@@ -172,7 +172,6 @@
   background: var(--surface-2); font-size: 13px;
 }
 .hg-chip.arrastavel { cursor: grab; }
-.hg-chip.arrastando { opacity: .4; }
 .hg-chip .hg-cor { width: 10px; height: 10px; border-radius: 50%; background: var(--serie); }
 .hg-chip .hg-cargo { color: var(--muted); font-size: 12px; }
 .hg-chip.sel { border-color: var(--serie); box-shadow: 0 0 0 2px color-mix(in srgb, var(--serie) 30%, transparent); }

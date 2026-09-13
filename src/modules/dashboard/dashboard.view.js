@@ -12,6 +12,7 @@ import { esc } from '../../shared/dom.js';
 import { hojeISO, fmtExtenso } from '../../shared/format.js';
 import { loading, emptyState } from '../../shared/ui/feedback.js';
 import { ico } from '../../shared/ui/icones.js';
+import { ligarArrasto } from '../../shared/ui/arrastar.js';
 
 const PINTURA = {
   numeros:      (box) => painelStats(box),
@@ -21,8 +22,6 @@ const PINTURA = {
   calendario:   (box, h) => painelCalendario(box, h),
   ocorrencias:  (box, h) => painelOcorrencias(box, h),
 };
-
-let origemArrasto = null;
 
 export async function render(app) {
   const hoje = hojeISO();
@@ -61,7 +60,17 @@ export async function render(app) {
     });
   }
 
-  ligarArrasto(grid);
+  // Arrasto pelo cabeçalho; a ordem gravada inclui os ocultos no fim,
+  // para que reativar um painel não o jogue para uma posição aleatória.
+  ligarArrasto(grid, {
+    item: '.panel', alca: '.panel-cab', chave: (el) => el.dataset.painel,
+    aoSoltar: async (ids) => {
+      const ocultos = paineisOcultos();
+      try { await definirOrdem([...ids, ...ocultos.filter(o => !ids.includes(o))]); }
+      catch (_) { location.reload(); }
+    },
+    aoCancelar: () => render(app),
+  });
   grid.querySelectorAll('.panel-x').forEach(b =>
     b.addEventListener('click', () => ocultar(b.closest('[data-painel]').dataset.painel)));
 }
@@ -86,38 +95,4 @@ async function ocultar(id) {
   } catch (_) {
     // silencioso: o painel só some se a preferência gravou
   }
-}
-
-// Arrasto pelo cabeçalho do painel. Delegado no grid (container estável),
-// mesmo padrão de horarios/views/por-escola.js.
-function ligarArrasto(grid) {
-  grid.addEventListener('dragstart', (e) => {
-    const cab = e.target.closest('.panel-cab');
-    if (!cab) return;
-    origemArrasto = cab.closest('.panel');
-    origemArrasto.classList.add('arrastando');
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/plain', origemArrasto.dataset.painel);  // Firefox exige
-  });
-  grid.addEventListener('dragend', () => {
-    origemArrasto?.classList.remove('arrastando');
-    origemArrasto = null;
-  });
-  grid.addEventListener('dragover', (e) => {
-    if (!origemArrasto) return;
-    const alvo = e.target.closest('.panel');
-    if (!alvo || alvo === origemArrasto || alvo.parentElement !== grid) return;
-    e.preventDefault();
-    const r = alvo.getBoundingClientRect();
-    const depois = (e.clientY - r.top) > r.height / 2;
-    grid.insertBefore(origemArrasto, depois ? alvo.nextSibling : alvo);
-  });
-  grid.addEventListener('drop', async (e) => {
-    if (!origemArrasto) return;
-    e.preventDefault();
-    const ids = [...grid.querySelectorAll('.panel')].map(p => p.dataset.painel);
-    const ocultos = paineisOcultos();
-    try { await definirOrdem([...ids, ...ocultos.filter(o => !ids.includes(o))]); }
-    catch (_) { location.reload(); }
-  });
 }

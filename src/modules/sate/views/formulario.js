@@ -41,7 +41,7 @@ export function abrirFormulario(contexto) {
   abrirModal(`
     ${modalHead('Nova solicitação', 'Transporte para atividade extraclasse')}
     <div class="modal-body">
-      <form id="sol-form" class="esc-form sol-form">
+      <form id="sol-form" class="esc-form">
 
         <fieldset class="form-grupo">
           <legend>O que</legend>
