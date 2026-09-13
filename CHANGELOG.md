@@ -39,6 +39,9 @@ tela em que você está.
 
 - O telefone no card da equipe aparecia sem formatação. Agora segue o mesmo
   formato do resto do sistema.
+- A caixinha que abre ao passar o mouse sobre a **versão**, no rodapé, sumia
+  antes de o mouse chegar ao link **Histórico completo**. Agora ela espera o
+  mouse chegar.
 
 ## [0.29.2] - 2026-09-13
 

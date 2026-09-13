@@ -287,18 +287,41 @@ export function carimboRodape() {
   btn.setAttribute('aria-label', `Versão ${CONFIG.versao} - ver o que mudou`);
 
   let pintado = false;
+  // `querAberto` é a INTENÇÃO mais recente. Na primeira abertura a caixa
+  // espera o carimbo chegar da rede; se o mouse saiu nesse meio-tempo, ela
+  // não deve aparecer sozinha depois.
+  let querAberto = false;
+  let fecharDepois = null;
+  const cancelarFechar = () => { clearTimeout(fecharDepois); fecharDepois = null; };
   const abrir = async () => {
+    cancelarFechar();
+    querAberto = true;
     if (!pintado) { card.innerHTML = cartaoHtml(await lerCarimbo()); pintado = true; }
+    if (!querAberto) return;
     card.hidden = false;
     btn.setAttribute('aria-expanded', 'true');
   };
-  const fechar = () => { card.hidden = true; btn.setAttribute('aria-expanded', 'false'); };
+  const fechar = () => {
+    cancelarFechar();
+    querAberto = false;
+    card.hidden = true;
+    btn.setAttribute('aria-expanded', 'false');
+  };
 
   // Hover para quem usa mouse, foco para quem usa teclado, clique para
   // quem está no celular - onde hover não existe.
+  //
+  // Sair com o mouse fecha com um pequeno ATRASO: o caminho do botão até o
+  // "Histórico completo" é uma diagonal, e um tremor para fora da caixa no
+  // meio dele fechava tudo antes de a pessoa chegar ao link. Voltar para
+  // dentro a tempo cancela o fechamento. (O vão entre o botão e a caixa é
+  // coberto no CSS - .build-card::after.)
   const wrap = document.getElementById('build-wrap');
   wrap.addEventListener('mouseenter', abrir);
-  wrap.addEventListener('mouseleave', fechar);
+  wrap.addEventListener('mouseleave', () => {
+    cancelarFechar();
+    fecharDepois = setTimeout(fechar, 350);
+  });
   btn.addEventListener('focus', abrir);
   btn.addEventListener('click', () => (card.hidden ? abrir() : fechar()));
   wrap.addEventListener('focusout', (e) => {

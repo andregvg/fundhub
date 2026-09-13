@@ -279,6 +279,18 @@ body.menu-aberto .sidebar { transform: translateX(0); }
   text-align: left;
   cursor: default;
 }
+/* Ponte invisível sobre o vão de 8px entre a caixa e o botão. A caixa é
+   filha de .build-wrap, mas o vão não é de ninguém: atravessá-lo com o
+   mouse disparava o mouseleave e a caixa sumia antes de o cursor chegar
+   ao link. Cobrindo o vão, o caminho botão → caixa não sai do wrap. */
+.build-card::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  height: 10px;
+}
 .bc-versao { font-size: 13px; }
 .bc-data { color: var(--muted); }
 .bc-resumo { margin: 2px 0 0; padding-left: 16px; display: flex; flex-direction: column; gap: 3px; }
