@@ -12,7 +12,6 @@ import { esc } from '../dom.js';
 import { prenderFoco } from './foco.js';
 
 let resolverAtual = null;
-let onEscAtual = null;
 let soltarFoco = null;
 let focoAnterior = null;
 
@@ -53,12 +52,11 @@ export function confirmar(titulo, { detalhe = '', textoOk = 'Confirmar', textoCa
     box.querySelector('#cf-nao').addEventListener('click', () => fechar(false));
     box.addEventListener('click', onCliqueFundo);
 
-    onEscAtual = (e) => { if (e.key === 'Escape') fechar(false); };
-    document.addEventListener('keydown', onEscAtual);
-
     // Diálogo com aria-modal="true" precisa segurar o Tab, senão a
-    // tabulação sai do "Confirmar" e vai para o menu da tela de trás.
-    soltarFoco = prenderFoco(box.querySelector('.confirmar-card'));
+    // tabulação sai do "Confirmar" e vai para o menu da tela de trás. O
+    // Esc vem junto: aberta sobre um modal, a confirmação é a superfície
+    // de cima e o Esc fecha só ela (ver foco.js).
+    soltarFoco = prenderFoco(box.querySelector('.confirmar-card'), { aoEsc: () => fechar(false) });
 
     box.querySelector('#cf-nao').focus();
   });
@@ -73,12 +71,10 @@ function fechar(resultado) {
   if (!box || !resolverAtual) return;
   box.classList.remove('open');
   box.removeEventListener('click', onCliqueFundo);
-  if (onEscAtual) document.removeEventListener('keydown', onEscAtual);
   soltarFoco?.();
   soltarFoco = null;
   const resolve = resolverAtual;
   resolverAtual = null;
-  onEscAtual = null;
   // Devolve o foco a quem abriu - senão, depois de confirmar, o Tab
   // recomeça do topo da página em vez de voltar ao botão de origem.
   focoAnterior?.focus?.();

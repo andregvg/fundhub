@@ -158,7 +158,10 @@ export function formServidor(s, ctx, { voltar = null } = {}) {
     formVinculo(atual, aberto, c, { voltar: (freshCtx) => {
       const ctx2 = freshCtx || c;
       const s2 = ctx2.lista.find(x => x.id === atual.id) || atual;
-      formServidor(s2, ctx2);
+      // Repassa o `voltar` deste formulário: sem ele, o terceiro nível
+      // (ficha → formulário → local de trabalho) voltava a um formulário
+      // sem caminho de volta para a ficha.
+      formServidor(s2, ctx2, { voltar });
     } });
   }));
 

@@ -36,18 +36,16 @@ export function garantirModal() {
   montarModal();
 }
 
-let escListener = null;
 let voltarPara = null;
 let focoAnterior = null;
 let soltarFoco = null;
 
+// O Esc não é ouvido aqui: ele vem com a armadilha de foco (foco.js),
+// que só existe enquanto o modal está aberto e só responde quando o
+// modal é a superfície de CIMA - com uma confirmação por cima, o Esc é
+// dela, e fecha só ela.
 export function montarModal() {
   document.getElementById('modal-back')?.addEventListener('click', aoCliqueFundo);
-  // Um único listener de teclado por página: registrar a cada render
-  // vazava listeners e fechava modais de telas já descartadas.
-  if (escListener) document.removeEventListener('keydown', escListener);
-  escListener = (e) => { if (e.key === 'Escape' && aberto()) fecharModal(); };
-  document.addEventListener('keydown', escListener);
 }
 
 const aberto = () => document.getElementById('modal-back')?.classList.contains('open');
@@ -94,7 +92,7 @@ export function abrirModal(html, { voltar = null, tamanho = 'medio' } = {}) {
   // A armadilha é presa uma vez por PILHA, não por modal: o elemento é
   // sempre o mesmo (#modal, com o innerHTML trocado), e prender de novo
   // deixaria dois laços de Tab concorrendo sobre o mesmo nó.
-  if (!soltarFoco) soltarFoco = prenderFoco(m);
+  if (!soltarFoco) soltarFoco = prenderFoco(m, { aoEsc: () => fecharModal() });
 
   // Primeiro campo do formulário, se houver; senão o botão de fechar. Um
   // modal de edição que abre com o foco no × obriga a pessoa a tabular

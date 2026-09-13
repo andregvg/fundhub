@@ -107,7 +107,13 @@ export function criarBuscaSelecao(el, {
     else if (e.key === 'ArrowUp') { e.preventDefault(); mover(-1); }
     else if (e.key === 'Enter') {
       if (!lista.hidden && visiveis[destaque]) { e.preventDefault(); escolher(visiveis[destaque].id); }
-    } else if (e.key === 'Escape') { fechar(); input.blur(); }
+    } else if (e.key === 'Escape') {
+      // Lista aberta: o Esc é dela, e o modal em volta fica aberto (o
+      // preventDefault é o sinal que foco.js respeita). Lista fechada: o
+      // Esc segue adiante e fecha a superfície, como em qualquer campo.
+      if (!lista.hidden) { e.preventDefault(); fechar(); }
+      else input.blur();
+    }
   });
   lista.addEventListener('mousedown', (e) => {
     // mousedown e não click: o blur do input fecharia a lista antes.

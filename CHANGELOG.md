@@ -9,6 +9,29 @@ versionamento **MINOR** = módulo novo ou mudança de modelo de dados, **PATCH**
 
 ---
 
+## [0.29.2] - 2026-09-13
+
+### Corrigido
+
+- **As janelas não descem mais para fora da tela.** Quando um campo crescia com
+  a janela já aberta, ela escorregava para baixo e os botões de salvar ficavam
+  escondidos. Agora a janela continua centralizada e inteira na tela, e os
+  botões do rodapé ficam sempre à vista enquanto se rola o formulário.
+- **Janelas abertas uma sobre a outra fecham na ordem certa.** Com uma
+  confirmação aberta sobre uma janela, apertar Esc fechava as duas de uma vez;
+  agora fecha só a de cima. Pelo teclado, o Tab também voltou a chegar ao botão
+  de confirmar.
+- Em Servidores, ao abrir o local de trabalho a partir da edição de um servidor,
+  voltar dele levava a uma edição sem caminho de volta para a ficha. Agora a
+  seta de voltar desfaz o caminho passo a passo até a ficha.
+- Numa busca com lista de sugestões dentro de uma janela, Esc fecha só a lista,
+  e não a janela inteira.
+
+### Alterado
+
+- **Filtro de segmento:** as cores de Ensino Fundamental e Educação Infantil
+  aparecem só nos botões marcados. Desmarcados, todos têm a mesma aparência.
+
 ## [0.29.1] - 2026-09-13
 
 ### Corrigido

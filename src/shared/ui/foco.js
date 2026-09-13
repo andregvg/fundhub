@@ -22,8 +22,15 @@
 // conteúdo). Duas cópias disso são dois bugs para consertar duas
 // vezes. Se um dia sobrar um consumidor só, aí o arquivo some.
 //
+// Superfícies EMPILHAM: uma confirmação aberta sobre um modal é a
+// segunda armadilha ativa ao mesmo tempo. Só a do TOPO responde ao
+// teclado. Até 13/09/2026 as duas respondiam: a do modal via o foco
+// "fora" dela (estava na confirmação) e o puxava de volta, a da
+// confirmação o puxava de novo - e o Tab ficava preso em "Cancelar". O
+// Esc tinha o mesmo defeito por outra via e fechava as duas camadas.
+//
 // Uso:
-//   const soltar = prenderFoco(document.getElementById('modal'));
+//   const soltar = prenderFoco(document.getElementById('modal'), { aoEsc: fechar });
 //   …
 //   soltar();
 // ============================================================
@@ -43,17 +50,23 @@ function focaveis(raiz) {
     .filter(el => !el.disabled && el.getClientRects().length);
 }
 
-// Prende o Tab dentro de `raiz`. Devolve a função que solta.
+// Pilha das armadilhas ativas; a última é a superfície de cima.
+const pilha = [];
+const noTopo = (armadilha) => pilha[pilha.length - 1] === armadilha;
+
+// Prende o Tab dentro de `raiz` e, com `aoEsc`, liga o Esc a quem fecha.
+// Devolve a função que solta.
 //
 // A lista é recalculada a CADA Tab, de propósito: o conteúdo do modal
 // é substituído por innerHTML (abrir um por cima de outro, repintar um
 // formulário), e uma lista capturada na abertura apontaria para nós já
 // descartados.
-export function prenderFoco(raiz) {
+export function prenderFoco(raiz, { aoEsc = null } = {}) {
   if (!raiz) return () => {};
+  const armadilha = {};
 
   const aoTeclar = (e) => {
-    if (e.key !== 'Tab') return;
+    if (e.key !== 'Tab' || !noTopo(armadilha)) return;
     const lista = focaveis(raiz);
     // Superfície sem nada focável: o Tab não tem para onde ir, e deixá-lo
     // sair devolveria o foco à tela de trás.
@@ -74,8 +87,26 @@ export function prenderFoco(raiz) {
     else if (!e.shiftKey && atual === ultimo) { e.preventDefault(); primeiro.focus(); }
   };
 
+  // O Esc é ouvido na BOLHA, não na captura: um controle dentro da
+  // superfície que usa o Esc para si (a lista aberta de uma busca com
+  // seleção) chama preventDefault e a superfície fica aberta.
+  const aoEsc_ = (e) => {
+    if (e.key !== 'Escape' || e.defaultPrevented || !aoEsc || !noTopo(armadilha)) return;
+    e.preventDefault();
+    aoEsc();
+  };
+
+  pilha.push(armadilha);
   // Captura: roda antes de qualquer handler de Tab do conteúdo, para o
   // laço valer mesmo que a superfície trate a tecla por conta própria.
   document.addEventListener('keydown', aoTeclar, true);
-  return () => document.removeEventListener('keydown', aoTeclar, true);
+  document.addEventListener('keydown', aoEsc_);
+  return () => {
+    // Pela identidade, não pelo topo: quem solta nem sempre é o de cima
+    // (uma tela repintada por baixo de uma confirmação, por exemplo).
+    const i = pilha.indexOf(armadilha);
+    if (i >= 0) pilha.splice(i, 1);
+    document.removeEventListener('keydown', aoTeclar, true);
+    document.removeEventListener('keydown', aoEsc_);
+  };
 }

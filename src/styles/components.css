@@ -329,15 +329,11 @@ span.gira-90, span.gira-menos90, span.gira-180 { display: inline-flex; }
 .fseg .chip[data-eixo="fundamental"] { --eixo: var(--eixo-fundamental); }
 .fseg .chip[data-eixo="infantil"]    { --eixo: var(--eixo-infantil); }
 .fseg .chip[data-eixo="todas"]       { --eixo: var(--eixo-todas); }
-/* Em repouso (sem .on, sem :hover) a borda já insinua o eixo, para a fila
-   ler como dois grupos mesmo sem nada selecionado. Os :not() garantem que
-   isso não sobrescreva a borda de .chip.on nem de :hover, que têm a mesma
-   especificidade e viriam depois na cascata (achado da revisão final,
-   05/09/2026) - e :not(.limpar) mantém o botão "limpar" neutro, sem
-   herdar o tom do eixo Fundamental (--eixo default é var(--brand)). */
-.fseg .chip:not(.on):not(:hover):not(.limpar) {
-  border-color: color-mix(in srgb, var(--eixo) 25%, var(--border));
-}
+/* A cor do eixo aparece SÓ no chip marcado (.chip.on usa --eixo). Em
+   repouso todos os chips são iguais - neutros, como qualquer .chip -, e a
+   separação entre os grupos fica a cargo do .fseg-sep. Até 13/09/2026 a
+   borda em repouso insinuava o eixo; o André pediu que a cor marque só a
+   seleção, para o destaque significar "está filtrando" e nada mais. */
 
 /* ── Botões ───────────────────────────────────────────────────
    Padrão discreto, no espírito do GitHub: altura de 32px, borda de
@@ -855,12 +851,21 @@ input[type="checkbox"] { width: 18px; height: 18px; }
 
    Mobile-first de verdade: a BASE é a tela inteira, e o cartão
    centralizado é o que o corte de 560px ACRESCENTA. Um cartão de
-   420px numa tela de 360px é um cartão de 360px com margem inútil. */
+   420px numa tela de 360px é um cartão de 360px com margem inútil.
+
+   O `grid-template` com minmax(0, 1fr) é o que segura o cartão na tela.
+   Sem ele a grade tem uma linha implícita `auto`, que cresce até a altura
+   do CONTEÚDO inteiro do modal - não do cartão, já limitado pelo
+   max-height. O cartão era centralizado dentro dessa linha maior que a
+   tela: nascia no lugar e, quando um campo crescia depois de aberto,
+   descia e escondia os botões de baixo (medido 13/09/2026: topo de 206
+   para 458px, base em 1162px numa tela de 800). */
 .modal-back {
   position: fixed;
   inset: 0;
   z-index: 85;
   display: grid;
+  grid-template: minmax(0, 1fr) / minmax(0, 1fr);
   place-items: center;
   background: rgba(10, 15, 30, .5);
   opacity: 0;
@@ -893,6 +898,20 @@ input[type="checkbox"] { width: 18px; height: 18px; }
 /* A rolagem é do CORPO, não do cartão: é isso que mantém o cabeçalho e
    o rodapé de formulário parados num modal longo. */
 .modal-body { flex: 1 1 auto; overflow-y: auto; padding: 18px 18px 22px; }
+/* O rodapé do formulário mora DENTRO do corpo que rola, então ele só fica
+   parado se for grudado na base. `bottom` negativo = o padding-bottom do
+   corpo: o Chrome desconta o padding da área de aderência, e com `0` o
+   conteúdo passava rolando visível numa faixa de 22px abaixo dos botões.
+   O `sticky` se limita ao próprio <form> - com conteúdo depois do
+   formulário (o relatório da sincronização), o rodapé sobe junto dele. */
+.modal-body .form-foot {
+  position: sticky;
+  bottom: -22px;
+  z-index: 1;
+  padding-block: 12px;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+}
 .modal-close {
   flex: 0 0 auto;
   display: inline-flex;
