@@ -102,6 +102,32 @@ body.sem-menu .sidebar-back { display: none; }
 }
 body.menu-aberto .sidebar { transform: translateX(0); }
 
+/* Barra de rolagem do menu: fina, sem trilho, polegar translúcido que
+   fica mais nítido só quando o mouse está sobre o menu. A barra nativa
+   (larga, trilho cinza, setas) competia com o conteúdo numa coluna que
+   é moldura, não assunto. A cor sai de --muted, então segue o tema
+   claro/escuro sozinha. Continua visível em repouso, só discreta: um
+   menu cortado embaixo sem nenhuma pista de rolagem esconderia itens. */
+.sidebar {
+  --rolagem: color-mix(in srgb, var(--muted) 28%, transparent);
+  scrollbar-width: thin;
+  scrollbar-color: var(--rolagem) transparent;
+}
+.sidebar:hover,
+.sidebar:focus-within { --rolagem: color-mix(in srgb, var(--muted) 55%, transparent); }
+/* Safari não conhece scrollbar-color: mesmo desenho pelos pseudo-
+   elementos. O Chrome ignora estes quando as propriedades padrão acima
+   existem, por isso ficam só onde elas faltam. */
+@supports not (scrollbar-color: auto) {
+  .sidebar::-webkit-scrollbar { width: 8px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb {
+    border: 2px solid transparent;
+    border-radius: 999px;
+    background: var(--rolagem) padding-box;
+  }
+}
+
 .sidebar-back {
   position: fixed;
   inset: 0;
