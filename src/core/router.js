@@ -80,6 +80,11 @@ export async function route({ manterScroll = false } = {}) {
       // insistir no F5 não vira dez linhas.
       registrarEventoUnico(EVENTO.ACESSO_NEGADO, { modulo: mod.id },
         `${EVENTO.ACESSO_NEGADO}:${mod.id}`);
+    } else if (mod.externo) {
+      // Módulo com página própria (o SATE, em sate.html): o endereço antigo
+      // `#/sate` - favorito, link colado - leva para lá em vez de quebrar.
+      location.replace(mod.externo);
+      return;
     } else {
       const nv = nivelEfetivo(mod);
       // Estrutura estável: a barra de ações é IRMÃ da view, não mãe. A

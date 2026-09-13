@@ -134,6 +134,8 @@ body.menu-aberto .sidebar { transform: translateX(0); }
   font-weight: 500;
 }
 .sidebar a:hover { background: var(--surface-2); }
+/* Link que abre outra página em nova aba: a seta vai para a ponta. */
+.nav-externo { display: inline-flex; margin-left: auto; color: var(--muted); }
 .sidebar a.active {
   background: color-mix(in srgb, var(--brand) 12%, transparent);
   color: var(--brand);

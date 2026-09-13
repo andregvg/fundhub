@@ -31,7 +31,6 @@ export function render(ctx) {
     <div class="toolbar">
       <label class="search compacta">${ico('calendario', { tam: 14 })}
         <input id="fr-data" type="date" value="${hojeISO()}" aria-label="Data" /></label>
-      <span class="count">Veículos disponíveis no dia e quanto já está comprometido.</span>
     </div>
     <div id="fr-orfas"></div>
     <div id="fr-body">${loading()}</div>`;

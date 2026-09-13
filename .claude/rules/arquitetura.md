@@ -31,7 +31,7 @@ A regra que vale:
 kernel (core + shared)  →  só kernel
 shell/                  →  kernel
 modules/<x>/            →  kernel + *.model.js de outros módulos
-main.js                 →  tudo
+main.js, sate.js        →  tudo   (as duas ENTRADAS: index.html e sate.html)
 ```
 
 **O kernel nunca importa `modules/` nem `shell/`.**

@@ -120,6 +120,15 @@
   --eixo-fundamental: #1d4ed8;
   --eixo-infantil: #b45309;
   --eixo-todas: #57606a;
+
+  /* Cores do SATE (sate.html). A página própria troca o --brand por uma
+     delas - escolhida nas configurações do módulo, verde por padrão. O
+     resto do tema (fundo, texto, borda) é o do hub: identidade é o
+     destaque, não um tema novo (R14). */
+  --sate-verde: #15803d;
+  --sate-azul: #1d4ed8;
+  --sate-petroleo: #0f766e;
+  --sate-vinho: #9f1239;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -145,6 +154,11 @@
     --atencao-bg: color-mix(in srgb, var(--accent) 20%, var(--surface));
     --erro-bg:    color-mix(in srgb, var(--danger) 18%, var(--surface));
     --info-bg:    color-mix(in srgb, var(--brand) 18%, var(--surface));
+
+    --sate-verde: #3fb96f;
+    --sate-azul: #5b8cff;
+    --sate-petroleo: #2dd4bf;
+    --sate-vinho: #fb7185;
 
     /* Mesmas seis séries, um pouco mais claras - ainda dessaturadas. */
     --serie-1: #7f9fe0;

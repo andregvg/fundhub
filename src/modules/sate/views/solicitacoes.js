@@ -38,7 +38,6 @@ export function render(contexto) {
 
   ctx.box().innerHTML = `
     <div class="toolbar">
-      <span class="count">Pedidos de transporte para atividades fora da unidade.</span>
       <button id="sol-nova" class="btn-primary">${ico('adicionar')} Nova solicitação</button>
     </div>
     <div class="painel-filtros">

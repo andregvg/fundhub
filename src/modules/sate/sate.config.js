@@ -30,6 +30,7 @@ export const PADRAO = Object.freeze({
   antecedencia_min_dias: 5,
   // Tempo de viagem = km ÷ velocidade + margem por parada (spec
   // 2026-09-13-sate-rota-design.md, D1). Padrões do agendamentos-fil.
+  cor: 'verde',
   velocidade_onibus_kmh: 20,
   margem_parada_min: 5,
 });
@@ -51,12 +52,31 @@ export const antecedenciaMinDias = () => num('antecedencia_min_dias', PADRAO.ant
 export const capacidadeOnibus = () => num('capacidade_onibus', PADRAO.capacidade_onibus) || PADRAO.capacidade_onibus;
 // Velocidade é divisor: zero cai no padrão, como as capacidades. Margem
 // zero é escolha legítima ("não conte manobra").
+// Cor principal da página do SATE. Valor fora da lista cai no padrão -
+// um texto estranho gravado não pode deixar a página sem cor de marca.
+export const CORES = Object.freeze([
+  { valor: 'verde', rotulo: 'Verde (padrão)' },
+  { valor: 'azul', rotulo: 'Azul (a do FundHub)' },
+  { valor: 'petroleo', rotulo: 'Petróleo' },
+  { valor: 'vinho', rotulo: 'Vinho' },
+]);
+export const corSate = () => {
+  const v = conf('sate', 'cor');
+  return CORES.some(c => c.valor === v) ? v : PADRAO.cor;
+};
+
 export const velocidadeOnibusKmh = () => num('velocidade_onibus_kmh', PADRAO.velocidade_onibus_kmh) || PADRAO.velocidade_onibus_kmh;
 export const margemParadaMin = () => num('margem_parada_min', PADRAO.margem_parada_min);
 export const capacidadeVan = () => num('capacidade_van', PADRAO.capacidade_van) || PADRAO.capacidade_van;
 
 export const DECLARACAO = {
   itens: [
+    {
+      chave: 'cor', escopo: 'rede', grupo: 'exibicao',
+      tipo: 'opcao', opcoes: CORES, padrao: PADRAO.cor,
+      rotulo: 'Cor principal do SATE',
+      dica: 'A cor de destaque da página do SATE: botões, menu e marca. Vale para a rede toda.',
+    },
     {
       chave: 'frota', escopo: 'rede', grupo: 'regras',
       rotulo: 'Frota disponível',

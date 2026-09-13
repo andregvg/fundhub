@@ -46,6 +46,8 @@ function tile(m) {
 
   // Módulo ativo com rota → tile clicável. Ativo sem rota (serviço, como
   // as Notificações) → tile informativo. Inativo → tile apagado.
+  // Página própria (sate.html) abre em nova aba, como no menu lateral.
+  if (m.ativo && m.externo) return `<a class="tile" href="${esc(m.externo)}" target="_blank" rel="noopener">${inner}</a>`;
   if (m.ativo && m.rota) return `<a class="tile" href="${m.rota}">${inner}</a>`;
   return `<div class="tile ${m.ativo ? 'servico' : 'soon'}">${inner}</div>`;
 }

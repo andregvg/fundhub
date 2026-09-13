@@ -63,15 +63,25 @@ const GOOGLE_SVG = `<svg width="17" height="17" viewBox="0 0 48 48" aria-hidden=
   <path fill="#34A853" d="M24 48c6.4 0 11.9-2.1 15.8-5.8l-7.3-5.7c-2 1.4-4.7 2.3-8.5 2.3-6.3 0-11.7-3.8-13.6-9.1l-7.9 6.2C6.4 42.6 14.6 48 24 48z"/>
 </svg>`;
 
+// A marca da tela de login. O FundHub é o padrão; o SATE (sate.html)
+// passa a dele - mesmo portão, mesma conta, outro nome na porta.
+// `titulo` é HTML de marca fixa, nunca dado do banco.
+const MARCA_FUNDHUB = {
+  ico: 'escola',
+  titulo: 'Fund<span class="hub">Hub</span>',
+  sub: 'Acesso restrito à equipe da Gerência de Ensino Fundamental.',
+};
+
 // Renderiza a tela de login no container informado.
 export function renderLogin(app, opts = {}) {
   const restrito = opts.restrito || false;
+  const marca = opts.marca || MARCA_FUNDHUB;
   app.innerHTML = `
     <section class="auth-wrap">
       <div class="auth-card">
-        <div>${ico('escola', { tam: 40 })}</div>
-        <h1>Fund<span class="hub">Hub</span></h1>
-        <p class="auth-sub">Acesso restrito à equipe da Gerência de Ensino Fundamental.</p>
+        <div>${ico(marca.ico, { tam: 40 })}</div>
+        <h1>${marca.titulo}</h1>
+        <p class="auth-sub">${marca.sub}</p>
         ${restrito ? `<div class="auth-alert">Este e-mail não pertence ao domínio institucional
            (<code>${DOMINIO}</code>). Saindo…</div>` : ''}
         <button type="button" id="google-btn" class="btn-google">${GOOGLE_SVG}

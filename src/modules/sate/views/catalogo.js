@@ -18,7 +18,6 @@ export function render(contexto) {
 
   const barra = perfil?.isAdmin ? `
     <div class="toolbar">
-      <span class="count">Catálogo de atividades geridas pela SME.</span>
       <button id="nova-atv" class="btn-primary">${ico('adicionar')} Nova atividade</button>
     </div>` : '';
 

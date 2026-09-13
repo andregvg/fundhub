@@ -3,6 +3,25 @@
 > Onde a escola pede o ônibus para uma atividade fora da unidade, e onde a
 > Gerência de Transporte aprova.
 
+## Onde fica o SATE
+
+O SATE tem **página própria**, com menu, cor e marca dele. No FundHub, o item
+**SATE** do menu abre essa página numa aba nova. O endereço é o do FundHub
+terminado em `sate.html` - dá para salvar nos favoritos.
+
+A conta é a mesma: quem está conectado no FundHub já entra no SATE, e sair de
+um sai do outro. As páginas ficam no menu lateral:
+
+| Página | Para quem |
+|---|---|
+| **Solicitações** | todos |
+| **Fichas de ônibus**, **Frota**, **Locais**, **Configurações** | quem aprova |
+| **Catálogo** | todos |
+
+**Como usar o SATE** abre este tutorial, e **Ir para o FundHub** volta ao hub.
+A cor principal do SATE é escolhida em **Configurações** e vale para a rede
+toda.
+
 ## O que dá para fazer aqui
 
 - Pedir transporte para uma atividade do catálogo da SME ou para uma atividade
@@ -97,7 +116,7 @@ manhã seguinte para voltar e ser liberado.
 
 ### Pedir transporte
 
-1. Na guia **Solicitações**, clique no botão **Nova solicitação**. Abre uma
+1. No menu, em **Solicitações**, clique no botão **Nova solicitação**. Abre uma
    janela com o formulário dividido em quatro partes: o que, quando, quem vai,
    e contato.
 2. Em **O que**, escolha a atividade. Se for uma atividade organizada pela sua
@@ -120,7 +139,7 @@ manhã seguinte para voltar e ser liberado.
 
 ### Aprovar ou negar
 
-1. Na guia **Solicitações**, **clique na linha** do pedido. Abre uma janela
+1. No menu, em **Solicitações**, **clique na linha** do pedido. Abre uma janela
    com tudo o que ele é e, no pé, só as decisões que cabem naquela situação.
 2. **Confirmar** aprova o transporte e reserva os veículos.
 3. **Negar** recusa o pedido. Abre uma segunda janela pedindo a justificativa,
@@ -160,7 +179,7 @@ na tela.
 
 ### Imprimir as fichas para a empresa
 
-1. Abra a guia **Fichas** e escolha a data. Dá para filtrar por período.
+1. Abra **Fichas de ônibus** no menu e escolha a data. Dá para filtrar por período.
 2. A tela mostra **uma ficha por ônibus**, agrupadas por período e numeradas
    a partir de 1 dentro de cada um - "o terceiro ônibus da tarde" não fica
    ambíguo.
@@ -224,7 +243,7 @@ reordenar mudam por onde o ônibus passa.
 
 ### Localizar um destino
 
-1. Na guia **Locais**, abra o local (ou crie um com **Novo local**).
+1. No menu, em **Locais**, abra o local (ou crie um com **Novo local**).
 2. Confira o **Endereço** e clique em **Localizar pelo endereço**. Latitude e
    longitude são preenchidas, e o sistema mostra o endereço que encontrou.
 3. Clique em **conferir no mapa** antes de salvar.
@@ -264,7 +283,7 @@ Os dois números são ajustáveis nas configurações do módulo e valem para os
 | O que a tela diz | O que resolve |
 |---|---|
 | uma escola está sem localização | localizar a escola no cadastro de Escolas, depois **Recalcular** |
-| o destino não tem localização | usar um local do cadastro, localizado na guia Locais |
+| o destino não tem localização | usar um local do cadastro, localizado em Locais |
 | o serviço de mapa não respondeu | tentar **Recalcular** mais tarde |
 
 O trajeto é informação para decidir, não condição para pedir: sem ele, o
@@ -318,7 +337,7 @@ regular mais 16 da Feira.
 
 **Frota extra sem pedido.** Se um pedido que ganhou frota extra é negado,
 cancelado ou remanejado para outra data, os veículos extras **não somem
-sozinhos**. Eles aparecem no topo da guia **Frota**, em *Frota extra sem
+sozinhos**. Eles aparecem no topo da página **Frota**, em *Frota extra sem
 pedido*, com dois botões: **Manter** (os veículos continuam, como um reforço
 comum daquele dia) e **Remover**.
 
@@ -381,4 +400,4 @@ Negado é um pedido que **nunca** chegou a valer - foi recusado na análise.
 Cancelado é um pedido que **estava de pé** e foi desfeito. Os dois exigem
 justificativa.
 
-> Atualizado na versão 0.33.0.
+> Atualizado na versão 0.34.0.

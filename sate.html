@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SATE - Transporte extraclasse · FundHub</title>
+  <meta name="description" content="SATE - agendamento de transporte extraclasse da rede municipal de Ribeirão Preto." />
+  <!-- Favicon: o ônibus do SATE, na cor padrão (--sate-verde). Cor literal
+       pelo mesmo motivo do index.html: data URI não enxerga tokens. -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1110 1280' fill='%2315803d'%3E%3Cg transform='translate(0,1280) scale(0.1,-0.1)'%3E%3Cpath d='M2290 12789 c-450 -37 -921 -185 -1262 -396 -581 -359 -915 -889 -1010 -1598 -11 -82 -13 -850 -13 -4230 l0 -4130 27 -100 c15 -55 51 -147 80 -205 45 -90 65 -118 143 -195 64 -65 110 -101 160 -127 121 -62 260 -98 377 -98 l58 0 0 -429 c0 -541 13 -647 105 -836 105 -218 271 -356 501 -415 168 -44 408 -35 577 21 216 72 389 256 474 504 48 142 53 204 53 696 l0 459 2990 0 2990 0 0 -459 c0 -492 5 -554 53 -696 129 -378 425 -571 847 -552 339 16 571 161 705 442 92 194 105 294 105 834 l0 428 73 6 c39 4 108 16 152 28 310 81 516 276 597 564 l23 80 3 4095 c2 2882 0 4139 -8 4245 -28 390 -107 711 -244 992 -293 600 -801 943 -1566 1060 -108 16 -330 17 -3500 19 -1862 1 -3432 -2 -3490 -7z m6101 -1280 c77 -26 131 -91 145 -176 15 -94 -54 -200 -149 -228 -45 -13 -388 -15 -2837 -15 -2449 0 -2792 2 -2837 15 -63 19 -126 84 -143 146 -29 106 32 221 135 257 44 15 5640 16 5686 1z m1255 -1296 c268 -73 452 -243 542 -503 59 -172 57 -104 57 -1595 0 -1283 -1 -1375 -18 -1454 -43 -201 -117 -343 -242 -467 -97 -97 -210 -158 -356 -195 l-94 -24 -3985 0 -3985 0 -94 24 c-146 37 -259 98 -356 195 -122 120 -193 256 -241 457 -17 69 -18 169 -21 1399 -4 1376 -3 1409 38 1575 25 102 104 264 163 335 120 145 294 240 491 269 33 5 1826 8 4040 7 l3980 -1 81 -22z m-7727 -5974 c475 -121 750 -620 599 -1089 -117 -366 -477 -612 -858 -586 -233 15 -429 108 -582 276 -262 287 -296 712 -83 1042 195 301 572 447 924 357z m7578 21 c193 -26 363 -109 499 -245 180 -179 274 -446 244 -694 -52 -423 -375 -729 -800 -757 -381 -26 -741 220 -858 586 -96 298 -25 618 186 842 194 206 460 303 729 268z'/%3E%3C/g%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="src/styles/main.css" />
+  <!-- supabase-js (UMD): fonte de dados do FundHub (RLS). Nenhum dado real versionado. -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+</head>
+<body class="app-sate">
+  <header class="topbar anon">
+    <button class="topbar-acao nav-toggle" id="nav-toggle" type="button" aria-label="Menu"
+            aria-expanded="false" aria-controls="sidebar"></button>
+
+    <a class="brand" href="#/solicitacoes">
+      <!-- Marca inline, como no index.html: aparece na tela de login antes de
+           qualquer JS. O traçado é o `onibus` de shared/ui/icones.js. -->
+      <span class="brand-mark" aria-hidden="true">
+        <svg width="22" height="22" viewBox="0 0 1110 1280" fill="currentColor" stroke="none"><g transform="translate(0,1280) scale(0.1,-0.1)"><path d="M2290 12789 c-450 -37 -921 -185 -1262 -396 -581 -359 -915 -889 -1010 -1598 -11 -82 -13 -850 -13 -4230 l0 -4130 27 -100 c15 -55 51 -147 80 -205 45 -90 65 -118 143 -195 64 -65 110 -101 160 -127 121 -62 260 -98 377 -98 l58 0 0 -429 c0 -541 13 -647 105 -836 105 -218 271 -356 501 -415 168 -44 408 -35 577 21 216 72 389 256 474 504 48 142 53 204 53 696 l0 459 2990 0 2990 0 0 -459 c0 -492 5 -554 53 -696 129 -378 425 -571 847 -552 339 16 571 161 705 442 92 194 105 294 105 834 l0 428 73 6 c39 4 108 16 152 28 310 81 516 276 597 564 l23 80 3 4095 c2 2882 0 4139 -8 4245 -28 390 -107 711 -244 992 -293 600 -801 943 -1566 1060 -108 16 -330 17 -3500 19 -1862 1 -3432 -2 -3490 -7z m6101 -1280 c77 -26 131 -91 145 -176 15 -94 -54 -200 -149 -228 -45 -13 -388 -15 -2837 -15 -2449 0 -2792 2 -2837 15 -63 19 -126 84 -143 146 -29 106 32 221 135 257 44 15 5640 16 5686 1z m1255 -1296 c268 -73 452 -243 542 -503 59 -172 57 -104 57 -1595 0 -1283 -1 -1375 -18 -1454 -43 -201 -117 -343 -242 -467 -97 -97 -210 -158 -356 -195 l-94 -24 -3985 0 -3985 0 -94 24 c-146 37 -259 98 -356 195 -122 120 -193 256 -241 457 -17 69 -18 169 -21 1399 -4 1376 -3 1409 38 1575 25 102 104 264 163 335 120 145 294 240 491 269 33 5 1826 8 4040 7 l3980 -1 81 -22z m-7727 -5974 c475 -121 750 -620 599 -1089 -117 -366 -477 -612 -858 -586 -233 15 -429 108 -582 276 -262 287 -296 712 -83 1042 195 301 572 447 924 357z m7578 21 c193 -26 363 -109 499 -245 180 -179 274 -446 244 -694 -52 -423 -375 -729 -800 -757 -381 -26 -741 220 -858 586 -96 298 -25 618 186 842 194 206 460 303 729 268z"/></g></svg>
+      </span>
+      <span class="brand-text">
+        <strong>SA<span class="hub">TE</span></strong>
+        <small>Transporte extraclasse · SME Ribeirão Preto</small>
+      </span>
+    </a>
+
+    <!-- Menu de usuário e botão Atualizar são inseridos aqui. -->
+    <div class="topbar-right"></div>
+  </header>
+
+  <!-- Menu lateral: montado por src/sate.js com as páginas do SATE que a
+       pessoa pode ver (shell/chrome.js desenha). -->
+  <div class="layout">
+    <nav class="sidebar" id="sidebar" aria-label="Navegação do SATE"></nav>
+    <div class="sidebar-back" id="sidebar-back" hidden></div>
+
+    <div class="conteudo">
+      <main id="app" class="app"><div class="loading">Carregando…</div></main>
+
+      <footer class="footer">
+        <!-- A versão fica DENTRO da identificação, logo após o nome do
+             sistema: ali ela se lê como "qual FundHub é este". Antes
+             ficava no canto oposto, colada na data de hoje, e parecia
+             dizer que a versão tinha entrado em vigor hoje. -->
+        <span class="rodape-id">
+          SATE · FundHub
+          <span class="build-wrap" id="build-wrap">
+            <button type="button" class="build-info" id="build-info"
+                    aria-haspopup="dialog" aria-expanded="false"></button>
+            <span class="build-card" id="build-card" hidden></span>
+          </span>
+          · Gerência de Ensino Fundamental · SME Ribeirão Preto
+        </span>
+        <span id="hoje-info"></span>
+      </footer>
+    </div>
+  </div>
+
+  <script type="module" src="src/sate.js"></script>
+</body>
+</html>

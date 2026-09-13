@@ -13,14 +13,14 @@ import { limparPerfil } from '../core/perfil.js';
 import { esc } from '../shared/dom.js';
 import { ico } from '../shared/ui/icones.js';
 
-export function renderAcessoPendente(app, email) {
+export function renderAcessoPendente(app, email, { sistema = 'FundHub' } = {}) {
   app.innerHTML = `
     <section class="auth-wrap">
       <div class="auth-card">
         <div>${ico('horario', { tam: 40 })}</div>
         <h1>Acesso pendente</h1>
         <p class="auth-sub">Sua conta foi autenticada, mas ainda não tem acesso
-           liberado ao FundHub.</p>
+           liberado ao ${esc(sistema)}.</p>
         <div class="auth-alert info">
           <b>${esc(email || '')}</b><br />
           Peça a liberação à Gerência de Ensino Fundamental informando este e-mail.

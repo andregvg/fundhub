@@ -79,8 +79,27 @@ const TRACOS = {
   externo: '<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>',
 };
 
-export const NOMES = Object.freeze(Object.keys(TRACOS));
-export const TEM_ICONE = (nome) => Object.hasOwn(TRACOS, nome);
+// Ícones com GRADE PRÓPRIA - desenhos que não cabem no traço 24x24 do
+// Feather sem perder o que os torna reconhecíveis. Vieram do
+// agendamentos-fil (Scripts.html), que a rede já conhece de vista: o
+// ônibus é silhueta preenchida; a cadeira é o Símbolo Internacional de
+// Acesso em traço, numa grade de 100. `ico()` monta o envelope de cada um
+// com os atributos daqui, e todos continuam herdando `currentColor`.
+const PROPRIOS = {
+  onibus: {
+    viewBox: '0 0 1110 1280',
+    atributos: 'fill="currentColor" stroke="none"',
+    corpo: '<g transform="translate(0,1280) scale(0.1,-0.1)"><path d="M2290 12789 c-450 -37 -921 -185 -1262 -396 -581 -359 -915 -889 -1010 -1598 -11 -82 -13 -850 -13 -4230 l0 -4130 27 -100 c15 -55 51 -147 80 -205 45 -90 65 -118 143 -195 64 -65 110 -101 160 -127 121 -62 260 -98 377 -98 l58 0 0 -429 c0 -541 13 -647 105 -836 105 -218 271 -356 501 -415 168 -44 408 -35 577 21 216 72 389 256 474 504 48 142 53 204 53 696 l0 459 2990 0 2990 0 0 -459 c0 -492 5 -554 53 -696 129 -378 425 -571 847 -552 339 16 571 161 705 442 92 194 105 294 105 834 l0 428 73 6 c39 4 108 16 152 28 310 81 516 276 597 564 l23 80 3 4095 c2 2882 0 4139 -8 4245 -28 390 -107 711 -244 992 -293 600 -801 943 -1566 1060 -108 16 -330 17 -3500 19 -1862 1 -3432 -2 -3490 -7z m6101 -1280 c77 -26 131 -91 145 -176 15 -94 -54 -200 -149 -228 -45 -13 -388 -15 -2837 -15 -2449 0 -2792 2 -2837 15 -63 19 -126 84 -143 146 -29 106 32 221 135 257 44 15 5640 16 5686 1z m1255 -1296 c268 -73 452 -243 542 -503 59 -172 57 -104 57 -1595 0 -1283 -1 -1375 -18 -1454 -43 -201 -117 -343 -242 -467 -97 -97 -210 -158 -356 -195 l-94 -24 -3985 0 -3985 0 -94 24 c-146 37 -259 98 -356 195 -122 120 -193 256 -241 457 -17 69 -18 169 -21 1399 -4 1376 -3 1409 38 1575 25 102 104 264 163 335 120 145 294 240 491 269 33 5 1826 8 4040 7 l3980 -1 81 -22z m-7727 -5974 c475 -121 750 -620 599 -1089 -117 -366 -477 -612 -858 -586 -233 15 -429 108 -582 276 -262 287 -296 712 -83 1042 195 301 572 447 924 357z m7578 21 c193 -26 363 -109 499 -245 180 -179 274 -446 244 -694 -52 -423 -375 -729 -800 -757 -381 -26 -741 220 -858 586 -96 298 -25 618 186 842 194 206 460 303 729 268z"/></g>',
+  },
+  cadeirante: {
+    viewBox: '0 0 100 100',
+    atributos: 'fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"',
+    corpo: '<circle cx="50" cy="17" r="8" fill="currentColor" stroke="none"/><path d="M49 30v18h22"/><path d="M48 48l9 25"/><path d="M44 37H30"/><path d="M37 51a22 22 0 1 0 20 31"/><path d="M58 73h24l9 14"/>',
+  },
+};
+
+export const NOMES = Object.freeze([...Object.keys(TRACOS), ...Object.keys(PROPRIOS)]);
+export const TEM_ICONE = (nome) => Object.hasOwn(TRACOS, nome) || Object.hasOwn(PROPRIOS, nome);
 
 // Ícone inexistente devolve string vazia: um nome errado deixa um
 // buraco na tela, nunca um erro de JS que derruba a página inteira.
@@ -90,9 +109,13 @@ export const TEM_ICONE = (nome) => Object.hasOwn(TRACOS, nome);
 // deixaria passar.
 export function ico(nome, { tam = 16, classe = '' } = {}) {
   if (!TEM_ICONE(nome)) return '';
-  const tracos = TRACOS[nome];
   const cls = classe ? `ico ${classe}` : 'ico';
+  const proprio = Object.hasOwn(PROPRIOS, nome) ? PROPRIOS[nome] : null;
+  if (proprio) {
+    return `<svg class="${cls}" width="${tam}" height="${tam}" viewBox="${proprio.viewBox}"`
+      + ` ${proprio.atributos} aria-hidden="true">${proprio.corpo}</svg>`;
+  }
   return `<svg class="${cls}" width="${tam}" height="${tam}" viewBox="0 0 24 24"`
     + ` fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"`
-    + ` stroke-linejoin="round" aria-hidden="true">${tracos}</svg>`;
+    + ` stroke-linejoin="round" aria-hidden="true">${TRACOS[nome]}</svg>`;
 }

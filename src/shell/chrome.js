@@ -43,8 +43,12 @@ const PAPEL_ROTULO = {
 };
 
 // ── Menu lateral ─────────────────────────────────────────────
-export function montarNav() {
-  const grupos = navPorGrupo();
+// `grupos`: o FundHub monta a partir do registro de módulos; o SATE
+// (sate.html) passa os itens da própria navegação. Mesma mecânica de
+// gaveta, lembrança e teclado - só o conteúdo muda.
+let navLigada = false;
+
+export function montarNav(grupos = navPorGrupo()) {
   sidebar().innerHTML = grupos.map(g => `
     <div class="nav-grupo">
       ${g.rotulo ? `<div class="nav-tit">${esc(g.rotulo)}</div>` : ''}
@@ -52,6 +56,12 @@ export function montarNav() {
     </div>`).join('');
 
   toggle().innerHTML = ico('menu', { tam: 20 });
+
+  // Os ouvintes são do DOCUMENTO e de nós que não mudam: ligar a cada
+  // chamada empilharia um por login (sair e entrar sem recarregar), e o
+  // botão do menu passaria a abrir e fechar no mesmo clique.
+  if (navLigada) return;
+  navLigada = true;
 
   // Só no celular o clique num link fecha o menu: no desktop ele é
   // parte do layout e fechar a cada navegação seria irritante.
@@ -81,10 +91,15 @@ export function montarNav() {
   });
 }
 
+// Item com `externo` abre outra página em NOVA ABA (o SATE, visto do
+// FundHub; o FundHub e a ajuda, vistos do SATE). O ícone de seta diz isso
+// antes do clique.
 function item(m) {
-  return `<a href="${m.rota}" data-rota="${m.rota}">
+  const fora = m.externo ? ` target="_blank" rel="noopener"` : '';
+  return `<a href="${esc(m.externo || m.rota)}" data-rota="${esc(m.rota || '')}"${fora}>
     <span class="nav-ico">${ico(m.ico, { tam: 18 })}</span>
     <span class="nav-txt">${esc(m.navNome || m.nome)}</span>
+    ${m.externo ? `<span class="nav-externo">${ico('externo', { tam: 12 })}</span>` : ''}
   </a>`;
 }
 
@@ -111,7 +126,13 @@ export function marcarNav(hash) {
 }
 
 // ── Menu de usuário ──────────────────────────────────────────
-export function setChrome(logado, user, perfil) {
+// `opts` (o SATE usa; o FundHub fica no padrão):
+//   base         prefixo dos links que levam ao FundHub ("./" no sate.html)
+//   aoAtualizar  o que o botão Atualizar recarrega depois de limpar caches
+let opcoesChrome = { base: '', aoAtualizar: () => recarregarRota() };
+
+export function setChrome(logado, user, perfil, opts = {}) {
+  opcoesChrome = { ...opcoesChrome, ...opts };
   document.querySelector('.topbar').classList.toggle('anon', !logado);
   document.body.classList.toggle('sem-menu', !logado);
   const right = document.querySelector('.topbar-right');
@@ -142,7 +163,7 @@ export function setChrome(logado, user, perfil) {
         </div>
         <div class="um-linha"><span class="um-lbl">Último acesso</span><span class="um-acesso"></span></div>
         <div class="um-linha"><span class="um-lbl">Dados</span><span class="um-origem pill"></span></div>
-        <a class="um-link" href="#/meus-dados">Meus dados</a>
+        <a class="um-link" href="${esc(opcoesChrome.base)}#/meus-dados">Meus dados</a>
         <button class="um-sair" type="button">Sair</button>
       </div>`;
     right.appendChild(menu);
@@ -206,7 +227,7 @@ function montarAtualizar(right) {
     btn.disabled = true;
     try {
       limparCaches();
-      await recarregarRota();
+      await opcoesChrome.aoAtualizar();
       // Chamada explícita: o onRoute do roteador só marca a primeira
       // rota depois do boot (ver main.js). Daqui em diante este clique
       // é o único caminho que volta a atualizar o carimbo.

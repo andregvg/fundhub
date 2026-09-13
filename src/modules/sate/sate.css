@@ -1,3 +1,16 @@
+/* ── Página própria (sate.html) ─────────────────────────────
+   O SATE troca o destaque do hub pela cor configurada. `--info-bg` é
+   redeclarado porque é derivado de --brand em tokens.css: calculado lá,
+   no :root, ele continuaria azul aqui dentro. */
+body.app-sate { --brand: var(--sate-verde); }
+body.app-sate[data-cor="azul"] { --brand: var(--sate-azul); }
+body.app-sate[data-cor="petroleo"] { --brand: var(--sate-petroleo); }
+body.app-sate[data-cor="vinho"] { --brand: var(--sate-vinho); }
+body.app-sate { --info-bg: color-mix(in srgb, var(--brand) 12%, var(--surface)); }
+@media (prefers-color-scheme: dark) {
+  body.app-sate { --info-bg: color-mix(in srgb, var(--brand) 18%, var(--surface)); }
+}
+
 /* ============================================================
    FundHub - modules/sate/sate.css
    Formulário de solicitação, catálogo e frota.

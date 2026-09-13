@@ -1,41 +1,51 @@
 // ============================================================
 // FundHub - modules/sate/sate.view.js
-// Casca do SATE: carrega o que as abas compartilham (perfil, catálogo,
-// escolas) e delega cada aba para o seu arquivo em views/.
-// A escola solicita o ônibus aqui; quem tem escrita no módulo valida.
+// As PÁGINAS do SATE, desenhadas dentro da página própria (sate.html).
+// Carrega o que elas compartilham (catálogo, escolas, locais) e delega
+// cada uma para o seu arquivo em views/.
+//
+// Até a 0.33 isto era uma barra de abas dentro do FundHub. Desde o S1
+// (spec 2026-09-13-sate-app-proprio-design.md) as abas são itens do menu
+// lateral do sate.html, e quem roteia é `src/sate.js` - aqui só se
+// declara o que existe e se desenha a página pedida.
 // ============================================================
 import { getAtividades } from './atividades.model.js';
 import { getUnidades } from '../escolas/escolas.model.js';
 import { getLocais } from '../locais/locais.model.js';
+import { esc } from '../../shared/dom.js';
 import { loading } from '../../shared/ui/feedback.js';
-import { ESCRITA } from '../../core/permissoes.js';
 
-import * as abaSolicitacoes from './views/solicitacoes.js';
-import * as abaFrota from './views/frota.js';
-import * as abaFichas from './views/fichas.js';
-import * as abaCatalogo from './views/catalogo.js';
-import * as abaLocais from './views/locais.js';
+import * as paginaSolicitacoes from './views/solicitacoes.js';
+import * as paginaFichas from './views/fichas.js';
+import * as paginaFrota from './views/frota.js';
+import * as paginaCatalogo from './views/catalogo.js';
+import * as paginaLocais from './views/locais.js';
 
-const ABAS = {
-  // "Nova solicitação" era uma aba porque não havia modal. Virou botão
-  // da própria guia Solicitações em 08/09/2026 (bloco S3).
-  solicitacoes: { rotulo: 'Solicitações', view: abaSolicitacoes },
-  frota:        { rotulo: 'Frota', view: abaFrota, aprovador: true },
-  fichas:       { rotulo: 'Fichas', view: abaFichas, aprovador: true },
-  catalogo:     { rotulo: 'Catálogo', view: abaCatalogo },
-  locais:       { rotulo: 'Locais', view: abaLocais, aprovador: true },
-};
+// A ordem aqui é a ordem no menu. `aprovador: true` = só quem tem escrita.
+export const PAGINAS = Object.freeze({
+  solicitacoes: { rotulo: 'Solicitações', ico: 'documento', view: paginaSolicitacoes,
+    desc: 'Pedidos de transporte para atividades extraclasse e a validação da Gerência.' },
+  fichas: { rotulo: 'Fichas de ônibus', ico: 'imprimir', view: paginaFichas, aprovador: true,
+    desc: 'Uma ficha por veículo, para enviar à empresa de transporte.' },
+  frota: { rotulo: 'Frota', ico: 'onibus', view: paginaFrota, aprovador: true,
+    desc: 'Veículos do dia, quanto já está comprometido e a frota extra pendente de decisão.' },
+  catalogo: { rotulo: 'Catálogo', ico: 'projeto', view: paginaCatalogo,
+    desc: 'As atividades extraclasse oferecidas pela SME.' },
+  locais: { rotulo: 'Locais', ico: 'visita', view: paginaLocais, aprovador: true,
+    desc: 'Destinos com endereço e localização, para calcular o tempo de viagem.' },
+});
 
-let aba = 'solicitacoes';
-let ctx = null;
+export const PAGINA_INICIAL = 'solicitacoes';
 
-export async function render(app, { perfil, nivel } = {}) {
+// Desenha a página `id` em `app`. Quem chama já garantiu que a pessoa
+// pode vê-la (src/sate.js); `aprovador` decide o que aparece dentro.
+export async function render(app, { perfil, aprovador, id, irPara }) {
+  const pagina = PAGINAS[id];
   app.innerHTML = `
     <div class="page-head">
-      <h1>SATE · Transporte extraclasse</h1>
-      <p>Solicite o transporte para atividades extraclasse e acompanhe a validação da SME.</p>
+      <h1>${esc(pagina.rotulo)}</h1>
+      <p>${esc(pagina.desc)}</p>
     </div>
-    <div class="tabbar" id="sate-abas" role="tablist"></div>
     <div id="sate-body">${loading()}</div>`;
 
   const [atividades, unidades, locais] = await Promise.all([
@@ -44,42 +54,17 @@ export async function render(app, { perfil, nivel } = {}) {
     getLocais().catch(() => []),
   ]);
 
-  // Contexto entregue a cada aba: dados compartilhados + navegação entre abas.
-  ctx = {
+  // Contexto entregue a cada página: dados compartilhados + navegação.
+  const ctx = {
     perfil, atividades, unidades, locais,
     // Quem APROVA é quem tem escrita no módulo - não é o mesmo que ser
     // admin do hub, e as regras tratam os dois de forma diferente
     // (spec do modelo de dados, D7).
-    aprovador: nivel === ESCRITA,
+    aprovador,
     box: () => document.getElementById('sate-body'),
-    irPara: (nova) => { aba = nova; pintarAbas(); renderAba(); },
+    irPara,
     recarregarAtividades: async () => { ctx.atividades = await getAtividades(); },
     recarregarLocais: async () => { ctx.locais = await getLocais(); },
   };
-
-  const barra = document.getElementById('sate-abas');
-  barra.innerHTML = Object.entries(ABAS)
-    .filter(([, a]) => !a.aprovador || ctx.aprovador)
-    .map(([id, a]) => `<button class="tab" role="tab" data-aba="${id}">${a.rotulo}</button>`)
-    .join('');
-  barra.addEventListener('click', e => {
-    const b = e.target.closest('.tab');
-    if (b) ctx.irPara(b.dataset.aba);
-  });
-
-  if (ABAS[aba]?.aprovador && !ctx.aprovador) aba = 'solicitacoes';
-  pintarAbas();
-  renderAba();
-}
-
-function pintarAbas() {
-  document.querySelectorAll('#sate-abas .tab').forEach(b => {
-    const on = b.dataset.aba === aba;
-    b.classList.toggle('on', on);
-    b.setAttribute('aria-selected', String(on));
-  });
-}
-
-function renderAba() {
-  ABAS[aba].view.render(ctx);
+  pagina.view.render(ctx);
 }

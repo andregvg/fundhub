@@ -9,6 +9,29 @@ versionamento **MINOR** = módulo novo ou mudança de modelo de dados, **PATCH**
 
 ---
 
+## [0.34.0] - 2026-09-13
+
+### Adicionado
+
+- **O SATE ganhou página própria**, com menu, marca e cor dele. No FundHub, o
+  item **SATE** abre essa página numa aba nova. A conta é a mesma: quem está
+  conectado num já entra no outro.
+- As antigas abas do SATE viraram **páginas no menu lateral**: Solicitações,
+  Fichas de ônibus, Frota, Catálogo e Locais. Quem aprova tem também
+  **Configurações** como página, e todos têm **Como usar o SATE** e **Ir para o
+  FundHub**.
+- **Cor principal do SATE** configurável (verde, azul, petróleo ou vinho), para
+  a rede toda. O padrão é verde.
+- O SATE passou a usar o **ícone do ônibus** conhecido do sistema de
+  agendamentos da Feira, também como ícone da aba do navegador.
+
+### Corrigido
+
+- Sair e entrar de novo sem recarregar a página podia deixar o botão do menu
+  abrindo e fechando no mesmo clique.
+
+---
+
 ## [0.33.0] - 2026-09-13
 
 > **Exige rodar a migration `040_sate_decisao_com_frota.sql`.**
