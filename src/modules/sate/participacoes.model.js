@@ -26,7 +26,10 @@ export const STATUS_PART = Object.freeze({
 // volta ao saldo no PEDIDO, não na confirmação, igual à viagem inteira.
 export const ativa = (p) => p.status === 'ativa';
 
-const SELECT = '*, unidade:unidade_escolar(nome,apelido,endereco), local:local(nome,endereco)';
+// As coordenadas vêm junto: o trajeto (rota.model.js) é calculado sobre
+// estas mesmas linhas, e buscá-las à parte seria uma consulta por viagem.
+const SELECT = '*, unidade:unidade_escolar(nome,apelido,endereco,latitude,longitude),'
+  + ' local:local(nome,endereco,latitude,longitude)';
 const ausente = (err) => err?.code === '42P01' || err?.code === '42703';
 
 export async function getParticipacoes(solicitacaoId) {

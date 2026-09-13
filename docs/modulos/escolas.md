@@ -35,6 +35,27 @@ sistema, nos bastidores.
 3. Ligue **Transporte de alunos** e **Atende EJA** se for o caso.
 4. Clique em **Criar**.
 
+### Localizar a escola no mapa
+
+A localização é o que permite ao SATE calcular quanto tempo o ônibus leva da
+escola até o destino. Sem ela, o transporte continua sendo pedido normalmente,
+só sem o tempo de viagem.
+
+1. Abra a escola e clique para **editar**.
+2. Em **Localização**, confira o **Endereço** e clique em **Localizar pelo
+   endereço**. O sistema preenche **Latitude** e **Longitude** e mostra o
+   endereço que encontrou.
+3. Clique em **conferir no mapa** antes de salvar. Um endereço parecido pode
+   cair na rua de mesmo nome em outro bairro.
+4. Se o endereço não for encontrado, ou o ponto estiver errado, copie as
+   coordenadas do Google Maps: clique com o botão direito sobre a escola e
+   clique nos números que aparecem. Cole o primeiro em **Latitude** e o segundo
+   em **Longitude**.
+5. Clique em **Salvar**.
+
+Com a escola localizada, o **ver no mapa** da ficha passa a abrir o ponto
+exato, e não uma busca pelo endereço.
+
 ### Ajustar o card
 
 1. Clique na **engrenagem** no topo da tela.
@@ -72,6 +93,10 @@ unidade - é lá que se inclui ou encerra o local de trabalho de alguém.
   nove dígitos. Você digita com parênteses e traço ou só os números, tanto faz:
   o sistema arruma e mostra sempre no mesmo formato. Sem DDD, assume 16.
 - Excluir uma escola não pode ser desfeito.
+- **Latitude e longitude andam juntas.** Se só uma for preenchida, o sistema
+  guarda a escola sem localização - meia coordenada não aponta lugar nenhum.
+- **Localizar pelo endereço não salva sozinho.** Ele só preenche os campos;
+  quem grava é você, depois de conferir.
 
 ## Ligações com outros módulos
 
@@ -93,8 +118,12 @@ servidores não carregou - recarregue a página.
 Se você tem um segmento marcado no filtro, uma escola ainda sem segmento
 aparece mesmo assim. Se não aparecer, recarregue a página.
 
+**De onde vem a localização? Isso tem custo?**
+Do OpenStreetMap, um mapa público e gratuito. Não há conta nem cobrança. O
+sistema envia só o endereço da escola, nunca dado de pessoa.
+
 **Clico no card da equipe e nada acontece.**
 A ficha de uma pessoa só abre para quem tem acesso ao módulo Servidores. Sem
 esse acesso, a equipe continua visível para leitura.
 
-> Atualizado na versão 0.30.0.
+> Atualizado na versão 0.31.0.

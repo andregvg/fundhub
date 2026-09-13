@@ -21,6 +21,9 @@ import {
 import { getParticipacoes } from '../participacoes.model.js';
 import { blocoHtml, ligarParticipantes } from './participantes.js';
 import { saldoDoDia } from '../saldo.model.js';
+import { pontosDaViagem, explicarTrajeto, atualizarTrajeto, retratoTrajeto } from '../rota.model.js';
+import { linkRota } from '../../locais/locais.model.js';
+import { velocidadeOnibusKmh, margemParadaMin } from '../sate.config.js';
 import { esc, vazio, val, falha } from '../../../shared/dom.js';
 import { fmtData, fmtDataHora } from '../../../shared/format.js';
 import { modalHead, abrirModal, fecharModal } from '../../../shared/ui/modal.js';
@@ -63,6 +66,7 @@ export async function abrirDetalhe(solicitacao, contexto) {
       ? `embarque ${esc(s.horario_embarque || '—')} · retorno ${esc(s.horario_retorno || '—')}`
       : vazio('não informados'))}
     ${campo('Destino', esc(destino(s)) || vazio('não informado'))}
+    ${campo('Trajeto', trajetoHtml(s, paradas))}
     ${s.contato_professor ? campo('Contato', esc(s.contato_professor)) : ''}
     ${s.observacao ? campo('Observação', esc(s.observacao)) : ''}
 
@@ -75,11 +79,60 @@ export async function abrirDetalhe(solicitacao, contexto) {
     <div class="modal-acoes det-acoes-pe">${acoes(s)}</div>`;
 
   corpo.addEventListener('click', aoClicarAcao);
+  corpo.querySelector('#det-recalc')?.addEventListener('click', (e) => recalcular(e.currentTarget, s));
   // `reabrir` e esta propria funcao: depois de mexer numa escola a
   // viagem volta a abrir com o dado novo, em vez de fechar a pilha.
   ligarParticipantes(corpo, {
     ctx, solicitacao: s, partes: paradas, reabrir: () => abrirDetalhe(s, ctx),
   });
+}
+
+// ── Trajeto ──────────────────────────────────────────────────
+// O que se MOSTRA é o retrato gravado (spec 2026-09-13-sate-rota, D4): é
+// ele que a regra do intervalo usa, e mostrar outro número induziria a
+// decidir por uma conta que o sistema não está fazendo.
+//
+// O que se CALCULA AO VIVO é só o diagnóstico - quais paradas estão sem
+// localização e o link do mapa -, porque isso sai das participações já
+// carregadas e não gasta consulta nenhuma.
+function trajetoHtml(s, paradas) {
+  const destino = (ctx.locais || []).find(l => l.id === s.local_id) || null;
+  const vivo = pontosDaViagem(paradas, destino);
+  const gravado = s.trajeto_status === 'ok' && s.trajeto_km != null;
+
+  let texto;
+  if (gravado) texto = esc(explicarTrajeto({ status: 'ok', km: s.trajeto_km, min: s.trajeto_min }));
+  else if (vivo.status !== 'ok') texto = vazio(explicarTrajeto(vivo));
+  else if (s.trajeto_status === 'erro') texto = vazio(explicarTrajeto({ status: 'erro' }));
+  else texto = vazio('ainda não calculado');
+
+  const mapa = linkRota(vivo.pontos);
+  const extras = [
+    mapa ? `<a href="${esc(mapa)}" target="_blank" rel="noopener">${ico('externo', { tam: 12 })} Ver rota no mapa</a>` : '',
+    ctx.aprovador && vivo.status === 'ok'
+      ? `<button type="button" class="mini-btn" id="det-recalc">${ico('atualizar', { tam: 12 })} Recalcular</button>` : '',
+    gravado ? `<span class="det-trajeto-fonte">Distância: © OpenStreetMap</span>` : '',
+  ].filter(Boolean).join('');
+
+  return `${texto}${extras ? `<div class="det-trajeto-extras">${extras}</div>` : ''}`;
+}
+
+// Para depois de cadastrar uma localização que faltava. Atualiza a linha
+// em memória com o retrato novo e reabre: o detalhe desenha a partir
+// dela, e a tabela embaixo recarrega por conta própria.
+async function recalcular(btn, s) {
+  btn.disabled = true;
+  try {
+    const r = await atualizarTrajeto(s, { velocidadeKmh: velocidadeOnibusKmh(), margemMin: margemParadaMin() });
+    Object.assign(s, retratoTrajeto(r));
+    toast({ titulo: r.status === 'ok' ? 'Trajeto recalculado' : 'Trajeto não calculado',
+      texto: explicarTrajeto(r), tipo: r.status === 'ok' ? 'sucesso' : 'atencao' });
+    await abrirDetalhe(s, ctx);
+    ctx.recarregar?.();
+  } catch (err) {
+    reportarErro(err, { titulo: 'Não foi possível recalcular' });
+    btn.disabled = false;
+  }
 }
 
 const campo = (rotulo, html) =>

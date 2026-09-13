@@ -4,7 +4,7 @@
 // endereço + ponto de desembarque + coordenadas de cada local.
 // Todos veem; admin edita. Usa modules/locais/locais.model.js.
 // ============================================================
-import { criarLocal, atualizarLocal, excluirLocal, linkMaps } from '../../locais/locais.model.js';
+import { criarLocal, atualizarLocal, excluirLocal, linkMaps, geocodificar } from '../../locais/locais.model.js';
 import { esc, val, checked, falha } from '../../../shared/dom.js';
 import { emptyState } from '../../../shared/ui/feedback.js';
 import { confirmar } from '../../../shared/ui/confirmar.js';
@@ -70,6 +70,10 @@ function abrirForm(l) {
         <label class="col-2">Ponto de desembarque <input id="l-des" value="${v('desembarque')}" placeholder="Onde o ônibus para" /></label>
         <label>Latitude <input id="l-lat" type="number" step="any" inputmode="decimal" value="${v('latitude')}" /></label>
         <label>Longitude <input id="l-lng" type="number" step="any" inputmode="decimal" value="${v('longitude')}" /></label>
+        <div class="col-2 geo-linha">
+          <button type="button" class="mini-btn" id="l-geo">${ico('visita', { tam: 13 })} Localizar pelo endereço</button>
+          <span class="form-hint" id="l-geo-dica" aria-live="polite">A localização é o que permite calcular o tempo de viagem.</span>
+        </div>
         <label class="col-2">Observação <input id="l-obs" value="${v('obs')}" /></label>
         <label class="inline col-2"><input type="checkbox" id="l-ativo" ${(l ? l.ativo : true) ? 'checked' : ''} /> Ativo</label>
       </div>
@@ -81,6 +85,34 @@ function abrirForm(l) {
 
   document.getElementById('local-voltar').addEventListener('click', () => render(ctx));
   document.getElementById('local-form').addEventListener('submit', (e) => salvar(e, l));
+  document.getElementById('l-geo').addEventListener('click', localizar);
+}
+
+// Endereço → latitude e longitude, pelo OpenStreetMap. Preenche os campos
+// e NÃO grava: quem salva é a pessoa, depois de conferir no mapa - um
+// endereço ambíguo pode cair na rua de mesmo nome em outro bairro.
+//
+// Segunda cópia desta ligação (a primeira é o formulário de Escolas):
+// ~25 linhas iguais esperam o terceiro caso para virar componente (R13).
+async function localizar() {
+  const btn = document.getElementById('l-geo');
+  const dica = document.getElementById('l-geo-dica');
+  btn.disabled = true;
+  dica.textContent = 'Procurando…';
+  try {
+    const r = await geocodificar(val('l-end'));
+    if (!r) {
+      dica.textContent = 'Endereço não encontrado. Dá para copiar as coordenadas do Google Maps: clique com o botão direito no lugar e clique nos números.';
+      return;
+    }
+    document.getElementById('l-lat').value = r.lat.toFixed(6);
+    document.getElementById('l-lng').value = r.lng.toFixed(6);
+    dica.innerHTML = `Encontrado: ${esc(r.formatado)} · <a href="${esc(linkMaps(r.lat, r.lng))}" target="_blank" rel="noopener">conferir no mapa</a> antes de salvar.`;
+  } catch (err) {
+    dica.textContent = err?.name === 'AbortError' ? 'O serviço de mapa não respondeu. Tente de novo em instantes.' : (err?.message || String(err));
+  } finally {
+    btn.disabled = false;
+  }
 }
 
 async function salvar(e, l) {

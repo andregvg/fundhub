@@ -66,4 +66,4 @@ uma vez; se persistir, avise a Gerência.
 Provavelmente seu acesso ao módulo daquele painel mudou. Fale com quem
 administra os acessos.
 
-> Atualizado na versão 0.21.1.
+> Atualizado na versão 0.31.0.

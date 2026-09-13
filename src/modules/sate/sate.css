@@ -85,6 +85,13 @@
 
 /* ── Saldo ao vivo no formulário (spec S3, D3) ──────────────── */
 .sol-saldo { margin: 4px 0 12px; display: flex; flex-direction: column; gap: 6px; }
+/* Trajeto: uma linha discreta acima do saldo. Informação para decidir,
+   não alerta - por isso sem fundo colorido, nem quando não calculou. */
+.sol-trajeto:empty { display: none; }
+.sol-trajeto { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin-top: 4px; font-size: 13px; }
+.sol-trajeto-txt { color: var(--text); }
+.sol-trajeto-txt.fora { color: var(--muted); }
+.sol-trajeto-fonte { color: var(--muted); font-size: 11.5px; }
 .sol-saldo-num { color: var(--muted); font-size: 13px; }
 .sol-saldo-num b { color: var(--text); font-size: 15px; }
 .sol-erro, .sol-aviso {
@@ -97,6 +104,9 @@
 .sol-aviso  { background: var(--atencao-bg); color: var(--text); }
 
 /* ── Modal de detalhe ───────────────────────────────────────── */
+.det-trajeto-extras { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; margin-top: 4px; font-size: 13px; }
+.det-trajeto-extras a { display: inline-flex; align-items: center; gap: 4px; }
+.det-trajeto-fonte { color: var(--muted); font-size: 11.5px; }
 .det-status { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
 /* As decisões ficam no pé, separadas do conteúdo por uma linha: elas
    são o que a pessoa veio fazer, não mais um campo. */

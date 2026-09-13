@@ -76,6 +76,11 @@ a.tile:hover {
    inline nao tem. O proprio <svg>.ico ja e inline-block e nao entra aqui. */
 span.gira-90, span.gira-menos90, span.gira-180 { display: inline-flex; }
 
+/* Linha "Localizar pelo endereço": o botão e a explicação do que ele
+   achou, lado a lado. Formulários de Escolas e de Locais. */
+.geo-linha { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.geo-linha .form-hint { flex: 1 1 220px; }
+
 /* O item sendo arrastado (shared/ui/arrastar.js). O componente poe e tira
    a classe; o realce e daqui, e nao de cada modulo - o Dashboard e a
    legenda de horarios tinham a mesma declaracao em dois arquivos. Quem

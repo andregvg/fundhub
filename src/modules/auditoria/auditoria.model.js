@@ -38,6 +38,7 @@ export const TABELAS = {
   solicitacao_embarque: 'Pontos de embarque (SATE)',
   frota: 'Frota (SATE)',
   frota_rotulo: 'Rótulos de frota (SATE)',
+  trecho: 'Distâncias entre pontos (SATE)',
   // `oferta_onibus` foi aposentada pela migration 035, mas a tabela
   // continua no banco com o histórico dela - e o audit_log guarda as
   // alterações antigas. Sem este rótulo, o passado apareceria com o nome

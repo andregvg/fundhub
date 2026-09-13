@@ -27,6 +27,23 @@ import { toast } from '../../../shared/ui/toast.js';
 import { reportarErro } from '../../../shared/ui/feedback.js';
 import { ico } from '../../../shared/ui/icones.js';
 import { ligarArrasto } from '../../../shared/ui/arrastar.js';
+import { atualizarTrajeto, retratoTrajeto } from '../rota.model.js';
+import { velocidadeOnibusKmh, margemParadaMin } from '../sate.config.js';
+
+// Toda mudança de QUEM AUMENTA OU MUDA O ITINERÁRIO recalcula o trajeto
+// logo depois (spec 2026-09-13-sate-rota, D5) - e só as de quem aprova. O
+// pedido de saída da escola não mexe: o ônibus continua indo buscá-la até
+// a Gerência confirmar. Falha aqui não desfaz a mudança nas paradas, que
+// já foi gravada; o detalhe mostra o trajeto como não calculado.
+async function recalcularTrajeto(ctx, solicitacao) {
+  if (!ctx.aprovador) return;
+  try {
+    const r = await atualizarTrajeto(solicitacao, { velocidadeKmh: velocidadeOnibusKmh(), margemMin: margemParadaMin() });
+    Object.assign(solicitacao, retratoTrajeto(r));
+  } catch (err) {
+    console.warn('[sate] trajeto não recalculado:', err?.message || err);
+  }
+}
 
 // ── O bloco, como o detalhe o desenha ────────────────────────
 export function blocoHtml(partes, ctx) {
@@ -122,6 +139,7 @@ export function ligarParticipantes(corpo, { ctx, solicitacao, partes, reabrir })
   const executar = async (fn, titulo) => {
     try {
       await fn();
+      await recalcularTrajeto(ctx, solicitacao);
       toast({ titulo, tipo: 'sucesso' });
       await reabrir();
       ctx.recarregar?.();
@@ -206,6 +224,7 @@ async function salvarOrdem(idsAtivas, { solicitacao, partes, reabrir, ctx }) {
   const fora = (partes || []).filter(p => !idsAtivas.includes(p.id)).map(p => p.id);
   try {
     await reordenar(solicitacao.id, [...idsAtivas, ...fora]);
+    await recalcularTrajeto(ctx, solicitacao);
     toast({ titulo: 'Ordem das paradas salva', tipo: 'sucesso' });
   } catch (err) {
     reportarErro(err, { titulo: 'Não foi possível salvar a ordem' });
@@ -282,6 +301,7 @@ function formularioEscola({ ctx, solicitacao, partes, reabrir }) {
         qtdCadeirante: Number(val('dp-cad')) || 0,
         horario: val('dp-hora') || null,
       });
+      await recalcularTrajeto(ctx, solicitacao);
       toast({ titulo: 'Escola acrescentada', tipo: 'sucesso' });
       await reabrir();
       ctx.recarregar?.();

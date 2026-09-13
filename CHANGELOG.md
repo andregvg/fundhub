@@ -9,6 +9,45 @@ versionamento **MINOR** = módulo novo ou mudança de modelo de dados, **PATCH**
 
 ---
 
+## [0.31.0] - 2026-09-13
+
+> **Exige rodar a migration `039_sate_rota.sql`** (e antes dela a `036` e a
+> `037`, se ainda não rodaram). Sem ela o SATE funciona como antes, só sem
+> guardar o tempo de viagem.
+
+### Adicionado
+
+- **O SATE calcula o tempo de viagem do ônibus.** O agendamento mostra quantos
+  quilômetros o ônibus percorre das escolas até o destino, na ordem das
+  paradas, e quanto tempo leva. Ao pedir transporte, a estimativa aparece assim
+  que a escola e a atividade são escolhidas.
+- **Ver rota no mapa** abre o Google Maps com as paradas na ordem e o destino.
+- Quem aprova tem o botão **Recalcular**, e o trajeto se refaz sozinho ao
+  acrescentar, tirar ou reordenar escolas numa viagem.
+- **Localizar pelo endereço** no cadastro de Escolas e na guia Locais: o
+  sistema encontra a latitude e a longitude, mostra o endereço achado e um link
+  para conferir no mapa antes de salvar. As escolas ganharam os campos de
+  latitude e longitude.
+- Duas configurações novas no SATE: **velocidade média do ônibus** (padrão
+  20 km/h) e **margem por parada** (padrão 5 minutos).
+
+### Alterado
+
+- **A regra do intervalo entre manhã e tarde passou a contar o tempo de viagem
+  de volta.** Até aqui ela considerava que o ônibus chegava na escola no mesmo
+  minuto do retorno, e aprovava folgas que não existiam.
+- O **ver no mapa** da ficha da escola abre o ponto exato quando a escola já
+  foi localizada.
+
+### Sobre custo
+
+A distância e a busca de endereço vêm do **OpenStreetMap**, gratuito e sem
+conta. O sistema envia só endereços e coordenadas, nunca dado de pessoa. Se o
+serviço estiver fora do ar, o pedido é feito normalmente, sem o tempo de
+viagem.
+
+---
+
 ## [0.30.0] - 2026-09-13
 
 Escolas e Servidores passam a se ligar: dá para ir da escola à ficha de

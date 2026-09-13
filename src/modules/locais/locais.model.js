@@ -1,8 +1,14 @@
 // ============================================================
 // FundHub - modules/locais/locais.model.js
 // Catálogo de locais (destinos das atividades e solicitações do SATE).
-// Fonte única do endereço/coordenadas de cada destino - a base do
-// futuro cálculo de rota/tempo. É o "M": só banco, nunca DOM.
+// Fonte única do endereço/coordenadas de cada destino, e o que é
+// genérico de LUGAR: localizar um endereço, medir a distância por
+// estrada, montar link de mapa. É o "M": nunca DOM.
+//
+// A geografia vem do OpenStreetMap, direto do navegador - sem chave,
+// sem conta, sem custo (spec 2026-09-13-sate-rota-design.md, D2). O que
+// é específico do SATE (paradas da viagem, minutos, cache de trechos)
+// mora em `sate/rota.model.js`.
 //
 // Inspirado no Locais.js do agendamentos-fil: um destino é apontado
 // por id, não redigitado a cada atividade/solicitação.
@@ -31,8 +37,10 @@ export async function getLocais({ somenteAtivos = false } = {}) {
 }
 
 // Link do Google Maps a partir de coordenadas (mesmo padrão do agendamentos-fil).
+// `temCoordenada` é função declarada mais abaixo (hoisting): um campo
+// vazio que virou 0,0 não gera link para o meio do Atlântico.
 export const linkMaps = (lat, lng) =>
-  (lat != null && lng != null) ? `https://www.google.com/maps?q=${lat},${lng}` : null;
+  temCoordenada(lat, lng) ? `https://www.google.com/maps?q=${lat},${lng}` : null;
 
 const CAMPOS = ['nome', 'endereco', 'desembarque', 'latitude', 'longitude', 'maps_url', 'ativo', 'obs'];
 
@@ -70,4 +78,99 @@ export async function excluirLocal(id) {
     throw error;
   }
   _cache = null;
+}
+
+// ── Geografia: localizar e medir ─────────────────────────────
+// O que sai do navegador é endereço de escola ou local, e coordenadas.
+// Nunca dado de pessoa.
+
+const CIDADE_PADRAO = 'Ribeirão Preto, SP, Brasil';
+const TEMPO_LIMITE_MS = 10000;
+
+// Serviço público fora do ar não pode deixar botão girando para sempre.
+async function buscarJson(url) {
+  const ctl = new AbortController();
+  const t = setTimeout(() => ctl.abort(), TEMPO_LIMITE_MS);
+  try {
+    const r = await fetch(url, { signal: ctl.signal, headers: { Accept: 'application/json' } });
+    if (!r.ok) throw new Error(`Serviço de mapa respondeu ${r.status}.`);
+    return await r.json();
+  } finally {
+    clearTimeout(t);
+  }
+}
+
+// Endereço → coordenada, pelo Nominatim. SÓ por clique: a política de uso
+// dele é de no máximo uma consulta por segundo, e lote não cabe nisso.
+// Acrescenta a cidade quando o texto não parece trazê-la - "Rua Tal, 100"
+// sozinho casa com cidades do país inteiro. Mesmo critério do
+// agendamentos-fil (Geo.js).
+export async function geocodificar(endereco) {
+  const q = String(endereco || '').trim();
+  if (!q) throw new Error('Informe o endereço para localizar.');
+  const temCidade = /ribeir[ãa]o|,\s*[A-Za-z]{2}\b|-\s*[A-Za-z]{2}\b/i.test(q);
+  const params = new URLSearchParams({
+    q: temCidade ? q : `${q}, ${CIDADE_PADRAO}`,
+    format: 'jsonv2', limit: '1', countrycodes: 'br', 'accept-language': 'pt-BR',
+  });
+  const lista = await buscarJson(`https://nominatim.openstreetmap.org/search?${params}`);
+  const r = Array.isArray(lista) ? lista[0] : null;
+  if (!r) return null;
+  const lat = Number(r.lat), lng = Number(r.lon);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  return { lat, lng, formatado: r.display_name || '' };
+}
+
+// Coordenada válida: número finito dentro do globo. `0,0` fica de fora de
+// propósito - é o valor que um campo vazio vira quando alguém faz
+// `Number('')`, e fica no meio do Atlântico.
+export function temCoordenada(lat, lng) {
+  const a = Number(lat), b = Number(lng);
+  return lat != null && lng != null && lat !== '' && lng !== ''
+    && Number.isFinite(a) && Number.isFinite(b)
+    && Math.abs(a) <= 90 && Math.abs(b) <= 180 && !(a === 0 && b === 0);
+}
+
+// OSRM pede longitude ANTES de latitude - a ordem inversa da que todo
+// mundo escreve. Ponto: { lat, lng }.
+export const urlOsrm = (pontos) =>
+  'https://router.project-osrm.org/route/v1/driving/'
+  + pontos.map(p => `${Number(p.lng).toFixed(5)},${Number(p.lat).toFixed(5)}`).join(';')
+  + '?overview=false&steps=false';
+
+// A resposta do OSRM → km de cada trecho consecutivo. Pura.
+export function lerOsrm(json) {
+  if (json?.code !== 'Ok' || !json.routes?.length) {
+    return { status: json?.code === 'NoRoute' ? 'sem_rota' : 'erro', trechosKm: [] };
+  }
+  const legs = json.routes[0].legs || [];
+  return { status: 'ok', trechosKm: legs.map(l => Math.round((Number(l.distance) || 0) / 10) / 100) };
+}
+
+// Distância por estrada de cada trecho de uma sequência de pontos, numa
+// chamada só. Quem guarda em cache é quem chama.
+export async function distanciaPorEstrada(pontos) {
+  if (!pontos || pontos.length < 2) return { status: 'sem_rota', trechosKm: [] };
+  try {
+    return lerOsrm(await buscarJson(urlOsrm(pontos)));
+  } catch (err) {
+    console.warn('[locais] OSRM indisponível:', err?.message || err);
+    return { status: 'erro', trechosKm: [] };
+  }
+}
+
+// A rota no Google Maps, com as paradas na ordem. É LINK, não API: não
+// consome cota nem tem custo (spec D8). Primeiro ponto = origem, último =
+// destino, o meio = paradas.
+export function linkRota(pontos) {
+  const validos = (pontos || []).filter(p => temCoordenada(p.lat, p.lng));
+  if (validos.length < 2) return null;
+  const c = (p) => `${p.lat},${p.lng}`;
+  const params = new URLSearchParams({
+    api: '1', travelmode: 'driving',
+    origin: c(validos[0]), destination: c(validos[validos.length - 1]),
+  });
+  const meio = validos.slice(1, -1);
+  if (meio.length) params.set('waypoints', meio.map(c).join('|'));
+  return `https://www.google.com/maps/dir/?${params}`;
 }

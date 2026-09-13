@@ -10,6 +10,8 @@
 - Acompanhar em que pé está cada pedido: solicitado, em análise, confirmado,
   negado ou cancelado.
 - Ver, antes de pedir, quantos veículos ainda estão livres naquele dia.
+- Ver quantos quilômetros e quanto tempo o ônibus leva das escolas até o
+  destino, e abrir a rota no mapa.
 - Aprovar, negar e remanejar pedidos (para quem tem essa permissão).
 - Cadastrar a frota disponível e os reforços de período de evento.
 - Imprimir as **fichas de ônibus** que vão para a empresa de transporte.
@@ -70,6 +72,12 @@ horário **mais o tempo de viagem de volta**. Um retorno às 11h com 30 minutos
 de trajeto significa chegada às 11h30, e o próximo embarque só a partir das
 13h30.
 
+O tempo de viagem de volta é **calculado pelo sistema** a partir da distância
+entre as escolas e o destino (ver *Trajeto e tempo de viagem*, mais abaixo). A
+volta leva o mesmo tempo da ida. Se o trajeto da viagem da manhã não pôde ser
+calculado - uma escola sem localização, por exemplo -, a regra conta o retorno
+sem tempo de viagem, e a folga fica maior do que a real.
+
 O intervalo é ajustável nas configurações do módulo e vale para os **próximos**
 agendamentos - nunca desfaz o que já está confirmado.
 
@@ -99,13 +107,16 @@ manhã seguinte para voltar e ser liberado.
 4. Em **Quem vai**, informe a escola, as turmas, quantos estudantes vão e
    quantos usam **cadeira de rodas**. O sistema calcula sozinho quantos ônibus
    e quantas vans são necessários.
-5. **Acompanhe a linha de saldo** logo acima do botão de enviar. Ela mostra
+5. Escolhidas a escola e a atividade, aparece o **tempo de viagem** estimado
+   até o destino. Se não aparecer, a linha diz o porquê - o pedido pode ser
+   enviado assim mesmo.
+6. **Acompanhe a linha de saldo** logo acima do botão de enviar. Ela mostra
    quantos ônibus ainda estão livres naquela data e quantos o seu pedido usa,
    e se atualiza sozinha quando você troca a data, o período ou o número de
    estudantes.
-6. Se as vagas do dia esgotarem, a linha explica o motivo e o botão de enviar
+7. Se as vagas do dia esgotarem, a linha explica o motivo e o botão de enviar
    fica desabilitado - escolha outra data.
-7. Envie. O pedido nasce **pendente de autorização**.
+8. Envie. O pedido nasce **pendente de autorização**.
 
 ### Aprovar ou negar
 
@@ -181,6 +192,57 @@ Quando uma escola pediu para sair, a linha dela mostra **Manter** e
 **Confirmar saída**. Confirmada a saída, é o momento de acrescentar outra
 escola no lugar e reordenar, sem mexer no resto da viagem.
 
+Cada uma dessas mudanças **recalcula o trajeto** sozinha: acrescentar, tirar e
+reordenar mudam por onde o ônibus passa.
+
+### Localizar um destino
+
+1. Na guia **Locais**, abra o local (ou crie um com **Novo local**).
+2. Confira o **Endereço** e clique em **Localizar pelo endereço**. Latitude e
+   longitude são preenchidas, e o sistema mostra o endereço que encontrou.
+3. Clique em **conferir no mapa** antes de salvar.
+4. Se não encontrar, copie as coordenadas do Google Maps: botão direito sobre
+   o lugar, e clique nos números.
+5. Salve.
+
+As escolas se localizam do mesmo jeito, no cadastro de **Escolas**.
+
+---
+
+## Trajeto e tempo de viagem
+
+O agendamento mostra, no campo **Trajeto**, quantos quilômetros o ônibus
+percorre das escolas até o destino, na ordem das paradas, e quanto tempo isso
+leva.
+
+**Como o tempo é calculado:** a distância por estrada vem do OpenStreetMap, um
+mapa público e gratuito. O tempo é essa distância dividida pela **velocidade
+média do ônibus** (hoje 20 km/h, que já conta com trânsito urbano), mais uma
+**margem por parada** (hoje 5 minutos) para cada escola onde o ônibus embarca
+estudantes.
+
+| Exemplo | |
+|---|---|
+| 10 km, uma escola | 30 min de estrada + 5 de manobra = **35 min** |
+| 10 km, três escolas | 30 min de estrada + 15 de manobra = **45 min** |
+
+Os dois números são ajustáveis nas configurações do módulo e valem para os
+**próximos** cálculos. O tempo de um agendamento já calculado não muda sozinho
+- para atualizar, quem aprova clica em **Recalcular**.
+
+**Ver rota no mapa** abre o Google Maps com as paradas na ordem e o destino.
+
+**Quando o trajeto não é calculado:**
+
+| O que a tela diz | O que resolve |
+|---|---|
+| uma escola está sem localização | localizar a escola no cadastro de Escolas, depois **Recalcular** |
+| o destino não tem localização | usar um local do cadastro, localizado na guia Locais |
+| o serviço de mapa não respondeu | tentar **Recalcular** mais tarde |
+
+O trajeto é informação para decidir, não condição para pedir: sem ele, o
+pedido segue normalmente.
+
 ---
 
 ## Regras que o sistema aplica
@@ -197,6 +259,9 @@ escola no lugar e reordenar, sem mexer no resto da viagem.
 
 ### O que apenas avisa
 
+- **Trajeto não calculado.** Escola ou destino sem localização, ou serviço
+  de mapa fora do ar, nunca impedem o pedido - a SME pode precisar agendar
+  para um lugar ainda não localizado.
 - **Intervalo entre períodos apertado** (regra 1). O retorno pode adiantar, e
   quem aprova é que sabe se a folga real dá. Fica sinalizado, não bloqueado.
 - **Cadeirante sem van adaptada livre.** O pedido segue e fica *aguardando
@@ -229,15 +294,29 @@ continuam com o nome deles.
 
 ## Ligações com outros módulos
 
-- **Escolas** fornece o endereço de embarque e o contato da unidade.
+- **Escolas** fornece o endereço de embarque, a localização no mapa e o
+  contato da unidade.
 - **Calendário Escolar** é consultado para avisar quando a data pedida cai em
   recesso ou em dia sem aula.
 - **Viagens** mostra a programação do dia já confirmada, pronta para conferir.
 - **Dashboard** traz as atividades extraclasse do dia na tela inicial.
+- **OpenStreetMap** (fora do FundHub) fornece as distâncias e a busca de
+  endereço. É gratuito, sem conta, e recebe só endereços e coordenadas - nunca
+  dado de pessoa.
 - **Auditoria** guarda quem aprovou, quem negou e quem cancelou cada pedido,
   com data e hora.
 
 ## Perguntas frequentes
+
+**O tempo de viagem está estranho. Dá para corrigir?**
+Confira primeiro a localização das escolas e do destino - clique em **Ver rota
+no mapa** e veja se os pontos estão nos lugares certos. Corrigida uma
+localização, **Recalcular** atualiza o agendamento. Se o problema for a
+velocidade média para toda a rede, ela é ajustada nas configurações.
+
+**Calcular o trajeto tem custo?**
+Não. A distância vem do OpenStreetMap, gratuito e sem conta. O link **Ver rota
+no mapa** só abre o Google Maps no navegador, sem nenhuma cobrança.
 
 **Pedi e o sistema disse que não há ônibus. E amanhã?**
 O saldo é por dia. Troque a data no formulário e o número de vagas se atualiza
@@ -267,4 +346,4 @@ Negado é um pedido que **nunca** chegou a valer - foi recusado na análise.
 Cancelado é um pedido que **estava de pé** e foi desfeito. Os dois exigem
 justificativa.
 
-> Atualizado na versão 0.29.1.
+> Atualizado na versão 0.31.0.

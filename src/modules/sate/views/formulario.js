@@ -14,7 +14,11 @@
 import { criarSolicitacao, listSolicitacoes } from '../sate.model.js';
 import { saldoDoDia, livreManhaSeguinte } from '../saldo.model.js';
 import { avaliarPedido, onibusPara, vansPara } from '../regras.model.js';
-import { capacidadeOnibus, capacidadeVan, intervaloMinMin, antecedenciaMinDias } from '../sate.config.js';
+import { calcularTrajeto, retratoTrajeto, explicarTrajeto } from '../rota.model.js';
+import {
+  capacidadeOnibus, capacidadeVan, intervaloMinMin, antecedenciaMinDias,
+  velocidadeOnibusKmh, margemParadaMin,
+} from '../sate.config.js';
 import { getDiaCalendario } from '../../calendario/calendario.model.js';
 import { esc, val, falha } from '../../../shared/dom.js';
 import { hojeISO, addDias, fmtData, isUuid } from '../../../shared/format.js';
@@ -29,6 +33,12 @@ let modo = 'catalogo';
 // segunda e pintar o saldo do número errado.
 let pedidoSaldo = 0;
 let deb = null;
+// O trajeto da escola escolhida até o destino escolhido. Vai para a
+// solicitação como retrato no envio (spec 2026-09-13-sate-rota, D4). O
+// contador tem a mesma função do de saldo: trocar de escola duas vezes
+// dispara duas consultas, e só a última pode pintar.
+let trajeto = null;
+let pedidoTrajeto = 0;
 
 export function abrirFormulario(contexto) {
   ctx = contexto;
@@ -104,6 +114,7 @@ export function abrirFormulario(contexto) {
           </div>
         </fieldset>
 
+        <div id="f-trajeto" class="sol-trajeto" aria-live="polite"></div>
         <div id="f-saldo" class="sol-saldo" aria-live="polite"></div>
         <div class="form-foot">
           <span id="f-msg" class="auth-msg"></span>
@@ -141,12 +152,57 @@ function ligar() {
   localSel.addEventListener('change', alternarDestino);
   aplicarModo();
 
+  // O trajeto depende só de ORIGEM e DESTINO - não de data, período ou
+  // estudantes. Recalcula quando um dos dois muda, e não a cada tecla.
+  for (const id of ['f-esc', 'f-ativ', 'f-local', 'f-dest-nome']) {
+    document.getElementById(id).addEventListener('change', pintarTrajeto);
+  }
+  form.querySelectorAll('input[name="modo"]').forEach(r => r.addEventListener('change', pintarTrajeto));
+  trajeto = null;
+
   for (const id of ['f-data', 'f-per', 'f-alunos', 'f-cadeira', 'f-emb', 'f-ret', 'f-ativ']) {
     document.getElementById(id).addEventListener('change', revisar);
   }
   document.getElementById('f-alunos').addEventListener('input', revisar);
   form.addEventListener('submit', enviar);
   revisar();
+}
+
+// ── Trajeto ──────────────────────────────────────────────────
+// O destino do pedido, com coordenada quando existe: o local da atividade
+// do catálogo, ou o local escolhido. Destino digitado à mão não tem
+// coordenada e não é localizado sozinho (spec D7).
+function destinoEscolhido() {
+  const locais = ctx.locais || [];
+  if (modo === 'catalogo') {
+    const a = (ctx.atividades || []).find(x => x.id === document.getElementById('f-ativ').value);
+    return a?.local_id ? locais.find(l => l.id === a.local_id) || null : null;
+  }
+  return locais.find(l => l.id === document.getElementById('f-local').value) || null;
+}
+
+async function pintarTrajeto() {
+  const box = document.getElementById('f-trajeto');
+  if (!box) return;
+  const escId = document.getElementById('f-esc').value;
+  const escola = (ctx.unidades || []).find(u => (u.id || u.numero) === escId);
+  const temDestino = modo === 'catalogo' ? !!document.getElementById('f-ativ').value
+    : !!(document.getElementById('f-local').value || val('f-dest-nome'));
+  if (!escola || !temDestino) { box.innerHTML = ''; trajeto = null; return; }
+
+  const meu = ++pedidoTrajeto;
+  box.innerHTML = `<span class="sol-trajeto-txt">Calculando o tempo de viagem…</span>`;
+  // A escola que pede é a única parada: o formulário cria uma viagem com
+  // uma participação, e a Gerência acrescenta as outras depois.
+  const r = await calcularTrajeto({
+    participacoes: [{ unidade_id: escola.id || escola.numero, unidade: escola, status: 'ativa', ordem: 1 }],
+    destino: destinoEscolhido(),
+    velocidadeKmh: velocidadeOnibusKmh(), margemMin: margemParadaMin(),
+  });
+  if (meu !== pedidoTrajeto || !document.getElementById('f-trajeto')) return;
+  trajeto = r;
+  box.innerHTML = `<span class="sol-trajeto-txt ${r.status === 'ok' ? '' : 'fora'}">${esc(explicarTrajeto(r))}</span>`
+    + (r.status === 'ok' ? `<span class="sol-trajeto-fonte">Distância: © OpenStreetMap</span>` : '');
 }
 
 // ── Saldo ao vivo ────────────────────────────────────────────
@@ -206,7 +262,11 @@ function avaliar({ data, periodo, alunos, saldo, livreAmanha, viagensDoDia }) {
     qtdCadeirantes: parseInt(val('f-cadeira'), 10) || 0,
     livre, livreVan, livreManhaSeguinte: livreAmanha,
     diasDeAntecedencia: dias,
-    viagensDoDia: viagensDoDia.filter(v => v.periodo === 'manha'),
+    // O tempo de volta de cada viagem da manhã é o trajeto gravado nela
+    // (a volta refaz as paradas no sentido inverso - spec D4). Viagem sem
+    // trajeto calculado segue com zero, o comportamento de antes.
+    viagensDoDia: viagensDoDia.filter(v => v.periodo === 'manha')
+      .map(v => ({ ...v, viagemVoltaMin: Number(v.trajeto_min) || 0 })),
     horarioEmbarque: val('f-emb') || null,
     horarioRetorno: val('f-ret') || null,
     capacidadeOnibus: capacidadeOnibus(),
@@ -279,6 +339,11 @@ async function enviar(e) {
     horario_retorno: val('f-ret') || null,
     contato_professor: val('f-contato') || null,
     observacao: val('f-obs') || null,
+    // O retrato do trajeto, se já foi calculado. Não calculado não barra
+    // o envio (spec D6): a solicitação vai sem ele e quem aprova recalcula.
+    // Antes da migration 039 essas chaves não casam com coluna nenhuma e o
+    // banco as ignora ao montar a linha.
+    ...(trajeto ? retratoTrajeto(trajeto) : {}),
   };
 
   // A escola que pede é a primeira participação. Uma viagem com várias

@@ -28,6 +28,10 @@ export const PADRAO = Object.freeze({
   capacidade_onibus: 44,
   capacidade_van: 2,
   antecedencia_min_dias: 5,
+  // Tempo de viagem = km ÷ velocidade + margem por parada (spec
+  // 2026-09-13-sate-rota-design.md, D1). Padrões do agendamentos-fil.
+  velocidade_onibus_kmh: 20,
+  margem_parada_min: 5,
 });
 
 // Valor gravado só vence o padrão se for número finito e não negativo.
@@ -45,6 +49,10 @@ export const antecedenciaMinDias = () => num('antecedencia_min_dias', PADRAO.ant
 // Zero NÃO é resposta legítima nas capacidades: elas são divisores, e
 // zero ali produziria Infinity ônibus. O `||` devolve o padrão.
 export const capacidadeOnibus = () => num('capacidade_onibus', PADRAO.capacidade_onibus) || PADRAO.capacidade_onibus;
+// Velocidade é divisor: zero cai no padrão, como as capacidades. Margem
+// zero é escolha legítima ("não conte manobra").
+export const velocidadeOnibusKmh = () => num('velocidade_onibus_kmh', PADRAO.velocidade_onibus_kmh) || PADRAO.velocidade_onibus_kmh;
+export const margemParadaMin = () => num('margem_parada_min', PADRAO.margem_parada_min);
 export const capacidadeVan = () => num('capacidade_van', PADRAO.capacidade_van) || PADRAO.capacidade_van;
 
 export const DECLARACAO = {
@@ -78,6 +86,18 @@ export const DECLARACAO = {
       tipo: 'numero', padrao: PADRAO.antecedencia_min_dias, min: 0, max: 60,
       rotulo: 'Antecedência mínima da escola (dias)',
       dica: 'Quantos dias antes a escola precisa pedir. Quem aprova não tem esse limite.',
+    },
+    {
+      chave: 'velocidade_onibus_kmh', escopo: 'rede', grupo: 'regras',
+      tipo: 'numero', padrao: PADRAO.velocidade_onibus_kmh, min: 5, max: 80,
+      rotulo: 'Velocidade média do ônibus (km/h)',
+      dica: 'Usada para estimar o tempo de viagem a partir da distância. Já conta com trânsito urbano. Vale para os próximos agendamentos.',
+    },
+    {
+      chave: 'margem_parada_min', escopo: 'rede', grupo: 'regras',
+      tipo: 'numero', padrao: PADRAO.margem_parada_min, min: 0, max: 60,
+      rotulo: 'Margem por parada de embarque (minutos)',
+      dica: 'Tempo de manobra somado a cada escola onde o ônibus para. Vale para os próximos agendamentos.',
     },
   ],
 };

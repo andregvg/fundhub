@@ -10,6 +10,7 @@
 // 2026-09-13-fichas-entre-modulos-design.md.
 // ============================================================
 import { getUnidades } from '../escolas.model.js';
+import { linkMaps } from '../../locais/locais.model.js';
 import { getEquipeDaUnidade } from '../../servidores/vinculos.model.js';
 import { podeEscrever } from '../../../core/permissoes.js';
 import { podeAbrirFicha } from '../../../core/registry.js';
@@ -50,9 +51,11 @@ function contexto(opts) {
 function detalhe(u, ctx, opts) {
   const reabrir = () => abrir(u.id || u.numero, opts);
   const tel = telefonesTexto(u.telefones);
-  const maps = u.endereco
+  // Pela coordenada quando a escola já foi localizada: é o ponto exato em
+  // que o SATE calcula o trajeto. Pelo texto do endereço só na falta dela.
+  const maps = linkMaps(u.latitude, u.longitude) || (u.endereco
     ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(u.endereco + ', Ribeirão Preto, SP')}`
-    : '';
+    : '');
 
   // Atributo booleano vira CHIP no cabeçalho. Um campo inteiro para
   // dizer "EJA: Não" ocupava espaço para informar nada.
