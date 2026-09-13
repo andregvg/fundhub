@@ -18,7 +18,8 @@
 // E um governa a navegação ENTRE módulos:
 //   ficha   - `() => import('./views/<x>.js')`, arquivo que exporta
 //             `abrir(id, opts)`. Deixa outro módulo abrir a ficha deste
-//             por cima da própria tela. Ver abrirFicha() abaixo.
+//             por cima da própria tela. Quem abre é abrirFicha(), no
+//             roteador; aqui mora só podeAbrirFicha().
 //
 // Campos do manifesto - ver modules/docs/docs.content.js § "Novo módulo".
 // ============================================================
@@ -117,29 +118,18 @@ export function servicos() {
 export const caminhoDaRota = (hash) => String(hash || '').split('?')[0];
 
 // ── Fichas entre módulos ─────────────────────────────────────
-// A ficha da escola abre a do servidor, e a do servidor abre a da escola -
-// sem uma view importar a do outro (R2). É a mesma inversão de `load()`:
-// o manifesto declara `ficha`, o kernel chama, o módulo dono responde.
-// Spec 2026-09-13-fichas-entre-modulos-design.md.
-//
-// `opts` é repassado como veio: { voltar, editar, aoMudar } - o contrato
-// está no cabeçalho de cada `abrir`.
+// Spec 2026-09-13-fichas-entre-modulos-design.md. Aqui fica o que é FATO
+// sobre o módulo (declara ficha? a pessoa o enxerga?); abrir a ficha é
+// navegação, e navegação é do controller - abrirFicha() está em router.js.
 //
 // podeAbrirFicha decide se o card VIRA clicável. Não é controle de acesso:
 // sem ele o clique só abriria uma ficha vazia, porque quem barra a leitura
 // é o RLS (R6).
-const moduloPorId = (id) => MODULOS.find(m => m.id === id) || null;
+export const moduloPorId = (id) => MODULOS.find(m => m.id === id) || null;
 
 export function podeAbrirFicha(moduloId) {
   const mod = moduloPorId(moduloId);
   return Boolean(mod && mod.ativo && typeof mod.ficha === 'function' && veModulo(mod));
-}
-
-export async function abrirFicha(moduloId, id, opts = {}) {
-  if (!podeAbrirFicha(moduloId)) return false;
-  const ficha = await moduloPorId(moduloId).ficha();
-  await ficha.abrir(id, opts);
-  return true;
 }
 
 export function moduloPorRota(hash) {

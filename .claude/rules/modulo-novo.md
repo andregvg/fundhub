@@ -115,8 +115,9 @@ export default {
 própria tela - a escola abre a ficha do servidor, o servidor abre a da escola.
 O arquivo apontado exporta `abrir(id, { voltar, editar, aoMudar })`, que monta
 o próprio contexto a partir dos models (não depende de estar na tela do
-módulo). Quem abre usa `abrirFicha(moduloId, id, opts)` e decide se o card vira
-clicável com `podeAbrirFicha(moduloId)`, ambos em `core/registry.js`. Nenhuma
+módulo). Quem abre usa `abrirFicha(moduloId, id, opts)` (`core/router.js`) e
+decide se o card vira clicável com `podeAbrirFicha(moduloId)`
+(`core/registry.js`). Nenhuma
 view importa a view de outro módulo (R2). Spec
 `2026-09-13-fichas-entre-modulos-design.md`.
 

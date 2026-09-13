@@ -12,7 +12,8 @@ import { getServidores, cargoDe, localDeTrabalhoDe } from '../servidores.model.j
 import { getLocais, eLocalInterno } from '../../escolas/escolas.model.js';
 import { getCargos, rotulaCargo } from '../vinculos.model.js';
 import { podeEscrever } from '../../../core/permissoes.js';
-import { abrirFicha, podeAbrirFicha } from '../../../core/registry.js';
+import { podeAbrirFicha } from '../../../core/registry.js';
+import { abrirFicha } from '../../../core/router.js';
 import { esc } from '../../../shared/dom.js';
 import { fmtData, fmtIdade, fmtCPF, fmtRG } from '../../../shared/format.js';
 import { modalHead, abrirModal } from '../../../shared/ui/modal.js';

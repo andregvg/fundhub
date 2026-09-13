@@ -28,6 +28,9 @@ tela em que você está.
   gerências não têm ficha e continuam sem clique.
 - Dá para encadear: escola, pessoa, outra escola dela, outra pessoa. A seta **←**
   refaz o caminho passo a passo.
+- **Documentação técnica:** nova seção **Papéis e níveis padrão**, com o que
+  cada papel enxerga em cada módulo. A tabela é lida do banco toda vez que a
+  página abre - fica sempre atual sozinha.
 
 ### Alterado
 
@@ -39,6 +42,13 @@ tela em que você está.
 
 - O telefone no card da equipe aparecia sem formatação. Agora segue o mesmo
   formato do resto do sistema.
+- Se a ficha de uma pessoa ou de uma escola não puder abrir, o sistema agora
+  **avisa** - em vez de o clique simplesmente não fazer nada. Logo depois de
+  uma atualização do FundHub, o aviso pede para recarregar a página.
+- **Acesso "só a própria escola" voltou a funcionar.** Uma mudança antiga no
+  cadastro de locais de trabalho tinha deixado quebrada a checagem de "qual é
+  a minha escola", usada por quem tem esse nível de acesso. Passa a valer
+  depois que a atualização do banco for aplicada.
 - A caixinha que abre ao passar o mouse sobre a **versão**, no rodapé, sumia
   antes de o mouse chegar ao link **Histórico completo**. Agora ela espera o
   mouse chegar.

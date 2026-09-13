@@ -10,11 +10,12 @@
 // A rota raiz é a DASHBOARD. A antiga home de tiles virou o módulo
 // "Módulos" em #/modulos, alcançável pelo menu lateral.
 // ============================================================
-import { moduloPorRota, caminhoDaRota, nivelEfetivo, REDIRECIONAMENTOS } from './registry.js';
+import { moduloPorRota, moduloPorId, podeAbrirFicha, caminhoDaRota, nivelEfetivo, REDIRECIONAMENTOS } from './registry.js';
 import { getPerfilAtual } from './perfil.js';
 import { OCULTO } from './permissoes.js';
 import { registrarEventoUnico, EVENTO } from './eventos.js';
-import { loading, emptyState } from '../shared/ui/feedback.js';
+import { loading, emptyState, reportarErro } from '../shared/ui/feedback.js';
+import { toast } from '../shared/ui/toast.js';
 import { ico } from '../shared/ui/icones.js';
 import { esc } from '../shared/dom.js';
 
@@ -119,6 +120,43 @@ async function montarAcoesModulo(mod, nv) {
       const { abrirPainelConfig } = await import('../modules/configuracoes/painel.js');
       abrirPainelConfig(mod);
     });
+  }
+}
+
+// ── Ficha de outro módulo, por cima da tela atual ────────────
+// A ficha da escola abre a do servidor e vice-versa, sem uma view importar
+// a do outro (R2): o manifesto declara `ficha`, o controller chama, o
+// módulo dono responde - a mesma inversão de `mod.load()` em route().
+// Spec 2026-09-13-fichas-entre-modulos-design.md. `opts` segue como veio:
+// { voltar, editar, aoMudar } - o contrato está no cabeçalho de cada `abrir`.
+//
+// NUNCA falha em silêncio. O GitHub Pages guarda cada arquivo na CDN por
+// até 10 minutos, um a um: logo depois de um deploy, a ficha nova de um
+// módulo pode carregar a ficha ANTIGA do outro, que ainda não exporta
+// `abrir`. Sem esta guarda o clique simplesmente não fazia nada.
+export async function abrirFicha(moduloId, id, opts = {}) {
+  if (!podeAbrirFicha(moduloId)) return false;
+  let ficha;
+  try {
+    ficha = await moduloPorId(moduloId).ficha();
+  } catch (err) {
+    console.error('[abrirFicha] não carregou a ficha de', moduloId, err);
+  }
+  if (typeof ficha?.abrir !== 'function') {
+    toast({
+      titulo: 'Não foi possível abrir a ficha',
+      texto: 'O FundHub pode ter acabado de ser atualizado. Recarregue a página (Ctrl+Shift+R) e tente de novo.',
+      tipo: 'erro',
+    });
+    return false;
+  }
+  try {
+    await ficha.abrir(id, opts);
+    return true;
+  } catch (err) {
+    console.error('[abrirFicha]', moduloId, err);
+    reportarErro(err, { titulo: 'Não foi possível abrir a ficha' });
+    return false;
   }
 }
 

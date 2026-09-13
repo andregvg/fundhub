@@ -65,23 +65,38 @@ especulativa (R13): é o contrato de uma navegação que já tem dois lados reai
 no primeiro dia, e o terceiro candidato óbvio (Horários, SATE) só precisa
 declarar o campo.
 
-### D2 - `abrirFicha` e `podeAbrirFicha` moram em `core/registry.js`
+### D2 - `podeAbrirFicha` no registry, `abrirFicha` no roteador
 
 ```js
-podeAbrirFicha(moduloId)            // → boolean
-abrirFicha(moduloId, id, opts)      // → Promise<boolean>
+podeAbrirFicha(moduloId)            // core/registry.js → boolean
+abrirFicha(moduloId, id, opts)      // core/router.js   → Promise<boolean>
 ```
 
 - `podeAbrirFicha`: o módulo existe, está ativo, declara `ficha` e o nível
-  efetivo **não é `oculto`**. É o que a view usa para decidir se o card vira
+  efetivo **não é `oculto`**. É **fato sobre o módulo** - mora ao lado de
+  `veModulo` e `nivelEfetivo`. A view o usa para decidir se o card vira
   clicável.
 - `abrirFicha`: confere `podeAbrirFicha`, carrega a ficha sob demanda e chama
-  `abrir(id, opts)`. Devolve `false` sem fazer nada se não pode.
+  `abrir(id, opts)`. É **navegação**, e navegação é do controller - mora ao
+  lado de `route()`, que faz a mesma inversão com `mod.load()`.
 
-Moram no registry porque é lá que já estão `moduloPorRota` e `nivelEfetivo` -
-um arquivo novo para duas funções seria fragmentação (R11, piso). **Não é
-controle de acesso:** esconder o clique é conforto; quem barra a leitura do
-servidor é o RLS (R6).
+> **Revisto em 13/09/2026, na mesma entrega.** A primeira versão pôs as duas
+> no registry "por proximidade". Na revisão de modularidade, o registry
+> ficou sendo o catálogo (o que é verdade sobre os módulos) e o roteador o
+> despachante (o que acontece quando alguém navega) - a fronteira que já
+> existia entre os dois.
+
+**Não é controle de acesso:** esconder o clique é conforto; quem barra a
+leitura do servidor é o RLS (R6).
+
+**`abrirFicha` nunca falha em silêncio.** O GitHub Pages guarda cada arquivo
+na CDN por até 10 minutos, **um a um**: logo depois de um deploy, a ficha nova
+de um módulo pode carregar a ficha antiga do outro, que ainda não exporta
+`abrir`. É a causa mais provável do primeiro teste no dev, em que o clique
+não fazia nada (mecanismo confirmado nos cabeçalhos da CDN; o caso exato não
+foi reproduzido no login real).
+Agora import que falha ou ficha sem `abrir` vira um aviso pedindo para
+recarregar a página, e erro dentro de `abrir` vira `reportarErro`.
 
 ### D3 - A ficha é autossuficiente
 
@@ -91,7 +106,7 @@ guardam cache - não depende de estar dentro da tela do módulo:
 | Ficha | Lê |
 |---|---|
 | Servidor | `getServidores()`, `getCargos()`, `getLocais()`, `podeEscrever('servidores')` |
-| Escola | `getUnidades()`, `getServidoresDaUnidade()`, `podeEscrever('escolas')` |
+| Escola | `getUnidades()`, `getEquipeDaUnidade()`, `podeEscrever('escolas')` |
 
 As próprias telas de Escolas e Servidores passam a abrir a ficha **por esse
 mesmo `abrir`**. Um caminho só: a ficha que abre por cima de outro módulo é
@@ -113,11 +128,12 @@ abrir(id, { voltar = null, editar = false, aoMudar = null })
 `id` que não existe (excluído por outra pessoa, sem permissão de leitura):
 `abrir` não abre nada e avisa por toast.
 
-### D5 - A equipe da escola vem de Servidores
+### D5 - A equipe da escola vem do model de vínculos
 
 A seção **Equipe** da ficha da escola passa a ler
-`getServidoresDaUnidade(u.id)` (model de Servidores) em vez de `u.pessoas`
-(`vw_escola_pessoas`). Resolve três coisas de uma vez, **sem migration**:
+`getEquipeDaUnidade(u.id)` (`servidores/vinculos.model.js`) em vez de
+`u.pessoas` (`vw_escola_pessoas`). Resolve três coisas de uma vez, **sem
+migration**:
 
 1. traz o **id** do servidor;
 2. traz os **telefones como objetos**, que passam por `exibirTelefone` - a
@@ -131,7 +147,16 @@ escolas ("buscar por gestor") - é leitura de lista, não de ficha.
 
 O cargo exibido é o do(s) vínculo(s) aberto(s) **nesta** escola
 (`rotulaCargo`), não o `cargoDe(s)` geral - quem responde por duas unidades
-aparece em cada uma com o cargo que tem ali.
+aparece em cada uma com o cargo que tem ali. O telefone é o principal, ou o
+primeiro.
+
+**Essas duas regras são do vínculo, e por isso moram no model de vínculos**,
+que devolve a equipe já pronta para leitura (`{ id, nome, cargo, email,
+telefone }`). A primeira versão as calculava dentro da ficha da escola - uma
+tela de Escolas conhecendo a estrutura do vínculo de Servidores (R3). Saiu
+junto o fallback para `u.pessoas`: duas fontes para a mesma lista, e inútil na
+prática, porque a view lê a mesma tabela `servidor` sob o mesmo RLS. Falha ao
+carregar a equipe agora mostra erro, não uma lista paralela.
 
 ### D6 - Os cards
 
@@ -192,7 +217,9 @@ por trás.
 
 | Arquivo | Mudança |
 |---|---|
-| `core/registry.js` | `podeAbrirFicha`, `abrirFicha`; `ficha` no cabeçalho dos campos |
+| `core/registry.js` | `podeAbrirFicha`, `moduloPorId`; `ficha` no cabeçalho dos campos |
+| `core/router.js` | `abrirFicha`, com a guarda de versão misturada |
+| `modules/servidores/vinculos.model.js` | `getEquipeDaUnidade` |
 | `modules/escolas/module.js`, `modules/servidores/module.js` | `ficha: () => import('./views/detalhe.js')` |
 | `modules/escolas/views/detalhe.js` | `abrir(id, opts)`; equipe via `getServidoresDaUnidade`; card novo |
 | `modules/escolas/escolas.view.js` | card da lista chama `abrir`; `ctxAtual` só para "Nova escola" |

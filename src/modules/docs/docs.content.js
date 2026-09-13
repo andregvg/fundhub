@@ -324,6 +324,29 @@ export const SECOES = [
   },
 
   {
+    id: 'papeis',
+    ico: 'acesso',
+    titulo: 'Papéis e níveis padrão',
+    resumo: 'O que cada papel enxerga por padrão - lido do banco agora.',
+    html: `
+      <p>O nível que cada <b>papel</b> recebe em cada módulo <b>antes</b> de qualquer exceção
+      feita para uma pessoa em <i>Usuários &amp; Acessos</i>. A tabela abaixo não é texto
+      escrito à mão: ela é <b>lida do banco toda vez que esta página abre</b>
+      (<code>papel</code> + <code>papel_permissao</code>, com as regras de
+      <code>meu_mapa_permissoes()</code>). Quando uma migration muda um preset, esta página
+      já mostra o novo valor - não há documento para esquecer de atualizar.</p>
+      <ul>
+        <li><b>Administrador</b> não tem lista: tem <i>Escrita</i> em tudo, inclusive em módulo
+            que ainda não existe (migration 034).</li>
+        <li>Módulo sem regra para o papel fica <i>Oculto</i> - salvo os módulos públicos por
+            desenho (Ajuda, Módulos, Meus dados, Configurações), que caem para <i>Leitura</i>.</li>
+        <li>O asterisco (*) marca o nível que <b>não</b> está escrito na tabela de presets e
+            vem de uma dessas regras.</li>
+      </ul>
+      <div id="doc-papeis"></div>`,
+  },
+
+  {
     id: 'auditoria',
     ico: 'auditoria',
     titulo: 'Auditoria e último acesso',

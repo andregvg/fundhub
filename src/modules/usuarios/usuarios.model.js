@@ -11,6 +11,8 @@
 import { sb, hasSupabase } from '../../core/supabase.js';
 import { registrarCache } from '../../shared/cache.js';
 import { registrarEvento, EVENTO } from '../../core/eventos.js';
+import { MODULOS, chavePerm } from '../../core/registry.js';
+import { OCULTO, LEITURA, ESCRITA } from '../../core/permissoes.js';
 
 // Fallback caso a tabela `papel` não responda (banco antigo, offline).
 // A fonte de verdade é o banco - isto é só para a tela não quebrar.
@@ -59,6 +61,37 @@ export async function getPresets() {
   const out = {};
   for (const r of data || []) (out[r.papel] ||= {})[r.modulo] = r.nivel;
   return out;
+}
+
+// ── Matriz papel × módulo → nível PADRÃO ─────────────────────
+// O que cada papel enxerga ANTES de qualquer exceção por pessoa. Lida do
+// banco a cada chamada - é o que deixa a Documentação técnica sempre certa
+// sem ninguém atualizar texto quando uma migration muda um preset.
+//
+// Segue as mesmas regras de meu_mapa_permissoes() + nivelEfetivo():
+//   - admin_sme não tem lista: vale `escrita` em tudo, inclusive no módulo
+//     que nascer amanhã (migration 034);
+//   - módulo sem linha para o papel é `oculto`...
+//   - ...salvo o módulo `publico`, que degrada para `leitura`.
+// `implicito` marca a célula que não está escrita em papel_permissao - veio
+// de uma dessas regras.
+//
+// → { papeis: [{ chave, rotulo }], linhas: [{ id, nome, perm, niveis: { papel: { nivel, implicito } } }] }
+export async function getMatrizDePermissoes() {
+  const [papeis, presets] = await Promise.all([getPapeis(), getPresets()]);
+  const linhas = MODULOS.filter(m => m.ativo).map(m => {
+    const perm = chavePerm(m);
+    const niveis = {};
+    for (const p of papeis) {
+      const escrito = p.chave === 'admin_sme' ? null : presets[p.chave]?.[perm];
+      if (p.chave === 'admin_sme') niveis[p.chave] = { nivel: ESCRITA, implicito: true };
+      else if (escrito && escrito !== OCULTO) niveis[p.chave] = { nivel: escrito, implicito: false };
+      else if (m.publico === true) niveis[p.chave] = { nivel: LEITURA, implicito: true };
+      else niveis[p.chave] = { nivel: OCULTO, implicito: !escrito };
+    }
+    return { id: m.id, nome: m.nome, perm, niveis };
+  });
+  return { papeis: papeis.map(p => ({ chave: p.chave, rotulo: p.rotulo })), linhas };
 }
 
 export async function getPerfis() {

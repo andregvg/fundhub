@@ -13,7 +13,7 @@
 // ============================================================
 import { sb, hasSupabase } from '../../core/supabase.js';
 import { registrarCache } from '../../shared/cache.js';
-import { limparCacheServidores } from './servidores.model.js';
+import { limparCacheServidores, getServidoresDaUnidade, vinculosAbertos } from './servidores.model.js';
 
 // Traduz os três papéis fixos que existiam antes da 023. A migration
 // normaliza a base; isto é rede de segurança para banco não migrado.
@@ -23,6 +23,26 @@ const LEGADO = {
   supervisor: 'Supervisor(a)',
 };
 export const rotulaCargo = (p) => LEGADO[p] || p || '';
+
+// ── Equipe de uma unidade ────────────────────────────────────
+// Quem tem local de trabalho aberto na unidade, já na forma de LEITURA que
+// outra tela exibe: { id, nome, cargo, email, telefone }. Mora aqui, e não
+// na ficha da escola, porque as duas regras são do vínculo:
+//   - o cargo é o do(s) vínculo(s) aberto(s) NESTA unidade, não o geral -
+//     quem responde por duas unidades aparece em cada uma com o cargo de lá;
+//   - o telefone é o principal, ou o primeiro se nenhum for.
+// Ordenada por nome. Lê o cache de servidores, que toda gravação invalida.
+export async function getEquipeDaUnidade(unidadeId) {
+  const servidores = await getServidoresDaUnidade(unidadeId);
+  return servidores.map(s => {
+    const cargo = [...new Set(vinculosAbertos(s)
+      .filter(v => v.unidade_id === unidadeId)
+      .map(v => rotulaCargo(v.papel)).filter(Boolean))].join(' · ');
+    const tels = s.telefones || [];
+    const tel = tels.find(t => t.principal) || tels[0];
+    return { id: s.id, nome: s.nome, cargo, email: s.email || '', telefone: tel?.numero || '' };
+  }).sort((a, b) => a.nome.localeCompare(b.nome, 'pt'));
+}
 
 // Espaços aparados e colapsados. Não forçamos caixa: "Vice-diretor(a)"
 // é escrito como a SME escreve.

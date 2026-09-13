@@ -10,14 +10,14 @@
 // 2026-09-13-fichas-entre-modulos-design.md.
 // ============================================================
 import { getUnidades } from '../escolas.model.js';
-import { getServidoresDaUnidade, vinculosAbertos } from '../../servidores/servidores.model.js';
-import { rotulaCargo } from '../../servidores/vinculos.model.js';
+import { getEquipeDaUnidade } from '../../servidores/vinculos.model.js';
 import { podeEscrever } from '../../../core/permissoes.js';
-import { abrirFicha, podeAbrirFicha } from '../../../core/registry.js';
+import { podeAbrirFicha } from '../../../core/registry.js';
+import { abrirFicha } from '../../../core/router.js';
 import { esc } from '../../../shared/dom.js';
 import { modalHead, abrirModal } from '../../../shared/ui/modal.js';
 import { telefonesTexto, exibirTelefone, paraE164 } from '../../../shared/ui/phones.js';
-import { loading } from '../../../shared/ui/feedback.js';
+import { loading, erroBox } from '../../../shared/ui/feedback.js';
 import { toast } from '../../../shared/ui/toast.js';
 import { ico } from '../../../shared/ui/icones.js';
 import { abrirForm, removerEscola } from './formulario.js';
@@ -111,31 +111,23 @@ function detalhe(u, ctx, opts) {
   pintarEquipe(document.getElementById('esc-equipe'), u, { voltar: reabrir, aoMudar: opts.aoMudar });
 }
 
-// A equipe vem do model de SERVIDORES, e não de `u.pessoas`
-// (vw_escola_pessoas): é o que traz o id para abrir a ficha, os telefones
-// como objeto para a máscara, e o cache que toda gravação em servidor ou
-// local de trabalho invalida - editar alguém por cima desta ficha e voltar
-// mostra a equipe já atualizada.
+// A equipe vem do model de VÍNCULOS (getEquipeDaUnidade), e não de
+// `u.pessoas` (vw_escola_pessoas): é o que traz o id para abrir a ficha, o
+// telefone para a máscara, e o cache que toda gravação em servidor ou local
+// de trabalho invalida - editar alguém por cima desta ficha e voltar mostra
+// a equipe já atualizada. Quem é a equipe e com que cargo é regra do
+// vínculo, e fica lá; esta tela só desenha.
 async function pintarEquipe(box, u, abrirOpts) {
-  let equipe;
+  let pessoas;
   try {
-    equipe = await getServidoresDaUnidade(u.id);
-  } catch (_) {
-    equipe = null;
+    pessoas = await getEquipeDaUnidade(u.id);
+  } catch (err) {
+    if (box.isConnected) box.innerHTML = erroBox(err);
+    return;
   }
   // O modal pode ter sido trocado enquanto a lista chegava (← rápido, outra
-  // ficha por cima): pintar num nó desconectado não faria mal, mas ligar
-  // ouvintes nele seria trabalho perdido.
+  // ficha por cima): ligar ouvintes num nó desconectado seria trabalho perdido.
   if (!box.isConnected) return;
-
-  // Sem Servidores (falha de rede, migration ausente), a lista da própria
-  // escola ainda serve para ler - só sem o clique.
-  const pessoas = equipe
-    ? equipe.map(s => pessoaDeServidor(s, u.id))
-    : (u.pessoas || []).filter(p => p.nome).map(p => ({
-        id: null, nome: p.nome, cargo: p.papel, email: p.email, telefone: p.telefone,
-      }));
-  pessoas.sort((a, b) => a.nome.localeCompare(b.nome, 'pt'));
 
   const tit = document.getElementById('esc-equipe-tit');
   if (tit) tit.textContent = `Equipe (${pessoas.length})`;
@@ -147,26 +139,12 @@ async function pintarEquipe(box, u, abrirOpts) {
 
   const verServidor = podeAbrirFicha('servidores');
   const editarServidor = verServidor && podeEscrever('servidores');
-  box.innerHTML = pessoas.map(p => cardPessoa(p, {
-    clicavel: verServidor && p.id, editar: editarServidor && p.id,
-  })).join('');
+  box.innerHTML = pessoas.map(p => cardPessoa(p, { clicavel: verServidor, editar: editarServidor })).join('');
 
   box.querySelectorAll('[data-abrir-servidor]').forEach(b => b.addEventListener('click', () =>
     abrirFicha('servidores', b.dataset.abrirServidor, abrirOpts)));
   box.querySelectorAll('[data-editar-servidor]').forEach(b => b.addEventListener('click', () =>
     abrirFicha('servidores', b.dataset.editarServidor, { ...abrirOpts, editar: true })));
-}
-
-// O cargo é o do(s) local(is) de trabalho aberto(s) NESTA escola, não o
-// geral: quem responde por duas unidades aparece em cada uma com o cargo
-// que tem ali.
-function pessoaDeServidor(s, unidadeId) {
-  const cargo = [...new Set(vinculosAbertos(s)
-    .filter(v => v.unidade_id === unidadeId)
-    .map(v => rotulaCargo(v.papel)).filter(Boolean))].join(' · ');
-  const tels = s.telefones || [];
-  const tel = tels.find(t => t.principal) || tels[0];
-  return { id: s.id, nome: s.nome, cargo, email: s.email, telefone: tel?.numero || '' };
 }
 
 // Sem apelido: ele serve para ACHAR a pessoa numa lista, e a ficha do

@@ -6,8 +6,12 @@
 // Rota restrita a admin - a guarda está no roteador (module.js: admin).
 // ============================================================
 import { SECOES } from './docs.content.js';
+import { getMatrizDePermissoes } from '../usuarios/usuarios.model.js';
+import { rotulaNivel, OCULTO } from '../../core/permissoes.js';
 import { esc } from '../../shared/dom.js';
 import { ico } from '../../shared/ui/icones.js';
+import { loading, erroBox } from '../../shared/ui/feedback.js';
+import { montarTabela } from '../../shared/ui/tabela.js';
 
 export async function render(app, { perfil } = {}) {
   const indice = SECOES.map(s => `
@@ -52,6 +56,43 @@ export async function render(app, { perfil } = {}) {
   });
 
   destacarNoScroll();
+  pintarPapeis(document.getElementById('doc-papeis'));
+}
+
+// A matriz papel × módulo, viva - ver usuarios.model.js § getMatrizDePermissoes.
+// É referência, não lista de trabalho: sem busca de propósito no nome, mas
+// com o componente de tabela do hub (R18), que dá ordenação e o recolhimento
+// das colunas no celular.
+async function pintarPapeis(box) {
+  if (!box) return;
+  box.innerHTML = loading();
+  let matriz;
+  try {
+    matriz = await getMatrizDePermissoes();
+  } catch (err) {
+    box.innerHTML = erroBox(err);
+    return;
+  }
+  const celula = (x) => {
+    const txt = esc(rotulaNivel(x.nivel)) + (x.implicito ? '*' : '');
+    return x.nivel === OCULTO ? `<span class="vazio">${txt}</span>` : `<b>${txt}</b>`;
+  };
+  montarTabela(box, {
+    colunas: [
+      { id: 'modulo', rotulo: 'Módulo', prioridade: 1, ordenavel: true, tipo: 'texto', valor: l => l.nome },
+      ...matriz.papeis.map((p, i) => ({
+        id: p.chave, rotulo: p.rotulo, prioridade: i < 2 ? 1 : (i < 4 ? 2 : 3),
+        valor: l => rotulaNivel(l.niveis[p.chave].nivel), celula: l => celula(l.niveis[p.chave]),
+      })),
+    ],
+    linhas: matriz.linhas,
+    chave: l => l.id,
+    buscarEm: ['modulo'],
+    ordem: { coluna: 'modulo', dir: 'asc' },
+    porPagina: 100,
+    substantivo: 'módulos',
+    vazio: { ico: 'acesso', titulo: 'Sem módulos', texto: 'Nenhum módulo ativo no registro.' },
+  });
 }
 
 // Marca no índice a seção que está sendo lida.
