@@ -26,6 +26,9 @@ export const GRUPOS = Object.freeze([
   { id: 'regras',       rotulo: 'Regras e limites' },
   { id: 'calendario',   rotulo: 'Calendário e escalas' },
   { id: 'notificacoes', rotulo: 'Notificações' },
+  // Ações sobre o cadastro inteiro (localizar escolas em lote). Grupo
+  // próprio porque não é preferência nem regra: é manutenção de dados.
+  { id: 'dados',        rotulo: 'Manutenção dos dados' },
 ]);
 
 export async function carregarConfiguracoes() {

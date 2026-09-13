@@ -56,6 +56,27 @@ só sem o tempo de viagem.
 Com a escola localizada, o **ver no mapa** da ficha passa a abrir o ponto
 exato, e não uma busca pelo endereço.
 
+### Localizar todas as escolas de uma vez
+
+Para não abrir escola por escola, a localização também roda em lote.
+
+1. Clique na **engrenagem** no topo da tela de Escolas.
+2. Em **Manutenção dos dados**, veja em **Localização das escolas** quantas já
+   estão localizadas.
+3. Clique em **Localizar N escolas**. A barra mostra o andamento, a escola que
+   está sendo procurada e quanto tempo falta.
+4. Pode fechar a janela: a busca continua, e um aviso aparece quando terminar.
+   Reabrindo a engrenagem, a barra volta de onde está.
+5. No fim, confira as duas listas:
+   - **Conferir no mapa**: escolas localizadas pela rua, sem o número exato.
+     Servem para o tempo de viagem, mas vale ver se o ponto caiu na quadra
+     certa.
+   - **Não encontradas**: corrija o endereço no cadastro e rode de novo, ou
+     informe as coordenadas à mão.
+
+**Parar** interrompe depois da escola em andamento. O que já foi encontrado
+fica salvo.
+
 ### Ajustar o card
 
 1. Clique na **engrenagem** no topo da tela.
@@ -97,6 +118,14 @@ unidade - é lá que se inclui ou encerra o local de trabalho de alguém.
   guarda a escola sem localização - meia coordenada não aponta lugar nenhum.
 - **Localizar pelo endereço não salva sozinho.** Ele só preenche os campos;
   quem grava é você, depois de conferir.
+- **Na localização em lote, o sistema só salva o que é confiável:** o número
+  exato ou, pelo menos, a rua. Resultado que aponta só o bairro, ou que caiu
+  fora de Ribeirão Preto, é descartado e a escola vai para **Não encontradas**
+  - uma localização errada seria pior que nenhuma.
+- **Escola sem endereço cadastrado não entra no lote.** Não há o que procurar.
+- **É uma escola por segundo, no máximo.** É a regra do serviço gratuito de
+  mapas; 100 escolas levam cerca de dois minutos.
+- Só quem tem permissão de escrita em Escolas inicia a localização em lote.
 
 ## Ligações com outros módulos
 
@@ -118,6 +147,11 @@ servidores não carregou - recarregue a página.
 Se você tem um segmento marcado no filtro, uma escola ainda sem segmento
 aparece mesmo assim. Se não aparecer, recarregue a página.
 
+**A localização em lote parou no meio.**
+Se o serviço de mapa deixar de responder três vezes seguidas, a busca para
+sozinha e avisa. As escolas já localizadas continuam salvas; rode de novo mais
+tarde, e ela recomeça só com as que faltam.
+
 **De onde vem a localização? Isso tem custo?**
 Do OpenStreetMap, um mapa público e gratuito. Não há conta nem cobrança. O
 sistema envia só o endereço da escola, nunca dado de pessoa.
@@ -126,4 +160,4 @@ sistema envia só o endereço da escola, nunca dado de pessoa.
 A ficha de uma pessoa só abre para quem tem acesso ao módulo Servidores. Sem
 esse acesso, a equipe continua visível para leitura.
 
-> Atualizado na versão 0.31.0.
+> Atualizado na versão 0.32.0.

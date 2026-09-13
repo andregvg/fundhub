@@ -11,6 +11,7 @@ import { ico } from '../../shared/ui/icones.js';
 import { toast } from '../../shared/ui/toast.js';
 import { confirmar } from '../../shared/ui/confirmar.js';
 import { loading, erroBox } from '../../shared/ui/feedback.js';
+import { pintarLocalizacao } from './views/localizar.js';
 
 export const DECLARACAO = {
   itens: [
@@ -27,6 +28,10 @@ export const DECLARACAO = {
       rotulo: 'Locais de trabalho internos',
       dica: 'Gerências, subsecretarias e coordenadorias da SME onde há servidores lotados. As escolas se cadastram na própria tela.',
       painel: pintarLocaisInternos },
+    { chave: 'localizacao', escopo: 'rede', grupo: 'dados',
+      rotulo: 'Localização das escolas',
+      dica: 'Encontra latitude e longitude pelo endereço cadastrado, pelo OpenStreetMap. O SATE usa para calcular o tempo de viagem do ônibus.',
+      painel: pintarLocalizacao },
   ],
 };
 

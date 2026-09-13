@@ -9,6 +9,29 @@ versionamento **MINOR** = módulo novo ou mudança de modelo de dados, **PATCH**
 
 ---
 
+## [0.32.0] - 2026-09-13
+
+### Adicionado
+
+- **Localizar todas as escolas de uma vez.** Na engrenagem de Escolas, em
+  *Manutenção dos dados*, o botão **Localizar N escolas** procura latitude e
+  longitude de todas as que ainda não têm, pelo endereço cadastrado. Uma barra
+  mostra o andamento, a escola da vez e quanto tempo falta.
+- A busca continua mesmo com a janela fechada, e um aviso aparece quando
+  termina. Reabrindo, a barra volta de onde está. **Parar** interrompe sem
+  perder o que já foi salvo.
+- No fim, duas listas: as escolas localizadas só pela rua, para conferir no
+  mapa, e as não encontradas, para corrigir o endereço.
+
+### Como o sistema decide
+
+Só é salva localização confiável - o número exato ou a rua. Resultado que
+aponta só o bairro, ou fora de Ribeirão Preto, é descartado. Quando o endereço
+completo não é achado, o sistema tenta de novo sem bairro, CEP e "s/n", que
+costumam atrapalhar a busca.
+
+---
+
 ## [0.31.0] - 2026-09-13
 
 > **Exige rodar a migration `039_sate_rota.sql`** (e antes dela a `036` e a

@@ -81,6 +81,43 @@ span.gira-90, span.gira-menos90, span.gira-180 { display: inline-flex; }
 .geo-linha { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
 .geo-linha .form-hint { flex: 1 1 220px; }
 
+/* Barra de progresso. Classe e não componente (R12): o estado é de quem
+   a usa - a tela só muda `--p`, o `aria-valuenow` e os textos.
+   Trilho fino e arredondado, preenchimento na cor da marca, largura com
+   transição suave. Enquanto a tarefa roda (`.ativo`), um brilho discreto
+   atravessa o preenchimento para dizer "está vivo" mesmo quando a
+   porcentagem demora a mudar. Nada disso roda para quem pediu menos
+   movimento ao sistema. */
+.progresso { display: flex; flex-direction: column; gap: 7px; }
+.progresso-cab, .progresso-rodape {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
+  font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums;
+}
+.progresso-cab b { color: var(--text); font-size: 15px; }
+.progresso-pct { color: var(--text); font-weight: 600; }
+.progresso-atual { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.progresso-trilho {
+  position: relative; height: 8px; border-radius: 999px;
+  background: var(--surface-3); overflow: hidden;
+}
+.progresso-barra {
+  position: relative; height: 100%; width: var(--p, 0%);
+  border-radius: inherit; overflow: hidden;
+  background: linear-gradient(90deg, var(--brand), color-mix(in srgb, var(--brand) 70%, var(--brand-2)));
+  transition: width .5s cubic-bezier(.22, .8, .26, 1);
+}
+.progresso.ativo .progresso-barra::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--on-cor) 38%, transparent), transparent);
+  transform: translateX(-100%);
+  animation: progresso-brilho 1.6s ease-in-out infinite;
+}
+@keyframes progresso-brilho { to { transform: translateX(100%); } }
+@media (prefers-reduced-motion: reduce) {
+  .progresso-barra { transition: none; }
+  .progresso.ativo .progresso-barra::after { animation: none; }
+}
+
 /* O item sendo arrastado (shared/ui/arrastar.js). O componente poe e tira
    a classe; o realce e daqui, e nao de cada modulo - o Dashboard e a
    legenda de horarios tinham a mesma declaracao em dois arquivos. Quem

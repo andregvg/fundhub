@@ -15,6 +15,7 @@
 // ============================================================
 import { sb, hasSupabase } from '../../core/supabase.js';
 import { registrarCache } from '../../shared/cache.js';
+import { norm } from '../../shared/dom.js';
 
 const COLS = 'id, nome, endereco, desembarque, latitude, longitude, maps_url, ativo, obs';
 
@@ -118,7 +119,41 @@ export async function geocodificar(endereco) {
   if (!r) return null;
   const lat = Number(r.lat), lng = Number(r.lon);
   if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
-  return { lat, lng, formatado: r.display_name || '' };
+  return { lat, lng, formatado: r.display_name || '', rank: Number(r.place_rank) || 0 };
+}
+
+// Quão bem uma resposta de `geocodificar` aponta o lugar, pelo
+// `place_rank` do OpenStreetMap. Pura.
+//
+//   exata       casa ou prédio (30)
+//   rua         a rua, sem o número (26-29) - erra dezenas a centenas de
+//               metros, o que ainda serve para tempo de viagem
+//   aproximada  bairro ou cidade - erra quilômetros, e gravar isso como
+//               localização seria pior que não ter nenhuma
+export function precisaoDe(r) {
+  const rank = Number(r?.rank) || 0;
+  return rank >= 30 ? 'exata' : rank >= 26 ? 'rua' : 'aproximada';
+}
+
+// A resposta caiu na cidade esperada? Um "Rua Tal, 100" sem cidade pode
+// casar com outra cidade do país, e o endereço formatado é o que diz onde.
+export const naCidade = (r, cidade = CIDADE_PADRAO.split(',')[0]) =>
+  norm(r?.formatado || '').includes(norm(cidade));
+
+// Formas de escrever o mesmo endereço, da mais completa à mais enxuta. O
+// OpenStreetMap acha "Rua Tal, 100" onde não acha "Rua Tal, 100 - Vila
+// Tal - CEP 00000-000": bairro, CEP e complemento atrapalham mais do que
+// ajudam. Pura; no máximo duas, porque cada uma é uma consulta a mais.
+export function variantesDeEndereco(endereco) {
+  const original = String(endereco || '').trim().replace(/\s+/g, ' ');
+  if (!original) return [];
+  const enxuto = original
+    .split(/\s[-–]\s/)[0]                        // corta bairro após " - "
+    .replace(/\bCEP:?\s*\d{5}-?\d{3}\b/i, '')     // CEP solto
+    .replace(/,?\s*\b(s\/n|sn)\b\.?/i, '')       // "s/n" confunde a busca
+    .replace(/[\s,]+$/, '')
+    .trim();
+  return [...new Set([original, enxuto].filter(Boolean))];
 }
 
 // Coordenada válida: número finito dentro do globo. `0,0` fica de fora de

@@ -1,0 +1,40 @@
+/* ============================================================
+   FundHub - escolas.css
+   Só o painel "Localização das escolas" (views/localizar.js). A barra
+   de progresso em si é vocabulário do hub (`.progresso`, components.css);
+   aqui fica o que é deste painel: os números e as listas de resultado.
+   ============================================================ */
+
+.geo-lote { display: flex; flex-direction: column; gap: 14px; }
+
+.geo-lote-acao { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.geo-lote-acao .form-hint { flex: 1 1 200px; }
+
+.geo-lote-ok { display: flex; align-items: center; gap: 6px; margin: 0; color: var(--ok); font-size: 13.5px; }
+
+/* Três contagens lado a lado. O número é o que se lê primeiro; o ponto
+   colorido diz a natureza sem precisar de fundo nenhum. */
+.geo-lote-numeros { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13px; color: var(--muted); }
+.geo-num { display: inline-flex; align-items: baseline; gap: 5px; }
+.geo-num b { color: var(--text); font-size: 15px; font-variant-numeric: tabular-nums; }
+.geo-num::before {
+  content: ''; width: 7px; height: 7px; border-radius: 999px;
+  align-self: center; background: var(--border-forte);
+}
+.geo-num.ok::before { background: var(--ok); }
+.geo-num.conferir::before { background: var(--accent); }
+.geo-num.fora::before { background: var(--border-forte); }
+
+.geo-aviso {
+  margin: 0; padding: 9px 12px; border-radius: var(--radius-btn);
+  background: var(--atencao-bg); font-size: 13px;
+}
+
+/* Listas de resultado recolhidas: o painel de configuração é curto, e
+   uma lista de 30 escolas aberta empurraria tudo para fora da tela. */
+.geo-lista { border-top: 1px solid var(--border); padding-top: 10px; font-size: 13.5px; }
+.geo-lista summary { cursor: pointer; font-weight: 600; }
+.geo-lista .form-hint { margin: 6px 0; }
+.geo-lista ul { margin: 6px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 5px; }
+.geo-lista li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; }
+.geo-lista li a { display: inline-flex; align-items: center; gap: 3px; font-size: 12.5px; }
