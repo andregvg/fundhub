@@ -843,6 +843,39 @@ input[type="checkbox"] { width: 18px; height: 18px; }
 .confirmar-card p { margin: 0 0 18px; color: var(--muted); font-size: 13.5px; line-height: 1.5; white-space: pre-line; }
 .confirmar-acoes { display: flex; justify-content: flex-end; gap: 8px; }
 
+/* ── Rolagem discreta ────────────────────────────────────────
+   Para os contêineres que rolam por dentro de uma MOLDURA: o menu
+   lateral e o corpo do modal. Fina, sem trilho, polegar translúcido que
+   fica mais nítido quando o mouse (ou o foco) está sobre o contêiner.
+   A barra nativa - larga, trilho cinza, setas - competia com o conteúdo
+   e quebrava o visual das telas. A cor sai de --muted, então segue o
+   tema claro/escuro sozinha.
+
+   Continua VISÍVEL em repouso, só discreta: um menu ou um formulário
+   cortado embaixo sem nenhuma pista de rolagem esconderia itens e
+   botões. Um contêiner rolável novo do mesmo tipo entra nesta lista -
+   não copia o bloco (ver .claude/rules/ui.md). */
+:is(.sidebar, .modal-body) {
+  --rolagem: color-mix(in srgb, var(--muted) 28%, transparent);
+  scrollbar-width: thin;
+  scrollbar-color: var(--rolagem) transparent;
+}
+:is(.sidebar, .modal-body):is(:hover, :focus-within) {
+  --rolagem: color-mix(in srgb, var(--muted) 55%, transparent);
+}
+/* Safari não conhece scrollbar-color: mesmo desenho pelos pseudo-
+   elementos. O Chrome ignora estes quando as propriedades padrão acima
+   existem, por isso ficam só onde elas faltam. */
+@supports not (scrollbar-color: auto) {
+  :is(.sidebar, .modal-body)::-webkit-scrollbar { width: 8px; }
+  :is(.sidebar, .modal-body)::-webkit-scrollbar-track { background: transparent; }
+  :is(.sidebar, .modal-body)::-webkit-scrollbar-thumb {
+    border: 2px solid transparent;
+    border-radius: 999px;
+    background: var(--rolagem) padding-box;
+  }
+}
+
 /* ── Modal centralizado (shared/ui/modal.js) ─────────────────
    O padrão de detalhe/edição a partir de 08/09/2026 - ver a spec
    2026-09-08-listas-e-modais-design.md § D8. Substituiu a gaveta

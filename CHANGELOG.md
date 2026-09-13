@@ -31,9 +31,10 @@ versionamento **MINOR** = módulo novo ou mudança de modelo de dados, **PATCH**
 
 - **Filtro de segmento:** as cores de Ensino Fundamental e Educação Infantil
   aparecem só nos botões marcados. Desmarcados, todos têm a mesma aparência.
-- **Menu lateral:** quando o menu é mais alto que a tela, a barra de rolagem
-  agora é fina e discreta, acompanha o tema claro ou escuro e fica mais
-  visível só quando o mouse passa sobre o menu.
+- **Barras de rolagem do menu lateral e das janelas:** quando o conteúdo é
+  mais alto que o espaço, a barra de rolagem agora é fina e discreta,
+  acompanha o tema claro ou escuro e fica mais visível quando o mouse passa
+  por cima.
 
 ## [0.29.1] - 2026-09-13
 

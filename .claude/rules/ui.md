@@ -41,6 +41,7 @@ Sempre conferir `src/styles/components.css` antes de escrever CSS novo. O que j�
 - **Confirmação:** `.confirmar-back`/`.confirmar-card` - usar sempre via `shared/ui/confirmar.js`, nunca à mão
 - **Tabela:** `.tabela` e família - usar sempre via `shared/ui/tabela.js`, nunca à mão
 - **Busca:** `.search` (a caixa de busca por texto; `.compacta` = um controle único na toolbar)
+- **Rolagem discreta:** `:is(.sidebar, .modal-body)` - barra fina, sem trilho, que segue o tema (ver abaixo)
 
 CSS de módulo (`<modulo>.css`) só **acrescenta** ao vocabulário comum; nunca redefine `.card`,
 `.chip` ou `.btn-*`. Se você precisa mudar um componente global, mude em `components.css` - e então
@@ -197,6 +198,26 @@ de dois deles.
 afirmando que o resto da página não existe; sem armadilha, o Tab atravessa e vai passear pelo menu
 que o leitor de tela acabou de anunciar como inexistente. Se você criar uma terceira superfície
 modal, ela prende o foco também - não é opcional.
+
+## Rolagem discreta nos contêineres de moldura
+
+Decisão do André (13/09/2026): a barra de rolagem nativa - larga, trilho cinza,
+setas - fazia ruído nas telas. Onde um contêiner **de moldura** rola por dentro
+(o menu lateral, o corpo do modal), a barra é **fina, sem trilho, com o
+indicador translúcido** que fica mais nítido quando o mouse ou o foco está
+sobre o contêiner. A cor sai de `--muted`, então os temas claro e escuro vêm
+de graça.
+
+- **Discreta, nunca invisível.** Um formulário cortado embaixo sem pista de
+  rolagem esconde botões - por isso o indicador aparece também em repouso.
+- **Uma regra só, em `components.css`.** Um contêiner rolável novo do mesmo
+  tipo entra na lista do `:is(...)`; não se copia o bloco. O que ele tem de
+  sutil (as propriedades padrão para Chrome/Firefox, os pseudo-elementos
+  `::-webkit-scrollbar` só onde `scrollbar-color` falta, no Safari) fica num
+  lugar.
+- **Não vale para a página inteira** nem para lista de conteúdo (a tabela, a
+  lista de sugestões da busca): a rolagem principal da janela continua a do
+  sistema.
 
 ## R18 - O padrão de lista
 
