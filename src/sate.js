@@ -11,12 +11,14 @@
 // o controller desta página - um roteador de cinco rotas não justifica
 // generalizar core/router.js, que conhece o registro de módulos inteiro.
 // ============================================================
-import { moduloPorId, nivelEfetivo } from './core/registry.js';
+import { moduloPorId, nivelEfetivo, veModulo } from './core/registry.js';
+import { hasSupabase } from './core/supabase.js';
 import { OCULTO, ESCRITA } from './core/permissoes.js';
 import { abrirPortao } from './shell/portao.js';
 import { montarNav, marcarNav, marcarAtualizacao } from './shell/chrome.js';
 import { render, PAGINAS, PAGINA_INICIAL } from './modules/sate/sate.view.js';
 import { corSate } from './modules/sate/sate.config.js';
+import * as notificacoes from './modules/notificacoes/notificacoes.service.js';
 import { pintarConfigDoModulo } from './modules/configuracoes/painel.js';
 import { getUnidades } from './modules/escolas/escolas.model.js';
 import { criarBuscaSelecao } from './shared/ui/busca-selecao.js';
@@ -82,6 +84,9 @@ function montarSate({ perfil }) {
   simulando = estado.podeAprovar ? lerSimulacao() : null;
   montarNav(gruposDoMenu());
   rotear().then(marcarAtualizacao);
+  // O sino, só com os avisos do SATE. Mesmo serviço e mesma permissão do
+  // FundHub - aqui sem afastamentos e ocorrências, que seriam ruído.
+  if (hasSupabase() && veModulo(moduloPorId('notificacoes'))) notificacoes.iniciar({ fontes: ['sate'] });
 }
 
 // ── Menu ─────────────────────────────────────────────────────
@@ -186,5 +191,5 @@ abrirPortao(app, {
   // a página do SATE, não o roteador do FundHub (que aqui não roda).
   chrome: { base: './', aoAtualizar: () => rotear() },
   aoEntrar: montarSate,
-  aoSair: () => { estado = null; simulando = null; gravarSimulacao(null); limparToasts(); },
+  aoSair: () => { estado = null; simulando = null; gravarSimulacao(null); notificacoes.parar(); limparToasts(); },
 });

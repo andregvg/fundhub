@@ -20,6 +20,11 @@ um sai do outro. As páginas ficam no menu lateral:
 
 **Como usar o SATE** abre este tutorial, e **Ir para o FundHub** volta ao hub.
 
+O **sino** no topo avisa, na hora, do que acontece nos pedidos que você
+enxerga: pedido novo, mudança de situação, escola acrescentada a uma viagem,
+**pedido de saída** de uma escola e saída confirmada. Na página do SATE ele
+mostra só avisos de transporte.
+
 ### Ver como uma escola (quem aprova)
 
 Para conferir o que uma escola enxerga - ou orientar alguém por telefone -,
@@ -417,4 +422,4 @@ Negado é um pedido que **nunca** chegou a valer - foi recusado na análise.
 Cancelado é um pedido que **estava de pé** e foi desfeito. Os dois exigem
 justificativa.
 
-> Atualizado na versão 0.35.0.
+> Atualizado na versão 0.36.0.

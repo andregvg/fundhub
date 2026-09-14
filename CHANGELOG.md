@@ -9,6 +9,26 @@ versionamento **MINOR** = módulo novo ou mudança de modelo de dados, **PATCH**
 
 ---
 
+## [0.36.0] - 2026-09-14
+
+> **Exige rodar a migration `041_realtime_participacao.sql`** para os avisos de
+> saída de escola. Sem ela, o resto do sino funciona normalmente.
+
+### Adicionado
+
+- **Sino de avisos na página do SATE**, só com o que é de transporte.
+- Avisos novos: **escola pediu para sair de uma viagem**, saída confirmada e
+  escola acrescentada a uma viagem.
+- Os avisos de pedido passam a trazer a data da atividade.
+
+### Corrigido
+
+- Uma escola pedir para sair de uma viagem fazia o sino avisar também
+  "Confirmado", como se o pedido tivesse sido decidido de novo.
+- Pedido montado pela Gerência aparecia no aviso como "Escola".
+
+---
+
 ## [0.35.0] - 2026-09-14
 
 ### Adicionado
