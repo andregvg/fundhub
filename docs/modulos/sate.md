@@ -19,6 +19,18 @@ um sai do outro. As páginas ficam no menu lateral:
 | **Catálogo** | todos |
 
 **Como usar o SATE** abre este tutorial, e **Ir para o FundHub** volta ao hub.
+
+### Ver como uma escola (quem aprova)
+
+Para conferir o que uma escola enxerga - ou orientar alguém por telefone -,
+clique em **Ver como escola** no menu, busque a escola e escolha.
+
+- O SATE passa a mostrar só as páginas da escola, só as viagens em que ela
+  está envolvida, e o formulário com as regras dela (antecedência, frota
+  inviolável, só a própria unidade na lista).
+- Uma faixa no topo avisa em toda página. **Nada é gravado** nessa visão: os
+  botões de decisão somem e o envio de pedido fica desativado.
+- **Voltar à minha visão**, na faixa, encerra. Fechar a aba também.
 A cor principal do SATE é escolhida em **Configurações** e vale para a rede
 toda.
 
@@ -221,9 +233,14 @@ não cancela a viagem inteira: ela **sai da viagem**.
 ### Montar e ajustar as paradas (quem aprova)
 
 1. Abra o agendamento. Em **Escolas nesta viagem**, clique em **Acrescentar
-   escola**, escolha a unidade e informe estudantes, cadeirantes e horário de
-   embarque. Ela entra no fim da fila; o total de estudantes da viagem é
-   recalculado sozinho.
+   parada**. Escolha **Escola** e a unidade, ou **Outro ponto de embarque** e
+   um lugar do cadastro de **Locais** (um polo, uma praça). Informe
+   estudantes, cadeirantes e horário de embarque. A parada entra no fim da
+   fila; o total de estudantes da viagem é recalculado sozinho.
+
+   Um ponto que não é escola precisa estar em **Locais**, com endereço e
+   localização: é de lá que saem o endereço da ficha do motorista e o tempo
+   de viagem.
 2. Para mudar a ordem, **arraste** a escola pela alça à esquerda do número. No
    celular, use as **setas** de subir e descer. A ordem é a que sai na ficha
    do ônibus.
@@ -400,4 +417,4 @@ Negado é um pedido que **nunca** chegou a valer - foi recusado na análise.
 Cancelado é um pedido que **estava de pé** e foi desfeito. Os dois exigem
 justificativa.
 
-> Atualizado na versão 0.34.0.
+> Atualizado na versão 0.35.0.

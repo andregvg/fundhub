@@ -20,7 +20,7 @@ import {
   acrescentar, remover, reordenar, pedirSaida, confirmarSaida,
   voltarAtras, cancelarParticipacao, STATUS_PART, ativa,
 } from '../participacoes.model.js';
-import { esc, vazio, val } from '../../../shared/dom.js';
+import { esc, vazio, val, falha } from '../../../shared/dom.js';
 import { modalHead, abrirModal } from '../../../shared/ui/modal.js';
 import { confirmar } from '../../../shared/ui/confirmar.js';
 import { toast } from '../../../shared/ui/toast.js';
@@ -47,11 +47,11 @@ async function recalcularTrajeto(ctx, solicitacao) {
 
 // ── O bloco, como o detalhe o desenha ────────────────────────
 export function blocoHtml(partes, ctx) {
-  const ap = !!ctx.aprovador;
+  const ap = !!ctx.aprovador && !ctx.somenteLeitura;
   const ativas = (partes || []).filter(ativa);
   return `<div class="field">
     <div class="lbl det-partes-cab">Escolas nesta viagem
-      ${ap ? `<button type="button" class="mini-btn" id="dp-add">${ico('adicionar', { tam: 13 })} Acrescentar escola</button>` : ''}
+      ${ap ? `<button type="button" class="mini-btn" id="dp-add">${ico('adicionar', { tam: 13 })} Acrescentar parada</button>` : ''}
     </div>
     <div class="det-partes" id="dp-lista">${partes?.length
       ? partes.map(p => linha(p, ctx, ativas.length)).join('')
@@ -77,10 +77,10 @@ function linha(p, ctx, totalAtivas) {
     ${arrasta ? `<span class="det-parte-alca" aria-hidden="true">${ico('arrastar', { tam: 13 })}</span>` : ''}
     <span class="det-parte-ordem">${p.ordem}</span>
     <b>${esc(nome)}</b>
-    <span class="di-meta">${p.qtd_alunos || 0} estudante(s)${p.qtd_cadeirante ? ` · ${p.qtd_cadeirante} cadeirante(s)` : ''}${p.horario ? ` · ${esc(p.horario)}` : ''}</span>
+    <span class="di-meta">${p.qtd_alunos || 0} estudante(s)${p.qtd_cadeirante ? ` · ${ico('cadeirante', { tam: 12 })} ${p.qtd_cadeirante} cadeirante(s)` : ''}${p.horario ? ` · ${esc(p.horario)}` : ''}</span>
     ${ehAtiva ? '' : `<span class="tag st-${p.status === 'cancelada' ? 'cancelado' : 'em_analise'}">${esc(STATUS_PART[p.status])}</span>`}
     ${p.motivo ? `<span class="di-meta det-parte-motivo">${esc(p.motivo)}</span>` : ''}
-    ${grupoAcoes(arrasta ? setas(p, nome) : '', acoes(p, { ap, minha, ehAtiva, nome }))}
+    ${grupoAcoes(arrasta ? setas(p, nome) : '', acoes(p, { ap, minha, ehAtiva, nome, leitura: ctx.somenteLeitura }))}
   </div>`;
 }
 
@@ -103,7 +103,8 @@ const setas = (p, nome) => `<span class="det-parte-setas">
     aria-label="Descer ${esc(nome)} na ordem das paradas">${ico('chevron', { tam: 12 })}</button>
 </span>`;
 
-function acoes(p, { ap, minha, ehAtiva, nome }) {
+function acoes(p, { ap, minha, ehAtiva, nome, leitura }) {
+  if (leitura) return '';
   const b = (attr, rotulo, classe = 'mini-btn') =>
     `<button type="button" class="${classe}" ${attr}="${esc(p.id)}" data-nome="${esc(nome)}">${esc(rotulo)}</button>`;
 
@@ -133,6 +134,7 @@ function acoes(p, { ap, minha, ehAtiva, nome }) {
 // tirar uma escola vai, no caso real que motivou este modelo, pôr outra
 // no lugar em seguida.
 export function ligarParticipantes(corpo, { ctx, solicitacao, partes, reabrir }) {
+  if (ctx.somenteLeitura) return;
   const minhas = (partes || []).some(p => (ctx.perfil?.unidades || []).includes(p.unidade_id));
   if (!ctx.aprovador && !minhas) return;
 
@@ -151,7 +153,7 @@ export function ligarParticipantes(corpo, { ctx, solicitacao, partes, reabrir })
   corpo.addEventListener('click', async (e) => {
     const alvo = (attr) => e.target.closest(`[${attr}]`);
 
-    if (e.target.closest('#dp-add')) return formularioEscola({ ctx, solicitacao, partes, reabrir });
+    if (e.target.closest('#dp-add')) return formularioParada({ ctx, solicitacao, partes, reabrir });
 
     const sair = alvo('data-sair');
     if (sair) {
@@ -259,54 +261,85 @@ function pedirMotivo({ titulo, rotulo, botao, fn, reabrir, executar }) {
   });
 }
 
-// ── Modal empilhado: acrescentar escola ──────────────────────
-function formularioEscola({ ctx, solicitacao, partes, reabrir }) {
+// ── Modal empilhado: acrescentar parada (escola ou ponto) ────
+function formularioParada({ ctx, solicitacao, partes, reabrir }) {
   // Uma escola que já está na viagem não reaparece na lista: duas
   // participações da mesma escola na mesma viagem seriam duas cotas
   // para o mesmo embarque.
-  const jaEstao = new Set((partes || []).filter(ativa).map(p => p.unidade_id));
+  const ativas = (partes || []).filter(ativa);
+  const escolasNa = new Set(ativas.map(p => p.unidade_id).filter(Boolean));
+  const locaisNa = new Set(ativas.map(p => p.local_id).filter(Boolean));
+  // Ponto de embarque que NÃO é escola (pedido original: um polo, uma
+  // praça). Só do cadastro de locais: é o que dá endereço e localização
+  // ao trajeto e à ficha do motorista.
+  const pontos = (ctx.locais || []).filter(l => l.ativo && !locaisNa.has(l.id));
   const livres = [...(ctx.unidades || [])]
-    .filter(u => !jaEstao.has(u.id))
+    .filter(u => !escolasNa.has(u.id))
     .sort((a, b) => (a.apelido || a.nome).localeCompare(b.apelido || b.nome, 'pt'));
 
   abrirModal(`
-    ${modalHead('Acrescentar escola', 'Ela entra no fim da fila de paradas; a ordem se ajusta depois.')}
+    ${modalHead('Acrescentar parada', 'Entra no fim da fila de paradas; a ordem se ajusta depois.')}
     <div class="modal-body">
       <form id="dp-add-form" class="esc-form">
         <div class="form-grid">
-          <label class="col-full">Escola
-            <select id="dp-esc" required>
+          <div class="col-full modo-toggle" role="radiogroup" aria-label="Tipo de parada">
+            <label class="inline"><input type="radio" name="dp-tipo" value="escola" checked /> Escola</label>
+            <label class="inline"><input type="radio" name="dp-tipo" value="local" ${pontos.length ? '' : 'disabled'} /> Outro ponto de embarque</label>
+          </div>
+          <label class="col-full" id="dp-esc-w">Escola
+            <select id="dp-esc">
               <option value="">Selecione…</option>
               ${livres.map(u => `<option value="${esc(u.id)}">${esc(u.apelido || u.nome)}</option>`).join('')}
             </select></label>
+          <label class="col-full" id="dp-local-w" hidden>Ponto de embarque
+            <select id="dp-local">
+              <option value="">Selecione…</option>
+              ${pontos.map(l => `<option value="${esc(l.id)}">${esc(l.nome)}</option>`).join('')}
+            </select>
+            <small class="form-hint">Os pontos vêm da página Locais - cadastre lá, com endereço e localização.</small></label>
           <label>Nº de estudantes <input id="dp-alunos" type="number" inputmode="numeric" min="1" required /></label>
           <label>Nº de cadeirantes <input id="dp-cad" type="number" inputmode="numeric" min="0" value="0" /></label>
           <label>Horário de embarque <input id="dp-hora" type="time" /></label>
         </div>
         <div class="form-foot">
+          <span id="dp-add-msg" class="auth-msg"></span>
           <span class="form-hint">O total de estudantes da viagem é recalculado pelo sistema.</span>
           <button type="submit" class="btn-primary" id="dp-add-ok">Acrescentar</button>
         </div>
       </form>
     </div>`, { tamanho: 'medio', voltar: reabrir });
 
-  document.getElementById('dp-add-form').addEventListener('submit', async (ev) => {
+  const form = document.getElementById('dp-add-form');
+  const tipo = () => form.querySelector('input[name="dp-tipo"]:checked').value;
+  form.querySelectorAll('input[name="dp-tipo"]').forEach(r => r.addEventListener('change', () => {
+    document.getElementById('dp-esc-w').hidden = tipo() !== 'escola';
+    document.getElementById('dp-local-w').hidden = tipo() !== 'local';
+  }));
+
+  form.addEventListener('submit', async (ev) => {
     ev.preventDefault();
+    const msg = document.getElementById('dp-add-msg'); msg.className = 'auth-msg';
+    const escola = tipo() === 'escola';
+    const escolhido = val(escola ? 'dp-esc' : 'dp-local');
+    // Validado aqui, e não por `required`: o navegador exigiria também o
+    // campo escondido.
+    if (!escolhido) return falha(msg, escola ? 'Escolha a escola.' : 'Escolha o ponto de embarque.');
     const btn = document.getElementById('dp-add-ok');
     btn.disabled = true;
     try {
       await acrescentar(solicitacao.id, {
-        unidadeId: val('dp-esc'),
+        unidadeId: escola ? escolhido : null,
+        localId: escola ? null : escolhido,
         qtdAlunos: Number(val('dp-alunos')) || 0,
         qtdCadeirante: Number(val('dp-cad')) || 0,
         horario: val('dp-hora') || null,
       });
       await recalcularTrajeto(ctx, solicitacao);
-      toast({ titulo: 'Escola acrescentada', tipo: 'sucesso' });
+      toast({ titulo: escola ? 'Escola acrescentada' : 'Ponto de embarque acrescentado', tipo: 'sucesso' });
       await reabrir();
       ctx.recarregar?.();
     } catch (err) {
-      reportarErro(err, { titulo: 'Não foi possível acrescentar' });
+      reportarErro(err, { msg, titulo: 'Não foi possível acrescentar' });
       btn.disabled = false;
     }
   });

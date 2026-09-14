@@ -13,7 +13,7 @@
 // lá, com espaço para a justificativa que três delas exigem.
 // ============================================================
 import { listSolicitacoes, STATUS, PERIODOS } from '../sate.model.js';
-import { getParticipacoesDe, resumoEscolas } from '../participacoes.model.js';
+import { getParticipacoesDe, resumoEscolas, envolveUnidade } from '../participacoes.model.js';
 import { abrirFormulario } from './formulario.js';
 import { abrirDetalhe } from './detalhe.js';
 import { esc } from '../../../shared/dom.js';
@@ -88,6 +88,9 @@ async function carregar() {
   // As escolas de cada viagem, numa consulta só. Sem isto a coluna
   // "Escolas" faria uma ida ao banco por linha da tabela.
   const porViagem = await getParticipacoesDe(lista.map(s => s.id)).catch(() => ({}));
+  // Vendo como uma escola: o banco devolveu a rede inteira (quem olha
+  // aprova), e a lista mostra só o que a escola veria.
+  if (ctx.simulando) lista = lista.filter(s => envolveUnidade(s, porViagem[s.id], ctx.simulando.id));
   for (const s of lista) s._escolas = resumoEscolas(porViagem[s.id] || []);
 
   tabela = montarTabela(box, {
@@ -99,7 +102,7 @@ async function carregar() {
     substantivo: 'solicitações',
     aoClicarLinha: (s) => abrirDetalhe(s, ctx),
     vazio: {
-      ico: 'transporte', titulo: 'Nenhuma solicitação no período',
+      ico: 'onibus', titulo: 'Nenhuma solicitação no período',
       texto: 'Ajuste os filtros acima ou clique em “Nova solicitação”.',
     },
   });
@@ -126,5 +129,5 @@ const COLUNAS = [
     valor: s => s.qtd_alunos || 0 },
   { id: 'onibus', rotulo: 'Ônibus', prioridade: 3, tipo: 'numero', alinhar: 'dir',
     valor: s => s.qtd_onibus || 0,
-    celula: s => `${s.qtd_onibus || 0}${s.qtd_vans ? ` <span class="tag bus">+${s.qtd_vans} van</span>` : ''}` },
+    celula: s => `${s.qtd_onibus || 0}${s.qtd_vans ? ` <span class="tag bus">${ico('cadeirante', { tam: 11 })} +${s.qtd_vans} van</span>` : ''}` },
 ];

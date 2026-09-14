@@ -96,9 +96,7 @@ export function abrirFormulario(contexto) {
           <legend>Quem vai</legend>
           <div class="campos duas">
             <label class="col-2">Escola
-              <select id="f-esc" required><option value="">Selecione…</option>${
-                opts([...unidades].sort((a, b) => a.nome.localeCompare(b.nome, 'pt')),
-                     u => u.id || u.numero, u => u.apelido || u.nome)}</select></label>
+              <select id="f-esc" required>${opcoesEscola(unidades, perfil, aprovador)}</select></label>
             <label>Turma(s) <input id="f-turmas" type="text" placeholder="Ex.: 5º A, 5º B" /></label>
             <label>Nº de estudantes <input id="f-alunos" type="number" inputmode="numeric" min="1" required /></label>
             <label class="col-2">Nº de cadeirantes (transporte adaptado)
@@ -118,12 +116,26 @@ export function abrirFormulario(contexto) {
         <div id="f-saldo" class="sol-saldo" aria-live="polite"></div>
         <div class="form-foot">
           <span id="f-msg" class="auth-msg"></span>
-          <button type="submit" id="f-submit" class="btn-primary">Enviar solicitação</button>
+          <button type="submit" id="f-submit" class="btn-primary" ${ctx.somenteLeitura ? 'disabled' : ''}>${ctx.somenteLeitura ? 'Envio desativado nesta visualização' : 'Enviar solicitação'}</button>
         </div>
       </form>
     </div>`, { tamanho: 'largo' });
 
   ligar();
+}
+
+// Quem aprova escolhe qualquer escola. A escola, só as dela - antes a
+// lista trazia a rede inteira e o banco recusava o pedido feito para
+// outra unidade, com um erro que a pessoa não entendia. Se é uma só, já
+// vem escolhida.
+function opcoesEscola(unidades, perfil, aprovador) {
+  const minhas = perfil?.unidades || [];
+  const lista = [...(unidades || [])]
+    .filter(u => aprovador || minhas.includes(u.id))
+    .sort((a, b) => (a.apelido || a.nome).localeCompare(b.apelido || b.nome, 'pt'));
+  const unica = lista.length === 1;
+  return (unica ? '' : '<option value="">Selecione…</option>')
+    + lista.map(u => `<option value="${esc(u.id || u.numero)}" ${unica ? 'selected' : ''}>${esc(u.apelido || u.nome)}</option>`).join('');
 }
 
 function ligar() {
@@ -221,7 +233,7 @@ async function pintarSaldo() {
   const data = val('f-data');
   const periodo = document.getElementById('f-per').value;
   const alunos = parseInt(val('f-alunos'), 10) || 0;
-  if (!data || !periodo || !alunos) { box.innerHTML = ''; btn.disabled = false; return; }
+  if (!data || !periodo || !alunos) { box.innerHTML = ''; btn.disabled = !!ctx.somenteLeitura; return; }
 
   const meu = ++pedidoSaldo;
   let saldo, livreAmanha = 0, viagensDoDia = [];
@@ -231,7 +243,7 @@ async function pintarSaldo() {
       periodo === 'noite' ? livreManhaSeguinte(data) : Promise.resolve(0),
       periodo === 'tarde' ? listSolicitacoes({ de: data, ate: data }) : Promise.resolve([]),
     ]);
-  } catch (_) { box.innerHTML = ''; btn.disabled = false; return; }
+  } catch (_) { box.innerHTML = ''; btn.disabled = !!ctx.somenteLeitura; return; }
   if (meu !== pedidoSaldo) return;   // resposta velha: descarta
 
   const r = avaliar({ data, periodo, alunos, saldo, livreAmanha, viagensDoDia });
@@ -246,7 +258,7 @@ async function pintarSaldo() {
   box.innerHTML = linhas.join('');
   // Erro barra; aviso não. Para quem aprova, `avaliarPedido` já devolveu
   // como aviso o que para a escola seria erro - a tela só pinta.
-  btn.disabled = r.erros.length > 0;
+  btn.disabled = r.erros.length > 0 || !!ctx.somenteLeitura;
 }
 
 // Monta o argumento de avaliarPedido a partir do que está na tela.
@@ -280,6 +292,7 @@ function avaliar({ data, periodo, alunos, saldo, livreAmanha, viagensDoDia }) {
 // ── Envio ────────────────────────────────────────────────────
 async function enviar(e) {
   e.preventDefault();
+  if (ctx.somenteLeitura) return;   // vendo como a escola: nada é gravado
   const msg = document.getElementById('f-msg'); msg.className = 'auth-msg';
   const { atividades, aprovador } = ctx;
 

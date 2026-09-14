@@ -150,6 +150,17 @@ export async function reordenar(solicitacaoId, idsNaOrdem) {
   }
 }
 
+// A escola ENXERGA a viagem? Espelho de `ve_solicitacao` (migration 037):
+// tem participação nela - inclusive cancelada, que é o registro da saída -
+// ou foi quem abriu o pedido. Pura.
+//
+// O banco é quem aplica a regra de verdade. Esta cópia existe para UM uso:
+// quem aprova "vendo como a escola" (sate.js) recebe do banco a rede
+// inteira, e a tela precisa estreitar ao que a escola veria.
+export const envolveUnidade = (solicitacao, partes, unidadeId) =>
+  solicitacao?.unidade_id === unidadeId
+  || (partes || []).some(p => p.unidade_id === unidadeId);
+
 // ── Resumo para as listas ────────────────────────────────────
 // O nome que a tabela de solicitações mostra na coluna "Escolas": uma
 // escola pelo nome, várias pela contagem. É função pura.

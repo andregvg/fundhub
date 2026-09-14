@@ -317,3 +317,13 @@ body.app-sate { --info-bg: color-mix(in srgb, var(--brand) 12%, var(--surface));
 /* Texto do modal da frota extra: é a explicação da consequência, e fica
    em tamanho de leitura, não de dica. */
 .fx-texto { margin: 0 0 12px; font-size: 14px; line-height: 1.5; }
+
+/* Faixa de "vendo como escola": no topo de toda página enquanto dura.
+   Cor de atenção, e não de marca - é um estado anormal da tela. */
+.sate-simulacao {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px;
+  margin-bottom: 14px; padding: 10px 14px; border-radius: var(--radius);
+  background: var(--atencao-bg); font-size: 13.5px;
+}
+.sate-simulacao .mini-btn { margin-left: auto; }
+.sate-ver-como { max-width: 520px; display: flex; flex-direction: column; gap: 12px; }

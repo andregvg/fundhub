@@ -39,9 +39,16 @@ export const PAGINA_INICIAL = 'solicitacoes';
 
 // Desenha a página `id` em `app`. Quem chama já garantiu que a pessoa
 // pode vê-la (src/sate.js); `aprovador` decide o que aparece dentro.
-export async function render(app, { perfil, aprovador, id, irPara }) {
+// `simulando` ({ id, nome } | null): quem aprova está vendo o SATE como
+// uma escola (src/sate.js). A faixa no topo diz isso em toda página - é
+// fácil esquecer que se está numa visão emprestada.
+export async function render(app, { perfil, aprovador, id, irPara, simulando = null, aoSairSimulacao }) {
   const pagina = PAGINAS[id];
   app.innerHTML = `
+    ${simulando ? `<div class="sate-simulacao" role="status">
+      <span>Você está vendo o SATE como <b>${esc(simulando.nome)}</b>. Nada é gravado nesta visualização.</span>
+      <button type="button" class="mini-btn" id="sim-sair">Voltar à minha visão</button>
+    </div>` : ''}
     <div class="page-head">
       <h1>${esc(pagina.rotulo)}</h1>
       <p>${esc(pagina.desc)}</p>
@@ -54,9 +61,14 @@ export async function render(app, { perfil, aprovador, id, irPara }) {
     getLocais().catch(() => []),
   ]);
 
+  document.getElementById('sim-sair')?.addEventListener('click', () => aoSairSimulacao?.());
+
   // Contexto entregue a cada página: dados compartilhados + navegação.
   const ctx = {
-    perfil, atividades, unidades, locais,
+    perfil, atividades, unidades, locais, simulando,
+    // Vendo como escola: a tela se comporta como a da escola, mas quem
+    // clicaria tem os poderes de quem aprova no banco. Nada se grava.
+    somenteLeitura: !!simulando,
     // Quem APROVA é quem tem escrita no módulo - não é o mesmo que ser
     // admin do hub, e as regras tratam os dois de forma diferente
     // (spec do modelo de dados, D7).

@@ -9,6 +9,28 @@ versionamento **MINOR** = módulo novo ou mudança de modelo de dados, **PATCH**
 
 ---
 
+## [0.35.0] - 2026-09-14
+
+### Adicionado
+
+- **Ver como escola.** Quem aprova escolhe uma escola e vê o SATE exatamente
+  como ela vê: só as páginas dela, só as viagens em que está envolvida e as
+  regras de escola no formulário. Uma faixa no topo avisa, e nada é gravado
+  enquanto dura.
+- **Ponto de embarque que não é escola.** Ao montar uma viagem, quem aprova
+  pode acrescentar como parada um lugar do cadastro de Locais - um polo, uma
+  praça -, com endereço na ficha do motorista e no tempo de viagem.
+- O **símbolo de cadeira de rodas** aparece onde há estudantes cadeirantes e
+  vans adaptadas: na lista, no pedido, nas escolas da viagem e na ficha.
+
+### Corrigido
+
+- No pedido de transporte, a escola via **todas** as escolas da rede na lista
+  e, escolhendo outra, recebia um erro sem explicação. Agora vê só a própria
+  unidade, já escolhida quando é uma só.
+
+---
+
 ## [0.34.0] - 2026-09-13
 
 ### Adicionado

@@ -62,7 +62,7 @@ export async function abrirDetalhe(solicitacao, contexto) {
 
     ${campo('Data', `${esc(fmtData(s.data))} · ${esc(PERIODOS[s.periodo] || s.periodo)}`)}
     ${campo('Turma(s)', s.turmas ? esc(s.turmas) : vazio('não informadas'))}
-    ${campo('Estudantes', `${s.qtd_alunos || 0}${s.qtd_cadeirante ? ` · ${s.qtd_cadeirante} cadeirante(s)` : ''}`)}
+    ${campo('Estudantes', `${s.qtd_alunos || 0}${s.qtd_cadeirante ? ` · ${ico('cadeirante', { tam: 13 })} ${s.qtd_cadeirante} cadeirante(s)` : ''}`)}
     ${campo('Veículos', `${s.qtd_onibus || 0} ônibus${s.qtd_vans ? ` · ${s.qtd_vans} van(s) adaptada(s)` : ''}`)}
     ${campo('Horários', s.horario_embarque || s.horario_retorno
       ? `embarque ${esc(s.horario_embarque || '—')} · retorno ${esc(s.horario_retorno || '—')}`
@@ -146,6 +146,9 @@ const destino = (s) => s.destino_nome || s.atividade?.local_nome || '';
 // Só as ações que cabem naquele status para aquela permissão (spec D4).
 // Esconder botão é conforto; quem barra de fato é o RLS (R6).
 function acoes(s) {
+  // Vendo como a escola: nenhuma decisão. Os botões seriam os da escola,
+  // mas quem clicaria é quem aprova, com os poderes dele no banco.
+  if (ctx.somenteLeitura) return '';
   const ap = !!ctx.aprovador;
   const b = (acao, rotulo, classe = 'btn-secundario', icone = null) =>
     `<button type="button" class="${classe}" data-acao="${acao}">${icone ? ico(icone) + ' ' : ''}${esc(rotulo)}</button>`;

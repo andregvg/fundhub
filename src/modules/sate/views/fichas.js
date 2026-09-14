@@ -145,7 +145,7 @@ function ficha(f, cab, paradas) {
           </tr>
           <tr>
             <th>Lugares no ônibus</th><td class="fi-num-grande">${f.lugares}</td>
-            <th>Van adaptada</th><td class="fi-num-grande">${f.vans || '—'}</td>
+            <th>${ico('cadeirante', { tam: 13 })} Van adaptada</th><td class="fi-num-grande">${f.vans || '—'}</td>
           </tr>
           <tr>
             <th>Atividade</th>
