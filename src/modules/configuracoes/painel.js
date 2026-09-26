@@ -125,7 +125,7 @@ function itemHtml(i, modId, podeRede) {
     </select>`;
   }
 
-  return `<div class="cfg-item">
+  return `<div class="cfg-item cfg-simples">
     <label class="lbl" for="${nome}">${esc(i.rotulo)}${
       rede ? ' <span class="cfg-rede" title="Vale para a rede toda">rede</span>' : ''}${dicaHtml(i)}</label>
     ${controle}

@@ -4,23 +4,48 @@
 
    O painel se declara `.esc-form` > `.form-grupo` (painel.js), então
    altura de campo, anel de foco, tipografia de legenda e de rótulo vêm
-   prontos de components.css. Este arquivo só ACRESCENTA o que é do
-   painel: o empilhamento do item, a dica e os painéis de módulo.
+   prontos de components.css. Este arquivo REESCREVE grupo e item como
+   cartão (spec 2026-09-26-configuracoes-em-blocos): cada `.form-grupo`
+   vira um cartão com a legenda como cabeçalho, e cada `.cfg-item.cfg-simples`
+   (o controle simples - switch/número/opção) vira uma linha rótulo⇄controle
+   em tela larga. O item de PAINEL (função do próprio módulo) fica só
+   `.cfg-item`, sem a grade, e continua empilhado.
    ============================================================ */
 
-/* O espaçamento entre grupos é do `gap` do .esc-form - a margem própria
-   do .form-grupo somaria por cima e afastaria demais. */
-.cfg-form > .form-grupo { margin-bottom: 0; }
+/* ── Cada grupo é um cartão (spec 2026-09-26-configuracoes-em-blocos) ──
+   Antes os grupos se separavam só por uma legenda e um traço fino, e com
+   oito itens não se via onde um terminava. O cartão dá a fronteira; a
+   legenda vira o cabeçalho dele. */
+.cfg-form > .form-grupo {
+  margin: 0; padding: 0; overflow: hidden;
+  border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface);
+}
+/* O traço entre grupos do .form-grupo comum sobra: o cartão já separa. */
+.cfg-form > .form-grupo + .form-grupo { border-top: 1px solid var(--border); padding-top: 0; }
+.cfg-form > .form-grupo > legend {
+  float: left; width: 100%; margin: 0; padding: 10px 16px;
+  background: var(--surface-2); border-bottom: 1px solid var(--border);
+}
+/* `float` tira a legend da borda do fieldset (senão ela "morde" a borda
+   de cima); o primeiro item limpa o float. */
+.cfg-form > .form-grupo > legend + * { clear: both; }
 
-/* Um item = rótulo em cima, controle embaixo, dica e aviso na sequência.
-   Não é `.campos` porque ali o campo mora DENTRO do <label>, e aqui o
-   rótulo e o controle são irmãos (o switch tem <label> próprio). */
-.cfg-item { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
-/* O toggle é uma linha própria dentro do item: larga a altura de botão e
-   assume a de campo. O alinhamento à esquerda vem do padrão do `.switch`
-   (components.css) - até 07/09/2026 vinha desta regra, porque o padrão era
-   `end` e jogava o toggle na borda direita. */
+/* ── Cada item é uma linha de ajuste ─────────────────────── */
+.cfg-item { display: flex; flex-direction: column; gap: 5px; padding: 12px 16px; margin: 0; }
+.cfg-item + .cfg-item { border-top: 1px solid var(--border); }
 .cfg-item > .switch { min-height: var(--campo); }
+/* Tela larga: rótulo e dica à esquerda, controle à direita - o padrão
+   das telas de ajustes. Lê-se a coluna de rótulos de cima a baixo e o
+   valor está sempre no mesmo lugar. O item de PAINEL (lista, ordenação)
+   continua empilhado: ele é largo por natureza. */
+@media (min-width: 720px) {
+  .cfg-item.cfg-simples {
+    display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 24px; align-items: center;
+  }
+  .cfg-item.cfg-simples > .lbl { grid-column: 1; }
+  .cfg-item.cfg-simples > :not(.lbl):not(.form-hint) { grid-column: 2; grid-row: 1; justify-self: end; }
+  .cfg-item.cfg-simples > .form-hint { grid-column: 1 / -1; }
+}
 /* `.lbl` empilha em coluna, que é o caso comum (rótulo acima do campo).
    Aqui o rótulo tem TRÊS filhos - texto, selo "rede" e dica - e só a dica
    deve quebrar linha: o selo pertence ao rótulo. Voltando a `block`, o
@@ -47,8 +72,8 @@
 .cfg-painel-nome { flex: 1 1 auto; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; }
 .cfg-painel-setas { display: inline-flex; gap: 4px; flex: 0 0 auto; }
 
-/* Tela agregadora: um bloco por módulo. */
-.cfg-mod { margin-bottom: 28px; }
+/* ── Tela agregadora: um bloco por módulo ────────────────── */
+.cfg-mod + .cfg-mod { margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--border); }
 .cfg-mod-head { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
 .cfg-mod-head h2 { font-size: 15px; margin: 0; }
 
