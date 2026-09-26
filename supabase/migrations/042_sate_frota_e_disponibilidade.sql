@@ -14,9 +14,12 @@
 --   3. vagas_transporte(): quantos veiculos cabem num intervalo - a mesma
 --      conta que o front faz em disponibilidade.model.js;
 --   4. criar_viagem(): para a ESCOLA, a barreira passa a existir no banco
---      (R15), com trava por data contra dois pedidos simultaneos;
+--      (R15), com trava por TODOS os dias que o pedido toca;
 --   5. decidir_com_frota(): a frota extra de um pedido da noite cobre o
---      dia seguinte, que a viagem tambem ocupa.
+--      dia seguinte, que a viagem tambem ocupa;
+--   6. gatilhos de guarda em solicitacao_transporte e
+--      solicitacao_participacao fecham o atalho pela API direto - sem
+--      eles a barreira do item 4 seria so decorativa (spec D7).
 --
 -- `solicitado` passa a OCUPAR vaga (spec D6): o pedido da escola reserva
 -- no instante em que nasce.
@@ -222,11 +225,15 @@ grant execute on function vagas_transporte(date, int, int, uuid) to authenticate
 -- frota extra nasce na confirmacao (040). Para a escola:
 --   - horarios obrigatorios (sem eles nao ha intervalo a conferir);
 --   - veiculos RECALCULADOS aqui - o numero da tela nao vale;
---   - trava por data: dois pedidos do mesmo dia entram em fila, e o
---     segundo ja enxerga o primeiro (que, desde esta migration, reserva);
+--   - trava por TODOS os dias que o intervalo do pedido toca (a noite
+--     trava tambem o dia seguinte): dois pedidos que se cruzam entram em
+--     fila, e o segundo ja enxerga o primeiro (que, desde esta migration,
+--     reserva);
 --   - falta de onibus recusa; falta de van nao (a Gerencia providencia).
 --
--- Sem `security definer`: as insercoes continuam passando pelas policies.
+-- Sem `security definer`: as insercoes continuam passando pelas policies
+-- (e pelos gatilhos de guarda da secao 7 - a marca de transacao que abre
+-- passagem por eles nasce aqui, logo no comeco da funcao).
 create or replace function criar_viagem(p_viagem jsonb, p_participacao jsonb)
   returns solicitacao_transporte
   language plpgsql volatile set search_path = public as $$
@@ -234,8 +241,16 @@ declare
   v solicitacao_transporte;
   v_data date; v_per text; v_emb int; v_ret int;
   v_usa boolean := true; v_onibus int; v_vans int;
-  v_ini int; v_fim int; v_vagas jsonb;
+  v_ini int; v_fim int; v_vagas jsonb; d int;
 begin
+  -- Marca de transacao que so esta funcao acende (spec D7, "Sem atalho
+  -- pela API"): e o que fn_sate_guarda_escola()/fn_sate_guarda_participacao()
+  -- exigem para deixar passar o insert de quem nao escreve no SATE. O
+  -- PostgREST nao expoe set_config - a escola nao tem como forjar a marca
+  -- chamando a tabela direto. Local da transacao (terceiro argumento
+  -- true): nao vaza para a proxima chamada na mesma conexao.
+  perform set_config('sate.criar_viagem', '1', true);
+
   if not pode_escrever('sate') then
     v_data := (p_viagem->>'data')::date;
     v_per  := p_viagem->>'periodo';
@@ -244,8 +259,6 @@ begin
     if v_emb is null or v_ret is null then
       raise exception 'Informe o horario de embarque e o de retorno.' using errcode = '23502';
     end if;
-
-    perform pg_advisory_xact_lock(hashtext('sate-vagas'), (v_data - date '2000-01-01'));
 
     if (p_viagem->>'atividade_id') is not null then
       select coalesce(a.usa_onibus, true) into v_usa
@@ -262,6 +275,16 @@ begin
     select i.ini, i.fim into v_ini, v_fim
       from _sate_intervalo(v_per, v_emb, v_ret, (p_viagem->>'trajeto_min')::int,
                            _sate_conf_int('intervalo_min_periodos', 120)) i;
+
+    -- Trava TODOS os dias que o intervalo do pedido toca, em ordem
+    -- crescente - sem deadlock (spec D7, "A trava cobre todos os dias").
+    -- Um pedido da noite ocupa tambem a manha seguinte (D5): travar so a
+    -- data deixaria dois pedidos da mesma noite passarem juntos pelo dia
+    -- extra.
+    for d in 0 .. floor((v_fim - 1) / 1440.0)::int loop
+      perform pg_advisory_xact_lock(hashtext('sate-vagas'), ((v_data + d) - date '2000-01-01'));
+    end loop;
+
     v_vagas := vagas_transporte(v_data, v_ini, v_fim, null);
     if v_onibus > coalesce((v_vagas->>'onibus')::int, 0) then
       raise exception 'Sem onibus livres para este horario.' using errcode = 'P0001';
@@ -341,7 +364,87 @@ begin
 end $$;
 grant execute on function decidir_com_frota(uuid, text, uuid, int, int) to authenticated;
 
--- ── 7. Conferencia (rodar a parte, depois da migration) ──────
+-- ── 7. Sem atalho pela API ────────────────────────────────────
+-- R15: a barreira so vale por inteiro se nao houver outro caminho. A
+-- escola tem INSERT/UPDATE via RLS em solicitacao_transporte (035) e
+-- solicitacao_participacao (037) - ela precisa disso para abrir e
+-- cancelar o proprio pedido -, o que deixaria criar_viagem() como um
+-- atalho a mais, nao a unica porta. Os gatilhos abaixo fecham essa
+-- brecha para quem NAO escreve no SATE (spec D7); quem escreve segue
+-- livre, inclusive por SQL direto, porque a frota extra dela e aviso, e
+-- e assim que tem que ser.
+create or replace function fn_sate_guarda_escola() returns trigger
+  language plpgsql set search_path = public as $$
+begin
+  if pode_escrever('sate') then
+    return new;
+  end if;
+
+  if tg_op = 'INSERT' then
+    if coalesce(current_setting('sate.criar_viagem', true), '') <> '1' then
+      raise exception 'Pedido de transporte so nasce pelo formulario do SATE.' using errcode = '42501';
+    end if;
+    return new;
+  end if;
+
+  -- UPDATE: a escola so muda situacao e motivo (cancelar, pedir
+  -- cancelamento) - nunca data, horario, veiculo, trajeto ou destino do
+  -- pedido. qtd_alunos/qtd_cadeirante ficam de fora de proposito: quem os
+  -- escreve e o gatilho definer de totais (fn_sincronizar_totais_viagem,
+  -- 037), que roda com o JWT da escola ainda ativo na sessao.
+  if (new.data, new.periodo, new.horario_embarque, new.horario_retorno,
+      new.qtd_onibus, new.qtd_vans, new.trajeto_min, new.unidade_id,
+      new.atividade_id, new.local_id)
+     is distinct from
+     (old.data, old.periodo, old.horario_embarque, old.horario_retorno,
+      old.qtd_onibus, old.qtd_vans, old.trajeto_min, old.unidade_id,
+      old.atividade_id, old.local_id) then
+    raise exception 'A escola nao altera data, horario, destino nem veiculos de um pedido.' using errcode = '42501';
+  end if;
+  return new;
+end $$;
+
+drop trigger if exists trg_sate_guarda_escola on solicitacao_transporte;
+create trigger trg_sate_guarda_escola
+  before insert or update on solicitacao_transporte
+  for each row execute function fn_sate_guarda_escola();
+
+-- Mesma ideia na participacao: acrescentar parada e decisao da Gerencia
+-- (035, D8); a excecao e a propria escola criando a PROPRIA linha no
+-- pedido que abriu, dentro de criar_viagem().
+create or replace function fn_sate_guarda_participacao() returns trigger
+  language plpgsql set search_path = public as $$
+begin
+  if pode_escrever('sate') then
+    return new;
+  end if;
+
+  if tg_op = 'INSERT' then
+    if coalesce(current_setting('sate.criar_viagem', true), '') <> '1' then
+      raise exception 'Parada so e acrescentada pela Gerencia ou pelo formulario do SATE.' using errcode = '42501';
+    end if;
+    return new;
+  end if;
+
+  -- UPDATE: o fluxo "Sair da viagem" da escola (participacoes.model.js,
+  -- mover()) muda so status e motivo - cota, parada e ordem sao da
+  -- Gerencia.
+  if (new.solicitacao_id, new.unidade_id, new.local_id, new.ordem,
+      new.horario, new.qtd_alunos, new.qtd_cadeirante)
+     is distinct from
+     (old.solicitacao_id, old.unidade_id, old.local_id, old.ordem,
+      old.horario, old.qtd_alunos, old.qtd_cadeirante) then
+    raise exception 'A escola so pede para sair da viagem; cota e parada sao da Gerencia.' using errcode = '42501';
+  end if;
+  return new;
+end $$;
+
+drop trigger if exists trg_sate_guarda_participacao on solicitacao_participacao;
+create trigger trg_sate_guarda_participacao
+  before insert or update on solicitacao_participacao
+  for each row execute function fn_sate_guarda_participacao();
+
+-- ── 8. Conferencia (rodar a parte, depois da migration) ──────
 -- Os casos da spec B. Cada linha deve devolver `ok = true`.
 --
 -- select caso, (_sate_livres(f::jsonb, o::jsonb, ini, fim)->>'onibus')::int = esperado as ok
@@ -357,6 +460,10 @@ grant execute on function decidir_com_frota(uuid, text, uuid, int, int) to authe
 -- select * from _sate_intervalo('tarde', 780, 1020, 30, 120);   -- 780 | 1170
 -- select * from _sate_intervalo('noite', 1140, 1320, 30, 120);  -- 1140 | 2160
 -- select * from _sate_intervalo('manha', null, null, null, 120); -- 0 | 720
+--
+-- O 7o caso da tabela da spec ("proprio pedido excluido") passa por
+-- p_excluir, nao por _sate_livres - confere com vagas_transporte direto:
+--   select vagas_transporte('<data>', 480, 720, '<id do proprio pedido>');
 
 select religar_auditoria();
 
