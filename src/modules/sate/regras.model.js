@@ -9,14 +9,10 @@
 // na tela, porque a tela não é o único lugar que precisa dela: o
 // aprovador, o relatório e o painel de saldo fazem a mesma pergunta.
 //
-// As duas regras que o André especificou:
-//
-//   (a) Um ônibus usado de manhã só serve à tarde se
-//         (retorno + viagem de volta) + intervalo mínimo <= embarque
-//       O intervalo é configurável (padrão 120 min).
-//
-//   (b) Um agendamento noturno exige ônibus livre em UM dos períodos do
-//       próprio dia E no período da manhã do dia seguinte.
+// A regra de ocupação por horário - que contém as duas regras antigas, o
+// intervalo manhã → tarde e a folga da noite - mora em
+// `disponibilidade.model.js` (spec 2026-09-26, D5). Aqui fica o que a
+// tela faz com o resultado: o que é erro e o que é aviso, e para quem.
 //
 // Elas também estão em docs/modulos/sate.md, escritas para quem usa.
 // ============================================================
@@ -46,69 +42,34 @@ export const onibusPara = (qtdAlunos, capacidade) =>
 export const vansPara = (qtdCadeirantes, capacidade) =>
   Math.ceil(Math.max(0, Number(qtdCadeirantes) || 0) / capacidade) || 0;
 
-// ── Regra (a): intervalo entre um retorno e o próximo embarque ──
-//
-// `viagemVoltaMin` é PARÂMETRO, com padrão 0, e não algo que esta função
-// calcula: o tempo de trajeto vem da rota (bloco S4). Até S4 existir a
-// regra roda com a parte que já se sabe - uma regra incompleta ainda
-// barra o caso grosseiro, e é melhor que uma regra ausente.
-export function intervaloEntreViagens({ retorno, embarque, viagemVoltaMin = 0, intervaloMin }) {
-  const r = paraMin(retorno);
-  const e = paraMin(embarque);
-  // Sem um dos horários não há o que comparar. `ok: true` porque a regra
-  // não foi violada - ela não pôde ser avaliada, e reprovar por falta de
-  // dado bloquearia todo pedido sem horário preenchido.
-  if (r === null || e === null) return { ok: true, avaliada: false, folgaMin: null };
-
-  const chegada = r + Math.max(0, Number(viagemVoltaMin) || 0);
-  const folgaMin = e - chegada;
-  return { ok: folgaMin >= intervaloMin, avaliada: true, folgaMin, exigidoMin: intervaloMin };
-}
-
-// ── Regra (b): viabilidade de um agendamento noturno ──
-//
-// O ônibus da noite precisa estar livre antes (para sair) e na manhã
-// seguinte (para voltar e ser liberado).
-export function noiteViavel({ livreManha, livreTarde, livreManhaSeguinte }) {
-  const noDia = (livreManha >= 1) || (livreTarde >= 1);
-  const noSeguinte = livreManhaSeguinte >= 1;
-  return { ok: noDia && noSeguinte, noDia, noSeguinte };
-}
-
 // ── O agregador: erro barra, aviso não (R15 e spec D7) ──
 //
-// A MESMA situação é erro para a escola e aviso para quem aprova. Não é
-// inconsistência: a frota é um paradigma inviolável para a escola, e
-// quem aprova pode - e às vezes precisa - violá-la, e é daí que nasce a
-// frota extra do dia (spec D2). Por isso `aprovador` entra aqui, e não
-// numa checagem separada na tela: a regra é uma só, com dois públicos.
+// A MESMA situação é erro para a escola e aviso para quem aprova: a frota
+// é inviolável para uma e negociável para o outro - é daí que nasce a
+// frota extra do dia (040). A exceção é o dia SEM frota nenhuma: aí nem
+// quem aprova segue, porque a viagem precisa de uma frota que a cubra
+// (spec 2026-09-26, D4) - a tela oferece o cadastro ali mesmo.
 //
-// Devolve listas de `{ codigo, texto }`. `codigo` é para a tela decidir
-// o que destacar; `texto` é o que a pessoa lê.
+// `livres`/`livresVan`: veículos livres no INTERVALO do pedido
+// (disponibilidade.model.js § livresPara). `proximo`: primeiro embarque,
+// em minutos, em que o pedido caberia - ou null.
 export function avaliarPedido(p) {
   const {
-    periodo, qtdAlunos = 0, qtdCadeirantes = 0,
-    livre = {}, livreVan = {}, livreManhaSeguinte = 0,
-    diasDeAntecedencia = null, viagensDoDia = [],
-    horarioEmbarque = null, horarioRetorno = null,
-    capacidadeOnibus, capacidadeVan, intervaloMin, antecedenciaMin,
-    aprovador = false,
+    periodo, qtdAlunos = 0, qtdCadeirantes = 0, usaOnibus = true,
+    livres = 0, livresVan = 0, totalDia = 0, proximo = null,
+    diasDeAntecedencia = null, horarioEmbarque = null, horarioRetorno = null,
+    capacidadeOnibus, capacidadeVan, antecedenciaMin, aprovador = false,
   } = p;
 
   const erros = [];
   const avisos = [];
-  // Para a escola a barreira é erro; para quem aprova, aviso. A frota é
-  // inviolável para uma e negociável para o outro.
   const barra = (codigo, texto) => (aprovador ? avisos : erros).push({ codigo, texto });
 
-  const onibus = onibusPara(qtdAlunos, capacidadeOnibus);
+  const onibus = usaOnibus ? onibusPara(qtdAlunos, capacidadeOnibus) : 0;
   const vans = vansPara(qtdCadeirantes, capacidadeVan);
 
-  if (!qtdAlunos || qtdAlunos < 1) {
-    erros.push({ codigo: 'sem_alunos', texto: 'Informe quantos estudantes vão.' });
-  }
+  if (!qtdAlunos || qtdAlunos < 1) erros.push({ codigo: 'sem_alunos', texto: 'Informe quantos estudantes vão.' });
 
-  // Antecedência: limite da escola, nunca de quem aprova.
   if (!aprovador && diasDeAntecedencia !== null && diasDeAntecedencia < antecedenciaMin) {
     erros.push({
       codigo: 'antecedencia',
@@ -116,65 +77,36 @@ export function avaliarPedido(p) {
     });
   }
 
-  // Saldo de ônibus do período pedido.
-  const livrePeriodo = Number(livre[periodo] ?? 0);
-  if (onibus > livrePeriodo) {
-    barra('sem_frota', `Faltam ônibus: o pedido precisa de ${onibus} e há ${livrePeriodo} livre(s) neste período.`);
-  }
-
-  // Cadeirante sem van no saldo é SEMPRE aviso, nunca erro: o pedido
-  // segue e o status vai para "aguardando transporte adaptado", que é o
-  // que o agendamentos-fil faz há dois anos.
-  if (vans > 0) {
-    const livreVanPeriodo = Number(livreVan[periodo] ?? 0);
-    if (vans > livreVanPeriodo) {
-      avisos.push({
-        codigo: 'sem_van',
-        texto: `Não há van adaptada livre para ${qtdCadeirantes} cadeirante(s). O pedido segue, e a Gerência providencia a van ou o deixa aguardando transporte adaptado.`,
-      });
-    }
-  }
-
-  // Regra (b): noite.
-  if (periodo === 'noite') {
-    const v = noiteViavel({
-      livreManha: Number(livre.manha ?? 0),
-      livreTarde: Number(livre.tarde ?? 0),
-      livreManhaSeguinte: Number(livreManhaSeguinte ?? 0),
-    });
-    if (!v.noDia) {
-      barra('noite_sem_dia', 'Para um agendamento noturno é preciso ter ônibus livre pela manhã ou à tarde do mesmo dia.');
-    }
-    if (!v.noSeguinte) {
-      barra('noite_sem_seguinte', 'Para um agendamento noturno é preciso ter ônibus livre na manhã do dia seguinte.');
-    }
-  }
-
-  // Regra (a): sempre AVISO. O retorno pode adiantar, e quem aprova é
-  // que sabe se a folga real dá - bloquear aqui impediria remanejamento
-  // legítimo.
-  if (periodo === 'tarde' && horarioEmbarque) {
-    for (const v of viagensDoDia) {
-      if (v.periodo !== 'manha') continue;
-      const r = intervaloEntreViagens({
-        retorno: v.horario_retorno, embarque: horarioEmbarque,
-        viagemVoltaMin: v.viagemVoltaMin, intervaloMin,
-      });
-      if (r.avaliada && !r.ok) {
-        avisos.push({
-          codigo: 'intervalo',
-          texto: `Um ônibus da manhã chega prevista às ${paraHora(paraMin(v.horario_retorno) + (v.viagemVoltaMin || 0))} e o embarque é às ${horarioEmbarque}: ${r.folgaMin} min de folga, contra os ${intervaloMin} exigidos.`,
-        });
-        break;   // um aviso por pedido basta; listar todos vira ruído
-      }
-    }
-  }
-
-  if (horarioEmbarque && horarioRetorno) {
+  // Sem os dois horários não há intervalo a conferir (spec D3).
+  if (!horarioEmbarque || !horarioRetorno) {
+    erros.push({ codigo: 'sem_horario', texto: 'Informe o horário de embarque e o de retorno.' });
+  } else if (periodo !== 'noite') {
+    // A noite pode voltar depois da meia-noite; os outros períodos, não.
     const e = paraMin(horarioEmbarque), r = paraMin(horarioRetorno);
-    if (e !== null && r !== null && r <= e) {
-      erros.push({ codigo: 'horarios', texto: 'O retorno precisa ser depois do embarque.' });
+    if (e !== null && r !== null && r <= e) erros.push({ codigo: 'horarios', texto: 'O retorno precisa ser depois do embarque.' });
+  }
+
+  if (onibus > 0) {
+    if (!totalDia) {
+      erros.push({
+        codigo: 'sem_frota_dia',
+        texto: aprovador
+          ? 'Não há frota cadastrada para esta data. Cadastre-a abaixo para seguir.'
+          : 'Não há ônibus disponíveis nesta data.',
+      });
+    } else if (onibus > livres) {
+      const dica = proximo !== null ? ` A partir das ${paraHora(proximo)} há ônibus suficientes.` : '';
+      barra('sem_frota', `Faltam ônibus: o pedido precisa de ${onibus} e há ${Math.max(0, livres)} livre(s) neste horário.${dica}`);
     }
+  }
+
+  // Cadeirante sem van é SEMPRE aviso: o pedido segue e a Gerência
+  // providencia a van ou o deixa aguardando transporte adaptado.
+  if (vans > 0 && vans > livresVan) {
+    avisos.push({
+      codigo: 'sem_van',
+      texto: `Não há van adaptada livre para ${qtdCadeirantes} cadeirante(s). O pedido segue, e a Gerência providencia a van ou o deixa aguardando transporte adaptado.`,
+    });
   }
 
   return { erros, avisos, onibus, vans };

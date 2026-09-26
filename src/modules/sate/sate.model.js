@@ -38,11 +38,11 @@ export const STATUS = Object.freeze({
   cancelado: 'Cancelado',
 });
 
-// Status que OCUPAM veículo. `pendente_cancelamento` fica de fora de
-// propósito: a vaga volta ao saldo no momento em que a escola pede, não
-// no da ciência - é o que o agendamentos-fil faz, e segurar um ônibus
-// por causa de uma formalidade desperdiça frota.
-export const STATUS_RESERVA = Object.freeze(['em_analise', 'aguardando_transporte_adaptado', 'confirmado']);
+// Status que OCUPAM veículo. `solicitado` entra desde 26/09/2026 (spec
+// 2026-09-26, D6): sem ele, duas escolas viam "1 livre" e as duas pediam
+// o mesmo ônibus. `pendente_cancelamento` fica de fora de propósito: a
+// vaga volta ao saldo no momento em que a escola pede, não no da ciência.
+export const STATUS_RESERVA = Object.freeze(['solicitado', 'em_analise', 'aguardando_transporte_adaptado', 'confirmado']);
 
 const SELECT_BASE =
   '*, atividade:atividade_extraclasse(nome,cor,usa_onibus,local_nome,local_endereco,gerida_sme),'
