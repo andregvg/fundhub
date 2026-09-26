@@ -79,13 +79,46 @@ export async function abrirFormFrota({ frota = null, aoSalvar }) {
 
     const btn = document.getElementById('ff-ok'); btn.disabled = true;
     try {
-      const rotuloId = sel.value === NOVO ? (await criarRotulo(val('ff-novo'))).id : sel.value;
+      let rotuloId = sel.value;
+      if (sel.value === NOVO) {
+        const nome = val('ff-novo');
+        const r = await criarRotulo(nome);
+        rotuloId = r.id;
+        // Rótulo criado: vira opção de verdade e fica selecionado ANTES
+        // de tentar salvar a frota. Sem isto, se o salvamento falhar
+        // (ex.: já existe frota em aberto com esse tipo), o formulário
+        // continua com "+ Novo rótulo…" marcado e tentar de novo recria
+        // o rótulo - que já existe, e falha com "Já existe um rótulo…".
+        const opt = document.createElement('option');
+        opt.value = r.id;
+        opt.textContent = nome;
+        sel.querySelector(`option[value="${NOVO}"]`).before(opt);
+        sel.value = r.id;
+        document.getElementById('ff-novo-w').hidden = true;
+      }
       const dados = { rotuloId, tipo: document.getElementById('ff-tipo').value, quantidade: qtd, inicio, fim, observacao: val('ff-obs') || null };
-      if (f) await editarFrota(f.id, dados);
+      let aviso = '';
+      if (f) {
+        await editarFrota(f.id, dados);
+        // Regra do controlador (spec D2): a tela não consulta viagens
+        // agendadas antes de avisar - qualquer redução PODE deixar dia já
+        // marcado sem veículo, mesmo que nenhuma viagem seja afetada de
+        // fato. Custo aceito: um aviso ocasional sem efeito real.
+        const reduziuQtd = qtd < f.quantidade;
+        const atrasouInicio = inicio > f.inicio;
+        const encurtouFim = fim ? (!f.fim || fim < f.fim) : false;
+        if (reduziuQtd || atrasouInicio || encurtouFim) {
+          aviso = 'Dias já agendados podem ficar sem veículo - confira a Disponibilidade.';
+        }
+      }
       else if (fim) await criarLote(dados);
       else await abrirFrota(dados);
       fecharModal();
-      toast({ titulo: f ? 'Frota atualizada' : 'Frota cadastrada', tipo: 'sucesso' });
+      toast({
+        titulo: f ? 'Frota atualizada' : 'Frota cadastrada',
+        texto: aviso,
+        tipo: aviso ? 'atencao' : 'sucesso',
+      });
       aoSalvar?.();
     } catch (err) {
       reportarErro(err, { msg, titulo: 'Não foi possível salvar' });
@@ -145,7 +178,8 @@ async function pintarRotulos() {
       </div>`).join('') || '<p class="form-hint">Nenhum rótulo ainda.</p>'}
     </div>
     <form id="rt-form" class="esc-form rt-novo">
-      <label>Novo rótulo <input id="rt-nome" type="text" maxlength="60" placeholder="Ex.: Cirem" /></label>
+      <label for="rt-nome">Novo rótulo</label>
+      <input id="rt-nome" type="text" maxlength="60" placeholder="Ex.: Cirem" />
       <button type="submit" class="mini-btn">${ico('adicionar')} Criar</button>
     </form>
     <p class="auth-msg" id="rt-msg"></p>`;

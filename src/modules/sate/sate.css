@@ -127,11 +127,18 @@ body.app-sate { --info-bg: color-mix(in srgb, var(--brand) 12%, var(--surface));
 .tag.fr-sit-futura   { color: var(--accent); background: color-mix(in srgb, var(--accent) 16%, transparent); }
 .tag.fr-sit-encerrada { color: var(--muted); background: var(--surface-3); }
 .fr-lote.inativo { opacity: .65; }
-/* Modal de rótulos: lista e o campo de criar numa linha (R17: botão ao
-   lado de campo usa a altura do campo - a regra estrutural já cobre). */
+/* Modal de rótulos: rótulo, campo e botão de criar numa linha só.
+   `.esc-form` empilha em coluna por padrão (components.css) - aqui a
+   direção é desfeita porque é UMA linha, não um formulário de vários
+   campos. O `<label for="rt-nome">` fica solto (não embrulha o input) de
+   propósito: assim o input é filho DIRETO do form, e a regra estrutural
+   do R17 (`:is(div, form):has(> input, > select) > .mini-btn` em
+   components.css) já dá a altura certa ao "Criar" sem CSS novo aqui -
+   embrulhado num <label>, como antes, o form só tinha o <label> como
+   filho direto e a regra não enxergava o input. */
 .rt-lista { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
-.rt-novo { display: flex; align-items: end; gap: 8px; }
-.rt-novo label { flex: 1 1 auto; }
+.rt-novo { display: flex; flex-direction: row; flex-wrap: wrap; align-items: end; gap: 8px; }
+.rt-novo input { flex: 1 1 140px; }
 
 /* ── Fichas de ônibus (guia Fichas) ─────────────────────────
    O documento que a empresa de transporte recebe. Ela NÃO entra no

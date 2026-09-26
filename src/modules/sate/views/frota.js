@@ -28,12 +28,17 @@ import { ico } from '../../../shared/ui/icones.js';
 
 let lista = [];
 let tabela = null;
+// Erro do último carregar(): enquanto ele existir, pintar() não faz nada -
+// senão um clique num chip de filtro trocaria a mensagem de erro por um
+// "nenhuma frota" vazio, escondendo a falha em vez de explicá-la.
+let erroCarga = null;
 // Filtro de sessão da página: sobrevive à troca de página, não ao recarregar.
 const filtro = { situacao: 'vigente', tipo: '', de: '', ate: '' };
 const CHIPS = [['vigente', 'Vigentes'], ['futura', 'Futuras'], ['encerrada', 'Encerradas'], ['todas', 'Todas']];
 
 export function render(ctx) {
   tabela = null;
+  erroCarga = null;
   ctx.box().innerHTML = `
     <div class="toolbar">
       <button type="button" id="fr-nova" class="btn-primary">${ico('adicionar')} Nova frota</button>
@@ -76,18 +81,28 @@ export function render(ctx) {
   async function carregar() {
     const box = document.getElementById('fr-lista');
     if (!box) return;
-    try { lista = await getFrotas({}); }
-    catch (err) { box.innerHTML = erroBox(err); tabela = null; return; }
+    try { lista = await getFrotas({}); erroCarga = null; }
+    catch (err) { erroCarga = err; tabela = null; box.innerHTML = erroBox(err); return; }
     pintar();
   }
 
   // Filtrar é em memória: são dezenas de frotas, não milhares (R18).
   function pintar() {
+    if (erroCarga) return;
     const box = document.getElementById('fr-lista');
     if (!box) return;
     const linhas = filtrarFrotas(lista, filtro, hojeISO());
     if (tabela) { tabela.atualizar(linhas); return; }
-    tabela = montarTabela(box, {
+    // Um nó FILHO novo a cada montagem, nunca #fr-lista direto: depois de
+    // um erro o innerHTML dele foi trocado pela caixa de erro, mas o
+    // próprio elemento continua o mesmo - montarTabela ligaria um SEGUNDO
+    // jogo de ouvintes em cima do primeiro (tabela.js liga no elemento
+    // que recebe, não num nó que ela cria). Um filho descartável garante
+    // que o antigo, com seus ouvintes, fica sem dono e é recolhido.
+    box.innerHTML = '';
+    const corpo = document.createElement('div');
+    box.appendChild(corpo);
+    tabela = montarTabela(corpo, {
       colunas: COLUNAS,
       linhas,
       chave: f => f.id,
@@ -149,7 +164,7 @@ async function pintarOrfas() {
         return `<div class="fr-lote">
           <b>${esc(f.rotulo?.nome || 'sem rótulo')}</b>
           <span class="tag">${esc(rotulaTipo(f.tipo))}</span>
-          <span>${f.quantidade} veículo(s) em ${esc(fmtData(f.inicio))}</span>
+          <span>${esc(String(f.quantidade))} veículo(s) em ${esc(fmtData(f.inicio))}</span>
           <span class="di-meta">${esc(motivo)}</span>
           <span class="fr-orfa-acoes">
             <button type="button" class="mini-btn" data-manter="${esc(f.id)}">Manter</button>
