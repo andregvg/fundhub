@@ -5,25 +5,22 @@
 
 ## Onde fica o SATE
 
-O SATE tem **página própria**, com menu, cor e marca dele. No FundHub, o item
-**SATE** do menu abre essa página numa aba nova. O endereço é o do FundHub
-terminado em `sate.html` - dá para salvar nos favoritos.
-
-A conta é a mesma: quem está conectado no FundHub já entra no SATE, e sair de
-um sai do outro. As páginas ficam no menu lateral:
+O SATE tem **página própria**, com menu, cor e marca dele - o endereço termina
+em `sate.html` e dá para salvar nos favoritos. As páginas ficam no menu
+lateral:
 
 | Página | Para quem |
 |---|---|
 | **Solicitações** | todos |
+| **Disponibilidade** | todos |
 | **Fichas de ônibus**, **Frota**, **Locais**, **Configurações** | quem aprova |
 | **Catálogo** | todos |
 
-**Como usar o SATE** abre este tutorial, e **Ir para o FundHub** volta ao hub.
+**Como usar o SATE** abre este tutorial.
 
 O **sino** no topo avisa, na hora, do que acontece nos pedidos que você
 enxerga: pedido novo, mudança de situação, escola acrescentada a uma viagem,
-**pedido de saída** de uma escola e saída confirmada. Na página do SATE ele
-mostra só avisos de transporte.
+**pedido de saída** de uma escola e saída confirmada.
 
 ### Ver como uma escola (quem aprova)
 
@@ -45,7 +42,8 @@ toda.
   organizada pela própria escola.
 - Acompanhar em que pé está cada pedido: solicitado, em análise, confirmado,
   negado ou cancelado.
-- Ver, antes de pedir, quantos veículos ainda estão livres naquele dia.
+- Consultar, na página **Disponibilidade**, quantos veículos estão livres em
+  cada dia e período antes de pedir.
 - Ver quantos quilômetros e quanto tempo o ônibus leva das escolas até o
   destino, e abrir a rota no mapa.
 - Aprovar, negar e remanejar pedidos (para quem tem essa permissão).
@@ -91,45 +89,86 @@ consegue fazer isso sozinha.
 
 ---
 
-## As duas regras de agendamento
+## A regra de agendamento
 
-Estas são as regras que mais surpreendem quem está pedindo. Elas existem
-porque a frota é de **veículos**, e o mesmo ônibus atende mais de uma viagem
-no dia.
+Existe uma regra só, e ela decide tudo. A frota é de **veículos**, e o mesmo
+ônibus atende mais de uma viagem no dia: **cada viagem ocupa os seus veículos
+desde o embarque até eles ficarem livres de novo** - o retorno, mais o tempo
+de viagem de volta, mais um intervalo mínimo de segurança (hoje **2 horas**).
+Uma viagem da **noite** ocupa os veículos até o **meio-dia do dia seguinte**.
 
-### 1. Um ônibus da manhã só serve à tarde com folga suficiente
+**Exemplo:** um ônibus retorna às 11h de uma viagem com 30 minutos de trajeto
+de volta. Ele fica livre às 11h30 e, somado o intervalo de 2 horas, só serve
+outro pedido **a partir das 13h30**.
 
-Entre a **chegada prevista** do ônibus de volta na escola da manhã e o
-**embarque** da atividade da tarde precisa haver um intervalo mínimo - hoje
-**2 horas**.
+Desta regra única saem as duas consequências que mais surpreendem quem está
+pedindo:
 
-A chegada prevista não é o horário de retorno que a escola informou: é esse
-horário **mais o tempo de viagem de volta**. Um retorno às 11h com 30 minutos
-de trajeto significa chegada às 11h30, e o próximo embarque só a partir das
-13h30.
+- **Um ônibus da manhã só serve à tarde depois dessa folga.** Um horário de
+  embarque mais cedo do que isso não cabe, mesmo que o dia tenha frota de
+  sobra.
+- **Um pedido à noite ocupa a manhã seguinte.** O veículo só volta a contar no
+  saldo depois do meio-dia do dia seguinte.
 
 O tempo de viagem de volta é **calculado pelo sistema** a partir da distância
 entre as escolas e o destino (ver *Trajeto e tempo de viagem*, mais abaixo). A
-volta leva o mesmo tempo da ida. Se o trajeto da viagem da manhã não pôde ser
-calculado - uma escola sem localização, por exemplo -, a regra conta o retorno
-sem tempo de viagem, e a folga fica maior do que a real.
+volta leva o mesmo tempo da ida. Se o trajeto não pôde ser calculado - uma
+escola sem localização, por exemplo -, a regra conta o retorno sem tempo de
+viagem, e a folga fica maior do que a real. O intervalo mínimo é ajustável nas
+configurações do módulo e vale para os **próximos** agendamentos - nunca
+desfaz o que já está confirmado.
 
-O intervalo é ajustável nas configurações do módulo e vale para os **próximos**
-agendamentos - nunca desfaz o que já está confirmado.
-
-### 2. Agendamento à noite depende do dia inteiro
-
-Um pedido para o período da **noite** só é aceito se houver:
-
-1. pelo menos **um ônibus livre pela manhã ou à tarde** do mesmo dia; **e**
-2. pelo menos **um ônibus livre na manhã do dia seguinte**.
-
-O motivo é prático: o veículo precisa estar livre antes para sair, e livre na
-manhã seguinte para voltar e ser liberado.
+**Um pedido já reserva a vaga no instante em que é enviado** - antes mesmo de
+alguém aprovar. Negar o pedido ou cancelá-lo devolve a vaga na hora.
 
 ---
 
 ## Passo a passo
+
+### Consultar a disponibilidade
+
+1. No menu, clique em **Disponibilidade**. A tela mostra uma semana por vez,
+   de segunda a domingo - as setas trocam de semana, e o campo de data pula
+   direto para o dia que você quiser.
+2. Cada dia mostra quantos **ônibus** (e, quando há, quantas **vans**) estão
+   livres na **Manhã**, na **Tarde** e na **Noite**.
+3. Na **Tarde** o número sobe ao longo do período, conforme os ônibus da
+   manhã voltam - "2 · 5 a partir das 14h10 · 9 a partir das 15h30" quer dizer
+   que quantos ônibus cabem depende do horário de embarque escolhido.
+4. Um dia sem nenhum veículo cadastrado mostra "sem frota"; um dia que já
+   passou aparece esmaecido.
+5. Quem aprova pode clicar num dia para ver a composição da frota por rótulo
+   (por exemplo, "9 Regular + 16 Feira do Livro") e quantos veículos já estão
+   em uso em cada período.
+
+Os números são para uma viagem **típica** de cada período - o formulário de
+pedido confere o horário exato antes de enviar.
+
+### Cadastrar a frota (quem aprova)
+
+A frota não se lança dia a dia: cadastra-se **quantos veículos existem** e
+**desde quando**.
+
+1. No menu, clique em **Frota** e depois em **Nova frota**.
+2. Escolha o **Rótulo** - de onde vêm os veículos ("Regular", "Feira do
+   Livro"). Se ainda não existir, escolha **+ Novo rótulo…** e digite o nome.
+3. Escolha o **Tipo** (Ônibus ou Van adaptada), quantos **Veículos** e o
+   **Início**.
+4. Deixe o **Fim** em branco para uma frota **em aberto**, sem data para
+   acabar - é o caso comum. Preencha o Fim só para um reforço temporário, como
+   os dias de uma feira, que **soma** à frota em aberto.
+5. Clique em **Cadastrar frota**. Uma frota em aberto nova encerra, na
+   véspera, a frota em aberto anterior do **mesmo rótulo e do mesmo tipo** -
+   é assim que se registra "a partir de março passamos a ter 12". Frotas de
+   rótulos diferentes coexistem e **somam**.
+6. Para mudar ou apagar uma frota já cadastrada, use **Editar** ou **Excluir**
+   na linha dela. **Rótulos**, na barra de cima, abre a lista para criar,
+   arquivar ou excluir um rótulo.
+
+Reduzir a quantidade ou encurtar a vigência de uma frota que cobre dias com
+viagens já marcadas avisa: "Dias já agendados podem ficar sem veículo -
+confira a Disponibilidade." A alteração é salva do mesmo jeito; é só um
+alerta para conferir.
 
 ### Pedir transporte
 
@@ -138,21 +177,34 @@ manhã seguinte para voltar e ser liberado.
    e contato.
 2. Em **O que**, escolha a atividade. Se for uma atividade organizada pela sua
    escola, marque a opção de outra atividade e informe o destino.
-3. Em **Quando**, informe a data, o período e os horários de embarque e
-   retorno.
+3. Em **Quando**, informe a data, o período e os horários de embarque e de
+   retorno - os dois são **obrigatórios**: é a partir deles que o sistema
+   conta quantos ônibus estão livres.
 4. Em **Quem vai**, informe a escola, as turmas, quantos estudantes vão e
    quantos usam **cadeira de rodas**. O sistema calcula sozinho quantos ônibus
    e quantas vans são necessários.
 5. Escolhidas a escola e a atividade, aparece o **tempo de viagem** estimado
    até o destino. Se não aparecer, a linha diz o porquê - o pedido pode ser
    enviado assim mesmo.
-6. **Acompanhe a linha de saldo** logo acima do botão de enviar. Ela mostra
-   quantos ônibus ainda estão livres naquela data e quantos o seu pedido usa,
-   e se atualiza sozinha quando você troca a data, o período ou o número de
-   estudantes.
-7. Se as vagas do dia esgotarem, a linha explica o motivo e o botão de enviar
-   fica desabilitado - escolha outra data.
-8. Envie. O pedido nasce **pendente de autorização**.
+6. **Acompanhe a linha de saldo** logo acima do botão de enviar: "3 ônibus
+   livres para embarque às 13:00 em 05/10 · este pedido usa 2". Antes de
+   preencher os dois horários, ela mostra o número do período, o mesmo que
+   aparece em Disponibilidade; depois, conta pelo horário exato, e se
+   atualiza sozinha a cada troca.
+7. Se faltar ônibus no horário escolhido e houver um horário do mesmo período
+   em que o pedido caberia, a linha sugere: "A partir das 14h10 há ônibus
+   suficientes." Quem aprova, num dia **sem nenhuma frota**, vê ali mesmo um
+   cadastro rápido - Rótulo, quantos ônibus e até quando - para resolver sem
+   sair do formulário.
+8. Se ainda assim não houver como enviar, a linha explica o motivo e o botão
+   de enviar fica desabilitado - escolha outro horário ou outra data.
+9. Envie. O pedido nasce **pendente de autorização** e já reserva a vaga.
+
+Se o SATE ainda não tem nenhum veículo cadastrado, quem aprova vê, ao clicar
+em **Nova solicitação**, o aviso **Antes da primeira viagem, cadastre a
+frota**, com o botão **Cadastrar frota** que leva direto à página Frota. A
+escola não vê esse aviso: o formulário abre normalmente e diz que não há
+ônibus disponíveis na data escolhida.
 
 ### Aprovar ou negar
 
@@ -317,12 +369,14 @@ pedido segue normalmente.
 
 ### O que bloqueia (erro)
 
+- **Dia sem nenhuma frota cadastrada.** Vale para todo mundo, inclusive quem
+  aprova: sem veículo cadastrado não há o que reservar.
+- **Faltar ônibus no horário pedido, para a escola.** O número de veículos é
+  inviolável: se não há ônibus livre naquele horário, o pedido não é aceito.
+- **Horário de embarque ou de retorno em branco.**
+- **Retorno antes do embarque.**
 - **Pedir sem antecedência mínima.** A escola precisa pedir com pelo menos
   5 dias. Quem aprova não tem esse limite.
-- **Estourar a frota do dia.** Para a escola, o número de veículos é
-  inviolável: se não há ônibus livre, o pedido não é aceito.
-- **Pedido noturno sem a folga descrita na regra 2.**
-- **Retorno antes do embarque.**
 - **Negar ou cancelar sem justificativa.**
 
 ### O que apenas avisa
@@ -330,24 +384,23 @@ pedido segue normalmente.
 - **Trajeto não calculado.** Escola ou destino sem localização, ou serviço
   de mapa fora do ar, nunca impedem o pedido - a SME pode precisar agendar
   para um lugar ainda não localizado.
-- **Intervalo entre períodos apertado** (regra 1). O retorno pode adiantar, e
-  quem aprova é que sabe se a folga real dá. Fica sinalizado, não bloqueado.
 - **Cadeirante sem van adaptada livre.** O pedido segue. Ao confirmar, quem
   aprova cria a van extra ou deixa o pedido *aguardando transporte adaptado*
   até a van ser resolvida.
-- **Estourar a frota, para quem aprova.** Quem aprova pode e às vezes precisa
-  passar do limite. Quando isso acontece, o sistema **cria um veículo extra
-  só para aquele dia** e pede um rótulo que explique o motivo (por exemplo,
-  "Cirem").
+- **Faltar ônibus no horário, para quem aprova.** Quem aprova pode e às vezes
+  precisa passar do limite. Quando isso acontece, o sistema **cria um veículo
+  extra só para aquele dia** e pede um rótulo que explique o motivo (por
+  exemplo, "Cirem").
 
 ## Como a frota funciona
 
 A frota não se cadastra dia a dia. Cadastra-se **quantos veículos existem** e
 **desde quando**:
 
-- A **frota vigente** não tem data de fim. Só existe uma de cada tipo de
-  veículo por vez. Ao cadastrar uma nova, a anterior é encerrada na véspera -
-  é assim que se registra "a partir de março passamos a ter 12".
+- A **frota vigente** não tem data de fim. Só existe uma de cada **rótulo e
+  tipo** por vez - frotas de rótulos diferentes coexistem e **somam**. Ao
+  cadastrar uma nova do mesmo rótulo, a anterior é encerrada na véspera - é
+  assim que se registra "a partir de março passamos a ter 12".
 - Um **reforço** tem data de início e fim, e **soma** à vigente. É o caso da
   Feira do Livro, que traz veículos a mais por alguns dias.
 - Os dias avulsos de eventos imprevisíveis não precisam ser cadastrados: eles
@@ -361,7 +414,9 @@ regular mais 16 da Feira.
 cancelado ou remanejado para outra data, os veículos extras **não somem
 sozinhos**. Eles aparecem no topo da página **Frota**, em *Frota extra sem
 pedido*, com dois botões: **Manter** (os veículos continuam, como um reforço
-comum daquele dia) e **Remover**.
+comum daquele dia) e **Remover**. Quando o pedido é da **noite**, essa frota
+extra vale da data até o dia seguinte - a mesma viagem que ocupa a manhã
+seguinte precisa da frota que a cubra lá também.
 
 Um rótulo que nunca foi usado pode ser excluído. Um que já está em uso só pode
 ser **arquivado**: ele some da lista de escolha, mas os lançamentos antigos
@@ -375,9 +430,8 @@ continuam com o nome deles.
   recesso ou em dia sem aula.
 - **Viagens** mostra a programação do dia já confirmada, pronta para conferir.
 - **Dashboard** traz as atividades extraclasse do dia na tela inicial.
-- **OpenStreetMap** (fora do FundHub) fornece as distâncias e a busca de
-  endereço. É gratuito, sem conta, e recebe só endereços e coordenadas - nunca
-  dado de pessoa.
+- **OpenStreetMap** fornece as distâncias e a busca de endereço. É gratuito,
+  sem conta, e recebe só endereços e coordenadas - nunca dado de pessoa.
 - **Auditoria** guarda quem aprovou, quem negou e quem cancelou cada pedido,
   com data e hora.
 
@@ -393,15 +447,18 @@ velocidade média para toda a rede, ela é ajustada nas configurações.
 Não. A distância vem do OpenStreetMap, gratuito e sem conta. O link **Ver rota
 no mapa** só abre o Google Maps no navegador, sem nenhuma cobrança.
 
-**Pedi e o sistema disse que não há ônibus. E amanhã?**
-O saldo é por dia. Troque a data no formulário e o número de vagas se atualiza
-na hora.
+**Pedi e o sistema disse que não há ônibus. E agora?**
+Pode ser o dia ou o horário: um dia com frota de sobra ainda pode não ter
+ônibus livre no horário exato que você pediu. Se a linha do saldo sugerir um
+horário - "A partir das 14h10 há ônibus suficientes" -, tente esse horário
+primeiro. Senão, troque a data ou confira a página **Disponibilidade** para
+achar um horário com mais folga.
 
 **O saldo que eu vejo conta os pedidos das outras escolas?**
-Conta. O número de veículos livres é o da rede inteira naquele dia, mesmo que
-você só enxergue os agendamentos em que a sua escola está envolvida - senão o
-aviso de vagas esgotadas não serviria para nada. O que aparece é só a
-contagem: você não vê de quem são as outras reservas.
+Conta. O número de ônibus livres é o da rede inteira, no dia e no horário
+pedidos, mesmo que você só enxergue os agendamentos em que a sua escola está
+envolvida - senão o aviso de vagas esgotadas não serviria para nada. O que
+aparece é só a contagem: você não vê de quem são as outras reservas.
 
 **Minha turma tem 50 estudantes. Quantos ônibus o sistema reserva?**
 Dois - a conta é por lugares por ônibus, hoje 44, arredondando para cima. Só
@@ -422,4 +479,4 @@ Negado é um pedido que **nunca** chegou a valer - foi recusado na análise.
 Cancelado é um pedido que **estava de pé** e foi desfeito. Os dois exigem
 justificativa.
 
-> Atualizado na versão 0.36.0.
+> Atualizado na versão 0.37.0.
