@@ -26,7 +26,9 @@ import { ligarCamposDataHora } from '../shared/ui/campo-data-hora.js';
 // `app`         o <main> onde login, pendência e o app são desenhados
 // `marca`       a da tela de login (padrão: FundHub) - ver core/auth.js
 // `sistema`     o nome na tela de acesso pendente
-// `chrome`      opções de setChrome (ver shell/chrome.js)
+// `chrome`      opções de setChrome (ver shell/chrome.js) + `rodapeCompleto`
+//               (padrão: true) - o SATE passa `false` porque o resumo e o
+//               link "Histórico completo" do rodapé falam do FundHub.
 // `aoEntrar`    ({ user, perfil }) - monta o app, UMA vez por login
 // `aoSair`      desliga o que o app ligou (serviços, toasts)
 export async function abrirPortao(app, { marca, sistema, chrome = {}, aoEntrar, aoSair = () => {} }) {
@@ -63,7 +65,7 @@ export async function abrirPortao(app, { marca, sistema, chrome = {}, aoEntrar, 
     renderLogin(app, { restrito, marca });
   }
 
-  carimboRodape();
+  carimboRodape({ completo: chrome.rodapeCompleto !== false });
   ligarCamposDataHora();
 
   // Modo dev-local (sem Supabase configurado): sem gate, sem dados.

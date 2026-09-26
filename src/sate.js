@@ -7,11 +7,17 @@
 // portão (shell/portao.js), mesma conta, mesmas permissões, mesmo banco.
 // Quem entra num entra no outro.
 //
+// Quem só usa o SATE não vê o nome FundHub em lugar nenhum: o link para
+// lá e o "Meus dados" do menu de usuário só aparecem para quem também
+// enxerga algum módulo do FundHub (`usaFundHub`), e a ajuda é uma rota
+// interna (`#/ajuda`) que lê o mesmo tutorial que a Ajuda do FundHub usa
+// (spec 2026-09-26-sate-identidade-propria).
+//
 // É uma ENTRADA, como main.js: pode importar de qualquer lugar (R1). E é
 // o controller desta página - um roteador de cinco rotas não justifica
 // generalizar core/router.js, que conhece o registro de módulos inteiro.
 // ============================================================
-import { moduloPorId, nivelEfetivo, veModulo } from './core/registry.js';
+import { MODULOS, moduloPorId, nivelEfetivo, veModulo } from './core/registry.js';
 import { hasSupabase } from './core/supabase.js';
 import { OCULTO, ESCRITA } from './core/permissoes.js';
 import { abrirPortao } from './shell/portao.js';
@@ -21,10 +27,17 @@ import { corSate } from './modules/sate/sate.config.js';
 import * as notificacoes from './modules/notificacoes/notificacoes.service.js';
 import { pintarConfigDoModulo } from './modules/configuracoes/painel.js';
 import { getUnidades } from './modules/escolas/escolas.model.js';
+import { markdownParaHtml } from './modules/ajuda/markdown.js';
 import { criarBuscaSelecao } from './shared/ui/busca-selecao.js';
 import { emptyState, loading } from './shared/ui/feedback.js';
 import { limparToasts } from './shared/ui/toast.js';
 import { ico } from './shared/ui/icones.js';
+
+// Usa o FundHub = enxerga ao menos um módulo de navegação que não seja o
+// SATE nem um dos de serviço (`publico`). Não é controle de acesso (R6):
+// decide só o que o SATE MENCIONA. Spec 2026-09-26-sate-identidade-propria, D3.
+const usaFundHub = () => MODULOS.some(m =>
+  m.nav && m.rota && m.id !== 'sate' && !m.publico && veModulo(m));
 
 const app = document.getElementById('app');
 const MARCA = {
@@ -72,7 +85,7 @@ function montarSate({ perfil }) {
   aplicarCor();
 
   if (nv === OCULTO) {
-    montarNav([{ itens: [linkFundHub()] }]);
+    montarNav([{ itens: usaFundHub() ? [linkFundHub()] : [] }]);
     app.innerHTML = emptyState(ico('restrito', { tam: 32 }), 'O SATE não está liberado para você',
       'Se precisa pedir transporte para a sua escola, fale com a Gerência de Ensino Fundamental.');
     return;
@@ -98,9 +111,8 @@ function gruposDoMenu() {
   const conta = [
     ...(aprovador ? [{ rota: '#/configuracoes', ico: 'config', nome: 'Configurações' }] : []),
     ...(estado.podeAprovar ? [{ rota: '#/ver-como', ico: 'escola', nome: 'Ver como escola' }] : []),
-    // A ajuda é o tutorial do FundHub: um texto só, lido em qualquer página.
-    { externo: './#/ajuda?m=sate', ico: 'ajuda', nome: 'Como usar o SATE' },
-    linkFundHub(),
+    { rota: '#/ajuda', ico: 'ajuda', nome: 'Como usar o SATE' },
+    ...(usaFundHub() ? [linkFundHub()] : []),
   ];
   return [
     { rotulo: 'Transporte', itens: paginas },
@@ -115,6 +127,10 @@ async function rotear() {
   if (!estado) return;
   const id = String(location.hash || '').replace(/^#\/?/, '').split('?')[0];
 
+  if (id === 'ajuda') {
+    marcarNav('#/ajuda');
+    return paginaAjuda();
+  }
   if (id === 'configuracoes' && aprovadorEfetivo()) {
     marcarNav('#/configuracoes');
     return paginaConfiguracoes();
@@ -153,6 +169,26 @@ async function paginaConfiguracoes() {
   await pintarConfigDoModulo(document.getElementById('sate-config'), moduloPorId('sate'));
 }
 
+// O tutorial do SATE, dentro do SATE. É o MESMO arquivo que a Ajuda do
+// FundHub lê (docs/modulos/sate.md), pelo mesmo leitor - um texto só,
+// dois lugares de leitura (spec 2026-09-26-sate-identidade-propria, D1).
+async function paginaAjuda() {
+  app.innerHTML = `
+    <div class="page-head"><h1>Como usar o SATE</h1></div>
+    <article class="ajuda-doc" id="ajuda-doc">${loading()}</article>`;
+  const box = document.getElementById('ajuda-doc');
+  try {
+    const resp = await fetch('docs/modulos/sate.md', { cache: 'no-cache' });
+    if (!resp.ok) throw new Error('nao encontrado');
+    const html = markdownParaHtml(await resp.text());
+    if (document.getElementById('ajuda-doc')) box.innerHTML = html;
+  } catch {
+    box.innerHTML = emptyState(ico('documento', { tam: 32 }), 'Tutorial ainda não disponível',
+      'O texto de ajuda ainda não foi publicado.');
+  }
+  window.scrollTo(0, 0);
+}
+
 // Escolher a escola. Busca em vez de <select>: são 144.
 async function paginaVerComo() {
   app.innerHTML = `
@@ -187,9 +223,11 @@ window.addEventListener('hashchange', rotear);
 abrirPortao(app, {
   marca: MARCA,
   sistema: 'SATE',
-  // "Meus dados" do menu de usuário leva ao FundHub; Atualizar recarrega
-  // a página do SATE, não o roteador do FundHub (que aqui não roda).
-  chrome: { base: './', aoAtualizar: () => rotear() },
+  // "Meus dados" do menu de usuário leva ao FundHub, e só aparece para quem
+  // também o usa (usaFundHub). Atualizar recarrega a página do SATE, não o
+  // roteador do FundHub (que aqui não roda). O rodapé não leva o resumo de
+  // versão nem o link "Histórico completo" - eles falam do FundHub.
+  chrome: { base: './', aoAtualizar: () => rotear(), meusDados: usaFundHub, rodapeCompleto: false },
   aoEntrar: montarSate,
   aoSair: () => { estado = null; simulando = null; gravarSimulacao(null); notificacoes.parar(); limparToasts(); },
 });

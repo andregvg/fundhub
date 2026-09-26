@@ -92,8 +92,8 @@ export function montarNav(grupos = navPorGrupo()) {
 }
 
 // Item com `externo` abre outra página em NOVA ABA (o SATE, visto do
-// FundHub; o FundHub e a ajuda, vistos do SATE). O ícone de seta diz isso
-// antes do clique.
+// FundHub; o FundHub, visto do SATE). O ícone de seta diz isso antes do
+// clique.
 function item(m) {
   const fora = m.externo ? ` target="_blank" rel="noopener"` : '';
   return `<a href="${esc(m.externo || m.rota)}" data-rota="${esc(m.rota || '')}"${fora}>
@@ -129,7 +129,9 @@ export function marcarNav(hash) {
 // `opts` (o SATE usa; o FundHub fica no padrão):
 //   base         prefixo dos links que levam ao FundHub ("./" no sate.html)
 //   aoAtualizar  o que o botão Atualizar recarrega depois de limpar caches
-let opcoesChrome = { base: '', aoAtualizar: () => recarregarRota() };
+//   meusDados    mostra o link "Meus dados" (padrão: sempre true - ele mora
+//                no FundHub; o SATE só o mostra a quem também o usa)
+let opcoesChrome = { base: '', aoAtualizar: () => recarregarRota(), meusDados: () => true };
 
 export function setChrome(logado, user, perfil, opts = {}) {
   opcoesChrome = { ...opcoesChrome, ...opts };
@@ -196,6 +198,11 @@ export function setChrome(logado, user, perfil, opts = {}) {
   org.classList.toggle('live', s === 'supabase');
   org.classList.toggle('local', s !== 'supabase');
   menu.querySelector('.user-btn').classList.toggle('is-admin', Boolean(perfil?.isAdmin));
+
+  // "Meus dados" mora no FundHub. No SATE, só aparece para quem também usa
+  // o FundHub - quem só usa o SATE não é levado a um sistema que não
+  // conhece (spec 2026-09-26-sate-identidade-propria, D3).
+  menu.querySelector('.um-link').hidden = !opcoesChrome.meusDados();
 }
 
 // ── Botão Atualizar ──────────────────────────────────────────
@@ -281,19 +288,21 @@ async function lerCarimbo() {
   return _carimbo;
 }
 
-function cartaoHtml(c) {
+function cartaoHtml(c, completo) {
   const linhas = (c?.resumo || []).map(t => `<li>${esc(t)}</li>`).join('');
   return `
     <b class="bc-versao">Versão ${esc(CONFIG.versao)}</b>
     <span class="bc-data">${c?.data
       ? `no ar desde ${esc(fmtDataHora(c.data))}`
       : '<i>data indisponível fora do site publicado</i>'}</span>
-    ${linhas ? `<ul class="bc-resumo">${linhas}</ul>` : ''}
-    <a class="bc-link" href="${CHANGELOG_URL}" target="_blank" rel="noopener noreferrer">
-      ${ico('externo', { tam: 13 })} Histórico completo</a>`;
+    ${completo && linhas ? `<ul class="bc-resumo">${linhas}</ul>` : ''}
+    ${completo ? `<a class="bc-link" href="${CHANGELOG_URL}" target="_blank" rel="noopener noreferrer">
+      ${ico('externo', { tam: 13 })} Histórico completo</a>` : ''}`;
 }
 
-export function carimboRodape() {
+// `completo`: o resumo do que mudou e o link "Histórico completo" falam do
+// FundHub - o SATE mostra só a versão (opts.rodapeCompleto em abrirPortao).
+export function carimboRodape({ completo = true } = {}) {
   // A data de hoje, no canto oposto. Ela é só "hoje" - longe da versão,
   // não há como confundi-la com a data em que a versão entrou em vigor,
   // que era o defeito de quando as duas andavam coladas.
@@ -317,7 +326,7 @@ export function carimboRodape() {
   const abrir = async () => {
     cancelarFechar();
     querAberto = true;
-    if (!pintado) { card.innerHTML = cartaoHtml(await lerCarimbo()); pintado = true; }
+    if (!pintado) { card.innerHTML = cartaoHtml(await lerCarimbo(), completo); pintado = true; }
     if (!querAberto) return;
     card.hidden = false;
     btn.setAttribute('aria-expanded', 'true');
