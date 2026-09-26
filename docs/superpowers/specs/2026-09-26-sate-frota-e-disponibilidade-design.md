@@ -115,10 +115,19 @@ estão em uso em cada período.
   que leva à página Frota. A escola vê o botão normalmente; o formulário
   dirá que não há ônibus.
 - **Data sem frota de ônibus** (total do dia = 0), no formulário:
-  - quem aprova: "Não há frota cadastrada para DD/MM." + **Cadastrar
-    frota**, que abre o modal de Nova frota (D2) **por cima** do pedido,
-    com o início sugerido na data; ao salvar, o saldo se recalcula e o
-    envio libera. Enviar fica desabilitado enquanto o dia não tiver frota.
+  - quem aprova: "Não há frota cadastrada para DD/MM." e, **ali mesmo, na
+    linha do saldo**, um cadastro rápido: Rótulo · Veículos · Até (padrão:
+    a própria data) · **Cadastrar frota**. Cria um lote de ônibus de DD/MM
+    até a data escolhida; o saldo se recalcula e o envio libera. Enviar fica
+    desabilitado enquanto o dia não tiver frota. Link "cadastro completo na
+    página Frota" para frota em aberto.
+
+    *Por que na linha, e não num modal por cima:* o modal do hub é um só
+    (`modal.js` troca o conteúdo), e voltar ao pedido o reconstruiria vazio
+    - a pessoa perderia tudo o que preencheu. E é lote, não frota em
+    aberto: abrir uma frota aqui poderia substituir uma aberta do mesmo
+    rótulo que começa depois (`abrir_frota` substitui as que começam no
+    mesmo dia ou depois).
   - escola: "Não há ônibus disponíveis nesta data." (erro, bloqueia).
 - **Acima do limite** (há frota, mas não cabe): para quem aprova continua
   aviso, e a frota extra com rótulo nasce na confirmação (`040`), ligada ao
@@ -261,6 +270,10 @@ Tolerância a migration ausente: sem `ocupacao_transporte`, o model cai no
 conta de D5 com `p_excluir` = o próprio pedido. O modal de frota extra
 (`frota-extra.js`) não muda.
 
+A frota extra de um pedido da **noite** passa a valer da data até o dia
+seguinte (`decidir_com_frota` na `042`): a viagem ocupa a manhã seguinte
+(D5), e um lote só da data deixaria faltando lá.
+
 ## Limpeza para começar do zero
 
 `_private/limpar_sate.sql` (gitignored): apaga `frota`,
@@ -281,7 +294,7 @@ recuperável se preciso.
 | `sate/regras.model.js` | `avaliarPedido` recebe `livres` do intervalo; sai `intervaloEntreViagens`/`noiteViavel` |
 | `sate/sate.model.js` | `STATUS_RESERVA` com `solicitado` |
 | `sate/views/frota.js` | reescrita: cadastro (D2) |
-| `sate/views/frota-form.js` (novo) | modal Nova/Editar frota + Rótulos - o formulário também abre por cima do pedido (D4) |
+| `sate/views/frota-form.js` (novo) | modal Nova/Editar frota + modal Rótulos |
 | `sate/views/disponibilidade.js` (novo) | página D3 |
 | `sate/views/frota-painel.js` | apagado |
 | `sate/sate.config.js` | sai o item de frota |
