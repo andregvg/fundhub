@@ -3,8 +3,8 @@
 // A frota de veículos do SATE: rótulos, lançamentos e o total do dia.
 // Spec: 2026-09-08-sate-modelo-de-dados-design.md § D1-D3, D10.
 //
-// O modelo em uma frase: `fim` nulo = a frota EM ABERTO (a vigente, uma
-// por tipo); `fim` preenchido = um LOTE com prazo, que soma. Cadastrar
+// O modelo em uma frase: `fim` nulo = frota EM ABERTO, uma por rótulo e
+// tipo (042); `fim` preenchido = um LOTE com prazo, que soma. Cadastrar
 // uma nova aberta encerra a anterior - e isso acontece dentro da função
 // `abrir_frota()` do banco, numa transação só, porque em duas chamadas
 // um erro no meio deixaria o dia sem frota nenhuma.
@@ -109,6 +109,16 @@ export async function getFrotaAberta(tipo = 'onibus') {
   return data;
 }
 
+// Os erros que o banco devolve ao gravar frota, em português. 23505 = o
+// índice de UMA aberta por rótulo e tipo; 23514 = fim antes do início.
+function amigavel(error) {
+  const msg = error.code === '23505'
+    ? 'Já existe uma frota em aberto com este rótulo e tipo. Encerre-a ou use outro rótulo.'
+    : error.code === '23514' ? 'A data de fim não pode ser antes do início.' : null;
+  if (!msg) return error;
+  const e = new Error(msg); e.code = error.code; e.amigavel = true; return e;
+}
+
 // Abre uma frota nova em aberto, encerrando a anterior na véspera. RPC
 // porque as duas coisas precisam ser uma transação só (spec D1).
 export async function abrirFrota({ rotuloId, quantidade, inicio, tipo = 'onibus', observacao = null }) {
@@ -117,7 +127,7 @@ export async function abrirFrota({ rotuloId, quantidade, inicio, tipo = 'onibus'
     p_rotulo_id: rotuloId, p_quantidade: quantidade,
     p_inicio: inicio, p_tipo: tipo, p_observacao: observacao,
   });
-  if (error) throw error;
+  if (error) throw amigavel(error);
   _frotas = null;
   return data;
 }
@@ -131,7 +141,7 @@ export async function criarLote({ rotuloId, quantidade, inicio, fim, tipo = 'oni
     rotulo_id: rotuloId, tipo, quantidade, inicio, fim,
     observacao, solicitacao_id: solicitacaoId,
   }).select().single();
-  if (error) throw error;
+  if (error) throw amigavel(error);
   _frotas = null;
   return data;
 }
@@ -140,6 +150,47 @@ export async function excluirFrota(id) {
   if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
   const { error } = await sb().from('frota').delete().eq('id', id);
   if (error) throw error;
+  _frotas = null;
+}
+
+// ── Situação (pura) ──────────────────────────────────────────
+// Sempre relativa a hoje, data civil (R8): comparar yyyy-mm-dd como
+// string é comparar datas.
+export const SITUACOES = Object.freeze({ vigente: 'Vigente', futura: 'Futura', encerrada: 'Encerrada' });
+
+export function situacaoDaFrota(f, hoje) {
+  if (f.inicio > hoje) return 'futura';
+  if (f.fim && f.fim < hoje) return 'encerrada';
+  return 'vigente';
+}
+
+// `de`/`ate`: frotas que valem em ALGUM dia do intervalo. Vazio = sem recorte.
+export function filtrarFrotas(lista, { situacao = 'vigente', tipo = '', de = '', ate = '' } = {}, hoje) {
+  return (lista || []).filter(f =>
+    (situacao === 'todas' || situacaoDaFrota(f, hoje) === situacao)
+    && (!tipo || f.tipo === tipo)
+    && (!ate || f.inicio <= ate)
+    && (!de || !f.fim || f.fim >= de));
+}
+
+// Há alguma frota cadastrada? É a porta de entrada da primeira viagem
+// (spec B, D4). `head: true` - só a contagem, nenhuma linha trafega.
+export async function existeFrota() {
+  if (!hasSupabase()) return false;
+  const { count, error } = await sb().from('frota').select('id', { count: 'exact', head: true });
+  if (error) { if (ausente(error)) return false; throw error; }
+  return (count || 0) > 0;
+}
+
+// Edição direta da linha. Mudar a quantidade de uma frota que já valia
+// reescreve o passado - para "a partir de tal dia são 12", a tela oferece
+// Nova frota com o mesmo rótulo (abrir_frota encerra a anterior).
+export async function editarFrota(id, { rotuloId, tipo, quantidade, inicio, fim = null, observacao = null }) {
+  if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
+  const { error } = await sb().from('frota').update({
+    rotulo_id: rotuloId, tipo, quantidade, inicio, fim: fim || null, observacao,
+  }).eq('id', id);
+  if (error) throw amigavel(error);
   _frotas = null;
 }
 
