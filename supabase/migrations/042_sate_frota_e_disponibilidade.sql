@@ -260,6 +260,13 @@ begin
       raise exception 'Informe o horario de embarque e o de retorno.' using errcode = '23502';
     end if;
 
+    -- Mesmo criterio de ocupacao_transporte: o embarque e o MAIS CEDO
+    -- entre o cabecalho e a participacao (least ignora nulo) - senao o
+    -- intervalo calculado aqui divergiria do usado depois para contar a
+    -- ocupacao deste proprio pedido. O obrigatorio continua sendo o
+    -- campo do cabecalho, ja conferido acima.
+    v_emb := least(v_emb, _sate_min(p_participacao->>'horario'));
+
     if (p_viagem->>'atividade_id') is not null then
       select coalesce(a.usa_onibus, true) into v_usa
         from atividade_extraclasse a where a.id = (p_viagem->>'atividade_id')::uuid;
@@ -370,12 +377,23 @@ grant execute on function decidir_com_frota(uuid, text, uuid, int, int) to authe
 -- solicitacao_participacao (037) - ela precisa disso para abrir e
 -- cancelar o proprio pedido -, o que deixaria criar_viagem() como um
 -- atalho a mais, nao a unica porta. Os gatilhos abaixo fecham essa
--- brecha para quem NAO escreve no SATE (spec D7); quem escreve segue
--- livre, inclusive por SQL direto, porque a frota extra dela e aviso, e
--- e assim que tem que ser.
+-- brecha para PEDIDO DE USUARIO LOGADO PELA API que nao escreve no SATE
+-- (spec D7). A guarda e so para isso: o SQL Editor do painel e uma
+-- Edge Function futura com service_role nao carregam um JWT de usuario
+-- final (claim `role` <> 'authenticated') e passam direto, como
+-- manutencao confiavel - senao toda migration antiga que faz UPDATE
+-- idempotente nessas tabelas (037:49/75/97, 017:68) pararia de rodar.
+-- Quem escreve no SATE (`pode_escrever`) tambem segue livre, inclusive
+-- por SQL direto, porque a frota extra dela e aviso, e e assim que tem
+-- que ser.
 create or replace function fn_sate_guarda_escola() returns trigger
   language plpgsql set search_path = public as $$
 begin
+  -- So vale para requisicao de usuario final pela API (anon nem chega
+  -- aqui - RLS ja barra). SQL Editor / service_role nao tem esse claim.
+  if coalesce(auth.jwt() ->> 'role', '') <> 'authenticated' then
+    return new;
+  end if;
   if pode_escrever('sate') then
     return new;
   end if;
@@ -415,6 +433,9 @@ create trigger trg_sate_guarda_escola
 create or replace function fn_sate_guarda_participacao() returns trigger
   language plpgsql set search_path = public as $$
 begin
+  if coalesce(auth.jwt() ->> 'role', '') <> 'authenticated' then
+    return new;
+  end if;
   if pode_escrever('sate') then
     return new;
   end if;
@@ -424,6 +445,14 @@ begin
       raise exception 'Parada so e acrescentada pela Gerencia ou pelo formulario do SATE.' using errcode = '42501';
     end if;
     return new;
+  end if;
+
+  -- Uma cancelada so volta pela Gerencia: reativar por conta propria
+  -- desfaria a decisao de quem cancelou e inflaria qtd_alunos do
+  -- cabecalho (gatilho de totais, 037) sem os onibus terem sido
+  -- recontados.
+  if old.status = 'cancelada' and new.status is distinct from 'cancelada' then
+    raise exception 'Participacao cancelada so volta pela Gerencia.' using errcode = '42501';
   end if;
 
   -- UPDATE: o fluxo "Sair da viagem" da escola (participacoes.model.js,
