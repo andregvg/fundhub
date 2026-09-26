@@ -26,8 +26,10 @@
   border-radius: var(--radius-btn);
   background: var(--surface-2);
 }
-.perm-nome { font-size: 13px; font-weight: 500; text-transform: none; letter-spacing: 0; }
-.perm-sel { flex: 0 0 auto; max-width: 210px; }
+.perm-nome { font-size: 13px; font-weight: 500; text-transform: none; letter-spacing: 0; min-width: 0; }
+/* Fonte menor que a do campo comum: a lista é densa, e a opção herdada
+   ("Padrão: Leitura") precisa caber sem cortar. */
+.perm-sel { flex: 0 0 auto; width: 13.5em; max-width: 60%; font-size: 13px; }
 
 /* Papel e "acesso ativo": empilhados no celular, lado a lado a partir
    de 560px. `end` alinha o trilho com a base do select, não com o topo
@@ -36,3 +38,7 @@
 @media (min-width: 560px) {
   .acesso-row { grid-template-columns: 1fr auto; align-items: end; }
 }
+/* O trilho alinha com a CAIXA do select, não com o rótulo: o container
+   alinha pela base (acima) e o switch assume a altura do campo, então a
+   base dele é a base da caixa. */
+.acesso-row > .switch { min-height: var(--campo); align-self: end; }

@@ -155,7 +155,7 @@ function abrirForm(p) {
             <label>E-mail institucional
               <input id="f-email" type="email" value="${esc(p?.email || '')}" ${novo ? '' : 'readonly'} required
                      placeholder="nome@educacao.pmrp.sp.gov.br" /></label>
-            <label>Nome de exibição <input id="f-nome" value="${esc(p?.nome || '')}" /></label>
+            <label>Nome de exibição <input id="f-nome" class="caixa-alta" value="${esc(p?.nome || '')}" /></label>
             <label>Cadastro funcional (servidor)
               <div id="f-servidor-box"></div>
               <small class="form-hint">Ligar ao servidor permite que a pessoa edite os
@@ -258,7 +258,7 @@ function abrirForm(p) {
           return `<div class="perm-linha">
             <span class="perm-nome">${ico(m.ico, { tam: 14 })} ${esc(m.navNome || m.nome)}</span>
             <select class="perm-sel" data-mod="${esc(chavePerm(m))}">
-              <option value="" ${atual === '' ? 'selected' : ''}>Padrão do papel (${esc(rotulaNivel(herdado))})</option>
+              <option value="" ${atual === '' ? 'selected' : ''}>Padrão: ${esc(rotulaNivel(herdado))}</option>
               ${NIVEIS.map(n => `<option value="${n.valor}" ${atual === n.valor ? 'selected' : ''}>${esc(n.rotulo)}</option>`).join('')}
             </select>
           </div>`;
@@ -285,7 +285,7 @@ async function salvar(e, p, lerSegs, lerExcecoes, buscaServidor) {
 
   const payload = {
     email,
-    nome: val('f-nome') || null,
+    nome: (val('f-nome') || '').toUpperCase() || null,
     papel: document.getElementById('f-papel').value,
     ativo: checked('f-ativo'),
     segmentos: lerSegs(),

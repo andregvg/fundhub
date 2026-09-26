@@ -67,7 +67,7 @@ export async function render(app, ctx = {}) {
             <input value="${esc(perfil.email)}" readonly />
             <small class="form-hint">É a sua identidade no hub - não pode ser alterado.</small></label>
           <label>Nome de exibição
-            <input id="md-nome" value="${esc(perfil.nome || '')}" placeholder="Como você quer ser chamado(a)" /></label>
+            <input id="md-nome" class="caixa-alta" value="${esc(perfil.nome || '')}" placeholder="Como você quer ser chamado(a)" /></label>
           <div class="form-foot">
             <span id="md-msg" class="auth-msg"></span>
             <button type="submit" id="md-save" class="btn-primary">Salvar</button>
@@ -187,7 +187,7 @@ async function salvarConta(e) {
   const btn = document.getElementById('md-save');
   btn.disabled = true; btn.textContent = 'Salvando…';
   try {
-    await salvarMeuNome(perfil.email, document.getElementById('md-nome').value.trim());
+    await salvarMeuNome(perfil.email, document.getElementById('md-nome').value.trim().toUpperCase());
     await recarregarPerfil();
     toast({ titulo: 'Dados atualizados', texto: 'Nome de exibição', tipo: 'sucesso' });
   } catch (err) {

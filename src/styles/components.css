@@ -723,6 +723,10 @@ input[type="time"]::-webkit-calendar-picker-indicator { display: none; }
 input[type="color"] { height: 44px; padding: 4px; cursor: pointer; }
 input[type="checkbox"] { width: 18px; height: 18px; }
 
+/* Campo cujo valor é gravado em maiúsculas (o banco garante): o que se vê
+   ao digitar é o que se grava. */
+input.caixa-alta { text-transform: uppercase; }
+
 .esc-form { display: flex; flex-direction: column; gap: 13px; }
 .esc-row { display: flex; flex-direction: column; gap: 13px; }
 .inline {
