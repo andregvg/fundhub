@@ -16,13 +16,13 @@
 import {
   porEmAnalise, confirmarSolicitacao, negarSolicitacao, cancelarSolicitacao,
   pedirCancelamento, confirmarCancelamento,
-  STATUS, PERIODOS, STATUS_RESERVA,
+  STATUS, PERIODOS,
 } from '../sate.model.js';
 import { abrirFrotaExtra } from './frota-extra.js';
 import { abrirRemanejar } from './remanejar.js';
 import { getParticipacoes } from '../participacoes.model.js';
 import { blocoHtml, ligarParticipantes } from './participantes.js';
-import { saldoDoDia, faltaParaConfirmar } from '../saldo.model.js';
+import { lerOcupacao, faltaParaConfirmar, intervaloDaViagem, livresPara } from '../disponibilidade.model.js';
 import { pontosDaViagem, explicarTrajeto, atualizarTrajeto, retratoTrajeto } from '../rota.model.js';
 import { linkRota } from '../../locais/locais.model.js';
 import { velocidadeOnibusKmh, margemParadaMin } from '../sate.config.js';
@@ -46,10 +46,12 @@ export async function abrirDetalhe(solicitacao, contexto) {
     ${modalHead(esc(nomeAtividade(s)), esc(s.unidade?.apelido || s.unidade?.nome || ''))}
     <div class="modal-body" id="det-corpo">${loading()}</div>`, { tamanho: 'medio' });
 
-  // Participações e saldo vêm do banco; o resto já está na linha da tabela.
-  const [paradas, saldo] = await Promise.all([
+  // Participações e ocupação vêm do banco; o resto já está na linha da
+  // tabela. `excluir: s.id` tira o próprio pedido da conta - ele já
+  // ocupa, e contá-lo de novo criaria frota extra a mais (D6).
+  const [paradas, linha] = await Promise.all([
     getParticipacoes(s.id).catch(() => []),
-    saldoDoDia(s.data).catch(() => null),
+    lerOcupacao(s.data, s.data, { excluir: s.id }).catch(() => null),
   ]);
   const corpo = document.getElementById('det-corpo');
   if (!corpo) return;   // fechou enquanto carregava
@@ -57,7 +59,11 @@ export async function abrirDetalhe(solicitacao, contexto) {
   corpo.innerHTML = `
     <div class="det-status">
       <span class="tag st-${esc(s.status)}">${esc(STATUS[s.status] || s.status)}</span>
-      ${saldo ? `<span class="di-meta">${saldo.onibus[s.periodo].livre} de ${saldo.onibus[s.periodo].total} ônibus livres no dia</span>` : ''}
+      ${linha ? (() => {
+        const iv = intervaloDaViagem({ periodo: s.periodo, embarque: s.horario_embarque, retorno: s.horario_retorno,
+          trajetoMin: s.trajeto_min, intervaloMin: linha.intervaloMin });
+        return `<span class="di-meta">${Math.max(0, livresPara(linha, iv.ini, iv.fim))} ônibus livres no horário deste pedido, fora ele</span>`;
+      })() : ''}
     </div>
 
     ${campo('Data', `${esc(fmtData(s.data))} · ${esc(PERIODOS[s.periodo] || s.periodo)}`)}
@@ -208,7 +214,7 @@ async function confirmar(btn) {
   const s = atual;
   btn.disabled = true;
   try {
-    const falta = faltaParaConfirmar(s, await saldoDoDia(s.data), { jaReservado: STATUS_RESERVA.includes(s.status) });
+    const falta = faltaParaConfirmar(s, await lerOcupacao(s.data, s.data, { excluir: s.id }));
     if (falta.onibus || falta.vans) {
       return abrirFrotaExtra({ solicitacao: s, falta, modo: 'confirmar', ctx, reabrir: () => abrirDetalhe(s, ctx) });
     }

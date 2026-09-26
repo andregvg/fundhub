@@ -4,9 +4,9 @@
 // Spec: 2026-09-08-sate-modelo-de-dados-design.md § D4, D5, D8.
 //
 // A frota mora em `frota.model.js`, as regras puras em `regras.model.js`,
-// a conta de vagas em `saldo.model.js` e as escolas de cada viagem em
-// `participacoes.model.js` - os cinco são API pública do módulo. Aqui
-// fica a VIAGEM: ler, criar e mover no ciclo de vida.
+// a conta de vagas em `disponibilidade.model.js` e as escolas de cada
+// viagem em `participacoes.model.js` - os cinco são API pública do
+// módulo. Aqui fica a VIAGEM: ler, criar e mover no ciclo de vida.
 //
 // `qtd_alunos` e `qtd_cadeirante` no cabeçalho são CACHE da soma das
 // participações ativas, mantido por gatilho (migration 037). Nunca

@@ -14,12 +14,14 @@
 // ============================================================
 import { listSolicitacoes, STATUS, PERIODOS } from '../sate.model.js';
 import { getParticipacoesDe, resumoEscolas, envolveUnidade } from '../participacoes.model.js';
+import { existeFrota } from '../frota.model.js';
 import { abrirFormulario } from './formulario.js';
 import { abrirDetalhe } from './detalhe.js';
 import { esc } from '../../../shared/dom.js';
 import { fmtData, hojeISO, addDias } from '../../../shared/format.js';
 import { montarTabela } from '../../../shared/ui/tabela.js';
 import { modalHtml, montarModal } from '../../../shared/ui/modal.js';
+import { confirmar } from '../../../shared/ui/confirmar.js';
 import { loading, erroBox } from '../../../shared/ui/feedback.js';
 import { ico } from '../../../shared/ui/icones.js';
 
@@ -56,7 +58,20 @@ export function render(contexto) {
     ${modalHtml()}`;
 
   montarModal();
-  document.getElementById('sol-nova').addEventListener('click', () => abrirFormulario(ctx));
+  document.getElementById('sol-nova').addEventListener('click', async () => {
+    // Antes da primeira viagem, a primeira frota (spec 2026-09-26, D4).
+    // Só para quem aprova: a escola vê o formulário e ele diz que não há
+    // ônibus - "cadastre a frota" não é algo que ela possa fazer.
+    if (ctx.aprovador && !ctx.somenteLeitura && !(await existeFrota().catch(() => true))) {
+      const ir = await confirmar('Antes da primeira viagem, cadastre a frota', {
+        detalhe: 'O SATE ainda não tem nenhum veículo cadastrado. As viagens usam a frota para saber quantos ônibus há em cada dia.',
+        textoOk: 'Cadastrar frota',
+      });
+      if (ir) ctx.irPara('frota');
+      return;
+    }
+    abrirFormulario(ctx);
+  });
 
   const rec = () => carregar();
   document.getElementById('sol-de').addEventListener('change', e => { filtro.de = e.target.value; rec(); });

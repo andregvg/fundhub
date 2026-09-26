@@ -11,15 +11,18 @@
 // legível de relance; em tela estreita eles são as âncoras que dizem
 // onde a pessoa está numa coluna longa.
 // ============================================================
-import { criarSolicitacao, listSolicitacoes } from '../sate.model.js';
-import { saldoDoDia, livreManhaSeguinte } from '../saldo.model.js';
+import { criarSolicitacao } from '../sate.model.js';
+import {
+  lerOcupacao, intervaloDaViagem, livresPara, totalDoDia, proximoHorario, livresNoPeriodo,
+} from '../disponibilidade.model.js';
 import { avaliarPedido, onibusPara, vansPara } from '../regras.model.js';
 import { calcularTrajeto, retratoTrajeto, explicarTrajeto } from '../rota.model.js';
 import {
-  capacidadeOnibus, capacidadeVan, intervaloMinMin, antecedenciaMinDias,
+  capacidadeOnibus, capacidadeVan, antecedenciaMinDias,
   velocidadeOnibusKmh, margemParadaMin,
 } from '../sate.config.js';
 import { getDiaCalendario } from '../../calendario/calendario.model.js';
+import { cadastroRapidoHtml, ligarCadastroRapido } from './frota-rapida.js';
 import { esc, val, falha } from '../../../shared/dom.js';
 import { hojeISO, addDias, fmtData, isUuid } from '../../../shared/format.js';
 import { modalHead, abrirModal, fecharModal } from '../../../shared/ui/modal.js';
@@ -87,8 +90,8 @@ export function abrirFormulario(contexto) {
                 <option value="tarde">Tarde</option>
                 <option value="noite">Noite</option>
               </select></label>
-            <label>Horário de embarque <input id="f-emb" type="time" /></label>
-            <label>Horário de retorno <input id="f-ret" type="time" /></label>
+            <label>Horário de embarque <input id="f-emb" type="time" required /></label>
+            <label>Horário de retorno <input id="f-ret" type="time" required /></label>
           </div>
         </fieldset>
 
@@ -200,7 +203,7 @@ async function pintarTrajeto() {
   const escola = (ctx.unidades || []).find(u => (u.id || u.numero) === escId);
   const temDestino = modo === 'catalogo' ? !!document.getElementById('f-ativ').value
     : !!(document.getElementById('f-local').value || val('f-dest-nome'));
-  if (!escola || !temDestino) { box.innerHTML = ''; trajeto = null; return; }
+  if (!escola || !temDestino) { box.innerHTML = ''; trajeto = null; revisar(); return; }
 
   const meu = ++pedidoTrajeto;
   box.innerHTML = `<span class="sol-trajeto-txt">Calculando o tempo de viagem…</span>`;
@@ -215,6 +218,9 @@ async function pintarTrajeto() {
   trajeto = r;
   box.innerHTML = `<span class="sol-trajeto-txt ${r.status === 'ok' ? '' : 'fora'}">${esc(explicarTrajeto(r))}</span>`
     + (r.status === 'ok' ? `<span class="sol-trajeto-fonte">Distância: © OpenStreetMap</span>` : '');
+  // O trajeto (trajeto_min) entra no cálculo do intervalo ocupado (D5) -
+  // recalcula o saldo para refletir o horário real, não a janela típica.
+  revisar();
 }
 
 // ── Saldo ao vivo ────────────────────────────────────────────
@@ -236,54 +242,51 @@ async function pintarSaldo() {
   if (!data || !periodo || !alunos) { box.innerHTML = ''; btn.disabled = !!ctx.somenteLeitura; return; }
 
   const meu = ++pedidoSaldo;
-  let saldo, livreAmanha = 0, viagensDoDia = [];
-  try {
-    [saldo, livreAmanha, viagensDoDia] = await Promise.all([
-      saldoDoDia(data),
-      periodo === 'noite' ? livreManhaSeguinte(data) : Promise.resolve(0),
-      periodo === 'tarde' ? listSolicitacoes({ de: data, ate: data }) : Promise.resolve([]),
-    ]);
-  } catch (_) { box.innerHTML = ''; btn.disabled = !!ctx.somenteLeitura; return; }
+  let linha;
+  try { linha = await lerOcupacao(data); }
+  catch (_) { box.innerHTML = ''; btn.disabled = !!ctx.somenteLeitura; return; }
   if (meu !== pedidoSaldo) return;   // resposta velha: descarta
 
-  const r = avaliar({ data, periodo, alunos, saldo, livreAmanha, viagensDoDia });
-  const s = saldo.onibus[periodo];
+  const emb = val('f-emb') || null, ret = val('f-ret') || null;
+  // Com os dois horários, a conta é do INTERVALO do pedido (spec D5/D8).
+  // Sem eles, o número da página Disponibilidade para o período.
+  const iv = emb && ret ? intervaloDaViagem({
+    periodo, embarque: emb, retorno: ret, trajetoMin: trajeto?.min, intervaloMin: linha.intervaloMin,
+  }) : null;
+  const livres = iv ? livresPara(linha, iv.ini, iv.fim, 'onibus') : livresNoPeriodo(linha, 0, periodo, 'onibus');
+  const livresVan = iv ? livresPara(linha, iv.ini, iv.fim, 'vans') : livresNoPeriodo(linha, 0, periodo, 'vans');
+  const totalDia = totalDoDia(linha, 0, 'onibus');
+  const r = avaliar({ data, periodo, alunos, livres, livresVan, totalDia, emb, ret, linha, iv });
 
+  const quando = iv ? `para embarque às ${esc(emb)}` : `no período`;
   const linhas = [
-    `<div class="sol-saldo-num"><b>${s.livre}</b> de ${s.total} ônibus livres em ${esc(fmtData(data))}`
-    + ` · este pedido usa <b>${r.onibus}</b></div>`,
+    totalDia ? `<div class="sol-saldo-num"><b>${Math.max(0, livres)}</b> ônibus livres ${quando} em ${esc(fmtData(data))}`
+      + ` · este pedido usa <b>${r.onibus}</b></div>` : '',
+    linha.aproximado ? '<div class="sol-aviso">Contagem sem horário: o banco ainda não tem a atualização desta versão.</div>' : '',
     ...r.erros.map(e => `<div class="sol-erro">${esc(e.texto)}</div>`),
     ...r.avisos.map(a => `<div class="sol-aviso">${esc(a.texto)}</div>`),
   ];
+  // Quem aprova, num dia sem frota: o cadastro rápido ali mesmo (spec D4).
+  if (ctx.aprovador && r.erros.some(e => e.codigo === 'sem_frota_dia')) linhas.push(await cadastroRapidoHtml(data));
   box.innerHTML = linhas.join('');
-  // Erro barra; aviso não. Para quem aprova, `avaliarPedido` já devolveu
-  // como aviso o que para a escola seria erro - a tela só pinta.
+  ligarCadastroRapido(data, pintarSaldo);
   btn.disabled = r.erros.length > 0 || !!ctx.somenteLeitura;
 }
 
-// Monta o argumento de avaliarPedido a partir do que está na tela.
-function avaliar({ data, periodo, alunos, saldo, livreAmanha, viagensDoDia }) {
-  const livre = {}, livreVan = {};
-  for (const p of ['manha', 'tarde', 'noite']) {
-    livre[p] = saldo.onibus[p].livre;
-    livreVan[p] = saldo.van_adaptada[p].livre;
-  }
+function avaliar({ data, periodo, alunos, livres, livresVan, totalDia, emb, ret, linha, iv }) {
   const dias = Math.round((new Date(data + 'T00:00:00') - new Date(hojeISO() + 'T00:00:00')) / 86400000);
+  const atividade = modo === 'catalogo'
+    ? (ctx.atividades || []).find(x => x.id === document.getElementById('f-ativ').value) : null;
+  const usaOnibus = atividade ? atividade.usa_onibus !== false : true;
+  const precisa = usaOnibus ? Math.ceil(alunos / capacidadeOnibus()) : 0;
   return avaliarPedido({
-    periodo, qtdAlunos: alunos,
+    periodo, qtdAlunos: alunos, usaOnibus,
     qtdCadeirantes: parseInt(val('f-cadeira'), 10) || 0,
-    livre, livreVan, livreManhaSeguinte: livreAmanha,
+    livres, livresVan, totalDia,
+    proximo: iv && precisa > livres ? proximoHorario(linha, { ini: iv.ini, fim: iv.fim, precisa, periodo }) : null,
     diasDeAntecedencia: dias,
-    // O tempo de volta de cada viagem da manhã é o trajeto gravado nela
-    // (a volta refaz as paradas no sentido inverso - spec D4). Viagem sem
-    // trajeto calculado segue com zero, o comportamento de antes.
-    viagensDoDia: viagensDoDia.filter(v => v.periodo === 'manha')
-      .map(v => ({ ...v, viagemVoltaMin: Number(v.trajeto_min) || 0 })),
-    horarioEmbarque: val('f-emb') || null,
-    horarioRetorno: val('f-ret') || null,
-    capacidadeOnibus: capacidadeOnibus(),
-    capacidadeVan: capacidadeVan(),
-    intervaloMin: intervaloMinMin(),
+    horarioEmbarque: emb, horarioRetorno: ret,
+    capacidadeOnibus: capacidadeOnibus(), capacidadeVan: capacidadeVan(),
     antecedenciaMin: antecedenciaMinDias(),
     aprovador: !!ctx.aprovador,
   });
@@ -377,7 +380,17 @@ async function enviar(e) {
     ctx.recarregar?.();
     toast({ titulo: 'Solicitação enviada', texto: escola, tipo: 'sucesso' });
   } catch (err) {
-    reportarErro(err, { msg, titulo: 'Não foi possível enviar' });
+    // O banco recalcula os veículos e trava por data (migration 042): o
+    // horário pode ter deixado de caber entre a última pintura do saldo e
+    // o clique em Enviar - outra escola pode ter acabado de pegar a vaga.
+    if (err.code === 'P0001' && String(err.message || '').startsWith('Sem onibus livres')) {
+      falha(msg, 'Não há ônibus livres para este horário. Escolha outro horário ou outra data.');
+      pintarSaldo();
+    } else if (err.code === '23502') {
+      falha(msg, 'Informe o horário de embarque e o de retorno.');
+    } else {
+      reportarErro(err, { msg, titulo: 'Não foi possível enviar' });
+    }
     btn.disabled = false; btn.textContent = 'Enviar solicitação';
   }
 }

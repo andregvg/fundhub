@@ -13,7 +13,7 @@
 //     da frota extra, em modo remanejamento.
 // ============================================================
 import { editarSolicitacao, PERIODOS, STATUS_RESERVA } from '../sate.model.js';
-import { saldoDoDia, faltaParaConfirmar } from '../saldo.model.js';
+import { lerOcupacao, faltaParaConfirmar } from '../disponibilidade.model.js';
 import { atualizarTrajeto, retratoTrajeto } from '../rota.model.js';
 import { velocidadeOnibusKmh, margemParadaMin } from '../sate.config.js';
 import { abrirFrotaExtra } from './frota-extra.js';
@@ -99,10 +99,11 @@ async function salvar(e, s, ctx, reabrir) {
     ctx.recarregar?.();
     toast({ titulo: 'Pedido remanejado', tipo: 'sucesso' });
 
-    // Pedido que reserva veículo: a nova data comporta? `jaReservado`
-    // porque o próprio pedido já está somado no uso depois de salvo.
+    // Pedido que reserva veículo: a nova data comporta? O próprio pedido
+    // sai da conta pelo `excluir` - ele já ocupa, e contá-lo de novo
+    // criaria frota extra a mais.
     if (STATUS_RESERVA.includes(s.status)) {
-      const falta = faltaParaConfirmar(s, await saldoDoDia(s.data), { jaReservado: true });
+      const falta = faltaParaConfirmar(s, await lerOcupacao(s.data, s.data, { excluir: s.id }));
       if (falta.onibus || falta.vans) return abrirFrotaExtra({ solicitacao: s, falta, modo: 'remanejar', ctx, reabrir });
     }
     await reabrir();

@@ -1,6 +1,6 @@
 // ============================================================
 // FundHub - modules/sate/frota.model.js
-// A frota de veículos do SATE: rótulos, lançamentos e o total do dia.
+// A frota de veículos do SATE: rótulos e lançamentos.
 // Spec: 2026-09-08-sate-modelo-de-dados-design.md § D1-D3, D10.
 //
 // O modelo em uma frase: `fim` nulo = frota EM ABERTO, uma por rótulo e
@@ -8,6 +8,10 @@
 // uma nova aberta encerra a anterior - e isso acontece dentro da função
 // `abrir_frota()` do banco, numa transação só, porque em duas chamadas
 // um erro no meio deixaria o dia sem frota nenhuma.
+//
+// "Quantos veículos estão livres" - por dia OU por horário - mora em
+// `disponibilidade.model.js` (spec 2026-09-26, D5-D7): lê a frota E as
+// solicitações, e não pertence a nenhum dos dois.
 // ============================================================
 import { registrarCache } from '../../shared/cache.js';
 import { sb, hasSupabase } from '../../core/supabase.js';
@@ -98,17 +102,6 @@ export async function getFrotas({ vigenteEm = null, tipo = null } = {}) {
   return data || [];
 }
 
-// A frota vigente (sem data-fim) de cada tipo. No máximo uma por tipo -
-// o índice único do banco garante, não a boa vontade do código.
-export async function getFrotaAberta(tipo = 'onibus') {
-  if (!hasSupabase()) return null;
-  const { data, error } = await sb().from('frota')
-    .select('*, rotulo:frota_rotulo(nome)')
-    .eq('tipo', tipo).is('fim', null).maybeSingle();
-  if (error) { if (ausente(error)) return null; throw error; }
-  return data;
-}
-
 // Os erros que o banco devolve ao gravar frota, em português. 23505 = o
 // índice de UMA aberta por rótulo e tipo; 23514 = fim antes do início.
 function amigavel(error) {
@@ -192,23 +185,6 @@ export async function editarFrota(id, { rotuloId, tipo, quantidade, inicio, fim 
   }).eq('id', id);
   if (error) throw amigavel(error);
   _frotas = null;
-}
-
-// ── Total do dia ─────────────────────────────────────────────
-// A soma de TODA frota vigente na data, por tipo. É "quantos veículos
-// existem naquele dia" - não uma cota por período: o mesmo ônibus serve
-// manhã e tarde, e é isso que a regra do intervalo mínimo governa
-// (spec D4).
-export async function totalDoDia(dataISO) {
-  const base = { onibus: 0, van_adaptada: 0 };
-  if (!hasSupabase() || !dataISO) return base;
-  const { data, error } = await sb().from('frota')
-    .select('tipo, quantidade')
-    .lte('inicio', dataISO)
-    .or(`fim.is.null,fim.gte.${dataISO}`);
-  if (error) { if (ausente(error)) return base; throw error; }
-  for (const f of data || []) base[f.tipo] = (base[f.tipo] || 0) + (f.quantidade || 0);
-  return base;
 }
 
 // Decide um pedido criando a frota extra do dia, numa transação (RPC da

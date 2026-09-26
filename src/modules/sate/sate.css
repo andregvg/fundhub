@@ -101,6 +101,13 @@ body.app-sate { --info-bg: color-mix(in srgb, var(--brand) 12%, var(--surface));
 .sol-erro   { background: var(--erro-bg);    color: var(--danger); }
 .sol-aviso  { background: var(--atencao-bg); color: var(--text); }
 
+/* Cadastro rápido de frota, na linha do saldo (quem aprova, dia sem frota). */
+.sol-cad-frota { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px;
+  border: 1px dashed var(--border-forte); border-radius: var(--radius-btn); }
+.sol-cad-campos { display: grid; grid-template-columns: 1fr; gap: 8px; align-items: end; }
+@media (min-width: 720px) { .sol-cad-campos { grid-template-columns: 2fr 1fr 1fr auto; } }
+.sol-cad-campos label { display: flex; flex-direction: column; gap: 4px; }
+
 /* ── Modal de detalhe ───────────────────────────────────────── */
 .det-trajeto-extras { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; margin-top: 4px; font-size: 13px; }
 .det-trajeto-extras a { display: inline-flex; align-items: center; gap: 4px; }
