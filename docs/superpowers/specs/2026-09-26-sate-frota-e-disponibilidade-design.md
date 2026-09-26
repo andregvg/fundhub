@@ -203,12 +203,13 @@ Migration `042`:
 
 ```json
 { "intervalo_min": 120,
-  "frota":  [{ "data": "2026-10-05", "onibus": 9, "vans": 1 }],
-  "ocupacoes": [{ "data": "2026-10-05", "ini": 450, "fim": 870, "onibus": 2, "vans": 0 }] }
+  "frota":  [{ "dia": 0, "onibus": 9, "vans": 1 }],
+  "ocupacoes": [{ "dia": 0, "ini": 450, "fim": 870, "onibus": 2, "vans": 0 }] }
 ```
 
-`ini`/`fim` em minutos a partir de 00:00 de `data` (`fim` passa de 1440 na
-noite). **Anônimo:** nem id, nem escola, nem destino - só quando e quanto.
+`dia` é o deslocamento em dias a partir de `p_de` (de -1 a n+1) - o front
+não precisa fazer aritmética de data para montar o eixo. `ini`/`fim` em
+minutos a partir de 00:00 do `dia` (`fim` passa de 1440 na noite). **Anônimo:** nem id, nem escola, nem destino - só quando e quanto.
 É a mesma promessa do `saldo_transporte`, com horário a mais; horário sem
 dono não identifica ninguém.
 
@@ -227,9 +228,22 @@ decisões de quem aprova.
    cadeirantes e capacidades configuradas - o número enviado pela tela não
    vale;
 4. `vagas_transporte(...)` para o intervalo do pedido; se faltar ônibus,
-   `raise` com errcode `P0001` e mensagem em português ("Não há ônibus
-   livres para este horário. Escolha outro horário ou outra data."). Falta
-   de **van** não barra (regra de sempre: aviso, a Gerência providencia).
+   `raise` com errcode `P0001` (mensagem sem acento, padrão das
+   migrations); o front traduz para "Não há ônibus livres para este
+   horário. Escolha outro horário ou outra data." Falta de **van** não
+   barra (regra de sempre: aviso, a Gerência providencia).
+
+A trava cobre **todos os dias** que o intervalo do pedido toca (a noite
+trava também o dia seguinte), em ordem crescente - sem deadlock.
+
+**Sem atalho pela API.** A barreira só vale se não houver outro caminho:
+gatilhos em `solicitacao_transporte` e `solicitacao_participacao`, para
+quem não escreve no SATE, recusam (`42501`) inserção que não venha de
+`criar_viagem()` (marca de transação `sate.criar_viagem`, que o PostgREST
+não expõe) e alteração de data, período, horários, veículos, trajeto ou
+escola do pedido, e de cota, horário, parada ou ordem da participação. O
+que a escola faz pela tela - cancelar, pedir cancelamento, sair da viagem
+- muda só situação e motivo, e continua passando.
 
 Duas implementações da mesma conta (JS para mostrar, SQL para barrar) é
 o que a R15 pede. Para não divergirem, a spec fixa a **tabela de casos** abaixo;
