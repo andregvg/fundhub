@@ -13,13 +13,11 @@
 // (CAP_ONIBUS = 44). Virou configuração pelo mesmo motivo: é um número
 // da operação, não do domínio.
 //
-// O CADASTRO da frota também é configuração, e o painel dele está aqui
-// como item de tipo `painel` (views/frota-painel.js): configurar é
-// interrupção curta, e é o critério que o hub usa para decidir entre a
-// engrenagem e uma aba.
+// O cadastro da frota saiu daqui em 26/09/2026 para a página Frota do
+// SATE: ficava escondido numa engrenagem e ninguém achava o que estava
+// cadastrado (spec 2026-09-26, D2).
 // ============================================================
 import { conf } from '../../core/configuracoes.js';
-import { pintarFrota } from './views/frota-painel.js';
 
 // Os padrões vivem AQUI, no acesso, e não em core/configuracoes.js -
 // aquele arquivo só sabe "o que foi gravado".
@@ -76,12 +74,6 @@ export const DECLARACAO = {
       tipo: 'opcao', opcoes: CORES, padrao: PADRAO.cor,
       rotulo: 'Cor principal do SATE',
       dica: 'A cor de destaque da página do SATE: botões, menu e marca. Vale para a rede toda.',
-    },
-    {
-      chave: 'frota', escopo: 'rede', grupo: 'regras',
-      rotulo: 'Frota disponível',
-      dica: 'Quantos veículos existem e desde quando. Reforços de evento somam à frota vigente.',
-      painel: pintarFrota,
     },
     {
       chave: 'intervalo_min_periodos', escopo: 'rede', grupo: 'regras',

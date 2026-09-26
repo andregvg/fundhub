@@ -28,7 +28,7 @@ export const PAGINAS = Object.freeze({
   fichas: { rotulo: 'Fichas de ônibus', ico: 'imprimir', view: paginaFichas, aprovador: true,
     desc: 'Uma ficha por veículo, para enviar à empresa de transporte.' },
   frota: { rotulo: 'Frota', ico: 'onibus', view: paginaFrota, aprovador: true,
-    desc: 'Veículos do dia, quanto já está comprometido e a frota extra pendente de decisão.' },
+    desc: 'As frotas cadastradas: quantos veículos, de quando a quando, e de onde vêm.' },
   catalogo: { rotulo: 'Catálogo', ico: 'projeto', view: paginaCatalogo,
     desc: 'As atividades extraclasse oferecidas pela SME.' },
   locais: { rotulo: 'Locais', ico: 'visita', view: paginaLocais, aprovador: true,

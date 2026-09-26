@@ -47,42 +47,27 @@ body.app-sate { --info-bg: color-mix(in srgb, var(--brand) 12%, var(--surface));
 .atv-acoes { display: flex; gap: 6px; }
 .atv-acoes .mini-btn { padding: 4px 9px; }
 
-/* Frota: total do dia × uso = saldo (migration 035) */
-.frota { display: flex; flex-direction: column; gap: 10px; max-width: 640px; }
-.frota-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  align-items: center;
-  padding: 12px 14px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-}
-.fr-per { grid-column: 1 / -1; font-weight: 700; }
-.fr-uso, .fr-saldo { color: var(--muted); font-size: 13px; }
-.fr-uso b, .fr-saldo b { margin-left: 4px; color: var(--text); font-size: 16px; }
-.fr-saldo.neg b { color: var(--danger); }
-
 @media (min-width: 560px) {
   .sate-form { padding: 20px; }
   .modo-toggle { flex-direction: row; gap: 18px; flex-wrap: wrap; }
 }
 
-@media (min-width: 720px) {
-  .frota-row { grid-template-columns: 90px 1fr auto; gap: 16px; padding: 12px 16px; }
-  .fr-per { grid-column: auto; }
+/* Linha simples de lista (guia Fichas: confirmadas sem ficha). */
+.fr-linha {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 7px 11px;
+  margin-bottom: 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-btn);
+  background: var(--surface-2);
+  font-size: 13.5px;
 }
 
-/* Um bloco por tipo de veículo (ônibus, van adaptada). O tipo sem frota
-   vigente na data não é desenhado - uma linha de zeros é ruído. */
-.fr-tipo { display: flex; flex-direction: column; gap: 8px; }
-.fr-tipo + .fr-tipo { margin-top: 16px; }
-
-/* De onde vieram os veículos do dia: "9 Regular + 16 Feira do Livro".
-   Sem isto o painel mostra 25 e ninguém reconstrói a conta. */
-.fr-composicao { max-width: 640px; margin-top: 20px; }
+/* De onde vieram os veículos: "9 Regular + 16 Feira do Livro". Usado na
+   lista de rótulos e na frota extra sem pedido. */
 .fr-lote {
   display: flex;
   align-items: center;
@@ -136,36 +121,17 @@ body.app-sate { --info-bg: color-mix(in srgb, var(--brand) 12%, var(--surface));
 .det-acoes-pe > button { flex: 0 0 auto; }
 .det-acoes-pe > [data-acao="remanejar"] { margin-right: auto; }
 
-/* ── Painel de frota, na engrenagem ─────────────────────────── */
-.cfg-frota { display: flex; flex-direction: column; gap: 4px; }
-.fr-linha {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  padding: 7px 11px;
-  margin-bottom: 6px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-btn);
-  background: var(--surface-2);
-  font-size: 13.5px;
-}
-.fr-linha.inativo { opacity: .65; }
-/* O botão de excluir vai para a direita sozinho - sem isto ele encosta
-   no texto e a linha deixa de ter um ponto de ação previsível. */
-.fr-linha .mini-btn:last-child { margin-left: auto; }
-.fr-nova {
-  display: flex;
-  align-items: end;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin: 10px 0 4px;
-  padding: 12px;
-  border: 1px dashed var(--border-forte);
-  border-radius: var(--radius-btn);
-}
-.fr-nova input[type="number"] { width: 84px; }
-.fr-nova input[type="date"], .fr-nova select { min-width: 130px; }
+/* ── Página Frota ──────────────────────────────────────────── */
+/* Situação da frota: a mesma família de cor das situações de pedido. */
+.tag.fr-sit-vigente  { color: var(--ok); background: color-mix(in srgb, var(--ok) 16%, transparent); }
+.tag.fr-sit-futura   { color: var(--accent); background: color-mix(in srgb, var(--accent) 16%, transparent); }
+.tag.fr-sit-encerrada { color: var(--muted); background: var(--surface-3); }
+.fr-lote.inativo { opacity: .65; }
+/* Modal de rótulos: lista e o campo de criar numa linha (R17: botão ao
+   lado de campo usa a altura do campo - a regra estrutural já cobre). */
+.rt-lista { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+.rt-novo { display: flex; align-items: end; gap: 8px; }
+.rt-novo label { flex: 1 1 auto; }
 
 /* ── Fichas de ônibus (guia Fichas) ─────────────────────────
    O documento que a empresa de transporte recebe. Ela NÃO entra no
