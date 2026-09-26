@@ -9,6 +9,52 @@ versionamento **MINOR** = módulo novo ou mudança de modelo de dados, **PATCH**
 
 ---
 
+## [0.37.0] - 2026-09-26
+
+> **Exige rodar as migrations `042` e `043`**, nesta ordem. Sem a 042, a
+> contagem de ônibus do SATE continua por período e a escola não é barrada
+> no servidor; sem a 043, os nomes não viram maiúsculas e a Equipe SME
+> segue com os acessos antigos.
+
+### Adicionado
+
+- **SATE - página Frota** com todas as frotas cadastradas: filtros por
+  situação (vigentes, futuras, encerradas), tipo e período; cadastrar,
+  editar e excluir; rótulos num só lugar.
+- **SATE - página Disponibilidade**, para todos: uma semana por vez, com
+  os ônibus livres de manhã, à tarde (e a partir de que horário) e à noite.
+- **SATE - ajuda dentro do SATE**: "Como usar o SATE" abre o tutorial sem
+  sair da página.
+- Frotas de origens diferentes podem valer ao mesmo tempo, cada uma com
+  seu rótulo, e somam.
+
+### Mudado
+
+- **SATE - a vaga passa a ser contada pelo horário.** Um ônibus fica
+  ocupado do embarque até voltar, mais o intervalo mínimo; o da noite, até
+  o meio-dia seguinte. O pedido mostra quantos ônibus estão livres no
+  horário escolhido e, se faltar, a partir de que horário há vaga.
+- **SATE - pedido enviado já reserva a vaga**, e duas escolas não
+  conseguem mais pedir o mesmo último ônibus ao mesmo tempo.
+- **SATE - horários de embarque e retorno passam a ser obrigatórios.**
+- **SATE - viagem só com frota cadastrada.** Num dia sem frota, quem
+  aprova cadastra ali mesmo, no pedido.
+- **Configurações** com cada grupo num cartão e cada ajuste numa linha.
+- **Usuários**: nomes de exibição sempre em maiúsculas; a Ajuda mostra a
+  tabela de papéis e acessos padrão sempre atualizada.
+- **Equipe SME** passa a ter só leitura em SATE, Viagens, Afastamentos,
+  Projetos, Ocorrências, Atas e Visitas.
+
+### Corrigido
+
+- O texto das opções de permissão por módulo não cabia no campo.
+- A chave "Acesso ativo" ficava desalinhada da caixa do papel.
+- Um ônibus reservado para a noite podia ser pedido de novo para a manhã
+  seguinte.
+- O cadastro da frota ficava escondido nas configurações do SATE.
+
+---
+
 ## [0.36.0] - 2026-09-14
 
 > **Exige rodar a migration `041_realtime_participacao.sql`** para os avisos de
