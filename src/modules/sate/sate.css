@@ -300,3 +300,24 @@ body.app-sate { --info-bg: color-mix(in srgb, var(--brand) 12%, var(--surface));
 }
 .sate-simulacao .mini-btn { margin-left: auto; }
 .sate-ver-como { max-width: 520px; display: flex; flex-direction: column; gap: 12px; }
+
+/* ── Página Disponibilidade ────────────────────────────────── */
+.disp-nav { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.disp-semana { font-size: 15px; margin: 4px 0 12px; }
+.disp-grade { display: grid; grid-template-columns: 1fr; gap: 10px; }
+@media (min-width: 720px)  { .disp-grade { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1100px) { .disp-grade { grid-template-columns: repeat(4, 1fr); } }
+.disp-dia {
+  display: flex; flex-direction: column; gap: 6px; padding: 12px;
+  border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface);
+}
+.disp-dia.passado { opacity: .55; }
+.disp-dia.clicavel { cursor: pointer; }
+.disp-dia.clicavel:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.disp-dia-cab { display: flex; justify-content: space-between; gap: 8px; }
+.disp-dia-cab span, .disp-tot { color: var(--muted); font-size: 12.5px; }
+.disp-per { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; }
+.disp-per > span:first-child { color: var(--muted); flex: 0 0 auto; }
+.disp-per > span:last-child { text-align: right; }
+.disp-van { border-top: 1px solid var(--border); padding-top: 6px; }
+.disp-comp { border-top: 1px solid var(--border); padding-top: 6px; font-size: 12.5px; color: var(--muted); }

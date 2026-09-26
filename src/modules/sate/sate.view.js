@@ -16,6 +16,7 @@ import { esc } from '../../shared/dom.js';
 import { loading } from '../../shared/ui/feedback.js';
 
 import * as paginaSolicitacoes from './views/solicitacoes.js';
+import * as paginaDisponibilidade from './views/disponibilidade.js';
 import * as paginaFichas from './views/fichas.js';
 import * as paginaFrota from './views/frota.js';
 import * as paginaCatalogo from './views/catalogo.js';
@@ -25,6 +26,8 @@ import * as paginaLocais from './views/locais.js';
 export const PAGINAS = Object.freeze({
   solicitacoes: { rotulo: 'Solicitações', ico: 'documento', view: paginaSolicitacoes,
     desc: 'Pedidos de transporte para atividades extraclasse e a validação da Gerência.' },
+  disponibilidade: { rotulo: 'Disponibilidade', ico: 'calendario', view: paginaDisponibilidade,
+    desc: 'Quantos ônibus estão livres em cada dia e período, para planejar o pedido.' },
   fichas: { rotulo: 'Fichas de ônibus', ico: 'imprimir', view: paginaFichas, aprovador: true,
     desc: 'Uma ficha por veículo, para enviar à empresa de transporte.' },
   frota: { rotulo: 'Frota', ico: 'onibus', view: paginaFrota, aprovador: true,
