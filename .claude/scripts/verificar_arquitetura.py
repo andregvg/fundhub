@@ -473,6 +473,28 @@ def check_documentacao():
                 add('BLOQUEIA', 11, os.path.join(docs_dir, f), 0,
                     'docs/modulos/%s.md sem modulo correspondente com doc:true' % mod)
 
+    # 11d. Blocos vivos: todo ```vivo usado num tutorial precisa de um
+    # preenchedor em ajuda.view.js, e a Ajuda de Usuarios precisa manter a
+    # tabela de papeis viva - a copia estatica era o que envelhecia.
+    ajuda_view = os.path.join(SRC, 'modules', 'ajuda', 'ajuda.view.js')
+    conhecidos = set(re.findall(r"'([a-z0-9-]+)':\s*pintar", ler(ajuda_view))) \
+        if os.path.isfile(ajuda_view) else set()
+    if os.path.isdir(docs_dir):
+        for f in sorted(os.listdir(docs_dir)):
+            if not f.endswith('.md'):
+                continue
+            caminho = os.path.join(docs_dir, f)
+            usados = re.findall(r'```vivo\s*\n\s*([^\n`]+?)\s*\n\s*```', ler(caminho))
+            for vid in usados:
+                if vid not in conhecidos:
+                    add('BLOQUEIA', 11, caminho, 0,
+                        'bloco vivo "%s" sem preenchedor em ajuda.view.js (VIVOS)' % vid)
+    usuarios_md = os.path.join(docs_dir, 'usuarios.md')
+    if os.path.isfile(usuarios_md) and not re.search(
+            r'```vivo\s*\n\s*permissoes-padrao\s*\n\s*```', ler(usuarios_md)):
+        add('BLOQUEIA', 11, usuarios_md, 0,
+            'a Ajuda de Usuarios perdeu o bloco vivo "permissoes-padrao" - a tabela de papeis '
+            'precisa vir do banco, nao de texto')
 
 # ------------------------------------------------------------------
 # 12. Classe CSS orfa  (--)

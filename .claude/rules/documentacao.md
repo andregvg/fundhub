@@ -46,8 +46,11 @@ Espinha fixa (previsibilidade > criatividade num texto de referência):
 | a | `doc: true` sem `docs/modulos/<id>.md` | bloqueia |
 | b | `.md` órfão (sem módulo `doc: true`) | bloqueia |
 | c | último commit em `src/modules/<id>/` mais novo que o do `.md` | aviso |
+| d | bloco vivo sem preenchedor, ou `usuarios.md` sem `permissoes-padrao` | bloqueia |
 
 O leitor de Markdown (`src/modules/ajuda/markdown.js`) suporta um subconjunto
 fechado: `#`–`###`, `**forte**`, `*ênfase*`, `` `código` ``, listas `-`/`1.`
-(um nível), tabelas GFM, `>` citação, cerca de três crases, `[texto](url)`,
-`---`. Precisou de mais? O texto é que está complicado demais.
+(um nível), tabelas GFM, `>` citação, cerca de três crases (e ```` ```vivo ````
++ id, bloco preenchido pela tela com dado do banco - hoje só
+`permissoes-padrao`), `[texto](url)`, `---`. Precisou de mais? O texto é que
+está complicado demais.

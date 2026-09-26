@@ -9,7 +9,8 @@
 // com <script> aparece como texto. Escapar primeiro, formatar depois.
 //
 // Suportado: # a ###, **forte**, *ênfase*, `código`, listas - e 1.
-// (um nível), tabelas GFM, > citação, ``` cerca, [texto](url), ---.
+// (um nível), tabelas GFM, > citação, ``` cerca (e ```vivo, bloco
+// preenchido pela tela), [texto](url), ---.
 // Fora: HTML cru (escapado), imagens, aninhamento profundo, notas.
 // ============================================================
 
@@ -51,15 +52,21 @@ export function markdownParaHtml(texto) {
   while (i < linhas.length) {
     const l = linhas[i];
 
-    // Bloco de código cercado.
+    // Bloco de código cercado. ```vivo com um id é um BLOCO VIVO: a tela o
+    // preenche com dado do banco (ajuda.view.js § VIVOS). Id fora de
+    // [a-z0-9-] continua código - nada vindo do texto vira atributo sem
+    // passar por aqui.
     if (l.trimStart().startsWith('```')) {
+      const info = l.trim().slice(3).trim();
       const corpo = [];
       i++;
       while (i < linhas.length && !linhas[i].trimStart().startsWith('```')) {
         corpo.push(linhas[i]); i++;
       }
       i++; // pula o fechamento
-      out.push(`<pre><code>${corpo.join('\n')}\n</code></pre>`);
+      const id = corpo.join('').trim();
+      if (info === 'vivo' && /^[a-z0-9-]+$/.test(id)) out.push(`<div class="md-vivo" data-vivo="${id}"></div>`);
+      else out.push(`<pre><code>${corpo.join('\n')}\n</code></pre>`);
       continue;
     }
 

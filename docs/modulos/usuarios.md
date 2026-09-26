@@ -28,6 +28,19 @@ níveis são:
 | Leitura | Vê tudo do módulo, não altera nada. |
 | Escrita | Vê e altera tudo do módulo. |
 
+### Papéis e níveis padrão
+
+O que cada papel enxerga **antes** de qualquer exceção individual. A tabela
+é montada na hora a partir do sistema - quando um padrão muda, ela muda junto.
+
+```vivo
+permissoes-padrao
+```
+
+\* Nível implícito: o administrador tem escrita em tudo, inclusive em
+módulos novos; os módulos de serviço (Ajuda, Configurações, Meus dados)
+são de leitura para todos.
+
 ## Passo a passo
 
 ### Encontrar um acesso na lista
@@ -48,14 +61,18 @@ No celular a lista mostra só nome e papel. **Toque na linha** para abrir o rest
 
 1. Clique em **Adicionar acesso**.
 2. Informe o e-mail institucional da pessoa.
-3. Escolha o **papel**. A descrição abaixo do campo explica o que ele libera.
-4. Marque os **segmentos** em que a pessoa atua (Ensino Fundamental, Educação
+3. Se quiser, informe o **Nome de exibição** - o sistema o grava em MAIÚSCULAS,
+   para ficar igual em toda a lista.
+4. Escolha o **papel**. A descrição abaixo do campo explica o que ele libera.
+5. Marque os **segmentos** em que a pessoa atua (Ensino Fundamental, Educação
    Infantil). Isso pré-preenche os filtros das telas para ela - não é
    restrição de acesso.
-5. Se precisar de um ajuste fino, abra **Ver e ajustar** e mude o nível em
-   módulos específicos. Use com parcimônia: exceção para muita gente é sinal de
-   que falta um papel novo.
-6. Salve.
+6. Se precisar de um ajuste fino, abra **Ver e ajustar (o padrão vem do
+   papel)** e mude o nível em módulos específicos - cada um mostra
+   "Padrão: <nível>" com o que a pessoa já teria pelo papel escolhido. Use
+   com parcimônia: exceção para muita gente é sinal de que falta um papel
+   novo.
+7. Salve.
 
 ## Regras que o sistema aplica
 
@@ -87,4 +104,4 @@ que o e-mail está exatamente igual ao que a pessoa usa para entrar.
 **Posso dar acesso a um e-mail que não seja institucional?**
 Não. O login do FundHub é restrito ao domínio da Secretaria.
 
-> Atualizado na versão 0.24.0.
+> Atualizado na versão 0.37.0.

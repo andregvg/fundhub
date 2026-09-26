@@ -57,3 +57,15 @@ test('régua ---', () => {
 test('parágrafo simples', () => {
   assert.match(markdownParaHtml('uma frase solta'), /<p>uma frase solta<\/p>/);
 });
+
+test('cerca vivo vira um bloco a preencher pela tela', () => {
+  const h = markdownParaHtml('antes\n\n```vivo\npermissoes-padrao\n```\n\ndepois');
+  assert.match(h, /<div class="md-vivo" data-vivo="permissoes-padrao"><\/div>/);
+  assert.ok(!h.includes('<pre>'));
+});
+
+test('cerca vivo com id inválido continua sendo código', () => {
+  const h = markdownParaHtml('```vivo\n<script>x</script>\n```');
+  assert.ok(!h.includes('md-vivo'));
+  assert.ok(h.includes('&lt;script&gt;'));
+});

@@ -36,3 +36,4 @@
 .ajuda-doc th { background: var(--surface-2); }
 .ajuda-doc hr { border: 0; border-top: 1px solid var(--border); margin: 20px 0; }
 .ajuda-doc a { color: var(--brand); }
+.ajuda-doc .md-vivo { margin: 12px 0 16px; }

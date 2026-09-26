@@ -8,10 +8,57 @@
 import { MODULOS, veModulo } from '../../core/registry.js';
 import { esc } from '../../shared/dom.js';
 import { ico } from '../../shared/ui/icones.js';
-import { loading, emptyState } from '../../shared/ui/feedback.js';
+import { loading, emptyState, erroBox } from '../../shared/ui/feedback.js';
 import { markdownParaHtml } from './markdown.js';
+import { getMatrizDePermissoes } from '../usuarios/usuarios.model.js';
+import { rotulaNivel, OCULTO } from '../../core/permissoes.js';
+import { montarTabela } from '../../shared/ui/tabela.js';
 
 const comTutorial = () => MODULOS.filter(m => m.doc === true && veModulo(m));
+
+// ── Blocos vivos ─────────────────────────────────────────────
+// Um tutorial pede dado do banco com ```vivo + id (markdown.js). Assim a
+// tabela de papéis na Ajuda de Usuários nunca envelhece: ela É o banco.
+// O verificador (checagem 11d) bloqueia id desconhecido e a remoção do
+// bloco de permissões.
+//
+// O desenho da matriz é o mesmo da Documentação técnica (docs.view.js).
+// São dois usos, então cada view tem o seu - a terceira cópia extrai (R13).
+const VIVOS = {
+  'permissoes-padrao': pintarPermissoes,
+};
+
+async function preencherVivos(box) {
+  for (const el of box.querySelectorAll('.md-vivo')) {
+    const fn = VIVOS[el.dataset.vivo];
+    if (!fn) { el.innerHTML = '<p class="vazio">Conteúdo indisponível.</p>'; continue; }
+    try { await fn(el); } catch (err) { el.innerHTML = erroBox(err); }
+  }
+}
+
+async function pintarPermissoes(el) {
+  const matriz = await getMatrizDePermissoes();
+  const celula = (x) => {
+    const txt = esc(rotulaNivel(x.nivel)) + (x.implicito ? '*' : '');
+    return x.nivel === OCULTO ? `<span class="vazio">${txt}</span>` : `<b>${txt}</b>`;
+  };
+  montarTabela(el, {
+    colunas: [
+      { id: 'modulo', rotulo: 'Módulo', prioridade: 1, tipo: 'texto', valor: l => l.nome },
+      ...matriz.papeis.map((p, i) => ({
+        id: p.chave, rotulo: p.rotulo, prioridade: i < 2 ? 1 : (i < 4 ? 2 : 3),
+        valor: l => rotulaNivel(l.niveis[p.chave].nivel), celula: l => celula(l.niveis[p.chave]),
+      })),
+    ],
+    linhas: matriz.linhas,
+    chave: l => l.id,
+    buscarEm: ['modulo'],
+    ordem: { coluna: 'modulo', dir: 'asc' },
+    porPagina: 100,
+    substantivo: 'módulos',
+    vazio: { ico: 'acesso', titulo: 'Sem módulos', texto: 'Nenhum módulo ativo.' },
+  });
+}
 
 export async function render(app, ctx = {}) {
   const alvoId = ctx.params?.get('m') || '';
@@ -78,6 +125,7 @@ async function pintarTutorial(app, mod) {
     const resp = await fetch(`docs/modulos/${mod.id}.md`, { cache: 'no-cache' });
     if (!resp.ok) throw new Error('nao encontrado');
     box.innerHTML = markdownParaHtml(await resp.text());
+    await preencherVivos(box);
   } catch {
     box.innerHTML = emptyState(ico('documento', { tam: 32 }), 'Tutorial ainda não disponível',
       'O texto deste módulo ainda não foi publicado.');
