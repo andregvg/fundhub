@@ -1,6 +1,6 @@
 // ============================================================
 // FundHub - modules/sate/sate.model.js
-// Solicitações de transporte: leitura, ciclo de vida e saldo do dia.
+// Solicitações de transporte: leitura e ciclo de vida.
 // Spec: 2026-09-08-sate-modelo-de-dados-design.md § D4, D5, D8.
 //
 // A frota mora em `frota.model.js`, as regras puras em `regras.model.js`,

@@ -267,7 +267,10 @@ async function pintarSaldo() {
     ...r.avisos.map(a => `<div class="sol-aviso">${esc(a.texto)}</div>`),
   ];
   // Quem aprova, num dia sem frota: o cadastro rápido ali mesmo (spec D4).
-  if (ctx.aprovador && r.erros.some(e => e.codigo === 'sem_frota_dia')) linhas.push(await cadastroRapidoHtml(data));
+  if (ctx.aprovador && r.erros.some(e => e.codigo === 'sem_frota_dia')) linhas.push(await cadastroRapidoHtml(data, periodo));
+  // cadastroRapidoHtml() consultou o banco (getRotulos): outra pintura
+  // pode ter começado e terminado nesse meio-tempo, ou o modal fechou.
+  if (meu !== pedidoSaldo || !document.getElementById('f-saldo')) return;
   box.innerHTML = linhas.join('');
   ligarCadastroRapido(data, pintarSaldo);
   btn.disabled = r.erros.length > 0 || !!ctx.somenteLeitura;

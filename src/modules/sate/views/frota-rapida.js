@@ -14,22 +14,29 @@
 // ============================================================
 import { criarLote, getRotulos, criarRotulo } from '../frota.model.js';
 import { esc, val, falha } from '../../../shared/dom.js';
-import { fmtData } from '../../../shared/format.js';
+import { fmtData, addDias } from '../../../shared/format.js';
 import { toast } from '../../../shared/ui/toast.js';
 import { reportarErro } from '../../../shared/ui/feedback.js';
 
-export async function cadastroRapidoHtml(data) {
+const NOVO = '__novo__';
+
+// `periodo` só decide o "Até" padrão: a viagem da NOITE ocupa até o
+// meio-dia seguinte (spec D5), então um lote que cubra só o dia do
+// pedido deixaria a própria viagem sem frota na volta. O mínimo
+// continua o dia do pedido - um lote não pode nascer no passado dele.
+export async function cadastroRapidoHtml(data, periodo) {
   const rotulos = await getRotulos().catch(() => []);
+  const fimPadrao = periodo === 'noite' ? addDias(data, 1) : data;
   return `<div class="sol-cad-frota">
     <div class="sol-cad-campos">
       <label>Rótulo <select id="cf-rotulo">
         <option value="">Selecione…</option>
         ${rotulos.map(r => `<option value="${esc(r.id)}">${esc(r.nome)}</option>`).join('')}
-        <option value="__novo__">+ Novo rótulo…</option>
+        <option value="${NOVO}">+ Novo rótulo…</option>
       </select></label>
       <label id="cf-novo-w" hidden>Nome do rótulo <input id="cf-novo" type="text" maxlength="60" /></label>
       <label>Ônibus <input id="cf-qtd" type="number" min="1" inputmode="numeric" /></label>
-      <label>Até <input id="cf-fim" type="date" min="${esc(data)}" value="${esc(data)}" /></label>
+      <label>Até <input id="cf-fim" type="date" min="${esc(data)}" value="${esc(fimPadrao)}" /></label>
       <button type="button" class="btn-secundario" id="cf-ok">Cadastrar frota</button>
     </div>
     <span class="form-hint">Frota em aberto (sem data para acabar) se cadastra na página Frota.</span>
@@ -43,18 +50,34 @@ export function ligarCadastroRapido(data, aoCadastrar) {
   const ok = document.getElementById('cf-ok');
   if (!ok) return;
   const sel = document.getElementById('cf-rotulo');
-  sel.addEventListener('change', () => { document.getElementById('cf-novo-w').hidden = sel.value !== '__novo__'; });
+  sel.addEventListener('change', () => { document.getElementById('cf-novo-w').hidden = sel.value !== NOVO; });
   ok.addEventListener('click', async () => {
     const msg = document.getElementById('cf-msg'); msg.className = 'auth-msg';
     const qtd = parseInt(val('cf-qtd'), 10);
     if (!sel.value) return falha(msg, 'Escolha ou crie o rótulo.');
-    if (sel.value === '__novo__' && !val('cf-novo')) return falha(msg, 'Informe o nome do rótulo.');
+    if (sel.value === NOVO && !val('cf-novo')) return falha(msg, 'Informe o nome do rótulo.');
     if (!qtd || qtd < 1) return falha(msg, 'Informe quantos ônibus.');
     const fim = val('cf-fim') || data;
     if (fim < data) return falha(msg, 'A data final não pode ser antes do dia do pedido.');
     ok.disabled = true;
     try {
-      const rotuloId = sel.value === '__novo__' ? (await criarRotulo(val('cf-novo'))).id : sel.value;
+      let rotuloId = sel.value;
+      if (sel.value === NOVO) {
+        const nome = val('cf-novo');
+        const r = await criarRotulo(nome);
+        rotuloId = r.id;
+        // Rótulo criado: vira opção de verdade e fica selecionado ANTES
+        // de tentar salvar o lote - mesmo cuidado de frota-form.js. Sem
+        // isto, se o lote falhar (ex.: já existe frota em aberto com
+        // esse tipo), tentar de novo recria o rótulo, que já existe, e
+        // falha com "Já existe um rótulo…" em vez do erro de verdade.
+        const opt = document.createElement('option');
+        opt.value = r.id;
+        opt.textContent = nome;
+        sel.querySelector(`option[value="${NOVO}"]`).before(opt);
+        sel.value = r.id;
+        document.getElementById('cf-novo-w').hidden = true;
+      }
       await criarLote({ rotuloId, quantidade: qtd, inicio: data, fim, tipo: 'onibus' });
       toast({ titulo: 'Frota cadastrada', texto: fmtData(data), tipo: 'sucesso' });
       aoCadastrar?.();
