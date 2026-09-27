@@ -38,8 +38,8 @@ toda.
 
 ## O que dá para fazer aqui
 
-- Pedir transporte para uma atividade do catálogo da SME ou para uma atividade
-  organizada pela própria escola.
+- Pedir transporte para uma atividade fora da escola, com o destino
+  escolhido na lista de locais ou digitado à mão.
 - Acompanhar em que pé está cada pedido: solicitado, em análise, confirmado,
   negado ou cancelado.
 - Consultar, na página **Disponibilidade**, quantos veículos estão livres em
@@ -173,32 +173,57 @@ alerta para conferir.
 ### Pedir transporte
 
 1. No menu, em **Solicitações**, clique no botão **Nova solicitação**. Abre uma
-   janela com o formulário dividido em quatro partes: o que, quando, quem vai,
-   e contato.
-2. Em **O que**, escolha a atividade. Se for uma atividade organizada pela sua
-   escola, marque a opção de outra atividade e informe o destino.
-3. Em **Quando**, informe a data, o período e os horários de embarque e de
-   retorno - os dois são **obrigatórios**: é a partir deles que o sistema
-   conta quantos ônibus estão livres.
-4. Em **Quem vai**, informe a escola, as turmas, quantos estudantes vão e
-   quantos usam **cadeira de rodas**. O sistema calcula sozinho quantos ônibus
-   e quantas vans são necessários.
-5. Escolhidas a escola e a atividade, aparece o **tempo de viagem** estimado
-   até o destino. Se não aparecer, a linha diz o porquê - o pedido pode ser
+   janela com o formulário dividido em blocos: Origem, Destino, Quando,
+   Responsável pela visita, Acessibilidade e Observações da escola.
+2. Em **Origem**, escolha a escola (só aparece a opção se você enxergar mais
+   de uma), as turmas e o número de estudantes.
+3. Em **Destino**, busque o local no campo **Local** - digite parte do nome e
+   escolha da lista. Endereço, Número e Bairro aparecem preenchidos sozinhos.
+   Não achou o lugar? Clique em **Local não está na lista**: liberam-se os
+   campos Nome do local, Endereço, Número e Bairro, para você preencher à mão
+   - os quatro são obrigatórios, porque é isso que a empresa de transporte lê
+   na ficha do motorista. Para voltar a escolher da lista, clique em
+   **Escolher da lista**.
+4. Em **Quando**, informe a data e os horários de embarque e de retorno - os
+   dois são **obrigatórios**: é a partir deles que o sistema conta quantos
+   ônibus estão livres e calcula o **período**, mostrado logo abaixo dos
+   campos, sem que você precise escolher:
+
+   | Embarque | Retorno | Período |
+   |---|---|---|
+   | antes das 12h | até 12h | Manhã |
+   | antes das 12h | depois das 12h | Manhã e tarde |
+   | das 12h às 18h | qualquer horário | Tarde |
+   | a partir das 18h | qualquer horário (inclusive depois da meia-noite) | Noite |
+
+5. Em **Responsável pela visita**, informe o professor(a) responsável e o
+   telefone/WhatsApp - os dois são **obrigatórios**, para a empresa de
+   transporte e a Gerência conseguirem falar com alguém em caso de dúvida.
+6. Em **Acessibilidade**, informe quantos estudantes usam **cadeira de
+   rodas** e quantos são **surdos**, e marque **Outra necessidade
+   específica** se houver mais alguma coisa - descreva-a em Observações. O
+   sistema calcula sozinho quantos ônibus e quantas vans adaptadas são
+   necessários; surdo não muda o veículo, mas o dado vai para a ficha da
+   viagem.
+7. Escolhidos a escola e o destino, aparece o **tempo de viagem** estimado
+   até lá. Se não aparecer, a linha diz o porquê - o pedido pode ser
    enviado assim mesmo.
-6. **Acompanhe a linha de saldo** logo acima do botão de enviar: "3 ônibus
+8. **Acompanhe a linha de saldo** logo acima do botão de enviar: "3 ônibus
    livres para embarque às 13:00 em 05/10 · este pedido usa 2". Antes de
    preencher os dois horários, ela mostra o número do período, o mesmo que
    aparece em Disponibilidade; depois, conta pelo horário exato, e se
    atualiza sozinha a cada troca.
-7. Se faltar ônibus no horário escolhido e houver um horário do mesmo período
+9. Se faltar ônibus no horário escolhido e houver um horário do mesmo período
    em que o pedido caberia, a linha sugere: "A partir das 14h10 há ônibus
    suficientes." Quem aprova, num dia **sem nenhuma frota**, vê ali mesmo um
    cadastro rápido - Rótulo, quantos ônibus e até quando - para resolver sem
    sair do formulário.
-8. Se ainda assim não houver como enviar, a linha explica o motivo e o botão
-   de enviar fica desabilitado - escolha outro horário ou outra data.
-9. Envie. O pedido nasce **pendente de autorização** e já reserva a vaga.
+10. Se ainda assim não houver como enviar, a linha explica o motivo e o botão
+    de enviar fica desabilitado - escolha outro horário ou outra data.
+11. Envie. O pedido nasce **pendente de autorização** e já reserva a vaga.
+
+Um pedido feito com **Local não está na lista** entra marcado como *local a
+conferir* - ver a seção "Conferir local", mais abaixo.
 
 Se o SATE ainda não tem nenhum veículo cadastrado, quem aprova vê, ao clicar
 em **Nova solicitação**, o aviso **Antes da primeira viagem, cadastre a
@@ -317,15 +342,45 @@ reordenar mudam por onde o ônibus passa.
 
 ### Localizar um destino
 
-1. No menu, em **Locais**, abra o local (ou crie um com **Novo local**).
-2. Confira o **Endereço** e clique em **Localizar pelo endereço**. Latitude e
-   longitude são preenchidas, e o sistema mostra o endereço que encontrou.
-3. Clique em **conferir no mapa** antes de salvar.
-4. Se não encontrar, copie as coordenadas do Google Maps: botão direito sobre
-   o lugar, e clique nos números.
+1. No menu, em **Locais**, abra o local (ou crie um com **Novo local**). A
+   janela traz Nome, Ponto de desembarque, Endereço, Número, Bairro, um mapa,
+   Latitude, Longitude e Observação.
+2. Confira o **Endereço**, o **Número** e o **Bairro** e clique em
+   **Localizar pelo endereço**. O pino do mapa se move para o lugar
+   encontrado, e Latitude e Longitude são preenchidas sozinhas.
+3. Ajuste o ponto **arrastando o pino** no mapa, ou clicando no lugar certo -
+   é assim que se acerta o ponto exato de desembarque, não só a rua.
+4. Se o endereço não for encontrado, copie as coordenadas do Google Maps:
+   botão direito sobre o lugar, e clique nos números; ou clique em **Abrir no
+   Google Maps** para conferir o ponto escolhido antes de salvar.
 5. Salve.
 
+Se o mapa não carregar (sem internet, por exemplo), a janela continua
+funcionando só com os campos de Latitude e Longitude.
+
 As escolas se localizam do mesmo jeito, no cadastro de **Escolas**.
+
+### Conferir local
+
+Um pedido feito com **Local não está na lista** aparece marcado com a
+etiqueta **Local a conferir**, tanto na lista quanto na ficha da solicitação.
+Enquanto ele não é conferido, a contagem de vagas usa um tempo de viagem
+provisório e cauteloso (ver "Regras que o sistema aplica"), então vale
+conferir assim que possível.
+
+1. Abra a solicitação e clique em **Conferir local**.
+2. O sistema mostra locais já cadastrados parecidos com o que a escola
+   digitou (nome parecido ou mesmo bairro). Se um deles for o mesmo lugar,
+   clique em **É este**.
+3. Se nenhum for o mesmo lugar, clique em **Nenhum destes: cadastrar novo** -
+   abre o cadastro de local já preenchido com o que a escola digitou, pronto
+   para localizar no mapa e salvar.
+4. Nos dois casos, o pedido passa a apontar para o local do cadastro e o
+   tempo de viagem é recalculado. Data, horários, escolas, estudantes e
+   veículos não mudam - só o destino é ajustado.
+
+O texto original, digitado pela escola, continua registrado no histórico do
+pedido, mesmo depois de conferido.
 
 ---
 
@@ -379,12 +434,20 @@ pedido segue normalmente.
 - **Pedir sem antecedência mínima.** A escola precisa pedir com pelo menos
   5 dias. Quem aprova não tem esse limite.
 - **Negar ou cancelar sem justificativa.**
+- **Local digitado à mão sem nome, endereço, número e bairro.** Os quatro são
+  obrigatórios quando o destino não vem da lista de locais - é o que a
+  empresa de transporte vai ler na ficha.
+- **Pedido sem o professor(a) responsável ou sem o telefone/WhatsApp.**
 
 ### O que apenas avisa
 
 - **Trajeto não calculado.** Escola ou destino sem localização, ou serviço
   de mapa fora do ar, nunca impedem o pedido - a SME pode precisar agendar
   para um lugar ainda não localizado.
+- **Confirmar um pedido com local ainda não conferido.** O sistema avisa que
+  a vaga foi contada com um tempo de viagem provisório e pergunta se quer
+  confirmar mesmo assim - às vezes a SME precisa confirmar antes de conferir
+  o endereço.
 - **Cadeirante sem van adaptada livre.** O pedido segue. Ao confirmar, quem
   aprova cria a van extra ou deixa o pedido *aguardando transporte adaptado*
   até a van ser resolvida.
@@ -480,4 +543,4 @@ Negado é um pedido que **nunca** chegou a valer - foi recusado na análise.
 Cancelado é um pedido que **estava de pé** e foi desfeito. Os dois exigem
 justificativa.
 
-> Atualizado na versão 0.37.0.
+> Atualizado na versão 0.38.0.

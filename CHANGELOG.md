@@ -19,6 +19,7 @@ partir das versões do FundHub que mudaram algo para quem usa o SATE.
 
 | SATE | FundHub | Em resumo |
 |---|---|---|
+| 0.17.0 | 0.38.0 | pedido simplificado, locais com mapa, conferência de local |
 | 0.16.1 | 0.37.1 | rodapé próprio; campos com texto menor e dica em tom mais claro |
 | 0.16.0 | 0.37.0 | frota, disponibilidade, vaga contada pelo horário |
 | 0.15.0 | 0.36.0 | sino de avisos |
@@ -39,6 +40,37 @@ partir das versões do FundHub que mudaram algo para quem usa o SATE.
 | 0.3.0 | 0.9.0 | catálogo de locais |
 | 0.2.0 | 0.7.0 | atividade livre, transporte adaptado, calendário escolar |
 | 0.1.0 | 0.5.0 | a escola pede, a SME valida |
+
+---
+
+## [0.38.0] - 2026-09-27
+
+> SATE 0.17.0.
+>
+> **Rodar a migration 044 no Supabase** (depois da 042 e da 043).
+
+### Mudado
+
+- **Pedido de transporte mais simples.** O formulário deixou de pedir para
+  escolher entre catálogo e atividade própria: agora é sempre um destino,
+  escolhido na lista de locais ou digitado à mão.
+- **Período calculado sozinho**, a partir dos horários de embarque e de
+  retorno - inclusive um novo período, "Manhã e tarde", para quem embarca de
+  manhã e só volta à tarde.
+- **Destino da lista de locais ou digitado.** Achou o local cadastrado, os
+  dados vêm prontos; não achou, dá para digitar nome, endereço, número e
+  bairro na hora.
+- **Responsável pela visita**: professor(a) e telefone/WhatsApp passam a ser
+  informados no próprio pedido.
+- **Acessibilidade no pedido**: quantos estudantes surdos e se há outra
+  necessidade específica, além dos cadeirantes.
+- **Página Locais com mapa**: arraste o pino para acertar o ponto de
+  desembarque, ou localize pelo endereço.
+- **Conferir local**: quando a escola digita um destino que não está no
+  cadastro, quem aprova pode vincular o pedido a um local já cadastrado ou
+  criar um novo, sem mexer no resto do pedido.
+- **Tempo de viagem provisório** nas configurações do SATE, usado na
+  contagem de vagas enquanto um local digitado não é conferido.
 
 ---
 
