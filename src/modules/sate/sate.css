@@ -81,6 +81,11 @@ body.app-sate { --info-bg: color-mix(in srgb, var(--brand) 12%, var(--surface));
   font-size: 13.5px;
 }
 
+/* Grupo DESTINO: o botão "Local não está na lista" fica sob a busca,
+   alinhado à esquerda, sem esticar (spec 2026-09-27, D2). */
+.dest-lista { display: flex; flex-direction: column; gap: 6px; }
+.dest-alternar { align-self: start; }
+
 /* ── Saldo ao vivo no formulário (spec S3, D3) ──────────────── */
 .sol-saldo { margin: 4px 0 12px; display: flex; flex-direction: column; gap: 6px; }
 /* Trajeto: uma linha discreta acima do saldo. Informação para decidir,
