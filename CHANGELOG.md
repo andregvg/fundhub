@@ -39,6 +39,9 @@ versionamento **MINOR** = módulo novo ou mudança de modelo de dados, **PATCH**
 - **SATE - horários de embarque e retorno passam a ser obrigatórios.**
 - **SATE - viagem só com frota cadastrada.** Num dia sem frota, quem
   aprova cadastra ali mesmo, no pedido.
+- **SATE com identidade própria**: o título da aba e o rodapé deixam de
+  citar o FundHub, e o atalho para o FundHub só aparece para quem também
+  usa os outros módulos.
 - **Configurações** com cada grupo num cartão e cada ajuste numa linha.
 - **Usuários**: nomes de exibição sempre em maiúsculas; a Ajuda mostra a
   tabela de papéis e acessos padrão sempre atualizada.
