@@ -235,7 +235,7 @@ abrirPortao(app, {
   // também o usa (usaFundHub). Atualizar recarrega a página do SATE, não o
   // roteador do FundHub (que aqui não roda). O rodapé não leva o resumo de
   // versão nem o link "Histórico completo" - eles falam do FundHub.
-  chrome: { base: './', aoAtualizar: () => rotear(), meusDados: usaFundHub, rodapeCompleto: false },
+  chrome: { base: './', aoAtualizar: () => rotear(), meusDados: usaFundHub, rodapeSate: true },
   aoEntrar: montarSate,
   aoSair: () => { estado = null; simulando = null; gravarSimulacao(null); notificacoes.parar(); limparToasts(); },
 });

@@ -7,6 +7,12 @@
 // de tabulação como uma parada a mais depois do último segmento - ver
 // docs/superpowers/specs/2026-09-05-campos-data-hora-tab-design.md.
 //
+// E marca `data-vazio` no campo sem valor, para o CSS pintar a máscara
+// "dd/mm/aaaa" no tom de placeholder (components.css). CSS não enxerga o
+// valor de um date/time - não há placeholder de verdade nem
+// `:placeholder-shown` - e sem a marca a máscara vazia tinha a mesma cor
+// de uma data preenchida.
+//
 // Um ouvinte só, delegado em document, cobre os 32 campos de hoje e
 // qualquer campo futuro - inclusive um que nasça dentro de um modal
 // aberta bem depois deste módulo já ter sido ligado (uma vez, no boot).
@@ -25,7 +31,28 @@ export function cliqueNoIcone(offsetX, larguraCampo) {
   return offsetX >= larguraCampo - LARGURA_ICONE;
 }
 
+const SELETOR = 'input:is([type="date"], [type="time"], [type="datetime-local"], [type="month"])';
+
+function marcarVazio(el) { el.toggleAttribute('data-vazio', !el.value); }
+function varrer(raiz) {
+  if (raiz.matches?.(SELETOR)) marcarVazio(raiz);
+  raiz.querySelectorAll?.(SELETOR).forEach(marcarVazio);
+}
+
 export function ligarCamposDataHora() {
+  // Digitou, escolheu no calendário, apagou - e, ao sair do campo, confere
+  // de novo: cobre valor posto por código (`el.value = …`), que não
+  // dispara evento nenhum.
+  const aoMudar = (e) => { if (e.target.matches?.(SELETOR)) marcarVazio(e.target); };
+  for (const ev of ['input', 'change', 'focusout']) document.addEventListener(ev, aoMudar, true);
+  // form.reset() esvazia sem disparar input/change.
+  document.addEventListener('reset', (e) => setTimeout(() => varrer(e.target)), true);
+  // Telas e modais montam HTML por innerHTML: todo campo novo entra por aqui.
+  new MutationObserver((mudancas) => {
+    for (const m of mudancas) m.addedNodes.forEach(n => { if (n.nodeType === 1) varrer(n); });
+  }).observe(document.body, { childList: true, subtree: true });
+  varrer(document.body);
+
   document.addEventListener('click', (e) => {
     const campo = e.target.closest('input[type="date"], input[type="time"]');
     if (!campo || campo.disabled || campo.readOnly) return;

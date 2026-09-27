@@ -186,7 +186,7 @@ span.gira-90, span.gira-menos90, span.gira-180 { display: inline-flex; }
   outline: 0;
   background: transparent;
   color: var(--text);
-  font-size: 16px;   /* 16px evita o zoom automático do iOS ao focar */
+  font-size: var(--campo-fonte);   /* 16px em toque: evita o zoom do iOS */
 }
 .count { color: var(--muted); font-size: 13px; }
 .vazio { color: var(--muted); font-style: italic; }
@@ -242,7 +242,7 @@ span.gira-90, span.gira-menos90, span.gira-180 { display: inline-flex; }
      o controle precisa ler como controle SOBRE a superfície. */
   background: var(--surface);
   color: var(--form-field);
-  font-size: 14px;
+  font-size: var(--campo-fonte);
   font-weight: 400;
   line-height: 1.25;
   text-transform: none;
@@ -633,7 +633,7 @@ span.gira-90, span.gira-menos90, span.gira-180 { display: inline-flex; }
   border-radius: var(--radius-btn);
   background: var(--surface-2);
   color: var(--form-field);
-  font-size: 16px;   /* idem: 16px evita o zoom do iOS */
+  font-size: var(--campo-fonte);   /* idem */
   font-weight: 400;
   line-height: 1.25; /* DECLARADA: o input não herda line-height do body e o
                         span herda - era daí que vinham alturas diferentes */
@@ -669,6 +669,22 @@ span.gira-90, span.gira-menos90, span.gira-180 { display: inline-flex; }
 input[type="date"], input[type="time"] { height: var(--campo); }
 input[type="date"]::-webkit-datetime-edit-fields-wrapper,
 input[type="time"]::-webkit-datetime-edit-fields-wrapper { padding: 0; }
+
+/* Placeholder em tom mais claro que o valor digitado, em TODO campo do
+   hub - inclusive os que ainda vão nascer. Data e hora não têm
+   placeholder de verdade: a máscara "dd/mm/aaaa" é o próprio controle, e
+   CSS não sabe se ele está vazio. Quem marca é shared/ui/campo-data-hora.js, com
+   `data-vazio` - só a máscara clareia; o ícone do calendário não muda. */
+::placeholder { color: var(--placeholder); opacity: 1; }
+/* Com o foco a máscara volta ao tom normal: a pessoa está digitando. */
+input:is([type="date"], [type="time"], [type="datetime-local"], [type="month"])[data-vazio]:not(:focus),
+input:is([type="date"], [type="time"], [type="datetime-local"], [type="month"])[data-vazio]:not(:focus)::-webkit-datetime-edit {
+  color: var(--placeholder);
+}
+/* O "Selecione…" de uma lista é o placeholder dela: opção de valor vazio
+   escolhida. As opções abertas voltam ao tom normal. */
+select:has(> option[value=""]:checked) { color: var(--placeholder); }
+select option { color: var(--form-field); }
 
 /* O indicador nativo (::-webkit-calendar-picker-indicator) entra na ordem
    de tabulação do Chromium como uma parada A MAIS depois do último
@@ -798,7 +814,7 @@ input.caixa-alta { text-transform: uppercase; }
   border-radius: 10px;
   background: var(--surface-2);
   color: var(--text);
-  font-size: 16px;
+  font-size: var(--campo-fonte);
 }
 .auth-form input:focus { outline: 2px solid color-mix(in srgb, var(--brand) 45%, transparent); border-color: var(--brand); }
 .auth-form button {
@@ -1266,7 +1282,7 @@ input.caixa-alta { text-transform: uppercase; }
   border-radius: var(--radius-btn);
   background: var(--surface-2);
   color: var(--form-field);
-  font-size: 16px;
+  font-size: var(--campo-fonte);
   font-weight: 400;
   line-height: 1.25;
   text-transform: none;

@@ -6,6 +6,56 @@ versionamento **MINOR** = módulo novo ou mudança de modelo de dados, **PATCH**
 
 > A versão exibida no rodapé do app vem de `src/core/config.js` (`CONFIG.versao`).
 > Ao lançar: subir a versão lá **e** registrar aqui.
+>
+> O **SATE** tem versão própria (`CONFIG.versaoSate`), a que aparece no rodapé da página
+> dele. Mudou o SATE: sobem as duas, e a entrada do FundHub diz a versão do SATE. Mudou só
+> o FundHub: sobe só a do FundHub.
+
+## Versões do SATE
+
+Cada versão do SATE e a versão do FundHub em que ela entrou. O que mudou está na entrada
+do FundHub correspondente. Até a 0.16.0 o histórico foi reconstruído em 27/09/2026 a
+partir das versões do FundHub que mudaram algo para quem usa o SATE.
+
+| SATE | FundHub | Em resumo |
+|---|---|---|
+| 0.16.1 | 0.37.1 | rodapé próprio; campos com texto menor e dica em tom mais claro |
+| 0.16.0 | 0.37.0 | frota, disponibilidade, vaga contada pelo horário |
+| 0.15.0 | 0.36.0 | sino de avisos |
+| 0.14.0 | 0.35.0 | ver como escola |
+| 0.13.0 | 0.34.0 | página própria |
+| 0.12.0 | 0.33.0 | ônibus faltantes e espera por transporte adaptado |
+| 0.11.0 | 0.31.0 | tempo de viagem do ônibus |
+| 0.10.1 | 0.29.1 | correções |
+| 0.10.0 | 0.29.0 | escola sai de uma viagem sem cancelá-la para as outras |
+| 0.9.0 | 0.28.0 | fichas de ônibus |
+| 0.8.0 | 0.27.0 | quem vê o quê no transporte |
+| 0.7.0 | 0.26.0 | nova solicitação em janela, saldo ao preencher, lista em tabela |
+| 0.6.0 | 0.25.0 | tutorial e configurações |
+| 0.5.1 | 0.14.6 | ícone nos botões de novo cadastro |
+| 0.5.0 | 0.12.0 | ações de status das solicitações |
+| 0.4.1 | 0.10.1 | caixas de confirmação próprias |
+| 0.4.0 | 0.10.0 | papéis Transporte e SATE |
+| 0.3.0 | 0.9.0 | catálogo de locais |
+| 0.2.0 | 0.7.0 | atividade livre, transporte adaptado, calendário escolar |
+| 0.1.0 | 0.5.0 | a escola pede, a SME valida |
+
+---
+
+## [0.37.1] - 2026-09-27
+
+> SATE 0.16.1.
+
+### Mudou
+- **Dica dentro do campo em tom mais claro.** O texto de exemplo que aparece num campo
+  vazio - inclusive o "dd/mm/aaaa" das datas e o "--:--" dos horários - agora fica mais
+  apagado, para não ser confundido com um valor já preenchido. Vale para todo o sistema,
+  inclusive o SATE.
+- **Texto dos campos de formulário menor** no computador, no mesmo tamanho dos botões e
+  das listas. No celular e no tablet continua maior, para a tela não dar zoom sozinha ao
+  tocar no campo.
+- **O SATE ganhou numeração de versão própria**, mostrada no rodapé da página dele, que
+  passa a dizer só "SATE" e "SME Ribeirão Preto".
 
 ---
 

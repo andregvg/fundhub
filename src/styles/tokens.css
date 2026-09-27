@@ -34,7 +34,7 @@
 
   /* Altura de um campo de formulário. Fica entre --controle (o botão, 32px)
      e --toque (o alvo mínimo, 40px): o campo é maior que o botão porque
-     carrega texto de 16px. Declarar a altura é o que impede o campo de data
+     carrega o texto digitado (--campo-fonte). Declarar a altura é o que impede o campo de data
      e o .campo-derivado de saírem mais altos que o campo de texto ao lado -
      a altura deles era consequência de onde cada um herdava line-height. */
   --campo: 36px;
@@ -54,6 +54,17 @@
   --form-legend: var(--text);
   --form-label: var(--muted);
   --form-field: var(--text);
+
+  /* Texto de placeholder - e da máscara "dd/mm/aaaa" de data/hora vazia.
+     Mais claro que --muted para não se confundir com valor já preenchido.
+     Deriva de --muted e da superfície do campo, então o tema escuro vem
+     de graça (as duas já trocam de valor lá). */
+  --placeholder: color-mix(in srgb, var(--muted) 55%, var(--surface-2));
+
+  /* Tamanho do texto DENTRO de um campo. 14px no computador casa com
+     rótulo de botão, lista e tabela; em tela de toque sobe para 16px,
+     porque abaixo disso o iOS dá zoom sozinho ao focar o campo. */
+  --campo-fonte: 14px;
 
   /* Cor por tipo de afastamento (CORES_AFASTAMENTO, afastamentos.model.js) -
      usada na barra lateral do item e nos chips do calendário. */
@@ -188,5 +199,5 @@
 /* Em tela de toque nenhum campo pode ficar abaixo do alvo mínimo - a mesma
    elevação que os botões já recebem em components.css. */
 @media (pointer: coarse) {
-  :root { --campo: var(--toque); }
+  :root { --campo: var(--toque); --campo-fonte: 16px; }
 }

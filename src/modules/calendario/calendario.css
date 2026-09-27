@@ -121,7 +121,7 @@
   border-radius: var(--radius-btn);
   background: var(--surface-2);
   color: var(--form-field);
-  font-size: 14px;
+  font-size: var(--campo-fonte);
 }
 
 /* Base = celular (mobile-first, .claude/rules/ui.md): nao criar

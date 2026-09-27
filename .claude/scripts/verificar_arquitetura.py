@@ -670,6 +670,53 @@ def check_auditoria():
 # ------------------------------------------------------------------
 # Execucao
 # ------------------------------------------------------------------
+# ------------------------------------------------------------------
+# 14. Versao propria do SATE (CONFIG.versaoSate)
+# ------------------------------------------------------------------
+# O SATE conta versao a parte do FundHub, mas nao independente dele:
+#   a) commit no SATE mais novo que a ultima subida de versaoSate  -> aviso
+#      (mudou o SATE e o numero que a escola ve nao subiu);
+#   b) versaoSate subiu num commit mais novo que a ultima subida de versao
+#      -> aviso (subir o SATE sobe o FundHub junto - o SATE e codigo dele).
+# Aviso, e nao bloqueio: no meio de uma entrega os commits andam na frente
+# da versao, que so sobe ao fechar - o mesmo motivo da checagem 11c.
+SATE_CAMINHOS = ('src/modules/sate', 'src/sate.js', 'sate.html')
+
+
+def _git_ct_s(texto):
+    """Timestamp do commit que fez `texto` nascer em src/core/config.js."""
+    try:
+        out = subprocess.run(
+            ['git', 'log', '-1', '--format=%ct', '-S' + texto, '--', 'src/core/config.js'],
+            cwd=RAIZ, capture_output=True, text=True, timeout=10)
+        return int(out.stdout.strip()) if out.stdout.strip() else 0
+    except Exception:
+        return 0
+
+
+def check_versao_sate():
+    cfg = os.path.join(SRC, 'core', 'config.js')
+    texto = ler(cfg)
+    vs = re.search(r"versaoSate:\s*'([^']+)'", texto)
+    vf = re.search(r"(?<![A-Za-z])versao:\s*'([^']+)'", texto)
+    if not vs or not vf:
+        add('AVISO', 14, rel_src(cfg), 0, 'versaoSate ou versao ausente em CONFIG')
+        return
+    t_sate = _git_ct_s("versaoSate: '%s'" % vs.group(1))
+    t_fund = _git_ct_s("versao: '%s'" % vf.group(1))
+    if not t_sate:
+        return  # ainda nao commitada: nada a comparar
+    t_codigo = _git_ct(*SATE_CAMINHOS)
+    if t_codigo > t_sate:
+        add('AVISO', 14, 'src/modules/sate', 0,
+            'SATE mudou depois da versao %s - subir CONFIG.versaoSate e registrar '
+            'na secao SATE do CHANGELOG ao fechar a entrega' % vs.group(1))
+    if t_fund and t_sate > t_fund:
+        add('AVISO', 14, rel_src(cfg), 0,
+            'versaoSate subiu sem CONFIG.versao subir junto - mudou o SATE, '
+            'sobem as duas')
+
+
 TITULOS = {
     1: 'R4  ciclos de import',
     2: 'R2  fronteira de modulo',
@@ -684,6 +731,7 @@ TITULOS = {
     11: '--  tutorial por modulo',
     12: '--  classe CSS orfa',
     13: 'R6  cobertura da auditoria',
+    14: '--  versao propria do SATE',
 }
 
 
@@ -706,6 +754,7 @@ def main():
         check_documentacao()
         check_classes_orfas()
         check_auditoria()
+        check_versao_sate()
 
     bloqueios = [p for p in problemas if p[0] == 'BLOQUEIA']
     avisos = [p for p in problemas if p[0] == 'AVISO']

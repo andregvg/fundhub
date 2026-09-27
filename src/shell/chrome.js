@@ -288,21 +288,27 @@ async function lerCarimbo() {
   return _carimbo;
 }
 
-function cartaoHtml(c, completo) {
-  const linhas = (c?.resumo || []).map(t => `<li>${esc(t)}</li>`).join('');
+// O SATE tem versão própria (CONFIG.versaoSate) e o carimbo traz a data
+// dela à parte, em `c.sate` - a data da versão do FundHub diria que a do
+// SATE mudou quando só o FundHub mudou. O resumo e o link "Histórico
+// completo" falam do FundHub e ficam de fora no SATE.
+function cartaoHtml(c, sate) {
+  const versao = sate ? CONFIG.versaoSate : CONFIG.versao;
+  const data = sate ? c?.sate?.data : c?.data;
+  const linhas = sate ? '' : (c?.resumo || []).map(t => `<li>${esc(t)}</li>`).join('');
   return `
-    <b class="bc-versao">Versão ${esc(CONFIG.versao)}</b>
-    <span class="bc-data">${c?.data
-      ? `no ar desde ${esc(fmtDataHora(c.data))}`
+    <b class="bc-versao">Versão ${esc(versao)}</b>
+    <span class="bc-data">${data
+      ? `no ar desde ${esc(fmtDataHora(data))}`
       : '<i>data indisponível fora do site publicado</i>'}</span>
-    ${completo && linhas ? `<ul class="bc-resumo">${linhas}</ul>` : ''}
-    ${completo ? `<a class="bc-link" href="${CHANGELOG_URL}" target="_blank" rel="noopener noreferrer">
-      ${ico('externo', { tam: 13 })} Histórico completo</a>` : ''}`;
+    ${linhas ? `<ul class="bc-resumo">${linhas}</ul>` : ''}
+    ${sate ? '' : `<a class="bc-link" href="${CHANGELOG_URL}" target="_blank" rel="noopener noreferrer">
+      ${ico('externo', { tam: 13 })} Histórico completo</a>`}`;
 }
 
-// `completo`: o resumo do que mudou e o link "Histórico completo" falam do
-// FundHub - o SATE mostra só a versão (opts.rodapeCompleto em abrirPortao).
-export function carimboRodape({ completo = true } = {}) {
+// `sate`: a página do SATE - versão própria, sem resumo nem link
+// (opts.rodapeSate em abrirPortao).
+export function carimboRodape({ sate = false } = {}) {
   // A data de hoje, no canto oposto. Ela é só "hoje" - longe da versão,
   // não há como confundi-la com a data em que a versão entrou em vigor,
   // que era o defeito de quando as duas andavam coladas.
@@ -313,8 +319,9 @@ export function carimboRodape({ completo = true } = {}) {
   const card = document.getElementById('build-card');
   if (!btn || !card) return;
 
-  btn.textContent = `v${CONFIG.versao}`;
-  btn.setAttribute('aria-label', `Versão ${CONFIG.versao} - ver o que mudou`);
+  const versao = sate ? CONFIG.versaoSate : CONFIG.versao;
+  btn.textContent = `v${versao}`;
+  btn.setAttribute('aria-label', `Versão ${versao} - ver o que mudou`);
 
   let pintado = false;
   // `querAberto` é a INTENÇÃO mais recente. Na primeira abertura a caixa
@@ -326,7 +333,7 @@ export function carimboRodape({ completo = true } = {}) {
   const abrir = async () => {
     cancelarFechar();
     querAberto = true;
-    if (!pintado) { card.innerHTML = cartaoHtml(await lerCarimbo(), completo); pintado = true; }
+    if (!pintado) { card.innerHTML = cartaoHtml(await lerCarimbo(), sate); pintado = true; }
     if (!querAberto) return;
     card.hidden = false;
     btn.setAttribute('aria-expanded', 'true');

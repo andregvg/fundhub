@@ -95,9 +95,19 @@ jobs:
             resumo=$(awk '/^## \[/{n++} n==1' "$fonte/CHANGELOG.md" 2>/dev/null \
                      | sed -n 's/^- \*\*\([^*]*\)\*\*.*/\1/p' | sed 's/[.:]$//' | head -6)
 
+            # O SATE tem versao propria (versaoSate) e a data dela vem do
+            # commit que a subiu - nao do que subiu a do FundHub, que pode
+            # mudar sem o SATE mudar. Sem versaoSate, os dois saem vazios.
+            local vsate dsate=""
+            vsate=$(sed -n "s/.*versaoSate: *'\([^']*\)'.*/\1/p" "$fonte/src/core/config.js")
+            if [ -n "$vsate" ]; then
+              dsate=$(git -C "$fonte" log -1 --format=%cI -S"versaoSate: '$vsate'" -- src/core/config.js || true)
+            fi
+
             jq -n --arg v "$versao" --arg d "$data" --arg s "$sha" \
+                  --arg vs "$vsate" --arg ds "$dsate" \
                   --argjson r "$(printf '%s' "$resumo" | jq -R -s 'split("\n") | map(select(length > 0))')" \
-                  '{versao:$v, data:$d, commit:$s, resumo:$r}' > "$destino/versao.json"
+                  '{versao:$v, data:$d, commit:$s, resumo:$r, sate:{versao:$vs, data:$ds}}' > "$destino/versao.json"
             echo "$destino/versao.json:"; cat "$destino/versao.json"
           }
 

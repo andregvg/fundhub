@@ -79,6 +79,9 @@ versão. Ver `.github/workflows/pages.yml` e `shell/chrome.js`.
 - Ao fechar entrega: subir `CONFIG.versao` em `src/core/config.js` **e** registrar em `CHANGELOG.md`
   (MINOR = módulo novo ou mudança de modelo; PATCH = correção). O changelog é escrito para **quem
   usa** o sistema - sem jargão, sem nome de arquivo.
+- **O SATE tem versão própria** (`CONFIG.versaoSate`, a do rodapé do `sate.html`). Mudou algo
+  que quem usa o SATE vê: sobem **as duas** versões e a tabela "Versões do SATE" do CHANGELOG
+  ganha uma linha. Mudou só o FundHub: sobe só `CONFIG.versao`. A checagem 14 avisa se esquecer.
 - Testar em dev-local (inclusive em tela estreita) e conferir o console antes de commitar.
 - **Não alterar** os Apps Script (`agendamentos-fil`, `afastamentos-gestores`): seguem em produção
   em paralelo e servem só de inspiração.
@@ -101,6 +104,6 @@ versão. Ver `.github/workflows/pages.yml` e `shell/chrome.js`.
 python .claude/scripts/verificar_arquitetura.py
 ```
 
-Treze checagens mecânicas das regras acima. Uma view que estourou o teto de linhas e não tem
+Catorze checagens mecânicas das regras acima. Uma view que estourou o teto de linhas e não tem
 onde cortar declara `@superficie-indivisivel: <motivo>` no cabeçalho - ver `.claude/rules/arquitetura.md`. Rodar antes de commitar mudanças estruturais.
 Para revisão arquitetural com análise (não só o script): skill `architecture-review`.

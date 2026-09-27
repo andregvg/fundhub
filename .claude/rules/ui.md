@@ -85,7 +85,7 @@ Todo formulário do hub lê em três níveis, e cada um tem um token:
 |---|---|---|
 | Legenda de bloco (`<legend>`) | `--form-legend` | 11.5px · 700 · ALTA · .06em · com traço embaixo |
 | Rótulo de campo (`<label>`) | `--form-label` | 11.5px · 700 · ALTA · .04em |
-| Conteúdo do campo | `--form-field` | 16px · 400 · caixa normal |
+| Conteúdo do campo | `--form-field` + `--campo-fonte` | 14px (16px em toque, contra o zoom do iOS) · 400 · caixa normal |
 
 Não escrever `--text` nem `--muted` direto num rótulo de formulário - use o token do papel.
 
