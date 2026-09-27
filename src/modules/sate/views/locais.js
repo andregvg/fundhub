@@ -222,7 +222,7 @@ async function salvar(e, l, c, aoSalvar) {
 
   const btn = document.getElementById('l-save'); btn.disabled = true; btn.textContent = 'Salvando…';
   try {
-    const salvo = l ? (await atualizarLocal(l.id, payload), { ...l, ...payload }) : await criarLocal(payload);
+    const salvo = l ? await atualizarLocal(l.id, payload) : await criarLocal(payload);
     await c.recarregarLocais();
     fecharModal();
     if (aoSalvar) await aoSalvar(salvo);

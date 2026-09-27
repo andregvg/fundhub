@@ -69,9 +69,10 @@ export async function criarLocal(payload) {
 
 export async function atualizarLocal(id, payload) {
   if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
-  const { error } = await sb().from('local').update(limpar(payload)).eq('id', id);
+  const { data, error } = await sb().from('local').update(limpar(payload)).eq('id', id).select().single();
   if (error) throw error;
   _cache = null;
+  return data;
 }
 
 export async function excluirLocal(id) {
