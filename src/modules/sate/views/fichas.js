@@ -13,8 +13,9 @@
 // ============================================================
 import { getViagensDoDia, PERIODOS } from '../sate.model.js';
 import { getParticipacoesDe, ativa } from '../participacoes.model.js';
-import { alocarFichas, pendenciasDeFicha } from '../regras.model.js';
+import { alocarFichas, pendenciasDeFicha, tituloDoPedido, responsavelDoPedido } from '../regras.model.js';
 import { capacidadeOnibus } from '../sate.config.js';
+import { enderecoCompleto } from '../../locais/locais.model.js';
 import { esc } from '../../../shared/dom.js';
 import { hojeISO, fmtData, DOW } from '../../../shared/format.js';
 import { loading, erroBox, emptyState } from '../../../shared/ui/feedback.js';
@@ -102,6 +103,23 @@ async function carregar() {
     </div>`;
 }
 
+// Endereço do destino: as três partes (spec 2026-09-27, D3), com o
+// endereço da atividade como último recurso para pedidos antigos.
+const enderecoDestino = (s) => enderecoCompleto({ endereco: s.destino_endereco, numero: s.destino_numero, bairro: s.destino_bairro })
+  || s.atividade?.local_endereco || '';
+
+// Soma dos surdos e sinaliza outra necessidade específica entre as
+// paradas ATIVAS (mesmo texto do detalhe).
+function acessibilidadeHtml(paradas) {
+  const ativas = (paradas || []).filter(p => p.status === 'ativa');
+  const surdos = ativas.reduce((n, p) => n + (Number(p.qtd_surdo) || 0), 0);
+  const outra = ativas.some(p => p.necessidade_especifica);
+  const partes = [];
+  if (surdos) partes.push(`${surdos} estudante(s) surdo(s)`);
+  if (outra) partes.push('outra necessidade específica');
+  return partes.join(' · ');
+}
+
 function ficha(f, cab, paradas) {
   const s = f.solicitacao;
   // A primeira participação ativa é a origem; as demais são as paradas.
@@ -109,7 +127,8 @@ function ficha(f, cab, paradas) {
   const origem = primeira?.unidade?.nome || primeira?.local?.nome || s.unidade?.nome || '—';
   const origemEnd = primeira?.unidade?.endereco || primeira?.local?.endereco || s.unidade?.endereco || '';
   const destino = s.destino_nome || s.atividade?.local_nome || '—';
-  const destEnd = s.destino_endereco || s.atividade?.local_endereco || '';
+  const destEnd = enderecoDestino(s);
+  const acess = acessibilidadeHtml(paradas);
 
   // Paradas a mais: uma linha por ponto, na ordem. Nunca concatenadas
   // numa linha só - o motorista precisa saber a sequência.
@@ -149,10 +168,11 @@ function ficha(f, cab, paradas) {
           </tr>
           <tr>
             <th>Atividade</th>
-            <td colspan="3">${esc(s.atividade?.nome || s.atividade_livre || '—')}
+            <td colspan="3">${esc(tituloDoPedido(s))}
               ${s.turmas ? `<div class="fi-end">Turma(s): ${esc(s.turmas)}</div>` : ''}</td>
           </tr>
-          ${s.contato_professor ? `<tr><th>Contato</th><td colspan="3">${esc(s.contato_professor)}</td></tr>` : ''}
+          ${responsavelDoPedido(s) ? `<tr><th>Responsável</th><td colspan="3">${esc(responsavelDoPedido(s))}</td></tr>` : ''}
+          ${acess ? `<tr><th>Acessibilidade</th><td colspan="3">${esc(acess)}</td></tr>` : ''}
         </tbody>
       </table>
       ${f.de > 1 ? `<div class="fi-rodape">Ônibus ${f.indice} de ${f.de} desta viagem.</div>` : ''}

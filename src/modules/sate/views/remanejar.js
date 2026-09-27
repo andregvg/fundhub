@@ -12,7 +12,8 @@
 //   - o pedido reserva veículo e a nova data não comporta → abre o modal
 //     da frota extra, em modo remanejamento.
 // ============================================================
-import { editarSolicitacao, PERIODOS, STATUS_RESERVA } from '../sate.model.js';
+import { editarSolicitacao, STATUS_RESERVA } from '../sate.model.js';
+import { periodoDe } from '../regras.model.js';
 import { lerOcupacao, faltaParaConfirmar } from '../disponibilidade.model.js';
 import { getParticipacoes } from '../participacoes.model.js';
 import { atualizarTrajeto, retratoTrajeto } from '../rota.model.js';
@@ -35,9 +36,6 @@ export function abrirRemanejar(s, ctx, reabrir) {
           <legend>Quando</legend>
           <div class="campos duas">
             <label>Data <input id="rm-data" type="date" required value="${v('data')}" /></label>
-            <label>Período
-              <select id="rm-per">${Object.entries(PERIODOS).map(([k, r]) =>
-                `<option value="${esc(k)}" ${k === s.periodo ? 'selected' : ''}>${esc(r)}</option>`).join('')}</select></label>
             <label>Horário de embarque <input id="rm-emb" type="time" value="${v('horario_embarque')}" /></label>
             <label>Horário de retorno <input id="rm-ret" type="time" value="${v('horario_retorno')}" /></label>
           </div>
@@ -69,7 +67,10 @@ async function salvar(e, s, ctx, reabrir) {
   e.preventDefault();
   const msg = document.getElementById('rm-msg'); msg.className = 'auth-msg';
   const emb = val('rm-emb') || null, ret = val('rm-ret') || null;
-  const periodo = document.getElementById('rm-per').value;
+  // O período é CALCULADO pelos horários (spec 2026-09-27, D4), como no
+  // formulário da escola - quem remaneja não escolhe mais. Sem horário de
+  // embarque válido, mantém o período que a viagem já tinha.
+  const periodo = periodoDe(emb, ret) || s.periodo;
   if (!val('rm-data')) return falha(msg, 'Informe a data.');
   // "HH:MM" compara como texto na ordem certa. A noite pode voltar depois
   // da meia-noite (mesma exceção de regras.model.js) - só os outros
@@ -80,13 +81,14 @@ async function salvar(e, s, ctx, reabrir) {
   const local = (ctx.locais || []).find(l => l.id === localId);
   const patch = {
     data: val('rm-data'),
-    periodo: document.getElementById('rm-per').value,
+    periodo,
     horario_embarque: emb,
     horario_retorno: ret,
     qtd_onibus: Math.max(0, parseInt(val('rm-onibus'), 10) || 0),
     qtd_vans: Math.max(0, parseInt(val('rm-vans'), 10) || 0),
     // Destino do cadastro troca nome e endereço junto; "manter" não mexe.
-    ...(local ? { local_id: local.id, destino_nome: local.nome, destino_endereco: local.endereco || null } : {}),
+    ...(local ? { local_id: local.id, destino_nome: local.nome, destino_endereco: local.endereco || null,
+      destino_numero: local.numero || null, destino_bairro: local.bairro || null } : {}),
   };
   const destinoMudou = !!local && local.id !== s.local_id;
 

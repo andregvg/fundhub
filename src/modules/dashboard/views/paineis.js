@@ -8,6 +8,7 @@
 import { getUnidades } from '../../escolas/escolas.model.js';
 import { getAtividades } from '../../sate/atividades.model.js';
 import { getSolicitacoesDoDia, STATUS, PERIODOS } from '../../sate/sate.model.js';
+import { tituloDoPedido } from '../../sate/regras.model.js';
 import { getAfastamentos } from '../../afastamentos/afastamentos.model.js';
 import { getDiaCalendario } from '../../calendario/calendario.model.js';
 import { getOcorrencias, CANAIS, STATUS as STATUS_OCOR, STATUS_TAG as TAG_OCOR } from '../../ocorrencias/ocorrencias.model.js';
@@ -62,7 +63,7 @@ export async function painelExtraclasse(box, hoje) {
     const escola = s.unidade?.apelido || s.unidade?.nome || 'sem escola';
     return `<div class="dash-item" style="border-left:3px solid ${esc(cor)}">
       <div class="di-top">
-        <b>${esc(s.atividade?.nome || s.atividade_livre || 'Atividade')}</b>
+        <b>${esc(tituloDoPedido(s))}</b>
         <span class="tag st-${esc(s.status)}">${esc(STATUS[s.status] || s.status)}</span>
       </div>
       <div class="di-meta">${esc(escola)} · ${esc(PERIODOS[s.periodo] || s.periodo || '')}

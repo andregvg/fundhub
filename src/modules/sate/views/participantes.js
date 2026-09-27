@@ -77,7 +77,7 @@ function linha(p, ctx, totalAtivas) {
     ${arrasta ? `<span class="det-parte-alca" aria-hidden="true">${ico('arrastar', { tam: 13 })}</span>` : ''}
     <span class="det-parte-ordem">${p.ordem}</span>
     <b>${esc(nome)}</b>
-    <span class="di-meta">${p.qtd_alunos || 0} estudante(s)${p.qtd_cadeirante ? ` · ${ico('cadeirante', { tam: 12 })} ${p.qtd_cadeirante} cadeirante(s)` : ''}${p.horario ? ` · ${esc(p.horario)}` : ''}</span>
+    <span class="di-meta">${p.qtd_alunos || 0} estudante(s)${p.qtd_cadeirante ? ` · ${ico('cadeirante', { tam: 12 })} ${p.qtd_cadeirante} cadeirante(s)` : ''}${p.qtd_surdo ? ` · ${p.qtd_surdo} surdo(s)` : ''}${p.necessidade_especifica ? ' · outra necessidade' : ''}${p.horario ? ` · ${esc(p.horario)}` : ''}</span>
     ${ehAtiva ? '' : `<span class="tag st-${p.status === 'cancelada' ? 'cancelado' : 'em_analise'}">${esc(STATUS_PART[p.status])}</span>`}
     ${p.motivo ? `<span class="di-meta det-parte-motivo">${esc(p.motivo)}</span>` : ''}
     ${grupoAcoes(arrasta ? setas(p, nome) : '', acoes(p, { ap, minha, ehAtiva, nome, leitura: ctx.somenteLeitura }))}

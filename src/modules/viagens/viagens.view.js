@@ -7,6 +7,8 @@
 // Não tem model próprio: lê do SATE, que é o dono das solicitações.
 // ============================================================
 import { getViagensDoDia, PERIODOS } from '../sate/sate.model.js';
+import { tituloDoPedido, responsavelDoPedido } from '../sate/regras.model.js';
+import { enderecoCompleto } from '../locais/locais.model.js';
 import { esc, vazio } from '../../shared/dom.js';
 import { hojeISO, fmtData } from '../../shared/format.js';
 import { loading, emptyState, erroBox } from '../../shared/ui/feedback.js';
@@ -48,7 +50,7 @@ async function carregar() {
     return;
   }
 
-  const porPeriodo = { manha: [], tarde: [], noite: [] };
+  const porPeriodo = { manha: [], tarde: [], noite: [], integral: [] };
   lista.forEach(s => (porPeriodo[s.periodo] ||= []).push(s));
 
   body.innerHTML = `
@@ -64,12 +66,17 @@ async function carregar() {
     </div>`;
 }
 
+// Endereço do destino: as três partes (spec 2026-09-27, D3), com o
+// endereço da atividade como último recurso para pedidos antigos.
+const enderecoDestino = (s) => enderecoCompleto({ endereco: s.destino_endereco, numero: s.destino_numero, bairro: s.destino_bairro })
+  || s.atividade?.local_endereco || '';
+
 function linha(s) {
-  const nome = s.atividade?.nome || s.atividade_livre || 'Atividade';
+  const nome = tituloDoPedido(s);
   const origem = [s.unidade?.nome, s.unidade?.endereco].filter(Boolean).join(' - ');
-  const destino = [s.destino_nome || s.atividade?.local_nome,
-    s.destino_endereco || s.atividade?.local_endereco].filter(Boolean).join(' - ');
+  const destino = [s.destino_nome || s.atividade?.local_nome, enderecoDestino(s)].filter(Boolean).join(' - ');
   const horarios = [s.horario_embarque, s.horario_retorno].filter(Boolean).join(' → ');
+  const responsavel = responsavelDoPedido(s);
   return `<div class="pv-viagem">
     <div class="pv-tit">${esc(nome)}</div>
     <div class="pv-grid">
@@ -79,7 +86,7 @@ function linha(s) {
       <div><span class="pv-lbl">Turma(s)</span>${s.turmas ? esc(s.turmas) : vazio('sem turma informada')}</div>
       <div><span class="pv-lbl">Alunos</span>${s.qtd_alunos != null ? esc(s.qtd_alunos) : vazio('sem número de alunos')}</div>
       <div><span class="pv-lbl">Ônibus</span>${s.qtd_onibus != null ? esc(s.qtd_onibus) : vazio('sem número de ônibus')}${s.qtd_cadeirante > 0 ? ` · ${ico('acessibilidade', { tam: 12 })} ${esc(s.qtd_cadeirante)}` : ''}</div>
-      <div class="pv-wide"><span class="pv-lbl">Contato</span>${s.contato_professor ? esc(s.contato_professor) : vazio('sem contato informado')}</div>
+      <div class="pv-wide"><span class="pv-lbl">Responsável</span>${responsavel ? esc(responsavel) : vazio('sem responsável informado')}</div>
     </div>
   </div>`;
 }

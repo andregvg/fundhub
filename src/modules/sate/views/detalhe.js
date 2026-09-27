@@ -18,14 +18,15 @@ import {
   pedirCancelamento, confirmarCancelamento,
   STATUS, PERIODOS,
 } from '../sate.model.js';
+import { tituloDoPedido, responsavelDoPedido } from '../regras.model.js';
 import { abrirFrotaExtra } from './frota-extra.js';
 import { abrirRemanejar } from './remanejar.js';
 import { getParticipacoes } from '../participacoes.model.js';
 import { blocoHtml, ligarParticipantes } from './participantes.js';
-import { lerOcupacao, faltaParaConfirmar, intervaloDaViagem, livresPara, embarqueEfetivo } from '../disponibilidade.model.js';
+import { lerOcupacao, faltaParaConfirmar, intervaloDaViagem, livresPara, embarqueEfetivo, trajetoParaVaga } from '../disponibilidade.model.js';
 import { pontosDaViagem, explicarTrajeto, atualizarTrajeto, retratoTrajeto } from '../rota.model.js';
-import { linkRota } from '../../locais/locais.model.js';
-import { velocidadeOnibusKmh, margemParadaMin } from '../sate.config.js';
+import { linkRota, enderecoCompleto } from '../../locais/locais.model.js';
+import { velocidadeOnibusKmh, margemParadaMin, trajetoProvisorioMin } from '../sate.config.js';
 import { esc, vazio, val, falha } from '../../../shared/dom.js';
 import { fmtData, fmtDataHora } from '../../../shared/format.js';
 import { modalHead, abrirModal, fecharModal } from '../../../shared/ui/modal.js';
@@ -44,7 +45,7 @@ export async function abrirDetalhe(solicitacao, contexto) {
   const s = solicitacao;
 
   abrirModal(`
-    ${modalHead(esc(nomeAtividade(s)), esc(s.unidade?.apelido || s.unidade?.nome || ''))}
+    ${modalHead(esc(tituloDoPedido(s)), esc(s.unidade?.apelido || s.unidade?.nome || ''))}
     <div class="modal-body" id="det-corpo">${loading()}</div>`, { tamanho: 'medio' });
 
   // Participações e ocupação vêm do banco; o resto já está na linha da
@@ -63,7 +64,7 @@ export async function abrirDetalhe(solicitacao, contexto) {
       <span class="tag st-${esc(s.status)}">${esc(STATUS[s.status] || s.status)}</span>
       ${linha ? (() => {
         const iv = intervaloDaViagem({ periodo: s.periodo, embarque: embarqueEfetivo(s, paradas), retorno: s.horario_retorno,
-          trajetoMin: s.trajeto_min, intervaloMin: linha.intervaloMin });
+          trajetoMin: trajetoParaVaga(s, trajetoProvisorioMin()), intervaloMin: linha.intervaloMin });
         return `<span class="di-meta">${Math.max(0, livresPara(linha, iv.ini, iv.fim))} ônibus livres no horário deste pedido, fora ele</span>`;
       })() : ''}
     </div>
@@ -75,9 +76,12 @@ export async function abrirDetalhe(solicitacao, contexto) {
     ${campo('Horários', s.horario_embarque || s.horario_retorno
       ? `embarque ${esc(s.horario_embarque || '—')} · retorno ${esc(s.horario_retorno || '—')}`
       : vazio('não informados'))}
-    ${campo('Destino', esc(destino(s)) || vazio('não informado'))}
+    ${campo('Destino', destino(s)
+      ? `${esc(destino(s))}${enderecoDestino(s) ? `<div class="di-meta">${esc(enderecoDestino(s))}</div>` : ''}`
+      : vazio('não informado'))}
     ${campo('Trajeto', trajetoHtml(s, paradas))}
-    ${s.contato_professor ? campo('Contato', esc(s.contato_professor)) : ''}
+    ${responsavelDoPedido(s) ? campo('Responsável', esc(responsavelDoPedido(s))) : ''}
+    ${acessibilidadeHtml(paradas) ? campo('Acessibilidade', esc(acessibilidadeHtml(paradas))) : ''}
     ${s.observacao ? campo('Observação', esc(s.observacao)) : ''}
 
     <hr class="sep" />
@@ -148,8 +152,24 @@ async function recalcular(btn, s) {
 const campo = (rotulo, html) =>
   `<div class="field"><div class="lbl">${esc(rotulo)}</div><div class="val">${html}</div></div>`;
 
-const nomeAtividade = (s) => s.atividade?.nome || s.atividade_livre || 'Solicitação de transporte';
 const destino = (s) => s.destino_nome || s.atividade?.local_nome || '';
+
+// Endereço do destino: as três partes (spec 2026-09-27, D3), com o
+// endereço da atividade como último recurso para pedidos antigos.
+const enderecoDestino = (s) => enderecoCompleto({ endereco: s.destino_endereco, numero: s.destino_numero, bairro: s.destino_bairro })
+  || s.atividade?.local_endereco || '';
+
+// Soma dos surdos e sinaliza outra necessidade específica entre as
+// paradas ATIVAS (spec D8) - cancelada não embarca, não conta aqui.
+function acessibilidadeHtml(paradas) {
+  const ativas = (paradas || []).filter(p => p.status === 'ativa');
+  const surdos = ativas.reduce((n, p) => n + (Number(p.qtd_surdo) || 0), 0);
+  const outra = ativas.some(p => p.necessidade_especifica);
+  const partes = [];
+  if (surdos) partes.push(`${surdos} estudante(s) surdo(s)`);
+  if (outra) partes.push('outra necessidade específica');
+  return partes.join(' · ');
+}
 
 // Só as ações que cabem naquele status para aquela permissão (spec D4).
 // Esconder botão é conforto; quem barra de fato é o RLS (R6).
@@ -234,7 +254,7 @@ async function confirmar(btn) {
 function pedirMotivo({ titulo, rotulo, botao, fn }) {
   const s = atual;
   abrirModal(`
-    ${modalHead(esc(titulo), esc(nomeAtividade(s)))}
+    ${modalHead(esc(titulo), esc(tituloDoPedido(s)))}
     <div class="modal-body">
       <form id="mot-form" class="esc-form">
         <label>${esc(rotulo)}
@@ -259,7 +279,7 @@ function pedirMotivo({ titulo, rotulo, botao, fn }) {
     try {
       await fn(s.id, texto);
       fechaTudo();
-      toast({ titulo, texto: nomeAtividade(s), tipo: 'sucesso' });
+      toast({ titulo, texto: tituloDoPedido(s), tipo: 'sucesso' });
     } catch (err) {
       reportarErro(err, { msg, titulo: 'Não foi possível concluir' });
       btn.disabled = false;
@@ -271,7 +291,7 @@ async function executar(fn, titulo) {
   try {
     await fn(atual.id);
     fechaTudo();
-    toast({ titulo, texto: nomeAtividade(atual), tipo: 'sucesso' });
+    toast({ titulo, texto: tituloDoPedido(atual), tipo: 'sucesso' });
   } catch (err) {
     reportarErro(err, { titulo: 'Não foi possível concluir' });
   }
