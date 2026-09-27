@@ -14,6 +14,7 @@
 // ============================================================
 import { editarSolicitacao, PERIODOS, STATUS_RESERVA } from '../sate.model.js';
 import { lerOcupacao, faltaParaConfirmar } from '../disponibilidade.model.js';
+import { getParticipacoes } from '../participacoes.model.js';
 import { atualizarTrajeto, retratoTrajeto } from '../rota.model.js';
 import { velocidadeOnibusKmh, margemParadaMin } from '../sate.config.js';
 import { abrirFrotaExtra } from './frota-extra.js';
@@ -106,7 +107,15 @@ async function salvar(e, s, ctx, reabrir) {
     // sai da conta pelo `excluir` - ele já ocupa, e contá-lo de novo
     // criaria frota extra a mais.
     if (STATUS_RESERVA.includes(s.status)) {
-      const falta = faltaParaConfirmar(s, await lerOcupacao(s.data, s.data, { excluir: s.id }));
+      // As paradas entram no cálculo do embarque efetivo (mesmo critério
+      // do banco, ver disponibilidade.model.js) - uma consulta a mais,
+      // barata, e sem ela o remanejamento subestimaria a ocupação de um
+      // pedido cujo embarque real é o de uma parada, não o do cabeçalho.
+      const [linha, paradas] = await Promise.all([
+        lerOcupacao(s.data, s.data, { excluir: s.id }),
+        getParticipacoes(s.id).catch(() => []),
+      ]);
+      const falta = faltaParaConfirmar(s, linha, paradas);
       if (falta.onibus || falta.vans) return abrirFrotaExtra({ solicitacao: s, falta, modo: 'remanejar', ctx, reabrir });
     }
     await reabrir();

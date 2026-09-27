@@ -123,12 +123,24 @@ export function proximoHorario(linha, { ini, fim, precisa, periodo, tipo = 'onib
   return null;
 }
 
+// O embarque EFETIVO de uma viagem: o mais cedo entre o do cabeçalho e o
+// das paradas ATIVAS - o ônibus sai para a primeira parada. Mesmo
+// critério de ocupacao_transporte (042, `least`); ESPELHO também deste
+// pedaço, não só de intervaloDaViagem/livresPara. `paradas` ausentes ou
+// sem horário válido caem no puro cabeçalho (comportamento de antes).
+export function embarqueEfetivo(s, paradas = []) {
+  const candidatos = [minDe(s.horario_embarque),
+    ...paradas.filter(p => p.status === 'ativa').map(p => minDe(p.horario))].filter(v => v != null);
+  return candidatos.length ? Math.min(...candidatos) : null;
+}
+
 // Quantos veículos FALTAM para o pedido `s` caber. `linha` precisa vir de
 // lerOcupacao(s.data, s.data, { excluir: s.id }): o próprio pedido já
-// ocupa (D6), e contá-lo de novo criaria frota extra a mais.
-export function faltaParaConfirmar(s, linha) {
+// ocupa (D6), e contá-lo de novo criaria frota extra a mais. `paradas`
+// (opcional) são as participações já carregadas - ver embarqueEfetivo.
+export function faltaParaConfirmar(s, linha, paradas = []) {
   const { ini, fim } = intervaloDaViagem({
-    periodo: s.periodo, embarque: s.horario_embarque, retorno: s.horario_retorno,
+    periodo: s.periodo, embarque: embarqueEfetivo(s, paradas), retorno: s.horario_retorno,
     trajetoMin: s.trajeto_min, intervaloMin: linha.intervaloMin,
   });
   const falta = (tipo, pedido) => (pedido ? Math.max(0, pedido - livresPara(linha, ini, fim, tipo)) : 0);

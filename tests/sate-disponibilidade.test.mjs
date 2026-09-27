@@ -36,6 +36,24 @@ test('faltaParaConfirmar mede o que falta no intervalo do pedido', () => {
   const s = { periodo: 'tarde', horario_embarque: '13:00', horario_retorno: '17:00', trajeto_min: 0, qtd_onibus: 5, qtd_vans: 0 };
   assert.deepEqual(faltaParaConfirmar(s, linha(frota(9), [oc(420, 850, 6)])), { onibus: 2, vans: 0 });
 });
+// ESPELHO do `least()` de ocupacao_transporte (042): o embarque efetivo é
+// o mais cedo entre o do cabeçalho e o das paradas ativas.
+test('faltaParaConfirmar usa o embarque da parada mais cedo, não só o do cabeçalho', () => {
+  const s = { periodo: 'tarde', horario_embarque: '15:00', horario_retorno: '17:00', trajeto_min: 0, qtd_onibus: 9, qtd_vans: 0 };
+  const oc1 = linha(frota(9), [oc(420, 850, 6)]);
+  // Sem paradas: o cabeçalho (15:00) já não concorre com a ocupação da manhã.
+  assert.deepEqual(faltaParaConfirmar(s, oc1), { onibus: 0, vans: 0 });
+  // Com uma parada às 08:00 (dentro da ocupação): o embarque efetivo cai
+  // para 08:00 e o pedido passa a concorrer com quem ainda não voltou.
+  const paradas = [{ status: 'ativa', horario: '08:00' }];
+  assert.deepEqual(faltaParaConfirmar(s, oc1, paradas), { onibus: 6, vans: 0 });
+});
+test('faltaParaConfirmar ignora parada cancelada e horário inválido', () => {
+  const s = { periodo: 'tarde', horario_embarque: '15:00', horario_retorno: '17:00', trajeto_min: 0, qtd_onibus: 9, qtd_vans: 0 };
+  const oc1 = linha(frota(9), [oc(420, 850, 6)]);
+  const paradas = [{ status: 'cancelada', horario: '08:00' }, { status: 'ativa', horario: '' }];
+  assert.deepEqual(faltaParaConfirmar(s, oc1, paradas), { onibus: 0, vans: 0 });
+});
 
 // ── intervaloDaViagem (espelho de _sate_intervalo) ──
 test('tarde: embarque até retorno + trajeto + intervalo', () => {

@@ -22,7 +22,7 @@ import { abrirFrotaExtra } from './frota-extra.js';
 import { abrirRemanejar } from './remanejar.js';
 import { getParticipacoes } from '../participacoes.model.js';
 import { blocoHtml, ligarParticipantes } from './participantes.js';
-import { lerOcupacao, faltaParaConfirmar, intervaloDaViagem, livresPara } from '../disponibilidade.model.js';
+import { lerOcupacao, faltaParaConfirmar, intervaloDaViagem, livresPara, embarqueEfetivo } from '../disponibilidade.model.js';
 import { pontosDaViagem, explicarTrajeto, atualizarTrajeto, retratoTrajeto } from '../rota.model.js';
 import { linkRota } from '../../locais/locais.model.js';
 import { velocidadeOnibusKmh, margemParadaMin } from '../sate.config.js';
@@ -36,6 +36,7 @@ import { ico } from '../../../shared/ui/icones.js';
 
 let ctx = null;
 let atual = null;
+let paradasAtual = [];   // para confirmar() calcular o mesmo embarque efetivo do badge
 
 export async function abrirDetalhe(solicitacao, contexto) {
   ctx = contexto;
@@ -53,6 +54,7 @@ export async function abrirDetalhe(solicitacao, contexto) {
     getParticipacoes(s.id).catch(() => []),
     lerOcupacao(s.data, s.data, { excluir: s.id }).catch(() => null),
   ]);
+  paradasAtual = paradas;
   const corpo = document.getElementById('det-corpo');
   if (!corpo) return;   // fechou enquanto carregava
 
@@ -60,7 +62,7 @@ export async function abrirDetalhe(solicitacao, contexto) {
     <div class="det-status">
       <span class="tag st-${esc(s.status)}">${esc(STATUS[s.status] || s.status)}</span>
       ${linha ? (() => {
-        const iv = intervaloDaViagem({ periodo: s.periodo, embarque: s.horario_embarque, retorno: s.horario_retorno,
+        const iv = intervaloDaViagem({ periodo: s.periodo, embarque: embarqueEfetivo(s, paradas), retorno: s.horario_retorno,
           trajetoMin: s.trajeto_min, intervaloMin: linha.intervaloMin });
         return `<span class="di-meta">${Math.max(0, livresPara(linha, iv.ini, iv.fim))} ônibus livres no horário deste pedido, fora ele</span>`;
       })() : ''}
@@ -214,7 +216,7 @@ async function confirmar(btn) {
   const s = atual;
   btn.disabled = true;
   try {
-    const falta = faltaParaConfirmar(s, await lerOcupacao(s.data, s.data, { excluir: s.id }));
+    const falta = faltaParaConfirmar(s, await lerOcupacao(s.data, s.data, { excluir: s.id }), paradasAtual);
     if (falta.onibus || falta.vans) {
       return abrirFrotaExtra({ solicitacao: s, falta, modo: 'confirmar', ctx, reabrir: () => abrirDetalhe(s, ctx) });
     }
