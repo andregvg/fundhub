@@ -73,6 +73,12 @@ compilado nem transformado, e a regra continua valendo integralmente para todo o
 o lê só quando alguém passa o mouse sobre a versão, nunca no boot; sem o arquivo, mostra só a
 versão. Ver `.github/workflows/pages.yml` e `shell/chrome.js`.
 
+**Segunda exceção: Leaflet** (mapa com pino do cadastro de locais do SATE). Versão fixa
+(`leaflet@1.9.4`), do jsDelivr, com SRI, carregado **só** quando o modal de um local abre -
+nenhuma outra tela baixa nada. Sem ele, o modal segue com latitude, longitude e "Localizar pelo
+endereço". Ver `src/modules/sate/views/mapa-local.js`. Um segundo uso de mapa reusa esse arquivo
+(movendo-o para `shared/ui/` no terceiro, R13) - não traz outra biblioteca.
+
 ## Fluxo de trabalho
 
 - Trabalhar sempre na branch **`dev`**; validar na URL de dev; só então merge `dev → main`.

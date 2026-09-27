@@ -313,6 +313,11 @@ body.app-sate { --info-bg: color-mix(in srgb, var(--brand) 12%, var(--surface));
 .sate-simulacao .mini-btn { margin-left: auto; }
 .sate-ver-como { max-width: 520px; display: flex; flex-direction: column; gap: 12px; }
 
+/* ── Página Locais: mapa (Leaflet) ───────────────────────────
+   Altura fixa: o Leaflet precisa de um contêiner medido. */
+.local-mapa { height: 280px; border: 1px solid var(--border); border-radius: var(--radius-btn); }
+@media (min-width: 720px) { .local-mapa { height: 340px; } }
+
 /* ── Página Disponibilidade ────────────────────────────────── */
 .disp-nav { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .disp-semana { font-size: 15px; margin: 4px 0 12px; }
