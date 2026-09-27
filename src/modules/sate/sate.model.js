@@ -26,7 +26,9 @@ import { sb, hasSupabase, emailAtual } from '../../core/supabase.js';
 import { subscribeTabela } from '../../shared/realtime.js';
 import { agoraISO } from '../../shared/format.js';
 
-export const PERIODOS = Object.freeze({ manha: 'Manhã', tarde: 'Tarde', noite: 'Noite' });
+// Um lugar só para os rótulos (regras.model.js); reexportado porque as
+// telas e os agregadores já importam daqui.
+export { PERIODOS } from './regras.model.js';
 
 export const STATUS = Object.freeze({
   solicitado: 'Solicitado',

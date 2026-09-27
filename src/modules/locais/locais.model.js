@@ -17,7 +17,10 @@ import { sb, hasSupabase } from '../../core/supabase.js';
 import { registrarCache } from '../../shared/cache.js';
 import { norm } from '../../shared/dom.js';
 
-const COLS = 'id, nome, endereco, desembarque, latitude, longitude, maps_url, ativo, obs';
+const COLS = 'id, nome, endereco, numero, bairro, desembarque, latitude, longitude, maps_url, ativo, obs';
+// Sem a migration 044 as colunas numero/bairro não existem (42703): lê do
+// jeito antigo em vez de quebrar a página.
+const COLS_ANTIGAS = 'id, nome, endereco, desembarque, latitude, longitude, maps_url, ativo, obs';
 
 let _cache = null;
 function limparCacheLocais() { _cache = null; }
@@ -28,7 +31,8 @@ registrarCache(limparCacheLocais);
 export async function getLocais({ somenteAtivos = false } = {}) {
   if (_cache) return somenteAtivos ? _cache.filter(l => l.ativo) : _cache;
   if (!hasSupabase()) { _cache = []; return _cache; }
-  const { data, error } = await sb().from('local').select(COLS).order('nome');
+  let { data, error } = await sb().from('local').select(COLS).order('nome');
+  if (error?.code === '42703') ({ data, error } = await sb().from('local').select(COLS_ANTIGAS).order('nome'));
   if (error) {
     if (error.code === '42P01') { console.warn('Tabela local ausente - rode a migration 017.'); return []; }
     throw error;
@@ -43,7 +47,7 @@ export async function getLocais({ somenteAtivos = false } = {}) {
 export const linkMaps = (lat, lng) =>
   temCoordenada(lat, lng) ? `https://www.google.com/maps?q=${lat},${lng}` : null;
 
-const CAMPOS = ['nome', 'endereco', 'desembarque', 'latitude', 'longitude', 'maps_url', 'ativo', 'obs'];
+const CAMPOS = ['nome', 'endereco', 'numero', 'bairro', 'desembarque', 'latitude', 'longitude', 'maps_url', 'ativo', 'obs'];
 
 function limpar(p) {
   const out = {};
@@ -79,6 +83,39 @@ export async function excluirLocal(id) {
     throw error;
   }
   _cache = null;
+}
+
+// A linha única de endereço, a partir das três partes (spec 2026-09-27,
+// D3): "Rua Exemplo, 123 - Centro". Registros antigos têm o endereço
+// inteiro em `endereco` e as outras duas vazias - saem como estavam.
+// TODA exibição e uso da linha única passam por aqui.
+export function enderecoCompleto(x) {
+  const t = (v) => String(v ?? '').trim();
+  const rua = t(x?.endereco), num = t(x?.numero), bairro = t(x?.bairro);
+  const linha = [rua, num].filter(Boolean).join(', ');
+  return [linha, bairro].filter(Boolean).join(' - ');
+}
+
+// Locais ativos parecidos com o que a escola digitou - para a SME
+// apontar para um existente em vez de cadastrar duplicata (spec D6).
+// Nome parecido = alguma palavra significativa (4+ letras, sem acento)
+// em comum; bairro igual também conta. Nome + bairro vem primeiro.
+export function locaisParecidos(alvo, locais, max = 5) {
+  const palavras = (s) => norm(s).split(/[^a-z0-9]+/).filter(p => p.length >= 4);
+  const nomeAlvo = new Set(palavras(alvo?.nome));
+  const bairroAlvo = norm(alvo?.bairro).trim();
+  if (!nomeAlvo.size && !bairroAlvo) return [];
+  return (locais || [])
+    .filter(l => l.ativo)
+    .map(l => {
+      const nome = palavras(l.nome).some(p => nomeAlvo.has(p) || [...nomeAlvo].some(a => a.startsWith(p.slice(0, 5)) || p.startsWith(a.slice(0, 5))));
+      const bairro = !!bairroAlvo && norm(l.bairro).trim() === bairroAlvo;
+      return { l, pontos: (nome ? 2 : 0) + (bairro ? 1 : 0) };
+    })
+    .filter(x => x.pontos > 0)
+    .sort((a, b) => b.pontos - a.pontos || a.l.nome.localeCompare(b.l.nome, 'pt'))
+    .slice(0, max)
+    .map(x => x.l);
 }
 
 // ── Geografia: localizar e medir ─────────────────────────────

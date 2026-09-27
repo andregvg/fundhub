@@ -22,17 +22,28 @@
 import { sb, hasSupabase } from '../../core/supabase.js';
 import { addDias } from '../../shared/format.js';
 import { paraMin } from './regras.model.js';
+import { trajetoProvisorioMin } from './sate.config.js';
 
 export const DIA = 1440;
 // Janelas dos períodos, em minutos desde 00:00. A noite vai até o
 // meio-dia seguinte: é quando o veículo volta a estar livre (D5).
-export const JANELA = Object.freeze({ manha: [0, 720], tarde: [720, 1080], noite: [1080, 2160] });
+// `integral` (spec 2026-09-27, D4) ocupa manhã e tarde inteiras.
+export const JANELA = Object.freeze({ manha: [0, 720], tarde: [720, 1080], noite: [1080, 2160], integral: [0, 1080] });
 // Viagem TÍPICA de cada período - o que a página Disponibilidade supõe
 // quando ainda não há horário. O formulário confere o horário exato.
-export const TIPICO = Object.freeze({ manha: [420, 720], tarde: [720, 1080], noite: [1140, 2160] });
+export const TIPICO = Object.freeze({ manha: [420, 720], tarde: [720, 1080], noite: [1140, 2160], integral: [420, 1080] });
 
 const CAMPO = { onibus: 'onibus', vans: 'vans', van_adaptada: 'vans' };
 const minDe = (x) => (typeof x === 'number' ? x : paraMin(x));
+
+// Tempo de viagem que entra na conta da vaga. O gravado vence; sem ele,
+// um pedido de LOCAL A CONFERIR (sem local_id) usa o provisório - a vaga
+// fica superestimada até a SME conferir (spec 2026-09-27, D6). ESPELHO do
+// coalesce em ocupacao_transporte e criar_viagem (044).
+export function trajetoParaVaga(s, provisorioMin) {
+  if (s?.trajeto_min != null) return Number(s.trajeto_min);
+  return s?.local_id ? null : provisorioMin;
+}
 
 // ESPELHO de _sate_intervalo (042).
 export function intervaloDaViagem({ periodo, embarque, retorno, trajetoMin = 0, intervaloMin = 0 }) {
@@ -141,7 +152,7 @@ export function embarqueEfetivo(s, paradas = []) {
 export function faltaParaConfirmar(s, linha, paradas = []) {
   const { ini, fim } = intervaloDaViagem({
     periodo: s.periodo, embarque: embarqueEfetivo(s, paradas), retorno: s.horario_retorno,
-    trajetoMin: s.trajeto_min, intervaloMin: linha.intervaloMin,
+    trajetoMin: trajetoParaVaga(s, trajetoProvisorioMin()), intervaloMin: linha.intervaloMin,
   });
   const falta = (tipo, pedido) => (pedido ? Math.max(0, pedido - livresPara(linha, ini, fim, tipo)) : 0);
   return { onibus: falta('onibus', Number(s.qtd_onibus) || 0), vans: falta('vans', Number(s.qtd_vans) || 0) };
@@ -170,7 +181,9 @@ async function aproximarPorPeriodo(de, ate) {
     const r = resps[k];
     if (!r) return;
     frota.push({ dia, onibus: r.onibus?.manha?.total || 0, vans: r.van_adaptada?.manha?.total || 0 });
-    for (const p of Object.keys(JANELA)) {
+    // `integral` fica de fora: o `saldo_transporte` antigo só conhece os
+    // três períodos clássicos, e somá-lo aqui duplicaria a ocupação.
+    for (const p of ['manha', 'tarde', 'noite']) {
       const onibus = r.onibus?.[p]?.uso || 0;
       const vans = r.van_adaptada?.[p]?.uso || 0;
       if (onibus + vans) ocupacoes.push({ dia, ini: JANELA[p][0], fim: JANELA[p][1], onibus, vans });

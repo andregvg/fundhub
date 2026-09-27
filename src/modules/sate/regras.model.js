@@ -16,8 +16,11 @@
 //
 // Elas também estão em docs/modulos/sate.md, escritas para quem usa.
 // ============================================================
+import { exibirTelefone } from '../../shared/ui/phones.js';
 
-export const PERIODOS = Object.freeze({ manha: 'Manhã', tarde: 'Tarde', noite: 'Noite' });
+export const PERIODOS = Object.freeze({
+  manha: 'Manhã', tarde: 'Tarde', noite: 'Noite', integral: 'Manhã e tarde',
+});
 
 // "07:30" → 450. Devolve null para o que não é hora - quem chama decide
 // o que fazer com a ausência, em vez de receber NaN silencioso.
@@ -32,6 +35,32 @@ export function paraMin(hhmm) {
 // 450 → "07:30".
 export const paraHora = (min) =>
   `${String(Math.floor(min / 60)).padStart(2, '0')}:${String(min % 60).padStart(2, '0')}`;
+
+// O período é CALCULADO pelos horários (spec 2026-09-27, D4) - a escola
+// não informa. `integral` é quem sai de manhã e volta depois do meio-dia:
+// ocupa os dois períodos. ESPELHO de _sate_periodo (migration 044).
+export function periodoDe(embarque, retorno) {
+  const e = paraMin(embarque);
+  if (e == null) return null;
+  if (e >= 1080) return 'noite';
+  if (e >= 720) return 'tarde';
+  const r = paraMin(retorno);
+  return r != null && r > 720 ? 'integral' : 'manha';
+}
+
+// Como um pedido se chama numa lista. Desde a 0.38.0 a escola não dá
+// nome à atividade: o destino é o nome (spec D2). Os antigos mantêm o seu.
+export const tituloDoPedido = (s) =>
+  s?.atividade?.nome || s?.atividade_livre || s?.destino_nome || 'Solicitação de transporte';
+
+// Responsável pela visita: os campos novos (spec D8), e o texto livre
+// antigo para os pedidos feitos antes deles.
+export function responsavelDoPedido(s) {
+  const nome = s?.professor_nome || '';
+  const tel = s?.professor_telefone ? exibirTelefone(s.professor_telefone) : '';
+  if (nome || tel) return [nome, tel].filter(Boolean).join(' · ');
+  return s?.contato_professor || '';
+}
 
 // Quantos veículos um grupo precisa. Só alunos entram na conta - é o
 // mesmo critério do agendamentos-fil, e o acompanhante nunca requisita
@@ -127,7 +156,7 @@ export function avaliarPedido(p) {
 // PURA: sem DOM, sem banco. Recebe as confirmadas do dia, devolve as
 // fichas na ordem em que serão impressas.
 export function alocarFichas(confirmadas, { capacidade }) {
-  const ORDEM_PERIODO = { manha: 0, tarde: 1, noite: 2 };
+  const ORDEM_PERIODO = { manha: 0, integral: 0, tarde: 1, noite: 2 };
   const fichas = [];
   // Por período, e dentro dele por horário de embarque: é a ordem em que
   // os veículos saem, e a mesma em que a numeração faz sentido para quem

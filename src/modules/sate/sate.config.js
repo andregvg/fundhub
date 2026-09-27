@@ -31,6 +31,11 @@ export const PADRAO = Object.freeze({
   cor: 'verde',
   velocidade_onibus_kmh: 20,
   margem_parada_min: 5,
+  // Local A CONFERIR (sem local_id) e sem trajeto informado: quanto tempo
+  // de viagem entra na conta da vaga enquanto a SME não confere o
+  // endereço (spec 2026-09-27, D6). ESPELHO do padrão de
+  // _sate_conf_int('trajeto_provisorio_min', 60) na migration 044.
+  trajeto_provisorio_min: 60,
 });
 
 // Valor gravado só vence o padrão se for número finito e não negativo.
@@ -64,6 +69,7 @@ export const corSate = () => {
 export const velocidadeOnibusKmh = () => num('velocidade_onibus_kmh', PADRAO.velocidade_onibus_kmh) || PADRAO.velocidade_onibus_kmh;
 export const margemParadaMin = () => num('margem_parada_min', PADRAO.margem_parada_min);
 export const capacidadeVan = () => num('capacidade_van', PADRAO.capacidade_van) || PADRAO.capacidade_van;
+export const trajetoProvisorioMin = () => num('trajeto_provisorio_min', PADRAO.trajeto_provisorio_min);
 
 export const DECLARACAO = {
   itens: [
@@ -108,6 +114,12 @@ export const DECLARACAO = {
       tipo: 'numero', padrao: PADRAO.margem_parada_min, min: 0, max: 60,
       rotulo: 'Margem por parada de embarque (minutos)',
       dica: 'Tempo de manobra somado a cada escola onde o ônibus para. Vale para os próximos agendamentos.',
+    },
+    {
+      chave: 'trajeto_provisorio_min', escopo: 'rede', grupo: 'regras',
+      tipo: 'numero', padrao: PADRAO.trajeto_provisorio_min, min: 0, max: 240,
+      rotulo: 'Tempo de viagem provisório (minutos)',
+      dica: 'Usado na contagem de vagas enquanto o local digitado pela escola não é conferido. Prefira um número folgado: a vaga fica reservada a mais, nunca a menos.',
     },
   ],
 };
