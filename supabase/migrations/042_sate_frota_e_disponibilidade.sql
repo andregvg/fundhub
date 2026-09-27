@@ -165,9 +165,16 @@ grant execute on function _sate_livres(jsonb, jsonb, int, int) to authenticated;
 --
 -- Cobre de p_de - 1 (a noite anterior ocupa a manha de p_de) a p_ate + 1
 -- (um pedido da noite de p_ate ocupa a manha seguinte).
+-- O intervalo pedido e limitado a 62 dias (a pagina pede 7, o formulario 1):
+-- sem o limite, um p_ate menor que p_de ou um intervalo enorme faria o
+-- generate_series e a agregacao abaixo custarem sem necessidade. Fora do
+-- limite a funcao devolve null - lerOcupacao() (disponibilidade.model.js)
+-- ja trata null como falha e cai na aproximacao por periodo.
 create or replace function ocupacao_transporte(p_de date, p_ate date, p_excluir uuid default null)
   returns jsonb language sql stable security definer set search_path = public as $$
-    with permitido as (select pode_ver('sate') as ok),
+    with permitido as (
+      select (pode_ver('sate') and p_ate >= p_de and (p_ate - p_de) <= 62) as ok
+    ),
     cfg as (select _sate_conf_int('intervalo_min_periodos', 120) as intervalo),
     dias as (
       select d::date as data, (d::date - p_de) as dia
@@ -407,16 +414,17 @@ begin
 
   -- UPDATE: a escola so muda situacao e motivo (cancelar, pedir
   -- cancelamento) - nunca data, horario, veiculo, trajeto ou destino do
-  -- pedido. qtd_alunos/qtd_cadeirante ficam de fora de proposito: quem os
+  -- pedido (nome e endereco inclusos - sem eles a guarda deixava o destino
+  -- passar). qtd_alunos/qtd_cadeirante ficam de fora de proposito: quem os
   -- escreve e o gatilho definer de totais (fn_sincronizar_totais_viagem,
   -- 037), que roda com o JWT da escola ainda ativo na sessao.
   if (new.data, new.periodo, new.horario_embarque, new.horario_retorno,
       new.qtd_onibus, new.qtd_vans, new.trajeto_min, new.unidade_id,
-      new.atividade_id, new.local_id)
+      new.atividade_id, new.local_id, new.destino_nome, new.destino_endereco)
      is distinct from
      (old.data, old.periodo, old.horario_embarque, old.horario_retorno,
       old.qtd_onibus, old.qtd_vans, old.trajeto_min, old.unidade_id,
-      old.atividade_id, old.local_id) then
+      old.atividade_id, old.local_id, old.destino_nome, old.destino_endereco) then
     raise exception 'A escola nao altera data, horario, destino nem veiculos de um pedido.' using errcode = '42501';
   end if;
   return new;

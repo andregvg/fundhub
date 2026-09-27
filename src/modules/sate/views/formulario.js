@@ -389,7 +389,7 @@ async function enviar(e) {
     if (err.code === 'P0001' && String(err.message || '').startsWith('Sem onibus livres')) {
       falha(msg, 'Não há ônibus livres para este horário. Escolha outro horário ou outra data.');
       pintarSaldo();
-    } else if (err.code === '23502') {
+    } else if (err.code === '23502' && String(err.message || '').startsWith('Informe o horario')) {
       falha(msg, 'Informe o horário de embarque e o de retorno.');
     } else {
       reportarErro(err, { msg, titulo: 'Não foi possível enviar' });
