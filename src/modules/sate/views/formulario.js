@@ -284,7 +284,7 @@ async function enviar(e) {
     try {
       const dia = await getDiaCalendario(data);
       if (dia?.bloqueia_extraclasse) return falha(msg, `Data bloqueada para extraclasse${dia.evento ? ` (${dia.evento})` : ''}.`);
-      if (dia && dia.letivo === false) return falha(msg, `${data} não é dia letivo${dia.evento ? ` (${dia.evento})` : ''}.`);
+      if (dia && dia.letivo === false) return falha(msg, `${fmtData(data)} não é dia letivo${dia.evento ? ` (${dia.evento})` : ''}.`);
     } catch (_) { /* sem calendário carregado, segue */ }
   }
 

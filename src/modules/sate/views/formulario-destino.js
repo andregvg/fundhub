@@ -12,6 +12,10 @@ import { val } from '../../../shared/dom.js';
 let locaisAtivos = [];
 let escolhido = null;   // Local da lista, ou null
 let livre = false;      // true = a escola digita o local
+let bs = null;          // handle de criarBuscaSelecao - guardado para poder
+                         // limpar a seleção ao entrar no modo livre e para
+                         // destruir() antes de recriar (senão cada abertura
+                         // do modal deixa um listener de document a mais).
 
 // `label for` não alcançaria o input de dentro de criarBuscaSelecao (ele
 // monta a própria estrutura no id passado) - por isso o rótulo é `.lbl`.
@@ -44,17 +48,31 @@ function preencher(l) {
 // `[hidden]` vence as cinco classes de rótulo de `.form-grupo .campos`
 // (ver o mesmo comentário no formulário antigo) - por isso a alternância
 // usa o atributo, nunca uma classe/`display`.
+//
+// As duas direções ficam consistentes com `lerDestino()`: entrar no modo
+// livre limpa a escolha da busca (o widget e `escolhido`); voltar para a
+// lista limpa o que foi digitado. Sem isso a tela mostra um destino que
+// `lerDestino()` já não devolve mais (spec 2026-09-27, revisão).
 function aplicarModo() {
   document.querySelectorAll('.dest-livre').forEach(el => { el.hidden = !livre; });
   document.querySelector('.dest-lista').hidden = livre;
   for (const id of ['f-dest-end', 'f-dest-num', 'f-dest-bairro']) campo(id).readOnly = !livre;
-  if (livre) { escolhido = null; preencher(null); campo('f-dest-nome').focus(); }
+  if (livre) {
+    escolhido = null; bs?.definirValor(''); preencher(null); campo('f-dest-nome').focus();
+  } else {
+    campo('f-dest-nome').value = '';
+    preencher(null);
+  }
 }
 
 export function ligarDestino(locais, aoMudar) {
+  // Reabrir o modal chama ligarDestino() de novo sobre um markup novo -
+  // sem destruir a instância anterior, o listener de document dela (ver
+  // busca-selecao.js) fica preso para sempre.
+  bs?.destruir();
   locaisAtivos = (locais || []).filter(l => l.ativo);
   escolhido = null; livre = false;
-  criarBuscaSelecao(campo('f-local-busca'), {
+  bs = criarBuscaSelecao(campo('f-local-busca'), {
     opcoes: locaisAtivos.map(l => ({ id: l.id, rotulo: l.nome, detalhe: enderecoCompleto(l), busca: l.bairro || '' })),
     placeholder: 'Digite para buscar o local…',
     vazioTexto: 'Nenhum local com esse nome - use "Local não está na lista"',
