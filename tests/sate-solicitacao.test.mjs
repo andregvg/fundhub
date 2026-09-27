@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { periodoDe, tituloDoPedido, responsavelDoPedido, PERIODOS, alocarFichas } from '../src/modules/sate/regras.model.js';
 import { JANELA, TIPICO, trajetoParaVaga, intervaloDaViagem } from '../src/modules/sate/disponibilidade.model.js';
 import { enderecoCompleto, locaisParecidos } from '../src/modules/locais/locais.model.js';
+import { localAConferir } from '../src/modules/sate/sate.model.js';
 
 test('periodoDe: manhã, integral, tarde, noite', () => {
   assert.equal(periodoDe('07:30', '11:00'), 'manha');
@@ -71,6 +72,12 @@ test('locaisParecidos: nome sem acento e sem artigo casa; bairro igual casa', ()
   assert.ok(r.includes('3'));              // só bairro
   assert.ok(!r.includes('4'));             // inativo fica de fora
   assert.deepEqual(locaisParecidos({ nome: '', bairro: '' }, locais), []);
+});
+
+test('localAConferir: destino digitado sem local cadastrado', () => {
+  assert.equal(localAConferir({ destino_nome: 'Museu Exemplo', local_id: null }), true);
+  assert.equal(localAConferir({ destino_nome: 'Museu Exemplo', local_id: 'x' }), false);
+  assert.equal(localAConferir({ atividade_id: 'a' }), false);
 });
 
 test('alocarFichas ordena integral junto da manhã', () => {

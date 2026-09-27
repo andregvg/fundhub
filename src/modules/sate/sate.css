@@ -338,3 +338,7 @@ body.app-sate { --info-bg: color-mix(in srgb, var(--brand) 12%, var(--surface));
 .disp-per > span:last-child { text-align: right; }
 .disp-van { border-top: 1px solid var(--border); padding-top: 6px; }
 .disp-comp { border-top: 1px solid var(--border); padding-top: 6px; font-size: 12.5px; color: var(--muted); }
+
+/* ── Conferir local (spec 2026-09-27, D6) ────────────────────── */
+.conf-digitado { padding: 10px 12px; border: 1px dashed var(--border); border-radius: var(--radius-btn); }
+.conf-titulo { margin: 16px 0 8px; font-size: 14px; }

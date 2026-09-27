@@ -107,6 +107,25 @@ export async function editarSolicitacao(id, payload) {
   if (error) throw error;
 }
 
+// Destino digitado pela escola, ainda sem local do cadastro (spec
+// 2026-09-27, D6). Derivado, não guardado: não tem como dessincronizar.
+export const localAConferir = (s) => !s?.local_id && !!s?.destino_nome;
+
+// A SME apontou o pedido para um local do cadastro ("É este" ou
+// "Cadastrar novo"). Troca SÓ o destino - data, horários, escolas e
+// veículos ficam. O texto da escola fica no audit_log.
+export async function vincularLocal(solicitacaoId, local) {
+  const patch = {
+    local_id: local.id,
+    destino_nome: local.nome,
+    destino_endereco: local.endereco || null,
+    destino_numero: local.numero || null,
+    destino_bairro: local.bairro || null,
+  };
+  await editarSolicitacao(solicitacaoId, patch);
+  return patch;
+}
+
 // Toda transição passa por aqui: é o único lugar que carimba quem
 // decidiu e quando, e o único que sabe quais status exigem motivo.
 async function transicionar(id, status, motivo = null) {

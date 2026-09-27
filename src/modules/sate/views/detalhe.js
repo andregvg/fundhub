@@ -15,12 +15,13 @@
 // ============================================================
 import {
   porEmAnalise, confirmarSolicitacao, negarSolicitacao, cancelarSolicitacao,
-  pedirCancelamento, confirmarCancelamento,
+  pedirCancelamento, confirmarCancelamento, localAConferir,
   STATUS, PERIODOS,
 } from '../sate.model.js';
 import { tituloDoPedido, responsavelDoPedido } from '../regras.model.js';
 import { abrirFrotaExtra } from './frota-extra.js';
 import { abrirRemanejar } from './remanejar.js';
+import { abrirConferirLocal } from './conferir-local.js';
 import { getParticipacoes } from '../participacoes.model.js';
 import { blocoHtml, ligarParticipantes } from './participantes.js';
 import { lerOcupacao, faltaParaConfirmar, intervaloDaViagem, livresPara, embarqueEfetivo, trajetoParaVaga } from '../disponibilidade.model.js';
@@ -33,6 +34,7 @@ import { modalHead, abrirModal, fecharModal } from '../../../shared/ui/modal.js'
 import { loading } from '../../../shared/ui/feedback.js';
 import { toast } from '../../../shared/ui/toast.js';
 import { reportarErro } from '../../../shared/ui/feedback.js';
+import { confirmar } from '../../../shared/ui/confirmar.js';
 import { ico } from '../../../shared/ui/icones.js';
 
 let ctx = null;
@@ -77,7 +79,7 @@ export async function abrirDetalhe(solicitacao, contexto) {
       ? `embarque ${esc(s.horario_embarque || '—')} · retorno ${esc(s.horario_retorno || '—')}`
       : vazio('não informados'))}
     ${campo('Destino', destino(s)
-      ? `${esc(destino(s))}${enderecoDestino(s) ? `<div class="di-meta">${esc(enderecoDestino(s))}</div>` : ''}`
+      ? `${esc(destino(s))}${enderecoDestino(s) ? `<div class="di-meta">${esc(enderecoDestino(s))}</div>` : ''}${conferirLocalHtml(s)}`
       : vazio('não informado'))}
     ${campo('Trajeto', trajetoHtml(s, paradas))}
     ${responsavelDoPedido(s) ? campo('Responsável', esc(responsavelDoPedido(s))) : ''}
@@ -94,6 +96,7 @@ export async function abrirDetalhe(solicitacao, contexto) {
 
   corpo.addEventListener('click', aoClicarAcao);
   corpo.querySelector('#det-recalc')?.addEventListener('click', (e) => recalcular(e.currentTarget, s));
+  corpo.querySelector('#det-conferir')?.addEventListener('click', () => abrirConferirLocal(s, ctx, () => abrirDetalhe(s, ctx)));
   // `reabrir` e esta propria funcao: depois de mexer numa escola a
   // viagem volta a abrir com o dado novo, em vez de fechar a pilha.
   ligarParticipantes(corpo, {
@@ -159,6 +162,16 @@ const destino = (s) => s.destino_nome || s.atividade?.local_nome || '';
 const enderecoDestino = (s) => enderecoCompleto({ endereco: s.destino_endereco, numero: s.destino_numero, bairro: s.destino_bairro })
   || s.atividade?.local_endereco || '';
 
+// Destino digitado pela escola, sem local do cadastro (spec 2026-09-27,
+// D6): sinaliza na tela e, para quem aprova, oferece o botão que aponta
+// para um local existente ou cadastra um novo.
+function conferirLocalHtml(s) {
+  if (!localAConferir(s)) return '';
+  const botao = ctx.aprovador && !ctx.somenteLeitura
+    ? `<button type="button" class="mini-btn" id="det-conferir">Conferir local</button>` : '';
+  return `<div class="det-trajeto-extras"><span class="tag">Local a conferir</span>${botao}</div>`;
+}
+
 // Soma dos surdos e sinaliza outra necessidade específica entre as
 // paradas ATIVAS (spec D8) - cancelada não embarca, não conta aqui.
 function acessibilidadeHtml(paradas) {
@@ -218,7 +231,7 @@ function aoClicarAcao(e) {
   if (COM_MOTIVO[acao]) return pedirMotivo(COM_MOTIVO[acao]);
 
   if (acao === 'remanejar') return abrirRemanejar(atual, ctx, () => abrirDetalhe(atual, ctx));
-  if (acao === 'confirmar') return confirmar(btn);
+  if (acao === 'confirmar') return confirmarPedido(btn);
 
   const DIRETA = {
     analisar: { fn: porEmAnalise, titulo: 'Solicitação em análise' },
@@ -232,8 +245,16 @@ function aoClicarAcao(e) {
 // é por ele que "aguardando transporte adaptado" passa a acontecer (D2).
 // Saldo relido no clique, não o da abertura do detalhe: outro aprovador
 // pode ter confirmado algo no meio tempo.
-async function confirmar(btn) {
+async function confirmarPedido(btn) {
   const s = atual;
+  // Local ainda não conferido: a vaga foi contada com o tempo de viagem
+  // provisório (spec 2026-09-27, D6) - avisa, mas não bloqueia, porque a
+  // SME às vezes precisa confirmar antes de conferir o endereço.
+  if (localAConferir(s)) {
+    const ok = await confirmar('O local deste pedido ainda não foi conferido. A vaga está contada com o tempo de viagem provisório. Confirmar mesmo assim?',
+      { textoOk: 'Confirmar mesmo assim' });
+    if (!ok) return;
+  }
   btn.disabled = true;
   try {
     const falta = faltaParaConfirmar(s, await lerOcupacao(s.data, s.data, { excluir: s.id }), paradasAtual);
