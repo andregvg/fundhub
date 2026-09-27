@@ -94,12 +94,13 @@ coluna de estado: o fato é derivado, então não dessincroniza.
 - **Ficha da empresa não é afetada**: imprime o destino gravado no pedido
   (nome + `enderecoCompleto`), que a escola digitou em partes obrigatórias.
 - **Cálculo de vaga é o risco**: sem coordenada não há tempo de viagem, e o
-  ônibus contaria como livre no próprio horário de retorno. Enquanto o local
-  não é conferido, vale um **tempo de viagem provisório** cauteloso -
+  ônibus contaria como livre no próprio horário de retorno. Sempre que não há
+  tempo de viagem gravado - local a conferir ou local do cadastro ainda sem
+  trajeto calculado -, vale um **tempo de viagem provisório** cauteloso -
   configuração `trajeto_provisorio_min` do SATE, padrão **60** - aplicado no
   banco (`criar_viagem` e `ocupacao_transporte`: `coalesce(trajeto_min,
-  provisório)` quando não há `local_id`) e no espelho do front. O erro vai para
-  o lado seguro: a vaga fica superestimada até a conferência.
+  provisório)`) e no espelho do front (`trajetoParaVaga`). O erro vai para o
+  lado seguro: a vaga fica superestimada até o trajeto ser calculado.
 - **Confirmar com local a conferir é aviso, não erro.**
 
 **Conferir local** (botão na ficha da solicitação, para quem escreve no SATE):

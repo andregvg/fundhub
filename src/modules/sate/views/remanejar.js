@@ -13,7 +13,7 @@
 //     da frota extra, em modo remanejamento.
 // ============================================================
 import { editarSolicitacao, STATUS_RESERVA } from '../sate.model.js';
-import { periodoDe } from '../regras.model.js';
+import { periodoDe, tituloDoPedido } from '../regras.model.js';
 import { lerOcupacao, faltaParaConfirmar } from '../disponibilidade.model.js';
 import { getParticipacoes } from '../participacoes.model.js';
 import { atualizarTrajeto, retratoTrajeto } from '../rota.model.js';
@@ -29,7 +29,7 @@ export function abrirRemanejar(s, ctx, reabrir) {
   const v = (k) => esc(s[k] ?? '');
 
   abrirModal(`
-    ${modalHead('Remanejar', esc(s.atividade?.nome || s.atividade_livre || 'Solicitação de transporte'))}
+    ${modalHead('Remanejar', esc(tituloDoPedido(s)))}
     <div class="modal-body">
       <form id="rm-form" class="esc-form">
         <fieldset class="form-grupo">

@@ -52,6 +52,9 @@ async function carregar() {
 
   const porPeriodo = { manha: [], tarde: [], noite: [], integral: [] };
   lista.forEach(s => (porPeriodo[s.periodo] ||= []).push(s));
+  // Ordem do dia, não a de inserção de PERIODOS: a manhã "integral" some
+  // no meio do dia dela, então entra logo depois da manhã comum.
+  const ORDEM_PERIODOS = ['manha', 'integral', 'tarde', 'noite'];
 
   body.innerHTML = `
     <div class="viagens">
@@ -59,7 +62,7 @@ async function carregar() {
         <h2>Programação de Viagens - Transporte Extraclasse</h2>
         <div>${esc(fmtData(dataSel))} · ${lista.length} viagem(ns)</div>
       </div>
-      ${Object.keys(PERIODOS).filter(p => porPeriodo[p]?.length).map(p => `
+      ${ORDEM_PERIODOS.filter(p => porPeriodo[p]?.length).map(p => `
         <h3 class="pv-periodo">${PERIODOS[p]}</h3>
         ${porPeriodo[p].map(linha).join('')}
       `).join('')}

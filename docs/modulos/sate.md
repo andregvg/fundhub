@@ -364,9 +364,11 @@ As escolas se localizam do mesmo jeito, no cadastro de **Escolas**.
 
 Um pedido feito com **Local não está na lista** aparece marcado com a
 etiqueta **Local a conferir**, tanto na lista quanto na ficha da solicitação.
-Enquanto ele não é conferido, a contagem de vagas usa um tempo de viagem
-provisório e cauteloso (ver "Regras que o sistema aplica"), então vale
-conferir assim que possível.
+Enquanto o tempo de viagem dele não foi calculado, a contagem de vagas usa um
+tempo de viagem provisório e cauteloso (ver "Regras que o sistema aplica") -
+o mesmo vale, por pouco tempo, para um destino já do cadastro que ainda não
+teve o trajeto calculado -, então vale conferir e recalcular assim que
+possível.
 
 1. Abra a solicitação e clique em **Conferir local**.
 2. O sistema mostra locais já cadastrados parecidos com o que a escola

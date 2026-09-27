@@ -16,9 +16,25 @@ alter table solicitacao_participacao
   add column if not exists qtd_surdo              int     not null default 0,
   add column if not exists necessidade_especifica boolean not null default false;
 
+alter table solicitacao_participacao drop constraint if exists solicitacao_participacao_qtd_surdo_check;
+alter table solicitacao_participacao
+  add constraint solicitacao_participacao_qtd_surdo_check check (qtd_surdo >= 0);
+
 alter table local
   add column if not exists numero text,
   add column if not exists bairro text;
+
+-- ── RLS de `local`: admins do SATE também gerenciam o catálogo ──
+-- A 017 restringiu insert/update/delete a is_admin(), mas o dono pediu
+-- "admins do SATE precisam de uma tela completa para gerenciar os
+-- locais" - a tela de Locais (aba do SATE) já assume isso. select
+-- continua igual (todo autorizado lê).
+drop policy if exists local_ins on local;
+drop policy if exists local_upd on local;
+drop policy if exists local_del on local;
+create policy local_ins on local for insert with check (is_admin() or pode_escrever('sate'));
+create policy local_upd on local for update using (is_admin() or pode_escrever('sate')) with check (is_admin() or pode_escrever('sate'));
+create policy local_del on local for delete using (is_admin() or pode_escrever('sate'));
 
 -- O CHECK de periodo nasceu inline na 004 (nome gerado pelo Postgres).
 -- Derruba qualquer CHECK de solicitacao_transporte que fale de periodo e
@@ -96,8 +112,10 @@ create trigger trg_sate_periodo
   for each row execute function fn_sate_periodo();
 
 -- (Gatilhos BEFORE disparam em ordem alfabetica: trg_sate_guarda_escola
--- roda antes de trg_sate_periodo. A escola nao altera horarios, entao a
--- guarda nao e afetada.)
+-- roda antes de trg_sate_periodo. O periodo pode ser RECALCULADO em
+-- qualquer update que toque horario_embarque/horario_retorno - inclusive
+-- um feito por quem escreve no SATE, que a guarda nem barra - e isso e
+-- intencional (D4): o periodo gravado nunca contradiz os horarios.)
 
 -- ── Ocupacao anonima: trajeto provisorio para local a conferir ──
 -- `security definer` pelo mesmo motivo do saldo_transporte (036): a escola
@@ -133,11 +151,11 @@ create or replace function ocupacao_transporte(p_de date, p_ate date, p_excluir 
     ),
     viagens as (
       select (s.data - p_de) as dia, s.periodo,
-             -- Local a conferir (sem local_id) e sem trajeto: tempo de
-             -- viagem provisorio, cauteloso (spec D6) - a vaga fica
-             -- superestimada ate a SME conferir o local.
-             coalesce(s.trajeto_min,
-                      case when s.local_id is null then (select provisorio from cfg) end) as trajeto_min,
+             -- Sem trajeto gravado (local a conferir OU local do cadastro
+             -- ainda sem calculo): tempo de viagem provisorio, cauteloso
+             -- (spec D6) - a vaga fica superestimada ate o trajeto ser
+             -- calculado. Direcao mais segura: nunca subestimar a ocupacao.
+             coalesce(s.trajeto_min, (select provisorio from cfg)) as trajeto_min,
              _sate_min(s.horario_retorno) as ret,
              -- O embarque e o MAIS CEDO entre o cabecalho e as paradas
              -- ativas: o onibus sai para a primeira parada.
@@ -185,6 +203,7 @@ declare
   v_data date; v_per text; v_emb int; v_ret int;
   v_usa boolean := true; v_onibus int; v_vans int;
   v_ini int; v_fim int; v_vagas jsonb; d int;
+  v_local_nome text; v_local_endereco text; v_local_numero text; v_local_bairro text;
 begin
   -- Marca de transacao que so esta funcao acende (spec D7, "Sem atalho
   -- pela API"): e o que fn_sate_guarda_escola()/fn_sate_guarda_participacao()
@@ -201,6 +220,41 @@ begin
     if v_emb is null or v_ret is null then
       raise exception 'Informe o horario de embarque e o de retorno.' using errcode = '23502';
     end if;
+
+    -- Responsavel pela visita e obrigatorio para quem nao escreve no SATE
+    -- (spec D2) - o front ja exige, isto fecha o atalho pela API direta.
+    if coalesce(trim(p_viagem->>'professor_nome'), '') = ''
+       or coalesce(trim(p_viagem->>'professor_telefone'), '') = '' then
+      raise exception 'Informe o professor(a) responsavel e o telefone.' using errcode = '23502';
+    end if;
+
+    -- Destino: local do cadastro VENCE o que o cliente mandou - o
+    -- destino_nome/endereco/numero/bairro gravados sao sempre os do
+    -- catalogo, nunca o que o cliente digitou por engano junto com um
+    -- local_id valido. Sem local_id, as quatro partes digitadas sao
+    -- obrigatorias (spec D2) e o pedido nao carrega trajeto_* do
+    -- cliente - vira "local a conferir" (D6), sem trajeto emprestado de
+    -- um destino que nao e mais este.
+    if (p_viagem->>'local_id') is not null then
+      select l.nome, l.endereco, l.numero, l.bairro
+        into v_local_nome, v_local_endereco, v_local_numero, v_local_bairro
+        from local l where l.id = (p_viagem->>'local_id')::uuid;
+      if not found then
+        raise exception 'Local nao encontrado.' using errcode = '23503';
+      end if;
+      p_viagem := p_viagem || jsonb_build_object(
+        'destino_nome', v_local_nome, 'destino_endereco', v_local_endereco,
+        'destino_numero', v_local_numero, 'destino_bairro', v_local_bairro);
+    else
+      if coalesce(trim(p_viagem->>'destino_nome'), '') = ''
+         or coalesce(trim(p_viagem->>'destino_endereco'), '') = ''
+         or coalesce(trim(p_viagem->>'destino_numero'), '') = ''
+         or coalesce(trim(p_viagem->>'destino_bairro'), '') = '' then
+        raise exception 'Informe nome, endereco, numero e bairro do local.' using errcode = '23502';
+      end if;
+      p_viagem := p_viagem - 'trajeto_min' - 'trajeto_km' - 'trajeto_status' - 'trajeto_em';
+    end if;
+
     -- O periodo gravado vem do gatilho trg_sate_periodo (D4) - aqui e so
     -- para calcular o intervalo que a barreira de vagas confere.
     v_per := _sate_periodo(v_emb, v_ret);
@@ -224,14 +278,13 @@ begin
                    / greatest(1, _sate_conf_int('capacidade_van', 2)))::int;
     p_viagem := p_viagem || jsonb_build_object('qtd_onibus', v_onibus, 'qtd_vans', v_vans);
 
-    -- Local a conferir (sem local_id) e sem trajeto informado: tempo de
-    -- viagem provisorio, cauteloso (spec D6) - a vaga fica superestimada
-    -- ate a SME conferir o local.
+    -- Sem trajeto gravado (local a conferir OU local do cadastro ainda
+    -- sem calculo): tempo de viagem provisorio, cauteloso (spec D6) - a
+    -- vaga fica superestimada ate o trajeto ser calculado.
     select i.ini, i.fim into v_ini, v_fim
       from _sate_intervalo(v_per, v_emb, v_ret,
                            coalesce((p_viagem->>'trajeto_min')::int,
-                                    case when p_viagem->>'local_id' is null
-                                         then _sate_conf_int('trajeto_provisorio_min', 60) end),
+                                    _sate_conf_int('trajeto_provisorio_min', 60)),
                            _sate_conf_int('intervalo_min_periodos', 120)) i;
 
     -- Trava TODOS os dias que o intervalo do pedido toca, em ordem

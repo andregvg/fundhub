@@ -12,7 +12,7 @@
 // numa célula. A linha inteira abre o modal de detalhe, e as ações moram
 // lá, com espaço para a justificativa que três delas exigem.
 // ============================================================
-import { listSolicitacoes, STATUS, PERIODOS } from '../sate.model.js';
+import { listSolicitacoes, STATUS, PERIODOS, localAConferir } from '../sate.model.js';
 import { tituloDoPedido } from '../regras.model.js';
 import { getParticipacoesDe, resumoEscolas, envolveUnidade } from '../participacoes.model.js';
 import { existeFrota } from '../frota.model.js';
@@ -145,7 +145,8 @@ const COLUNAS = [
   { id: 'periodo', rotulo: 'Período', prioridade: 2,
     valor: s => PERIODOS[s.periodo] || s.periodo || '' },
   { id: 'atividade', rotulo: 'Atividade', prioridade: 2,
-    valor: s => tituloDoPedido(s) },
+    valor: s => tituloDoPedido(s),
+    celula: s => `${esc(tituloDoPedido(s))}${localAConferir(s) ? ' <span class="tag">Local a conferir</span>' : ''}` },
   { id: 'alunos', rotulo: 'Estudantes', prioridade: 3, tipo: 'numero', alinhar: 'dir',
     valor: s => s.qtd_alunos || 0 },
   { id: 'onibus', rotulo: 'Ônibus', prioridade: 3, tipo: 'numero', alinhar: 'dir',

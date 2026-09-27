@@ -308,6 +308,10 @@ async function enviar(e) {
     horario_retorno: ret,
     professor_nome: val('f-prof'),
     professor_telefone: paraE164(val('f-tel')) || val('f-tel'),
+    // Fallback que sobrevive sem a 044: antes dela, jsonb_populate_record
+    // descarta professor_nome/professor_telefone em silêncio (colunas
+    // novas), e contato_professor (coluna antiga) é o único que fica.
+    contato_professor: `${val('f-prof')} · ${formatarTelefone(val('f-tel'))}`,
     observacao: val('f-obs') || null,
     // O retrato do trajeto, se já foi calculado. Não calculado não barra
     // o envio (spec D6): a solicitação vai sem ele e quem aprova recalcula.
@@ -342,7 +346,13 @@ async function enviar(e) {
       pintarSaldo();
     } else if (err.code === '23502' && String(err.message || '').startsWith('Informe o horario')) {
       falha(msg, 'Informe o horário de embarque e o de retorno.');
-    } else if (err.code === '23514') {
+    } else if (err.code === '23502' && String(err.message || '').startsWith('Informe o professor')) {
+      falha(msg, 'Informe o professor(a) responsável e o telefone.');
+    } else if (err.code === '23502' && String(err.message || '').startsWith('Informe nome, endereco')) {
+      falha(msg, 'Informe nome, endereço, número e bairro do local.');
+    } else if (err.code === '23503' && String(err.message || '').startsWith('Local nao encontrado')) {
+      falha(msg, 'O local escolhido não foi encontrado. Atualize a página e tente de novo.');
+    } else if (err.code === '23514' && periodo === 'integral') {
       // CHECK de período sem a migration 044: o banco ainda não aceita 'integral'.
       falha(msg, 'O banco ainda não aceita pedidos de manhã e tarde. Avise a Gerência.');
     } else {

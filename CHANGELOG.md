@@ -70,7 +70,8 @@ partir das versões do FundHub que mudaram algo para quem usa o SATE.
   cadastro, quem aprova pode vincular o pedido a um local já cadastrado ou
   criar um novo, sem mexer no resto do pedido.
 - **Tempo de viagem provisório** nas configurações do SATE, usado na
-  contagem de vagas enquanto um local digitado não é conferido.
+  contagem de vagas enquanto o tempo de viagem ainda não foi calculado
+  (local digitado ou destino sem localização).
 
 ---
 

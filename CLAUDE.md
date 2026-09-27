@@ -66,7 +66,9 @@ Sem npm, sem bundler, sem dependência nova. O que está no repositório é o qu
 é restrição arquitetural, não preferência. **Regra de três:** pasta, camada, wrapper ou utilitário
 só nascem no terceiro caso concreto.
 
-**Única exceção: `versao.json`.** O workflow de deploy escreve esse arquivo (~600 bytes) no site
+**Exceções nomeadas - são duas.**
+
+A primeira: `versao.json`. O workflow de deploy escreve esse arquivo (~600 bytes) no site
 publicado, com a versão, quando ela passou a valer, o commit e o resumo do CHANGELOG - tudo
 **derivado** do repositório, nada mantido à mão. É metadado, não código: nenhum arquivo é
 compilado nem transformado, e a regra continua valendo integralmente para todo o código. O rodapé

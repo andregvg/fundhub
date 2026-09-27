@@ -32,10 +32,10 @@ test('integral ocupa manhã e tarde', () => {
   assert.deepEqual(iv, { ini: 480, fim: 930 });
 });
 
-test('trajetoParaVaga: gravado vence; sem local usa o provisório; com local sem trajeto, nada', () => {
+test('trajetoParaVaga: gravado vence; sem trajeto gravado usa o provisório, com ou sem local', () => {
   assert.equal(trajetoParaVaga({ trajeto_min: 25, local_id: null }, 60), 25);
   assert.equal(trajetoParaVaga({ trajeto_min: null, local_id: null }, 60), 60);
-  assert.equal(trajetoParaVaga({ trajeto_min: null, local_id: 'x' }, 60), null);
+  assert.equal(trajetoParaVaga({ trajeto_min: null, local_id: 'x' }, 60), 60);
 });
 
 test('tituloDoPedido: atividade, livre, destino, padrão', () => {

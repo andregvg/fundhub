@@ -48,8 +48,8 @@ function card(l) {
   const podeEditar = ctx.aprovador && !ctx.somenteLeitura;
   const acoes = podeEditar ? `
     <div class="atv-acoes">
-      <button class="mini-btn" data-edit="${l.id}" aria-label="Editar">${ico('editar')}</button>
-      <button class="mini-btn no" data-del="${l.id}" aria-label="Excluir">${ico('excluir')}</button>
+      <button class="mini-btn" data-edit="${esc(l.id)}" aria-label="Editar">${ico('editar')}</button>
+      <button class="mini-btn no" data-del="${esc(l.id)}" aria-label="Excluir">${ico('excluir')}</button>
     </div>` : '';
   return `<article class="card atv-card ${l.ativo ? '' : 'inativo'}">
     <div class="card-top"><h3>${ico('visita', { tam: 16 })} ${esc(l.nome)}</h3>${acoes}</div>

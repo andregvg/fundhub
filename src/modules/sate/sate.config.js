@@ -31,9 +31,9 @@ export const PADRAO = Object.freeze({
   cor: 'verde',
   velocidade_onibus_kmh: 20,
   margem_parada_min: 5,
-  // Local A CONFERIR (sem local_id) e sem trajeto informado: quanto tempo
-  // de viagem entra na conta da vaga enquanto a SME não confere o
-  // endereço (spec 2026-09-27, D6). ESPELHO do padrão de
+  // Quanto tempo de viagem entra na conta da vaga enquanto não há trajeto
+  // calculado - local a conferir ou local do cadastro ainda sem trajeto
+  // (spec 2026-09-27, D6). ESPELHO do padrão de
   // _sate_conf_int('trajeto_provisorio_min', 60) na migration 044.
   trajeto_provisorio_min: 60,
 });
@@ -119,7 +119,7 @@ export const DECLARACAO = {
       chave: 'trajeto_provisorio_min', escopo: 'rede', grupo: 'regras',
       tipo: 'numero', padrao: PADRAO.trajeto_provisorio_min, min: 0, max: 240,
       rotulo: 'Tempo de viagem provisório (minutos)',
-      dica: 'Usado na contagem de vagas enquanto o local digitado pela escola não é conferido. Prefira um número folgado: a vaga fica reservada a mais, nunca a menos.',
+      dica: 'Usado na contagem de vagas enquanto não há tempo de viagem calculado (local a conferir ou sem localização). Prefira um número folgado: a vaga fica reservada a mais, nunca a menos.',
     },
   ],
 };

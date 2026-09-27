@@ -65,7 +65,7 @@ export function ehRuidoDeTotais(payload, agora = Date.now()) {
 // { titulo, tipo, texto } ou null para ignorar.
 const DESCRITORES = {
   solicitacao_transporte(p, row) {
-    const atividade = nomeAtividade[row.atividade_id] || row.atividade_livre || 'atividade';
+    const atividade = nomeAtividade[row.atividade_id] || row.atividade_livre || row.destino_nome || 'atividade';
     // Pedido montado pela Gerência não tem escola que abriu (037, D3).
     const quem = row.unidade_id ? escolaDe(row) : 'Gerência de Transporte';
     const texto = `${quem} · ${atividade}${row.data ? ` · ${fmtData(row.data)}` : ''}`;

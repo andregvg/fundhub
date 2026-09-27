@@ -36,13 +36,13 @@ export const TIPICO = Object.freeze({ manha: [420, 720], tarde: [720, 1080], noi
 const CAMPO = { onibus: 'onibus', vans: 'vans', van_adaptada: 'vans' };
 const minDe = (x) => (typeof x === 'number' ? x : paraMin(x));
 
-// Tempo de viagem que entra na conta da vaga. O gravado vence; sem ele,
-// um pedido de LOCAL A CONFERIR (sem local_id) usa o provisório - a vaga
-// fica superestimada até a SME conferir (spec 2026-09-27, D6). ESPELHO do
-// coalesce em ocupacao_transporte e criar_viagem (044).
+// Tempo de viagem que entra na conta da vaga. O gravado vence; sem ele -
+// local a conferir OU local do cadastro ainda sem trajeto calculado - usa
+// o provisório: a vaga fica superestimada até o trajeto ser calculado
+// (spec 2026-09-27, D6). ESPELHO do coalesce em ocupacao_transporte e
+// criar_viagem (044).
 export function trajetoParaVaga(s, provisorioMin) {
-  if (s?.trajeto_min != null) return Number(s.trajeto_min);
-  return s?.local_id ? null : provisorioMin;
+  return s?.trajeto_min != null ? Number(s.trajeto_min) : provisorioMin;
 }
 
 // ESPELHO de _sate_intervalo (042).

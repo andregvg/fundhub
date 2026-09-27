@@ -18,8 +18,7 @@ import { registrarCache } from '../../shared/cache.js';
 import { norm } from '../../shared/dom.js';
 
 const COLS = 'id, nome, endereco, numero, bairro, desembarque, latitude, longitude, maps_url, ativo, obs';
-// Sem a migration 044 as colunas numero/bairro não existem (42703): lê do
-// jeito antigo em vez de quebrar a página.
+// Sem a migration 044 numero/bairro não existem (42703): lê do jeito antigo.
 const COLS_ANTIGAS = 'id, nome, endereco, desembarque, latitude, longitude, maps_url, ativo, obs';
 
 let _cache = null;
@@ -77,12 +76,14 @@ export async function atualizarLocal(id, payload) {
 
 export async function excluirLocal(id) {
   if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
-  const { error } = await sb().from('local').delete().eq('id', id);
-  // Local em uso (FK) → Postgres barra com 23503; devolve mensagem amigável.
+  // .select('id'): 0 linhas apagadas (id já não existe) não vira erro no
+  // Postgres - sem isto o toast diria "excluído" tendo apagado nada.
+  const { data, error } = await sb().from('local').delete().eq('id', id).select('id');
   if (error) {
     if (error.code === '23503') throw new Error('Local em uso por atividades ou solicitações - desative-o em vez de excluir.');
     throw error;
   }
+  if (!data?.length) throw new Error('Local não encontrado - já foi excluído.');
   _cache = null;
 }
 
