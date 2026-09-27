@@ -150,7 +150,7 @@ async function abrirDia(e) {
   const uso = linhaAtual ? usoPorPeriodo(linhaAtual, i) : '';
   const frotas = await getFrotas({ vigenteEm: card.dataset.dia }).catch(() => []);
   const composicao = frotas.length
-    ? frotas.map(f => `<div>${esc(f.rotulo?.nome || 'sem rótulo')} · ${f.quantidade} ${esc(rotulaTipo(f.tipo).toLowerCase())}</div>`).join('')
+    ? frotas.map(f => `<div>${esc(f.rotulo?.nome || 'sem rótulo')} · ${esc(String(f.quantidade))} ${esc(rotulaTipo(f.tipo).toLowerCase())}</div>`).join('')
     : '<span class="vazio">sem frota</span>';
   comp.innerHTML = `${uso}${composicao}`;
 }

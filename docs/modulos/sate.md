@@ -374,7 +374,8 @@ pedido segue normalmente.
 - **Faltar ônibus no horário pedido, para a escola.** O número de veículos é
   inviolável: se não há ônibus livre naquele horário, o pedido não é aceito.
 - **Horário de embarque ou de retorno em branco.**
-- **Retorno antes do embarque.**
+- **Retorno antes do embarque.** Não vale para a **noite**: um pedido
+  noturno pode voltar depois da meia-noite.
 - **Pedir sem antecedência mínima.** A escola precisa pedir com pelo menos
   5 dias. Quem aprova não tem esse limite.
 - **Negar ou cancelar sem justificativa.**

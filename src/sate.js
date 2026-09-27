@@ -19,7 +19,7 @@
 // ============================================================
 import { MODULOS, moduloPorId, nivelEfetivo, veModulo } from './core/registry.js';
 import { hasSupabase } from './core/supabase.js';
-import { OCULTO, ESCRITA } from './core/permissoes.js';
+import { OCULTO, LEITURA, ESCRITA } from './core/permissoes.js';
 import { abrirPortao } from './shell/portao.js';
 import { montarNav, marcarNav, marcarAtualizacao } from './shell/chrome.js';
 import { render, PAGINAS, PAGINA_INICIAL } from './modules/sate/sate.view.js';
@@ -91,7 +91,14 @@ function montarSate({ perfil }) {
     return;
   }
 
-  estado = { perfil, podeAprovar: nv === ESCRITA };
+  // `leitura` é quem vê a rede inteira sem decidir nada (ex.: Equipe da
+  // SME) - diferente da escola (`proprios`), que só vê e mexe no que é
+  // dela. Sem essa distinção a tela tratava os dois como "escola": mostrava
+  // botão da escola (que o RLS recusa em silêncio - filtra o UPDATE para 0
+  // linhas e a tela dizia sucesso) e "Nova solicitação" com a lista de
+  // escolas vazia (spec 2026-09-26-sate-frota-e-disponibilidade, achado da
+  // revisão final).
+  estado = { perfil, podeAprovar: nv === ESCRITA, somenteLeitura: nv === LEITURA };
   // Só quem aprova simula; um valor que sobrou de outra conta na mesma aba
   // não vale para quem não aprova.
   simulando = estado.podeAprovar ? lerSimulacao() : null;
@@ -153,6 +160,7 @@ async function rotear() {
     perfil: perfilEfetivo(), aprovador: aprovadorEfetivo(), id: PAGINAS[id] ? id : PAGINA_INICIAL,
     irPara: (nova) => { location.hash = `#/${nova}`; },
     simulando, aoSairSimulacao: () => mudarSimulacao(null),
+    somenteLeitura: estado.somenteLeitura,
   });
   window.scrollTo(0, 0);
 }

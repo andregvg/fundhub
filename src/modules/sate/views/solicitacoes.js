@@ -38,9 +38,14 @@ export function render(contexto) {
   // solicitação chamarem depois de gravar.
   ctx.recarregar = carregar;
 
+  // Leitura de verdade (Equipe da SME) não tem escola nenhuma para pedir
+  // transporte, e o banco recusaria a gravação: o botão nem aparece. "Ver
+  // como escola" é simulação - continua mostrando o formulário, só que com
+  // o envio desativado (formulario.js cuida disso via ctx.somenteLeitura).
+  const mostraNova = !ctx.somenteLeitura || ctx.simulando;
   ctx.box().innerHTML = `
     <div class="toolbar">
-      <button id="sol-nova" class="btn-primary">${ico('adicionar')} Nova solicitação</button>
+      ${mostraNova ? `<button id="sol-nova" class="btn-primary">${ico('adicionar')} Nova solicitação</button>` : ''}
     </div>
     <div class="painel-filtros">
       <label class="filtro-campo">De <input id="sol-de" type="date" value="${filtro.de}" /></label>
@@ -58,7 +63,7 @@ export function render(contexto) {
     ${modalHtml()}`;
 
   montarModal();
-  document.getElementById('sol-nova').addEventListener('click', async () => {
+  document.getElementById('sol-nova')?.addEventListener('click', async () => {
     // Antes da primeira viagem, a primeira frota (spec 2026-09-26, D4).
     // Só para quem aprova: a escola vê o formulário e ele diz que não há
     // ônibus - "cadastre a frota" não é algo que ela possa fazer.

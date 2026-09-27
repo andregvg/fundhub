@@ -68,9 +68,12 @@ async function salvar(e, s, ctx, reabrir) {
   e.preventDefault();
   const msg = document.getElementById('rm-msg'); msg.className = 'auth-msg';
   const emb = val('rm-emb') || null, ret = val('rm-ret') || null;
+  const periodo = document.getElementById('rm-per').value;
   if (!val('rm-data')) return falha(msg, 'Informe a data.');
-  // "HH:MM" compara como texto na ordem certa.
-  if (emb && ret && ret <= emb) return falha(msg, 'O retorno precisa ser depois do embarque.');
+  // "HH:MM" compara como texto na ordem certa. A noite pode voltar depois
+  // da meia-noite (mesma exceção de regras.model.js) - só os outros
+  // períodos exigem retorno depois do embarque no mesmo dia.
+  if (periodo !== 'noite' && emb && ret && ret <= emb) return falha(msg, 'O retorno precisa ser depois do embarque.');
 
   const localId = document.getElementById('rm-local').value || null;
   const local = (ctx.locais || []).find(l => l.id === localId);

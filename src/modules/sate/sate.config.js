@@ -41,8 +41,6 @@ function num(chave, padrao) {
   return Number.isFinite(v) && v >= 0 ? v : padrao;
 }
 
-// Zero é resposta legítima aqui: "sem intervalo mínimo" é uma escolha.
-export const intervaloMinMin = () => num('intervalo_min_periodos', PADRAO.intervalo_min_periodos);
 export const antecedenciaMinDias = () => num('antecedencia_min_dias', PADRAO.antecedencia_min_dias);
 
 // Zero NÃO é resposta legítima nas capacidades: elas são divisores, e
@@ -78,8 +76,8 @@ export const DECLARACAO = {
     {
       chave: 'intervalo_min_periodos', escopo: 'rede', grupo: 'regras',
       tipo: 'numero', padrao: PADRAO.intervalo_min_periodos, min: 0, max: 600,
-      rotulo: 'Intervalo mínimo entre períodos (minutos)',
-      dica: 'Folga exigida entre a chegada prevista do ônibus da manhã e o embarque da tarde. Vale para os próximos agendamentos, não para os já confirmados.',
+      rotulo: 'Intervalo mínimo entre viagens do mesmo veículo (minutos)',
+      dica: 'Depois que um ônibus volta, quanto tempo ele fica indisponível antes de sair de novo. Vale para a contagem de vagas de todos os dias.',
     },
     {
       chave: 'capacidade_onibus', escopo: 'rede', grupo: 'regras',

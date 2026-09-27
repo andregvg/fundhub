@@ -45,7 +45,7 @@ export const PAGINA_INICIAL = 'solicitacoes';
 // `simulando` ({ id, nome } | null): quem aprova está vendo o SATE como
 // uma escola (src/sate.js). A faixa no topo diz isso em toda página - é
 // fácil esquecer que se está numa visão emprestada.
-export async function render(app, { perfil, aprovador, id, irPara, simulando = null, aoSairSimulacao }) {
+export async function render(app, { perfil, aprovador, id, irPara, simulando = null, aoSairSimulacao, somenteLeitura = false }) {
   const pagina = PAGINAS[id];
   app.innerHTML = `
     ${simulando ? `<div class="sate-simulacao" role="status">
@@ -71,7 +71,9 @@ export async function render(app, { perfil, aprovador, id, irPara, simulando = n
     perfil, atividades, unidades, locais, simulando,
     // Vendo como escola: a tela se comporta como a da escola, mas quem
     // clicaria tem os poderes de quem aprova no banco. Nada se grava.
-    somenteLeitura: !!simulando,
+    // Nível `leitura` (Equipe da SME): vê a rede inteira, mas o banco
+    // recusaria qualquer escrita - os dois casos escondem os mesmos botões.
+    somenteLeitura: !!simulando || !!somenteLeitura,
     // Quem APROVA é quem tem escrita no módulo - não é o mesmo que ser
     // admin do hub, e as regras tratam os dois de forma diferente
     // (spec do modelo de dados, D7).
