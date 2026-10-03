@@ -6,6 +6,7 @@
 // sem catálogo de atividades, destino sempre por LOCAL (do cadastro ou
 // digitado à mão), período CALCULADO pelos horários e um bloco próprio
 // de responsável e acessibilidade.
+// Revisto na spec 2026-10-02 (D13): escola por busca para quem aprova, local novo pela própria busca do campo Local.
 //
 // Os campos se agrupam por PERGUNTA - de onde, para onde, quando, quem
 // vai - e não por tipo de campo. No modal largo os blocos deixam o
@@ -28,6 +29,7 @@ import { destinoHtml, ligarDestino, lerDestino, validarDestino } from './formula
 import { esc, val, falha } from '../../../shared/dom.js';
 import { hojeISO, addDias, fmtData, isUuid } from '../../../shared/format.js';
 import { paraE164, formatarTelefone } from '../../../shared/ui/phones.js';
+import { criarBuscaSelecao } from '../../../shared/ui/busca-selecao.js';
 import { modalHead, abrirModal, fecharModal } from '../../../shared/ui/modal.js';
 import { toast } from '../../../shared/ui/toast.js';
 import { reportarErro } from '../../../shared/ui/feedback.js';
@@ -44,6 +46,11 @@ let pedidoSaldo = 0;
 let trajeto = null;
 let pedidoTrajeto = 0;
 let deb = null;
+// Escola por busca para quem aprova (são 144); null para a escola, que
+// escolhe numa lista curta (spec 2026-10-02, D13). Destruído a cada
+// abertura pelo mesmo motivo de `bs` em formulario-destino.js.
+let buscaEscola = null;
+const escolaId = () => (buscaEscola ? buscaEscola.valorAtual() : (document.getElementById('f-esc')?.value || ''));
 
 export function abrirFormulario(contexto) {
   ctx = contexto;
@@ -59,8 +66,9 @@ export function abrirFormulario(contexto) {
         <fieldset class="form-grupo">
           <legend>Origem</legend>
           <div class="campos duas">
-            <label class="col-2">Escola
-              <select id="f-esc" required>${opcoesEscola(unidades, perfil, aprovador)}</select></label>
+            ${aprovador
+              ? '<div id="f-esc-busca" class="col-2"></div>'
+              : `<label class="col-2">Escola <select id="f-esc" required>${opcoesEscola(unidades, perfil)}</select></label>`}
             <label>Turma(s) <input id="f-turmas" type="text" placeholder="Ex.: 5º A, 5º B" /></label>
             <label>Nº de estudantes <input id="f-alunos" type="number" inputmode="numeric" min="1" placeholder="0" required /></label>
           </div>
@@ -114,25 +122,37 @@ export function abrirFormulario(contexto) {
   ligar();
 }
 
-// Quem aprova escolhe qualquer escola. A escola, só as dela - antes a
-// lista trazia a rede inteira e o banco recusava o pedido feito para
-// outra unidade, com um erro que a pessoa não entendia. Se é uma só, já
-// vem escolhida.
-function opcoesEscola(unidades, perfil, aprovador) {
+// A escola escolhe só entre as dela - antes a lista trazia a rede inteira e
+// o banco recusava o pedido feito para outra unidade, com um erro que a
+// pessoa não entendia. Se é uma só, já vem escolhida. Nome completo, como
+// no cartão da escola (spec 2026-10-02, D13).
+function opcoesEscola(unidades, perfil) {
   const minhas = perfil?.unidades || [];
   const lista = [...(unidades || [])]
-    .filter(u => aprovador || minhas.includes(u.id))
-    .sort((a, b) => (a.apelido || a.nome).localeCompare(b.apelido || b.nome, 'pt'));
+    .filter(u => minhas.includes(u.id))
+    .sort((a, b) => (a.nome || '').localeCompare(b.nome || '', 'pt'));
   const unica = lista.length === 1;
   return (unica ? '' : '<option value="">Selecione…</option>')
-    + lista.map(u => `<option value="${esc(u.id || u.numero)}" ${unica ? 'selected' : ''}>${esc(u.apelido || u.nome)}</option>`).join('');
+    + lista.map(u => `<option value="${esc(u.id || u.numero)}" ${unica ? 'selected' : ''}>${esc(u.nome)}</option>`).join('');
 }
 
 function ligar() {
   const form = document.getElementById('sol-form');
 
   ligarDestino(ctx.locais, () => { pintarTrajeto(); revisar(); });
-  document.getElementById('f-esc').addEventListener('change', pintarTrajeto);
+  buscaEscola?.destruir();
+  buscaEscola = null;
+  if (ctx.aprovador) {
+    const escolas = [...(ctx.unidades || [])].sort((a, b) => (a.nome || '').localeCompare(b.nome || '', 'pt'));
+    buscaEscola = criarBuscaSelecao(document.getElementById('f-esc-busca'), {
+      rotulo: 'Escola',
+      opcoes: escolas.map(u => ({ id: u.id || u.numero, rotulo: u.nome, detalhe: u.segmento || '', busca: u.apelido || '' })),
+      placeholder: 'Digite para buscar a escola…',
+      onChange: pintarTrajeto,
+    });
+  } else {
+    document.getElementById('f-esc').addEventListener('change', pintarTrajeto);
+  }
   trajeto = null;
 
   document.getElementById('f-emb').addEventListener('change', () => { pintarPeriodo(); revisar(); });
@@ -160,7 +180,7 @@ function pintarPeriodo() {
 async function pintarTrajeto() {
   const box = document.getElementById('f-trajeto');
   if (!box) return;
-  const escId = document.getElementById('f-esc').value;
+  const escId = escolaId();
   const escola = (ctx.unidades || []).find(u => (u.id || u.numero) === escId);
   const d = lerDestino();
   const temDestino = !!(d.localId || d.nome);
@@ -261,7 +281,7 @@ async function enviar(e) {
   const msg = document.getElementById('f-msg'); msg.className = 'auth-msg';
   const { aprovador } = ctx;
 
-  const escId = document.getElementById('f-esc').value;
+  const escId = escolaId();
   const data = val('f-data');
   const emb = val('f-emb'), ret = val('f-ret');
   const periodo = periodoDe(emb, ret);

@@ -81,10 +81,10 @@ body.app-sate { --info-bg: color-mix(in srgb, var(--brand) 12%, var(--surface));
   font-size: 13.5px;
 }
 
-/* Grupo DESTINO: o botão "Local não está na lista" fica sob a busca,
-   alinhado à esquerda, sem esticar (spec 2026-09-27, D2). */
-.dest-lista { display: flex; flex-direction: column; gap: 6px; }
-.dest-alternar { align-self: start; }
+/* Grupo DESTINO: aviso "este endereço já é de…" (spec 2026-10-02, D13).
+   Vazio, não ocupa linha da grade. */
+.dest-mesmo:empty { display: none; }
+.dest-mesmo .form-hint { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
 
 /* ── Saldo ao vivo no formulário (spec S3, D3) ──────────────── */
 .sol-saldo { margin: 4px 0 12px; display: flex; flex-direction: column; gap: 6px; }
