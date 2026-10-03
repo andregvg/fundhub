@@ -114,19 +114,22 @@ export function pareceCelular(valor) {
 }
 
 // HTML do editor. `lista` = [{ id?, tipo, rotulo, numero, principal }].
-export function phonesEditorHtml(lista = [], { label = 'Telefones' } = {}) {
-  const rows = (lista || []).map(rowHtml).join('');
+// Lista vazia nasce com UMA linha em branco (spec 2026-10-03, D5): o caso
+// comum é ter um telefone, e "+ telefone" fica para o segundo. Linha sem
+// número não é gravada - lerPhonesEditor já a descarta.
+export function phonesEditorHtml(lista = [], { label = 'Telefones', tipoPadrao = 'fixo' } = {}) {
+  const linhas = (lista || []).length ? lista : [{ tipo: tipoPadrao }];
   return `
-    <div class="phones" data-phones>
+    <div class="phones" data-phones data-tipo-padrao="${esc(tipoPadrao)}">
       <div class="lbl">${esc(label)}</div>
-      <div class="phone-rows">${rows}</div>
+      <div class="phone-rows">${linhas.map(rowHtml).join('')}</div>
       <button type="button" class="mini-btn phone-add">${ico('adicionar', { tam: 14 })} telefone</button>
     </div>`;
 }
 
 function rowHtml(t = {}) {
   const opts = TIPOS_TELEFONE
-    .map(([v, r]) => `<option value="${v}" ${t.tipo === v ? 'selected' : ''}>${r}</option>`)
+    .map(([v, r]) => `<option value="${v}"${t.tipo === v ? ' selected' : ''}>${r}</option>`)
     .join('');
   return `
     <div class="phone-row" data-id="${esc(t.id || '')}">
@@ -158,7 +161,7 @@ export function montarPhonesEditor(root) {
   }
 
   box.querySelector('.phone-add')?.addEventListener('click', () => {
-    rows.insertAdjacentHTML('beforeend', rowHtml({ tipo: 'fixo' }));
+    rows.insertAdjacentHTML('beforeend', rowHtml({ tipo: box.dataset.tipoPadrao || 'fixo' }));
     rows.querySelector('.phone-row:last-child .phone-num')?.focus();
     garantirPrincipal();
   });

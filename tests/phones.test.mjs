@@ -19,6 +19,24 @@ test('o botão de adicionar telefone usa o ícone +, não texto', () => {
   assert.ok(!/\+\s*telefone/.test(botao), 'nenhum "+ telefone" de texto');
 });
 
+// Spec 2026-10-03, D5: o caso comum é ter um telefone só, então o editor
+// já nasce com a linha à vista.
+test('lista vazia já nasce com uma linha em branco', () => {
+  const html = phonesEditorHtml([]);
+  assert.equal((html.match(/class="phone-row"/g) || []).length, 1);
+});
+
+test('a linha inicial usa o tipo padrão de quem chama', () => {
+  const html = phonesEditorHtml([], { tipoPadrao: 'celular' });
+  assert.match(html, /<option value="celular" selected>/);
+  assert.match(html, /data-tipo-padrao="celular"/);
+});
+
+test('lista com telefones não ganha linha extra', () => {
+  const html = phonesEditorHtml([{ numero: '(00) 0000-0000', tipo: 'fixo' }]);
+  assert.equal((html.match(/class="phone-row"/g) || []).length, 1);
+});
+
 // ── E.164: o formato de gravação ──────────────────────────────
 // O banco guardava o número FORMATADO, e o preço era a ambiguidade de
 // '3333-3333': sem saber se os dois primeiros dígitos são DDD ou prefixo,

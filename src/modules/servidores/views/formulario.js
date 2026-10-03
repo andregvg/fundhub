@@ -1,6 +1,7 @@
 // ============================================================
 // FundHub - servidores/views/formulario.js  (criar, editar, excluir)
 // ============================================================
+import { CONFIG } from '../../../core/config.js';
 import { criarServidor, atualizarServidor, excluirServidor, cargoDe, localDeTrabalhoDe, vinculosAbertos } from '../servidores.model.js';
 import { criarVinculo } from '../vinculos.model.js';
 import { eLocalInterno } from '../../escolas/escolas.model.js';
@@ -106,8 +107,11 @@ export function formServidor(s, ctx, { voltar = null } = {}) {
         <fieldset class="form-grupo">
           <legend>Contato</legend>
           <div class="campos auto">
-            <label class="col-full">E-mail <input id="s-email" type="email" value="${v('email')}" /></label>
-            <div class="col-full">${phonesEditorHtml(s?.telefones)}</div>
+            <label class="col-full">E-mail institucional
+              <input id="s-email" type="text" inputmode="email" autocomplete="off" autocapitalize="none"
+                     spellcheck="false" pattern="[^@\\s]+@[^@\\s]+\\.[^@\\s]+"
+                     title="Informe o e-mail completo, como nome@dominio" value="${v('email')}" /></label>
+            <div class="col-full">${phonesEditorHtml(s?.telefones, { tipoPadrao: 'celular' })}</div>
           </div>
         </fieldset>
 
@@ -120,6 +124,7 @@ export function formServidor(s, ctx, { voltar = null } = {}) {
 
   const form = document.getElementById('sv-form');
   montarPhonesEditor(form);
+  ligarDominio(document.getElementById('s-email'));
 
   if (novo) {
     buscaLocalNovo = criarBuscaSelecao(document.getElementById('s-local-box'), {
@@ -166,6 +171,21 @@ export function formServidor(s, ctx, { voltar = null } = {}) {
   }));
 
   form.addEventListener('submit', (e) => salvarServidor(e, s, ctx, voltar));
+}
+
+// E-mail institucional (spec 2026-10-03, D6): ao digitar o "@", o domínio
+// da rede entra JÁ SELECIONADO - quem tem o domínio padrão segue em frente,
+// quem tem outro continua digitando e o texto selecionado é substituído.
+// Só no primeiro "@", e só quando ele é o último caractere: colar um
+// e-mail inteiro ou editar o meio não dispara nada.
+// `type="text"` e não "email": o campo de e-mail não aceita setSelectionRange.
+function ligarDominio(el) {
+  el.addEventListener('input', (e) => {
+    if (e.data !== '@' || el.value.indexOf('@') !== el.value.length - 1) return;
+    const ate = el.value.length;
+    el.value += CONFIG.dominioInstitucional.slice(1);
+    el.setSelectionRange(ate, el.value.length);
+  });
 }
 
 async function salvarServidor(e, s, ctx, voltar) {

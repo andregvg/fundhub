@@ -38,6 +38,19 @@ sistema, nos bastidores.
 3. Ligue **Transporte de alunos** e **Atende EJA** se for o caso.
 4. Clique em **Criar**.
 
+### Informar os telefones da escola
+
+1. No formulário da escola, em **Telefones**, a primeira linha já vem pronta
+   para preencher, com o tipo **Fixo**. Digite o número; o sistema arruma a
+   pontuação sozinho.
+2. Se o número for celular ou WhatsApp, troque o tipo ao lado dele. Se quiser,
+   escreva um rótulo (por exemplo, "Secretaria").
+3. Para registrar mais um número, clique em **+ telefone**. A partir do
+   segundo, aparece em cada linha o botão de **principal**: marque o número
+   que deve aparecer primeiro.
+4. Para tirar um número, clique na lixeira da linha. Uma linha deixada em
+   branco não é salva.
+
 ### Localizar a escola no mapa
 
 A localização é o que permite ao SATE calcular quanto tempo o ônibus leva da
@@ -163,4 +176,4 @@ sistema envia só o endereço da escola, nunca dado de pessoa.
 A ficha de uma pessoa só abre para quem tem acesso ao módulo Servidores. Sem
 esse acesso, a equipe continua visível para leitura.
 
-> Atualizado na versão 0.38.1.
+> Atualizado na versão 0.39.0.

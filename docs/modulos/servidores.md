@@ -32,11 +32,27 @@ local de trabalho.
 
 1. Clique em **Novo servidor**.
 2. Preencha o nome completo (obrigatório). Apelido, nascimento, documentos,
-   e-mail e telefones são opcionais.
+   e-mail institucional e telefones são opcionais.
 3. Em **Local de trabalho** (opcional), você já pode informar onde a pessoa
    trabalha: escolha o local, o cargo e a data de início. Deixe em branco para
    adicionar depois.
 4. Clique em **Criar**.
+
+### Informar e-mail e telefones
+
+1. No grupo **Contato**, em **E-mail institucional**, digite o início do
+   endereço e depois o **@**. O sistema completa com o domínio da rede e deixa
+   esse trecho selecionado.
+2. Se o e-mail é da rede, siga em frente. Se o domínio é outro, continue
+   digitando: o que você escrever substitui o trecho selecionado.
+3. O primeiro telefone já aparece pronto para preencher, com o tipo
+   **Celular**. Digite o número; o sistema arruma a pontuação sozinho. Se for
+   fixo ou WhatsApp, troque o tipo ao lado do número.
+4. Para registrar mais um número, clique em **+ telefone**. A partir do
+   segundo, aparece em cada linha o botão de **principal**: marque o número
+   que deve ser usado primeiro.
+5. Para tirar um número, clique na lixeira da linha. Uma linha deixada em
+   branco não é salva.
 
 ### Registrar um local de trabalho pela ficha
 
@@ -82,6 +98,8 @@ trabalho.
 - **CPF, RG e telefone você digita à vontade**, com ponto, traço e parênteses
   ou sem: o sistema arruma a pontuação sozinho e mostra sempre no mesmo
   formato, aqui e em qualquer outra tela.
+- **E-mail incompleto** trava o salvamento: precisa ter o formato
+  `nome@dominio.com.br`, com o endereço completo.
 - **Telefone incompleto** trava o salvamento - o número precisa ter os oito
   ou nove dígitos. Sem DDD, o sistema assume 16.
 - **Excluir um servidor** apaga junto os locais de trabalho, os horários e os
@@ -108,4 +126,4 @@ trabalho aparece mesmo assim. Se não aparecer, recarregue a página.
 Encerre o local antigo (preencha o Término) e registre um novo. Assim o
 histórico fica correto.
 
-> Atualizado na versão 0.30.0.
+> Atualizado na versão 0.39.0.
