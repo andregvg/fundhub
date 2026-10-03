@@ -42,7 +42,7 @@ export const vinculosDeEquipe = (s) => vinculosAbertos(s).filter(v => !eSupervis
 //     quem responde por duas unidades aparece em cada uma com o cargo de lá,
 //     e o de gestor leva a função ("Gestor(a) 1");
 //   - `ordem` é a posição na equipe (ordemNaEquipe): quem tem mais de um
-//     cargo aqui fica na do primeiro;
+//     vínculo aberto aqui fica na MENOR posição (o cargo mais alto);
 //   - o telefone é o principal, ou o primeiro se nenhum for;
 //   - `supervisao` marca quem só SUPERVISIONA a unidade: quem consome
 //     decide onde mostrar (a ficha da escola separa; o SATE e Horários
@@ -72,5 +72,5 @@ export async function getEquipeDaUnidade(unidadeId) {
 export async function quemTemFuncao(unidadeId, funcao, excetoServidorId) {
   const servidores = await getServidoresDaUnidade(unidadeId);
   return servidores.find(s => s.id !== excetoServidorId && vinculosAbertos(s)
-    .some(v => v.unidade_id === unidadeId && temFuncao(v.papel) && v.funcao === funcao)) || null;
+    .some(v => v.unidade_id === unidadeId && temFuncao(v.papel) && v.funcao === Number(funcao))) || null;
 }

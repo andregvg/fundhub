@@ -4,7 +4,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { eSupervisao, ordemNaEquipe, vinculosDeEquipe } from '../src/modules/servidores/equipe.model.js';
 import { rotulaVinculo, cargoExibidoDe } from '../src/modules/servidores/servidores.model.js';
-import { temFuncao } from '../src/modules/servidores/vinculos.model.js';
+import { temFuncao, funcaoValida, _gravarComFuncao } from '../src/modules/servidores/vinculos.model.js';
 
 test('supervisão é reconhecida pelo rótulo canônico e pelo legado', () => {
   assert.equal(eSupervisao('Supervisor(a)'), true);
@@ -57,4 +57,59 @@ test('vinculosDeEquipe deixa de fora o encerrado e a supervisão', () => {
     { unidade_id: 'c', papel: 'Gestor(a)', fim: '2026-01-31' },
   ] };
   assert.deepEqual(vinculosDeEquipe(s).map(v => v.unidade_id), ['b']);
+});
+
+test('ordem da equipe reconhece o papel legado de gestor', () => {
+  assert.equal(ordemNaEquipe({ papel: 'gestor', funcao: 1 }), 0);
+});
+
+test('funcaoValida aceita 1 e 2, inclusive como texto de um select', () => {
+  assert.equal(funcaoValida(1), 1);
+  assert.equal(funcaoValida('1'), 1);
+  assert.equal(funcaoValida('2'), 2);
+  for (const ruim of ['', null, undefined, 0, 3, 'x']) assert.equal(funcaoValida(ruim), null);
+});
+
+// gravar de mentira: devolve os resultados em ordem e guarda o que recebeu
+const gravador = (...resultados) => {
+  const chamadas = [];
+  const gravar = async (row) => { chamadas.push(row); return resultados[chamadas.length - 1]; };
+  return { gravar, chamadas };
+};
+
+test('gravarComFuncao: sucesso de primeira não refaz', async () => {
+  const { gravar, chamadas } = gravador({ data: { id: 'a' }, error: null });
+  const r = await _gravarComFuncao({ papel: 'x', funcao: null }, gravar);
+  assert.equal(r.data.id, 'a');
+  assert.equal(chamadas.length, 1);
+});
+
+test('gravarComFuncao: sem a coluna e sem função, refaz sem a chave', async () => {
+  const { gravar, chamadas } = gravador({ error: { code: 'PGRST204' } }, { data: { id: 'b' }, error: null });
+  const r = await _gravarComFuncao({ papel: 'x', funcao: null }, gravar);
+  assert.equal(r.data.id, 'b');
+  assert.equal(chamadas.length, 2);
+  assert.equal('funcao' in chamadas[1], false);
+  assert.equal(chamadas[1].papel, 'x');
+});
+
+test('gravarComFuncao: sem a coluna e com função, avisa em vez de gravar calado', async () => {
+  const { gravar, chamadas } = gravador({ error: { code: 'PGRST204' } });
+  await assert.rejects(_gravarComFuncao({ papel: 'Gestor(a)', funcao: 1 }, gravar),
+    (e) => e.amigavel === true && e.code === 'PGRST204');
+  assert.equal(chamadas.length, 1);
+});
+
+test('gravarComFuncao: outro erro volta como veio, sem refazer', async () => {
+  const { gravar, chamadas } = gravador({ error: { code: '23505' } });
+  const r = await _gravarComFuncao({ papel: 'x', funcao: null }, gravar);
+  assert.equal(r.error.code, '23505');
+  assert.equal(chamadas.length, 1);
+});
+
+test('gravarComFuncao: patch sem a chave funcao não tem o que refazer', async () => {
+  const { gravar, chamadas } = gravador({ error: { code: 'PGRST204' } });
+  const r = await _gravarComFuncao({ papel: 'Gestor(a)' }, gravar);
+  assert.equal(r.error.code, 'PGRST204');
+  assert.equal(chamadas.length, 1);
 });

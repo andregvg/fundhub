@@ -36,12 +36,17 @@ registrarCache(limparCacheServidores);
 export async function getServidores() {
   if (_cache) return _cache;
   if (!hasSupabase()) { _cache = []; return _cache; }
-  const tel = await getTelefonesMapas();
+  // Telefones e servidores não dependem um do outro: disparados juntos. O
+  // catch vazio evita rejeição solta se o laço lançar antes do await abaixo;
+  // o `await telP` do caminho de sucesso continua propagando o erro.
+  const telP = getTelefonesMapas();
+  telP.catch(() => {});
   let ultimo = null;
   for (const forma of FORMAS) {
     const { data, error } = await sb().from('servidor').select(sel(forma)).order('nome');
     if (error?.code === '42703') { ultimo = error; continue; }
     if (error) throw error;
+    const tel = await telP;
     _cache = (data || []).map(s => ({
       ...s, vinculos: s.vinculos || [], telefones: tel.porServidor[s.id] || [],
     }));

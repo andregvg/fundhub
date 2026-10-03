@@ -14,7 +14,7 @@
 import { sb, hasSupabase } from '../../core/supabase.js';
 import { registrarCache } from '../../shared/cache.js';
 import { limparCacheServidores, CARGO_GESTOR } from './servidores.model.js';
-import { addDias } from '../../shared/format.js';
+import { hojeISO } from '../../shared/format.js';
 
 // Traduz os três papéis fixos que existiam antes da 023. A migration
 // normaliza a base; isto é rede de segurança para banco não migrado.
@@ -31,7 +31,18 @@ export const FUNCOES = Object.freeze([
   { valor: 2, rotulo: 'Gestor 2' },
 ]);
 export const temFuncao = (cargo) => rotulaCargo(cargo) === CARGO_GESTOR;
-const funcaoValida = (f) => (f === 1 || f === 2 ? f : null);
+// Coage: o valor de um <select> chega como texto. Number('') e Number(null)
+// dão 0, que também não é função.
+export function funcaoValida(f) {
+  const n = Number(f);
+  return n === 1 || n === 2 ? n : null;
+}
+
+// Erro já traduzido, do jeito que shared/ui/feedback.js:reportarErro espera:
+// mantém o código e marca `amigavel`, para caber inline.
+const amigavel = (texto, code) => Object.assign(new Error(texto), { amigavel: true, code });
+const SEM_A_045 = 'O banco ainda não tem a função do gestor. Avise a Gerência para aplicar a atualização.';
+const DUPLICADO = 'Este servidor já tem esse cargo neste local de trabalho.';
 
 // Espaços aparados e colapsados. Não forçamos caixa: "Vice-diretor(a)"
 // é escrito como a SME escreve.
@@ -109,14 +120,12 @@ export async function definirCargoGestao(cargo, eGestao) {
 // causa de uma coluna que nem seria preenchida. Com função, avisa: gravar
 // calado sem ela seria perder o que a pessoa acabou de informar.
 const SEM_COLUNA = new Set(['PGRST204', '42703']);
-async function gravarComFuncao(row, gravar) {
+// Patch SEM a chave `funcao` (atualizar sem mexer na função) não tem o que
+// refazer nem o que avisar: o erro volta como veio.
+export async function _gravarComFuncao(row, gravar) {
   let r = await gravar(row);
-  if (r.error && SEM_COLUNA.has(r.error.code)) {
-    if (row.funcao !== null) {
-      const e = new Error('O banco ainda não tem a função do gestor. Avise a Gerência para aplicar a atualização.');
-      e.code = r.error.code; e.amigavel = true;
-      throw e;
-    }
+  if (r.error && SEM_COLUNA.has(r.error.code) && 'funcao' in row) {
+    if (row.funcao !== null) throw amigavel(SEM_A_045, r.error.code);
     const { funcao, ...semFuncao } = row;
     r = await gravar(semFuncao);
   }
@@ -132,41 +141,31 @@ export async function criarVinculo({ servidor_id, unidade_id, papel, ingresso = 
   const ano = ingresso ? Number(String(ingresso).slice(0, 4)) : new Date().getFullYear();
   const row = { servidor_id, unidade_id, papel: cargo, ano, ingresso, fim,
     funcao: temFuncao(cargo) ? funcaoValida(funcao) : null };
-  const { data, error } = await gravarComFuncao(row,
+  const { data, error } = await _gravarComFuncao(row,
     (r) => sb().from('vinculo').insert(r).select().single());
   if (error) {
-    if (error.code === '23505') {
-      // Mantém o código e marca amigavel: é o que shared/ui/feedback.js:
-      // reportarErro usa para saber que o erro cabe inline e já traduzido.
-      const e = new Error('Este servidor já tem esse cargo neste local de trabalho.');
-      e.code = error.code;
-      e.amigavel = true;
-      throw e;
-    }
+    if (error.code === '23505') throw amigavel(DUPLICADO, error.code);
     throw error;
   }
   invalidar();
   return data;
 }
 
-export async function atualizarVinculo(id, { unidade_id, papel, ingresso = null, fim = null, funcao = null }) {
+export async function atualizarVinculo(id, { unidade_id, papel, ingresso = null, fim = null, funcao }) {
   if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
   const cargo = await cargoCanonico(papel);
   if (!cargo) throw new Error('Informe o cargo/função.');
   const ano = ingresso ? Number(String(ingresso).slice(0, 4)) : new Date().getFullYear();
-  const patch = { unidade_id, papel: cargo, ano, ingresso, fim,
-    funcao: temFuncao(cargo) ? funcaoValida(funcao) : null };
-  const { error } = await gravarComFuncao(patch,
+  const patch = { unidade_id, papel: cargo, ano, ingresso, fim };
+  // Fora do cargo de gestor a função é sempre nula (o CHECK exige). No de
+  // gestor, `funcao` omitida deixa a gravada como está; informada - mesmo
+  // null - é gravada.
+  if (!temFuncao(cargo)) patch.funcao = null;
+  else if (funcao !== undefined) patch.funcao = funcaoValida(funcao);
+  const { error } = await _gravarComFuncao(patch,
     (p) => sb().from('vinculo').update(p).eq('id', id));
   if (error) {
-    if (error.code === '23505') {
-      // Mantém o código e marca amigavel: é o que shared/ui/feedback.js:
-      // reportarErro usa para saber que o erro cabe inline e já traduzido.
-      const e = new Error('Este servidor já tem esse cargo neste local de trabalho.');
-      e.code = error.code;
-      e.amigavel = true;
-      throw e;
-    }
+    if (error.code === '23505') throw amigavel(DUPLICADO, error.code);
     throw error;
   }
   invalidar();
@@ -175,31 +174,50 @@ export async function atualizarVinculo(id, { unidade_id, papel, ingresso = null,
 // Troca de função COM data (spec 2026-10-03, D12): o período atual termina
 // na véspera e outro começa, com a função nova - é assim que fica o
 // histórico de quem foi Gestor 2 e passou a Gestor 1 na mesma escola.
-// Fecha ANTES de abrir: o índice vinculo_aberto_unico não aceita dois
-// abertos com o mesmo cargo. Se a abertura falhar, o fechamento é desfeito
-// - meio caminho deixaria a pessoa sem local de trabalho atual.
+// Mora no banco (função mudar_funcao_gestor) porque são duas escritas que
+// só valem juntas: do navegador, a falha da segunda deixaria a pessoa sem
+// local de trabalho atual. Aqui ficam só as guardas de UX (o banco repete
+// todas, R15) e a tradução dos erros. `servidorId` não é usado no corpo - o
+// banco o lê do vínculo -, mas fica na assinatura por contrato com a view.
 export async function mudarFuncao(servidorId, vinculo, funcao, desde) {
   if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
-  const erro = (texto) => Object.assign(new Error(texto), { amigavel: true });
-  if (!funcaoValida(funcao)) throw erro('Escolha Gestor 1 ou Gestor 2.');
-  if (!desde) throw erro('Informe a partir de quando a função mudou.');
-  const vespera = addDias(desde, -1);
-  if (vinculo.ingresso && vespera < vinculo.ingresso) {
-    throw erro('A mudança precisa ser depois do início deste local de trabalho.');
+  const nova = funcaoValida(funcao);
+  if (!nova) throw amigavel('Escolha Gestor 1 ou Gestor 2.');
+  if (!desde) throw amigavel('Informe a partir de quando a função mudou.');
+  if (vinculo.fim) throw amigavel('Este local de trabalho já está encerrado.');
+  if (!temFuncao(vinculo.papel)) throw amigavel('Só o cargo de gestor tem função.');
+  if (vinculo.funcao === nova) throw amigavel('A função já é essa.');
+  if (desde > hojeISO()) throw amigavel('A mudança não pode ter data futura.');
+  if (vinculo.ingresso && desde <= vinculo.ingresso) {
+    throw amigavel('A mudança precisa ser depois do início deste local de trabalho.');
   }
-  const fechar = await sb().from('vinculo').update({ fim: vespera }).eq('id', vinculo.id);
-  if (fechar.error) throw fechar.error;
-  const { data, error } = await sb().from('vinculo').insert({
-    servidor_id: servidorId, unidade_id: vinculo.unidade_id, papel: vinculo.papel,
-    ano: Number(String(desde).slice(0, 4)), ingresso: desde, fim: null, funcao,
-  }).select().single();
-  if (error) {
-    await sb().from('vinculo').update({ fim: null }).eq('id', vinculo.id);
-    invalidar();
-    throw error;
-  }
+  const { data, error } = await sb().rpc('mudar_funcao_gestor',
+    { p_vinculo: vinculo.id, p_funcao: nova, p_desde: desde });
+  if (error) throw traduzirMudanca(error);
   invalidar();
   return data;
+}
+
+// Erros da função do banco → texto para a tela. P0001/P0002 são os que ela
+// levanta de propósito, reconhecidos pelo início da mensagem.
+const MENSAGENS_MUDANCA = [
+  ['Local de trabalho nao encontrado', 'Este local de trabalho não foi encontrado. Atualize a tela.'],
+  ['Local de trabalho ja encerrado', 'Este local de trabalho já está encerrado.'],
+  ['Funcao so existe', 'Só o cargo de gestor tem função.'],
+  ['Funcao invalida', 'Escolha Gestor 1 ou Gestor 2.'],
+  ['Funcao igual', 'A função já é essa.'],
+  ['Data da mudanca no futuro', 'A mudança não pode ter data futura.'],
+  ['Data da mudanca antes', 'A mudança precisa ser depois do início deste local de trabalho.'],
+];
+function traduzirMudanca(error) {
+  if (error.code === 'PGRST202' || error.code === '42883') return amigavel(SEM_A_045, error.code);
+  if (error.code === '23505') return amigavel(DUPLICADO, error.code);
+  if (error.code === 'P0001' || error.code === 'P0002') {
+    const msg = String(error.message || '');
+    const achou = MENSAGENS_MUDANCA.find(([inicio]) => msg.startsWith(inicio));
+    return amigavel(achou ? achou[1] : 'Não foi possível registrar a mudança de função.', error.code);
+  }
+  return error;
 }
 
 // Encerrar ≠ excluir: o vínculo passado é histórico e deve ser
