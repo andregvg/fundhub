@@ -15,7 +15,8 @@ import { janelaDaUnidade } from '../horarios.config.js';
 // (R11 - horarios.model.js estourou 250 linhas). Ver progress.md, Ruling 13.
 import { getExibicao, definirCobertura } from '../exibicao.model.js';
 import { ordenarParaGrade, janelaDaGrade } from '../grade.model.js';
-import { getServidoresDaUnidade, vinculosAbertos } from '../../servidores/servidores.model.js';
+import { getServidoresDaUnidade, rotulaVinculo } from '../../servidores/servidores.model.js';
+import { vinculosDeEquipe } from '../../servidores/equipe.model.js';
 import { getCargosGestao, rotulaCargo } from '../../servidores/vinculos.model.js';
 import { getUnidades } from '../../escolas/escolas.model.js';
 import { esc } from '../../../shared/dom.js';
@@ -133,6 +134,13 @@ async function carregar() {
     ]);
   } catch (err) { corpo.innerHTML = erroBox(err); return; }
 
+  // Supervisão não é equipe da escola (spec 2026-10-03, D13/D14): quem só
+  // SUPERVISIONA a unidade não entra na grade, na lista de fora dela, na
+  // contagem nem na cobertura. O supervisor tem horário próprio, na
+  // Secretaria. Os blocos que ele já tinha aqui ficam no banco, só não
+  // aparecem.
+  servidores = servidores.filter(s => vinculosDeEquipe(s).some(v => v.unidade_id === unidadeId));
+
   document.getElementById('h-count').textContent = `${servidores.length} servidor(es) neste local`;
 
   if (!servidores.length) {
@@ -143,9 +151,14 @@ async function carregar() {
   }
 
   // Cargo NESTA unidade, não a união de todos os vínculos da pessoa -
-  // é o que decide se ela é equipe gestora aqui.
-  const cargoDe = (s) => rotulaCargo(vinculosAbertos(s).find(v => v.unidade_id === unidadeId)?.papel || '');
-  const itens = ordenarParaGrade(servidores, { exibicao, cargosGestao, cargoDe });
+  // é o que decide se ela é equipe gestora aqui. Só o vínculo de EQUIPE:
+  // quem coordena aqui e supervisiona outra escola tem o cargo de cá.
+  const vinculoAqui = (s) => vinculosDeEquipe(s).find(v => v.unidade_id === unidadeId);
+  const cargoDe = (s) => rotulaCargo(vinculoAqui(s)?.papel || '');
+  // `cargo` (sem a função) segue sendo a chave de comparação e de ordenação;
+  // `cargoExibido` ("Gestor(a) 1") é só o que a grade escreve na tela.
+  const itens = ordenarParaGrade(servidores, { exibicao, cargosGestao, cargoDe })
+    .map(it => ({ ...it, cargoExibido: rotulaVinculo({ ...vinculoAqui(it.servidor), papel: it.cargo }) }));
   linhas = itens.filter(it => it.exibir);
   const fora = itens.filter(it => !it.exibir);
 
@@ -243,7 +256,7 @@ function naoExibidosHtml(fora) {
     <summary>${fora.length} servidor(es) vinculado(s) fora da grade</summary>
     ${fora.map(l => `<div class="hg-fora-item">
       <span>${esc(l.servidor.nome)}</span>
-      <span class="hg-cargo">${esc(l.cargo)}</span>
+      <span class="hg-cargo">${esc(l.cargoExibido)}</span>
       ${ctxAtual.podeEditar ? `<button type="button" class="mini-btn" data-incluir="${esc(l.servidor.id)}">
         ${ico('adicionar')} Incluir na grade</button>` : ''}
     </div>`).join('')}

@@ -110,8 +110,16 @@ escalas de TDC).
 - Quem não tem horário próprio numa segunda configuração segue o horário
   da primeira, naquela mesma escala; sem horário nenhum na escala, segue a
   jornada normal. Só preencha o que muda.
-- **Supervisor(a)** não faz parte da equipe gestora e não aparece mais na
-  grade nem no cálculo de cobertura das escolas.
+- **Supervisor(a)** não entra na grade da escola nem na cobertura dela, e não
+  é oferecido na lista de cargos da equipe gestora. O supervisor trabalha na
+  Secretaria e acompanha várias escolas; o vínculo dele com cada escola
+  continua existindo, mas não faz dele equipe daquela escola. A contagem
+  "servidor(es) neste local" também conta só a equipe.
+- Na aba **Por servidor**, a escola que a pessoa apenas supervisiona não
+  aparece como local de jornada. Quem é coordenador numa escola e supervisor
+  de outra continua vendo a escola onde é coordenador. Um horário que o
+  supervisor já tinha lançado numa escola não é apagado, só deixa de aparecer.
+- Na grade, o cargo de quem é gestor aparece com a função ("Gestor(a) 1").
 
 ## Ligações com outros módulos
 
@@ -127,7 +135,13 @@ escalas de TDC).
 
 **Um servidor não aparece na grade da escola.**
 Ou o cargo dele não está marcado como equipe gestora, ou ele não tem local de
-trabalho atual naquela unidade. Confira em Servidores.
+trabalho atual naquela unidade, ou ele só supervisiona a escola (supervisão
+não é equipe da escola). Confira em Servidores.
+
+**Um supervisor não aparece na busca da aba Por servidor.**
+Quem só tem vínculo de supervisão com escolas não tem jornada em escola. Se ele
+tem um local de trabalho na Secretaria, cadastre-o em Servidores e ele passa a
+aparecer.
 
 **Editei a jornada mas a grade não mudou.**
 Recarregue a página - a janela grava, mas a grade por baixo só relê ao
@@ -138,4 +152,4 @@ O sistema desta escola ainda não foi atualizado para guardar mais de uma
 configuração do mesmo dia. No lugar do botão aparece um aviso dizendo
 isso. Avise a Gerência; enquanto isso, cada dia tem uma configuração só.
 
-> Atualizado na versão 0.31.0.
+> Atualizado na versão 0.39.0.

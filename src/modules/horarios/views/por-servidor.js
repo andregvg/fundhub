@@ -8,7 +8,8 @@
 import { DIAS, getBlocosDoServidor, validarDia, totalDoDia, duracao } from '../horarios.model.js';
 import { escolherBlocos, rotulaEscala, variantesDe } from '../escalas.model.js';
 import { posicaoNaBarra, marcasDaBarra, janelaDaGrade, JANELA_FABRICA } from '../grade.model.js';
-import { getServidores, vinculosAbertos } from '../../servidores/servidores.model.js';
+import { getServidores, rotulaVinculo } from '../../servidores/servidores.model.js';
+import { vinculosDeEquipe, soSupervisiona } from '../../servidores/equipe.model.js';
 import { rotulaCargo } from '../../servidores/vinculos.model.js';
 import { esc, vazio } from '../../../shared/dom.js';
 import { loading, emptyState, erroBox } from '../../../shared/ui/feedback.js';
@@ -52,12 +53,13 @@ export async function renderPorServidor(box, ctx) {
   if (servidorId) carregar(); else limparCorpo();
 }
 
-// Só entra no seletor quem tem vínculo aberto - vínculo encerrado não
-// tem onde lançar jornada nova. O rótulo é sempre o nome completo -
-// é o que consta do ofício; o apelido vai para `busca`, para continuar
-// encontrando quem só é conhecido por ele.
+// Só entra no seletor quem tem vínculo aberto de EQUIPE - vínculo encerrado
+// não tem onde lançar jornada nova, e quem só supervisiona escolas trabalha
+// na Secretaria (se tem local lá, aparece por ele; D14). O rótulo é sempre
+// o nome completo - é o que consta do ofício; o apelido vai para `busca`,
+// para continuar encontrando quem só é conhecido por ele.
 function pintarSeletor() {
-  const comVinculo = servidores.filter(s => vinculosAbertos(s).length);
+  const comVinculo = servidores.filter(s => vinculosDeEquipe(s).length);
   if (servidorId && !comVinculo.some(s => s.id === servidorId)) servidorId = '';
   busca = criarBuscaSelecao(document.getElementById('hs-servidor-box'), {
     opcoes: [...comVinculo]
@@ -88,10 +90,13 @@ async function carregar() {
 
   // Os locais a mostrar: onde já há bloco lançado, mais os locais de
   // vínculo aberto sem bloco ainda - é ali que a pessoa precisa poder
-  // ADICIONAR o primeiro.
+  // ADICIONAR o primeiro. A escola que ela só SUPERVISIONA não é local de
+  // jornada (D14) - nem quando sobrou bloco antigo lançado lá.
   const locais = new Map();
-  for (const b of blocos) if (b.unidade && !locais.has(b.unidade.id)) locais.set(b.unidade.id, b.unidade);
-  for (const v of vinculosAbertos(s)) if (v.unidade && !locais.has(v.unidade.id)) locais.set(v.unidade.id, v.unidade);
+  for (const b of blocos) {
+    if (b.unidade && !soSupervisiona(s, b.unidade.id) && !locais.has(b.unidade.id)) locais.set(b.unidade.id, b.unidade);
+  }
+  for (const v of vinculosDeEquipe(s)) if (v.unidade && !locais.has(v.unidade.id)) locais.set(v.unidade.id, v.unidade);
 
   if (!locais.size) {
     corpo.innerHTML = emptyState(ico('escola', { tam: 32 }), 'Sem local de trabalho',
@@ -118,7 +123,7 @@ function painelLocal(s, local) {
   // (achado da revisão da Task 4, rodada 1). Aplicar dentro do DIAS.map,
   // mesmo padrão de por-escola.js.
   const doLocal = blocos.filter(b => b.unidade_id === local.id);
-  const vinc = vinculosAbertos(s).find(v => v.unidade_id === local.id);
+  const vinc = vinculosDeEquipe(s).find(v => v.unidade_id === local.id);
 
   // Qual variante vale numa data concreta ninguém sabe - a tela mostra
   // todas e não finge saber (D8). Numa escola sem revezamento há uma
@@ -157,7 +162,7 @@ function painelLocal(s, local) {
   return `<section class="panel hb-painel">
     <h2>
       ${esc(local.apelido || local.nome)}
-      <small class="hb-sub">${esc(rotulaCargo(vinc?.papel || ''))} · ${duracao(totalSemana)} na semana</small>
+      <small class="hb-sub">${esc(rotulaVinculo({ ...vinc, papel: rotulaCargo(vinc?.papel) }))} · ${duracao(totalSemana)} na semana</small>
     </h2>
     <div class="hb-grade">${semana}</div>
   </section>`;

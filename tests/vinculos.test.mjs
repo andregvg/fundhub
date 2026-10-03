@@ -2,7 +2,7 @@
 // da escola) - spec 2026-10-03, D13.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { eSupervisao, ordemNaEquipe, vinculosDeEquipe } from '../src/modules/servidores/equipe.model.js';
+import { eSupervisao, ordemNaEquipe, vinculosDeEquipe, soSupervisiona } from '../src/modules/servidores/equipe.model.js';
 import { rotulaVinculo, cargoExibidoDe } from '../src/modules/servidores/servidores.model.js';
 import { temFuncao, funcaoValida, _gravarComFuncao } from '../src/modules/servidores/vinculos.model.js';
 
@@ -112,4 +112,30 @@ test('gravarComFuncao: patch sem a chave funcao não tem o que refazer', async (
   const r = await _gravarComFuncao({ papel: 'Gestor(a)' }, gravar);
   assert.equal(r.error.code, 'PGRST204');
   assert.equal(chamadas.length, 1);
+});
+
+// ── Horários sem supervisão (D14) ───────────────────────────
+const unidade = (id) => ({ unidade_id: id, unidade: { id } });
+
+test('vinculosDeEquipe deixa a supervisão de fora e mantém o resto', () => {
+  const s = { vinculos: [
+    { papel: 'Supervisor(a)', fim: null, ...unidade('esc-a') },
+    { papel: 'Coordenador(a)', fim: null, ...unidade('esc-b') },
+    { papel: 'Gestor(a)', fim: '2026-01-31', ...unidade('esc-c') },   // encerrado
+  ] };
+  assert.deepEqual(vinculosDeEquipe(s).map(v => v.unidade_id), ['esc-b']);
+  assert.deepEqual(vinculosDeEquipe({ vinculos: [{ papel: 'supervisor', fim: null, ...unidade('esc-a') }] }), []);
+});
+
+test('soSupervisiona: a escola só supervisionada não é local de jornada', () => {
+  const s = { vinculos: [
+    { papel: 'Supervisor(a)', fim: null, ...unidade('esc-a') },
+    { papel: 'Coordenador(a)', fim: null, ...unidade('esc-b') },
+    { papel: 'Supervisor(a)', fim: null, ...unidade('esc-b') },      // coordena E supervisiona a mesma
+    { papel: 'Supervisor(a)', fim: '2026-01-31', ...unidade('esc-d') },   // encerrado
+  ] };
+  assert.equal(soSupervisiona(s, 'esc-a'), true);
+  assert.equal(soSupervisiona(s, 'esc-b'), false);    // é equipe lá
+  assert.equal(soSupervisiona(s, 'esc-c'), false);    // sem vínculo nenhum
+  assert.equal(soSupervisiona(s, 'esc-d'), false);    // supervisão já encerrada
 });

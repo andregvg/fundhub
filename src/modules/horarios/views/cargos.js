@@ -15,6 +15,7 @@
 // Aceitável: configurar a equipe gestora é raro.
 // ============================================================
 import { getCargos, getCargosGestao, definirCargoGestao } from '../../servidores/vinculos.model.js';
+import { eSupervisao } from '../../servidores/equipe.model.js';
 import { esc } from '../../../shared/dom.js';
 import { loading, erroBox, reportarErro } from '../../../shared/ui/feedback.js';
 import { toast } from '../../../shared/ui/toast.js';
@@ -31,6 +32,8 @@ export async function pintarCargosGestao(box) {
   let cargos = [], gestao = new Set();
   try { [cargos, gestao] = await Promise.all([getCargos(), getCargosGestao()]); }
   catch (err) { lista.innerHTML = erroBox(err); return; }
+  // Supervisão não compõe a equipe da escola (D13), então não é escolha.
+  cargos = cargos.filter(c => !eSupervisao(c));
 
   lista.innerHTML = cargos.length
     ? `<div class="cg-linhas">${cargos.map(c => `

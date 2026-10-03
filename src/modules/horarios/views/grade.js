@@ -42,7 +42,7 @@ export function legendaHtml(linhas, { podeEditar }) {
            data-servidor="${esc(l.servidor.id)}" ${podeEditar ? 'draggable="true"' : ''}>
         <span class="hg-cor" aria-hidden="true"></span>
         <span>${esc(l.servidor.nome)}</span>
-        <span class="hg-cargo">${esc(l.cargo)}</span>
+        <span class="hg-cargo">${esc(l.cargoExibido ?? l.cargo)}</span>
         ${podeEditar ? `
           <button type="button" class="mini-btn hg-mover" data-mover="${esc(l.servidor.id)}:-1"
              ${i === 0 ? 'disabled' : ''} aria-label="Mover ${esc(l.servidor.nome)} para a esquerda">${ico('chevron', { tam: 12, classe: 'gira-90' })}</button>

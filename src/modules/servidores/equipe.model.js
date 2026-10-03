@@ -36,6 +36,14 @@ export function ordemNaEquipe(v) {
 // supervisão. É o que Horários lê.
 export const vinculosDeEquipe = (s) => vinculosAbertos(s).filter(v => !eSupervisao(v.papel));
 
+// A unidade é só SUPERVISIONADA pela pessoa: há vínculo aberto de supervisão
+// nela e nenhum de equipe. Quem coordena uma escola e supervisiona outra tem
+// a primeira como local de jornada; a segunda, não (D14).
+export function soSupervisiona(s, unidadeId) {
+  if (vinculosDeEquipe(s).some(v => v.unidade_id === unidadeId)) return false;
+  return vinculosAbertos(s).some(v => v.unidade_id === unidadeId && eSupervisao(v.papel));
+}
+
 // Quem tem local de trabalho aberto na unidade, já na forma de LEITURA que
 // outra tela exibe: { id, nome, cargo, email, telefone, supervisao, ordem }.
 //   - o cargo é o do(s) vínculo(s) aberto(s) NESTA unidade, não o geral -
