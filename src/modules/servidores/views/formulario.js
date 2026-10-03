@@ -4,6 +4,7 @@
 import { CONFIG } from '../../../core/config.js';
 import { criarServidor, atualizarServidor, excluirServidor, cargoExibidoDe, localDeTrabalhoDe, vinculosAbertos } from '../servidores.model.js';
 import { criarVinculo, FUNCOES, temFuncao } from '../vinculos.model.js';
+import { quemTemFuncao } from '../equipe.model.js';
 import { eLocalInterno } from '../../escolas/escolas.model.js';
 import { sincronizarTelefones } from '../../telefones/telefones.model.js';
 import { esc, falha } from '../../../shared/dom.js';
@@ -18,6 +19,14 @@ import { formVinculo } from './vinculo.js';
 import { ico } from '../../../shared/ui/icones.js';
 
 const OUTRO = '::outro::';
+
+// O cargo do local de trabalho do cadastro novo: da lista ou digitado em
+// "+ Outro…". Um só lugar para quem mostra "Função" e para quem salva olharem
+// o mesmo valor.
+const cargoEscolhido = () => {
+  const sel = document.getElementById('s-cargo');
+  return sel.value === OUTRO ? document.getElementById('s-cargo-novo').value : sel.value;
+};
 
 // Uma instância por modal aberta - reabrir "Novo servidor" sem destruir
 // a de antes deixa um listener de document vivo (mesma armadilha de vinculo.js).
@@ -147,8 +156,7 @@ export function formServidor(s, ctx, { voltar = null } = {}) {
     // A função só existe no cargo de gestor (D12), venha o cargo da lista
     // ou do campo "Qual cargo / função?".
     const pintarFuncao = () => {
-      const cargo = selCargo.value === OUTRO ? cargoNovo.value : selCargo.value;
-      document.getElementById('s-funcao-wrap').hidden = !temFuncao(cargo);
+      document.getElementById('s-funcao-wrap').hidden = !temFuncao(cargoEscolhido());
     };
     selCargo.addEventListener('change', () => {
       const outro = selCargo.value === OUTRO;
@@ -241,8 +249,7 @@ async function salvarServidor(e, s, ctx, voltar) {
   let vinc = null;
   if (!s && buscaLocalNovo) {
     const unidade_id = buscaLocalNovo.valorAtual();
-    const escolhido = document.getElementById('s-cargo').value;
-    const papel = escolhido === OUTRO ? val('s-cargo-novo') : escolhido;
+    const papel = cargoEscolhido().trim();
     const ingresso = document.getElementById('s-vinc-ini').value || null;
     if (unidade_id && !String(papel).trim()) {
       return falha(msg, 'Escolha também o cargo do local de trabalho, ou deixe o local em branco.');
@@ -270,12 +277,16 @@ async function salvarServidor(e, s, ctx, voltar) {
   const telefones = lerPhonesEditor(document.getElementById('sv-form'));
 
   const btn = document.getElementById('s-save'); btn.disabled = true; btn.textContent = 'Salvando…';
+  let outro = null;   // quem já tem a função no local escolhido (aviso, não erro)
   try {
     const id = s ? (await atualizarServidor(s.id, payload), s.id) : (await criarServidor(payload)).id;
     await sincronizarTelefones({ servidorId: id }, telefones);
     if (vinc) {
       try {
         await criarVinculo({ servidor_id: id, ...vinc });
+        // Aviso, não erro (R15): a consulta é depois de gravar e, se falhar,
+        // não pode ser confundida com falha do local de trabalho.
+        if (vinc.funcao) outro = await quemTemFuncao(vinc.unidade_id, vinc.funcao, id).catch(() => null);
       } catch (err) {
         // O servidor já está no banco; não desfaz. A ficha resolve.
         toast({ titulo: 'Servidor criado',
@@ -288,6 +299,7 @@ async function salvarServidor(e, s, ctx, voltar) {
     const novoCtx = await ctx.recarregar();
     if (voltar) voltar(novoCtx); else fecharModal();
     toast({ titulo: s ? 'Servidor atualizado' : 'Servidor cadastrado', texto: payload.nome, tipo: 'sucesso' });
+    if (outro) toast({ titulo: `Este local já tem Gestor ${vinc.funcao}`, texto: outro.nome, tipo: 'atencao' });
   } catch (err) {
     // Erro de gravação: inline quando dá para corrigir no formulário
     // aberto, toast quando não dá - reportarErro decide pelo código.

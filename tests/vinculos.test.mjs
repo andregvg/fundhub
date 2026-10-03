@@ -39,6 +39,14 @@ test('só o cargo de gestor tem função', () => {
   assert.equal(temFuncao(''), false);
 });
 
+test('o cargo digitado à mão é reconhecido sem distinção de caixa nem de espaços', () => {
+  assert.equal(temFuncao('gestor(a)'), true);
+  assert.equal(temFuncao('  Gestor(a)  '), true);
+  assert.equal(temFuncao('GESTOR(A)'), true);
+  assert.equal(temFuncao('Gestor  (a)'), false);      // espaço no meio não é o mesmo cargo
+  assert.equal(temFuncao('Vice-gestor(a)'), false);
+});
+
 test('ordem da equipe: Gestor 1, Gestor 2, gestor sem função, coordenação, demais', () => {
   const ordem = [
     { papel: 'Secretário(a)' },

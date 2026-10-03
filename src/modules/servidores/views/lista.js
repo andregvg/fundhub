@@ -1,8 +1,8 @@
 // ============================================================
 // FundHub - servidores/views/lista.js  (busca, filtros e cards)
 // ============================================================
-import { vinculosAbertos, localDeTrabalhoDe, rotulaVinculo } from '../servidores.model.js';
-import { rotulaCargo } from '../vinculos.model.js';
+import { vinculosAbertos, localDeTrabalhoDe, rotulaVinculo, cargoExibidoDe } from '../servidores.model.js';
+import { rotulaCargo, FUNCOES } from '../vinculos.model.js';
 import { esc, norm } from '../../../shared/dom.js';
 import { emptyState } from '../../../shared/ui/feedback.js';
 import { ico } from '../../../shared/ui/icones.js';
@@ -36,6 +36,10 @@ export function combina(s, ctx) {
       s.nome, s.apelido, s.email, s.codigo_funcional, localDeTrabalhoDe(s),
       ...(s.telefones || []).flatMap(t => [t.numero, exibirTelefone(t.numero)]),
       ...abertos.map(v => `${v.unidade?.nome} ${v.unidade?.apelido} ${rotulaCargo(v.papel)}`),
+      // O que o card mostra ("Gestor(a) 1") e como a função se chama no
+      // formulário ("Gestor 1"): quem busca por qualquer um dos dois acha.
+      cargoExibidoDe(s),
+      ...abertos.map(v => FUNCOES.find(f => f.valor === v.funcao)?.rotulo),
     ].join(' '));
     if (!alvo.includes(norm(filtro.q))) return false;
   }

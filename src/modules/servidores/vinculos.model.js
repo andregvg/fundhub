@@ -30,7 +30,12 @@ export const FUNCOES = Object.freeze([
   { valor: 1, rotulo: 'Gestor 1' },
   { valor: 2, rotulo: 'Gestor 2' },
 ]);
-export const temFuncao = (cargo) => rotulaCargo(cargo) === CARGO_GESTOR;
+// Cargo digitado em "+ Outro…" não passa pelo catálogo: "gestor(a)" e
+// "  Gestor(a) " são o mesmo cargo que `cargoCanonico` vai gravar como
+// "Gestor(a)", então a tela e o model concordam (normalizaCargo é declarada
+// abaixo, mas só é chamada depois de o módulo carregar).
+export const temFuncao = (cargo) =>
+  rotulaCargo(normalizaCargo(cargo)).toLowerCase() === CARGO_GESTOR.toLowerCase();
 // Coage: o valor de um <select> chega como texto. Number('') e Number(null)
 // dão 0, que também não é função.
 export function funcaoValida(f) {

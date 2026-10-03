@@ -170,8 +170,12 @@ async function salvar(e, s, vinculo, ctx, voltar, buscaLocal) {
     // Aviso, não erro (R15): numa transição dois gestores com a mesma
     // função se encostam. A consulta é depois de gravar e não derruba nada.
     // Mostrado depois do toast de sucesso: o aviso é a última coisa lida.
+    // Só quando a função foi TOCADA neste salvamento (local novo, função
+    // diferente da que havia, ou troca datada): corrigir só a data de início
+    // de quem já era Gestor 1 não é motivo para avisar de novo.
+    const tocou = Boolean(desde) || !vinculo || funcao !== (vinculo.funcao || null);
     let outro = null;
-    if (funcao && !fim) outro = await quemTemFuncao(unidade_id, funcao, s.id).catch(() => null);
+    if (funcao && !fim && tocou) outro = await quemTemFuncao(unidade_id, funcao, s.id).catch(() => null);
     const novoCtx = await ctx.recarregar();
     // Volta para o modal de baixo já com o dado novo: passamos o ctx
     // recarregado para quem chamou reconstruir a tela a partir dele.
@@ -180,7 +184,7 @@ async function salvar(e, s, vinculo, ctx, voltar, buscaLocal) {
     const titulo = desde ? 'Função alterada' : !vinculo ? 'Local de trabalho adicionado'
       : (encerrou ? 'Local de trabalho encerrado' : 'Local de trabalho atualizado');
     toast({ titulo, texto: s.nome, tipo: 'sucesso' });
-    if (outro) toast({ titulo: `Esta escola já tem Gestor ${funcao}`, texto: outro.nome, tipo: 'atencao' });
+    if (outro) toast({ titulo: `Este local já tem Gestor ${funcao}`, texto: outro.nome, tipo: 'atencao' });
   } catch (err) {
     // Erro de gravação: inline quando dá para corrigir no formulário
     // aberto, toast quando não dá - reportarErro decide pelo código.

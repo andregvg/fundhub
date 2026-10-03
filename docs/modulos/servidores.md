@@ -75,7 +75,8 @@ local de trabalho.
 2. Em **Cargo / função**, deixe **Gestor(a)**. Logo abaixo aparece o campo
    **Função**.
 3. Escolha **Gestor 1** ou **Gestor 2**.
-4. Clique em **Salvar**. A função passa a aparecer junto do cargo, como
+4. Clique em **Salvar** (ou em **Adicionar**, se você abriu pelo caminho de
+   adicionar um local novo). A função passa a aparecer junto do cargo, como
    "Gestor(a) 1", na ficha, na lista de servidores e na equipe da escola.
 
 Para quem ainda não tinha função, esse é sempre um ajuste do registro: o
@@ -90,7 +91,7 @@ na mesma escola.
 1. Na ficha do servidor, clique no lápis ao lado do local de trabalho atual.
 2. Em **Função**, escolha a nova. Aparece o campo **Mudou a partir de**.
 3. Com a troca de verdade, preencha **Mudou a partir de** com a data em que a
-   nova função começou. O período anterior termina na véspera e fica no
+   nova função começou (não pode ser uma data futura). O período anterior termina na véspera e fica no
    histórico, junto dos locais encerrados: aparecem duas linhas, uma para cada
    função.
 4. Se na verdade foi só um engano de cadastro (a pessoa sempre foi a outra
@@ -130,12 +131,18 @@ trabalho.
 - **Troca de função com outras alterações juntas** é bloqueada: quando
   **Mudou a partir de** está preenchido, o sistema só aceita a troca, para não
   misturar períodos diferentes.
+- **A data da troca** precisa ser depois do início do local de trabalho e não
+  pode ser futura - a troca é registrada no dia em que acontece. O sistema
+  bloqueia o salvamento nos dois casos.
+- **A troca só vale em local de trabalho atual** (sem Término), e a função nova
+  precisa ser diferente da atual. Se não for, o sistema bloqueia.
 - **A função só existe no cargo de Gestor(a).** Em qualquer outro cargo o
   campo não aparece, e a função não é guardada.
-- **Função repetida na escola** é só um aviso: se você marcar Gestor 1 numa
-  escola que já tem um Gestor 1 atual, o sistema mostra o nome de quem já
+- **Função repetida no local** é só um aviso: se você marcar Gestor 1 num
+  local que já tem um Gestor 1 atual, o sistema mostra o nome de quem já
   ocupa e salva assim mesmo, porque numa transição os dois períodos se
-  encostam.
+  encostam. O aviso vale também ao cadastrar um servidor novo com local de
+  trabalho, e só aparece quando a função foi mexida naquele salvamento.
 - **Local de trabalho sem cargo** não é aceito: se você escolher um local na
   modal de cadastro, precisa escolher também o cargo.
 - **Documento fora do formato** (CPF, RG) é só um aviso: salva assim mesmo,
