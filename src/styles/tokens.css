@@ -151,50 +151,56 @@
   --sate-vinho: #9f1239;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #0c1120;
-    --surface: #141b2e;
-    --surface-2: #1b2338;
-    --surface-3: #232c45;
-    --border: #30363d;
-    --border-forte: #4b5563;
-    --text: #e8ecf6;
-    --muted: #93a0bd;  /* espelhado à mão nas data URIs dos ícones de data/hora, components.css */
-    --brand: #5b8cff;
-    --brand-2: #2dd4bf;
-    --danger: #f85149;
-    --ok: #3fb950;
-    --shadow: 0 1px 3px rgba(0, 0, 0, .4), 0 8px 24px rgba(0, 0, 0, .35);
-    --shadow-btn: 0 1px 0 rgba(0, 0, 0, .2);
-    --campo-bg: #0e1424;
-    --campo-borda: #3a4358;
+/* Controles nativos (seletor de data, lista do select, rolagem) seguem o
+   tema escolhido, não o do sistema. */
+:root { color-scheme: light; }
 
-    /* Mesma derivação por color-mix, com percentuais maiores: sobre
-       superfície escura a proporção do tema claro fica invisível. */
-    --sucesso-bg: color-mix(in srgb, var(--ok) 18%, var(--surface));
-    --atencao-bg: color-mix(in srgb, var(--accent) 20%, var(--surface));
-    --erro-bg:    color-mix(in srgb, var(--danger) 18%, var(--surface));
-    --info-bg:    color-mix(in srgb, var(--brand) 18%, var(--surface));
+/* Tema escuro: o atributo é posto em <html> por core/tema.js (e pelo
+   script do <head>, antes da primeira pintura). A especificidade (0,2,0)
+   vence o :root de cima sem depender da ordem. */
+:root[data-tema="escuro"] {
+  color-scheme: dark;
+  --bg: #0c1120;
+  --surface: #141b2e;
+  --surface-2: #1b2338;
+  --surface-3: #232c45;
+  --border: #30363d;
+  --border-forte: #4b5563;
+  --text: #e8ecf6;
+  --muted: #93a0bd;  /* espelhado à mão nas data URIs dos ícones de data/hora, components.css */
+  --brand: #5b8cff;
+  --brand-2: #2dd4bf;
+  --danger: #f85149;
+  --ok: #3fb950;
+  --shadow: 0 1px 3px rgba(0, 0, 0, .4), 0 8px 24px rgba(0, 0, 0, .35);
+  --shadow-btn: 0 1px 0 rgba(0, 0, 0, .2);
+  --campo-bg: #0e1424;
+  --campo-borda: #3a4358;
 
-    --sate-verde: #3fb96f;
-    --sate-azul: #5b8cff;
-    --sate-petroleo: #2dd4bf;
-    --sate-vinho: #fb7185;
+  /* Mesma derivação por color-mix, com percentuais maiores: sobre
+     superfície escura a proporção do tema claro fica invisível. */
+  --sucesso-bg: color-mix(in srgb, var(--ok) 18%, var(--surface));
+  --atencao-bg: color-mix(in srgb, var(--accent) 20%, var(--surface));
+  --erro-bg:    color-mix(in srgb, var(--danger) 18%, var(--surface));
+  --info-bg:    color-mix(in srgb, var(--brand) 18%, var(--surface));
 
-    /* Mesmas seis séries, um pouco mais claras - ainda dessaturadas. */
-    --serie-1: #7f9fe0;
-    --serie-2: #7fc4b4;
-    --serie-3: #d7b070;
-    --serie-4: #b99cd4;
-    --serie-5: #dd9f9f;
-    --serie-6: #8fb07b;
+  --sate-verde: #3fb96f;
+  --sate-azul: #5b8cff;
+  --sate-petroleo: #2dd4bf;
+  --sate-vinho: #fb7185;
 
-    /* Mesmos três eixos, recalibrados para fundo escuro. */
-    --eixo-fundamental: #5b8cff;
-    --eixo-infantil: #fbbf24;
-    --eixo-todas: #adbac7;
-  }
+  /* Mesmas seis séries, um pouco mais claras - ainda dessaturadas. */
+  --serie-1: #7f9fe0;
+  --serie-2: #7fc4b4;
+  --serie-3: #d7b070;
+  --serie-4: #b99cd4;
+  --serie-5: #dd9f9f;
+  --serie-6: #8fb07b;
+
+  /* Mesmos três eixos, recalibrados para fundo escuro. */
+  --eixo-fundamental: #5b8cff;
+  --eixo-infantil: #fbbf24;
+  --eixo-todas: #adbac7;
 }
 
 @media (min-width: 720px) {
@@ -221,9 +227,7 @@
   --overlay: rgba(10, 15, 30, .62);
   --overlay-leve: rgba(10, 15, 30, .35);
 }
-@media (prefers-color-scheme: dark) {
-  :root { --overlay: rgba(0, 0, 0, .72); --overlay-leve: rgba(0, 0, 0, .4); }
-}
+:root[data-tema="escuro"] { --overlay: rgba(0, 0, 0, .72); --overlay-leve: rgba(0, 0, 0, .4); }
 
 /* Tons DERIVADOS da cor de destaque (spec 2026-10-02, D1 e D5) -
    declarados em `body`, não em `:root`. O SATE troca o --brand no
@@ -237,11 +241,9 @@ body {
   --cabecalho-bg: color-mix(in srgb, var(--brand) 9%, var(--surface));
   --cabecalho-borda: color-mix(in srgb, var(--brand) 22%, var(--border));
 }
-@media (prefers-color-scheme: dark) {
-  body {
-    --grupo-bg: color-mix(in srgb, var(--brand) 4%, var(--surface));
-    --grupo-borda: color-mix(in srgb, var(--brand) 15%, var(--border));
-    --cabecalho-bg: color-mix(in srgb, var(--brand) 15%, var(--surface));
-    --cabecalho-borda: color-mix(in srgb, var(--brand) 32%, var(--border));
-  }
+/* No escuro só o cabeçalho muda de proporção: o grupo é igual nos dois
+   temas (as variáveis de que depende já trocam sozinhas). */
+:root[data-tema="escuro"] body {
+  --cabecalho-bg: color-mix(in srgb, var(--brand) 15%, var(--surface));
+  --cabecalho-borda: color-mix(in srgb, var(--brand) 32%, var(--border));
 }

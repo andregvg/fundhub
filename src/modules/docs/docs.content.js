@@ -596,7 +596,8 @@ export async function render(app, { perfil } = {}) {
 
       <h3>Tokens</h3>
       <p>Cores, sombras e raios são variáveis CSS em <code>styles/tokens.css</code>, com o tema
-      escuro definido por <code>@media (prefers-color-scheme: dark)</code>. <b>Nunca escreva uma
+      escuro definido por <code>:root[data-tema="escuro"]</code> (o atributo é aplicado por
+      <code>core/tema.js</code>). <b>Nunca escreva uma
       cor fixa</b> em um módulo: use <code>var(--brand)</code>, <code>var(--muted)</code>,
       <code>var(--danger)</code>… Se você precisou de uma cor que não existe, ela provavelmente
       deveria virar um token.</p>

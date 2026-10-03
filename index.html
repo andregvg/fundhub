@@ -9,6 +9,18 @@
        URI de favicon não é src/modules/** e não tem como referenciar um
        token CSS de tokens.css. -->
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231d4ed8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z'/%3E%3Cpolyline points='9 22 9 12 15 12 15 22'/%3E%3C/svg%3E" />
+  <script>
+    // Tema ANTES da primeira pintura, para não piscar (spec 2026-10-03, D10).
+    // Espelha resolverTema() em src/core/tema.js: mudou lá, mude aqui.
+    (function () {
+      var t = null;
+      try { t = localStorage.getItem('fundhub:tema'); } catch (e) {}
+      if (t !== 'claro' && t !== 'escuro') {
+        t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'escuro' : 'claro';
+      }
+      document.documentElement.dataset.tema = t;
+    })();
+  </script>
   <link rel="stylesheet" href="src/styles/main.css" />
   <!-- supabase-js (UMD): fonte de dados do FundHub (RLS). Nenhum dado real versionado. -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>

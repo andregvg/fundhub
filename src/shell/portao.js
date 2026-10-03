@@ -18,6 +18,7 @@ import { hasSupabase } from '../core/supabase.js';
 import { getUser, onAuthChange, renderLogin, isInstitucional, signOut } from '../core/auth.js';
 import { getPerfilAtual, limparPerfil, registrarAcesso } from '../core/perfil.js';
 import { carregarConfiguracoes, limparConfiguracoes } from '../core/configuracoes.js';
+import { sincronizarTemaDaConta } from '../core/tema.js';
 import { setChrome, carimboRodape } from './chrome.js';
 import { renderAcessoPendente } from './pendente.js';
 import { limparCaches } from '../shared/cache.js';
@@ -40,6 +41,8 @@ export async function abrirPortao(app, { marca, sistema, chrome = {}, aoEntrar, 
       getPerfilAtual().catch(() => null),
       carregarConfiguracoes().catch(() => {}),
     ]);
+    // Preferências carregadas: o tema da conta vence o do aparelho.
+    sincronizarTemaDaConta();
 
     // Autenticou, domínio certo - mas não está na allowlist.
     if (perfil?.naoCadastrado) {

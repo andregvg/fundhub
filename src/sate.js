@@ -31,6 +31,7 @@ import { markdownParaHtml } from './modules/ajuda/markdown.js';
 import { criarBuscaSelecao } from './shared/ui/busca-selecao.js';
 import { emptyState, loading } from './shared/ui/feedback.js';
 import { limparToasts } from './shared/ui/toast.js';
+import { iniciarTema } from './core/tema.js';
 import { ico } from './shared/ui/icones.js';
 
 // Usa o FundHub = enxerga ao menos um módulo de navegação que não seja o
@@ -241,6 +242,7 @@ async function paginaVerComo() {
 // ouvintes (a página desenharia duas vezes). Sem `estado`, não faz nada.
 window.addEventListener('hashchange', rotear);
 
+iniciarTema();
 abrirPortao(app, {
   marca: MARCA,
   sistema: 'SATE',

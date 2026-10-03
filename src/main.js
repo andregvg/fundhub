@@ -12,6 +12,7 @@ import { servicos } from './core/registry.js';
 import { abrirPortao } from './shell/portao.js';
 import { montarNav, marcarNav, marcarAtualizacao } from './shell/chrome.js';
 import { limparToasts } from './shared/ui/toast.js';
+import { iniciarTema } from './core/tema.js';
 
 const app = document.getElementById('app');
 const rodando = [];
@@ -52,4 +53,5 @@ function pararServicos() {
   limparToasts();
 }
 
+iniciarTema();
 abrirPortao(app, { aoEntrar: montarApp, aoSair: pararServicos });

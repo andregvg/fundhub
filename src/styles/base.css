@@ -196,6 +196,8 @@ body.menu-aberto .sidebar { transform: translateX(0); }
 .um-linha { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 6px 0; font-size: 12.5px; }
 .um-lbl { color: var(--muted); }
 .um-acesso { font-weight: 600; text-align: right; }
+/* O interruptor do tema é uma .um-linha: rótulo à esquerda, trilho à direita. */
+.um-tema { width: 100%; min-height: 0; cursor: pointer; }
 
 .um-link,
 .um-sair {

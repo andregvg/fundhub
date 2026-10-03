@@ -24,6 +24,7 @@ import { fmtDataHora, fmtData, hojeISO, agoraISO } from '../shared/format.js';
 import { ico } from '../shared/ui/icones.js';
 import { limparCaches } from '../shared/cache.js';
 import { toast } from '../shared/ui/toast.js';
+import { temaAtual, definirTema } from '../core/tema.js';
 
 const CHAVE_MENU = 'fundhub:menu-aberto';
 const consultaDesktop = () => window.matchMedia('(min-width: 1100px)');
@@ -125,6 +126,9 @@ export function marcarNav(hash) {
     a.classList.toggle('active', a.dataset.rota === alvo));
 }
 
+// Ouvinte de `tema:mudou` ligado? (ver setChrome)
+let temaLigado = false;
+
 // ── Menu de usuário ──────────────────────────────────────────
 // `opts` (o SATE usa; o FundHub fica no padrão):
 //   base         prefixo dos links que levam ao FundHub ("./" no sate.html)
@@ -165,6 +169,11 @@ export function setChrome(logado, user, perfil, opts = {}) {
         </div>
         <div class="um-linha"><span class="um-lbl">Último acesso</span><span class="um-acesso"></span></div>
         <div class="um-linha"><span class="um-lbl">Dados</span><span class="um-origem pill"></span></div>
+        <label class="um-linha um-tema switch">
+          <span class="um-lbl">Tema escuro</span>
+          <input type="checkbox" id="um-tema" />
+          <span class="switch-trilho" aria-hidden="true"></span>
+        </label>
         <a class="um-link" href="${esc(opcoesChrome.base)}#/meus-dados">Meus dados</a>
         <button class="um-sair" type="button">Sair</button>
       </div>`;
@@ -185,6 +194,19 @@ export function setChrome(logado, user, perfil, opts = {}) {
       limparPerfil();
       await signOut();
     });
+    const tema = menu.querySelector('#um-tema');
+    tema.addEventListener('change', () => definirTema(tema.checked ? 'escuro' : 'claro'));
+  }
+  // Trocado em outro lugar (Configurações): o interruptor acompanha. Ouvinte
+  // de document, que sobrevive ao logout (o menu é refeito a cada login) -
+  // por isso uma vez só, com o interruptor procurado na hora, e não preso
+  // por closure ao menu que já saiu da página.
+  if (!temaLigado) {
+    temaLigado = true;
+    document.addEventListener('tema:mudou', (e) => {
+      const caixa = document.getElementById('um-tema');
+      if (caixa) caixa.checked = e.detail === 'escuro';
+    });
   }
 
   menu.querySelector('.um-email').textContent = email;
@@ -199,6 +221,7 @@ export function setChrome(logado, user, perfil, opts = {}) {
   org.classList.toggle('local', s !== 'supabase');
   menu.querySelector('.user-btn').classList.toggle('is-admin', Boolean(perfil?.isAdmin));
 
+  menu.querySelector('#um-tema').checked = temaAtual() === 'escuro';
   atualizarMeusDados();
 }
 
