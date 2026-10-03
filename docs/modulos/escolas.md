@@ -87,7 +87,8 @@ ponto olhando o mapa.
 
 As escolas que ainda não têm localização aparecem sempre em **Sem
 localização**, na janela de configurações do módulo (a engrenagem no alto da
-tela). Clique em **Acertar no mapa** ao lado do nome: o cadastro da escola
+tela), logo abaixo do botão de localizar pelo endereço. Com mais de dez
+escolas, a lista abre fechada: clique no título para abrir. Clique em **Acertar no mapa** ao lado do nome: o cadastro da escola
 abre já com o mapa. Ao salvar, a escola sai da lista; se você tinha chegado
 pela engrenagem, volta à janela de configurações.
 

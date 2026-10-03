@@ -163,7 +163,8 @@ trabalho.
 
 - **Afastamentos** e **Horários** apontam para o servidor cadastrado aqui.
 - A equipe que aparece na ficha de uma **escola** é a lista de locais de
-  trabalho atuais daquela unidade. Pela ficha da escola dá para abrir a de
+  trabalho atuais daquela unidade, sem o supervisor: quem apenas supervisiona
+  a escola aparece à parte, em **Supervisão**. Pela ficha da escola dá para abrir a de
   cada pessoa - ou ir direto à edição dela - e voltar à escola com a seta ←.
 - O **segmento** de um servidor é o das escolas em que ele atua - por isso quem
   só trabalha na SME aparece em qualquer filtro de segmento.

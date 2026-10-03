@@ -35,7 +35,7 @@ Sempre conferir `src/styles/components.css` antes de escrever CSS novo. O que j�
 - **Pessoa/vínculo em ficha:** `.people` + `.person` (+ `.role`, `.pname`, `.pmeta`); **card que abre outra ficha:** `.person.clicavel` + `.person-abrir` (o nome, como `<button>`) + `.person-acoes` (ação no canto) - padrão "link esticado", ver abaixo
 - **Cards e grades:** `.card` · `.cards` · `.tile` · `.tiles` · `.panel` · `.dash-grid` · `.md-grid`
 - **Stats:** `.stat-row` · `.stat-tile` · `.stat-num` · `.stat-label`
-- **Formulário:** `.esc-form` · `.esc-row` · `.form-grid` · `.form-grupo` (+ `.form-grupo.plano`, grupo de modal sem moldura) · `.form-foot` · `.form-hint` · `.field` · `.lbl`
+- **Formulário:** `.esc-form` · `.esc-row` · `.form-grid` · `.form-grupo` (+ `.form-grupo.plano`, grupo de modal sem moldura) · `.form-foot` · `.form-hint` (+ `.form-hint.err`, a dica que virou erro, em `--danger`) · `.field` · `.lbl`
 - **Botões:** `.btn-primary` · `.btn-secundario` · `.btn-perigo` (ação destrutiva de decisão: confirmar() ou rodapé de decisão de modal) · `.mini-btn` (com `.ok` / `.no`)
 - **Marcadores:** `.chip` · `.tag` · `.badge` · `.pill`
 - **Modal:** `.modal` e família - usar sempre via `shared/ui/modal.js`, nunca à mão
@@ -43,6 +43,7 @@ Sempre conferir `src/styles/components.css` antes de escrever CSS novo. O que j�
 - **Tabela:** `.tabela` e família - usar sempre via `shared/ui/tabela.js`, nunca à mão
 - **Busca:** `.search` (a caixa de busca por texto, com o quadrado da lupa à esquerda)
 - **Controle solto:** `.campo-solto` - data, `select` ou número sozinho numa barra, com `aria-label` (substituiu `.search.compacta`)
+- **Mapa com pino:** `.mapa-pino` - usar sempre via `shared/ui/mapa-pino.js`, nunca à mão (ver abaixo)
 - **Rolagem discreta:** `:is(.sidebar, .modal-body)` - barra fina, sem trilho, que segue o tema (ver abaixo)
 
 CSS de módulo (`<modulo>.css`) só **acrescenta** ao vocabulário comum; nunca redefine `.card`,
@@ -95,6 +96,13 @@ Sem isso, `input`, `span` e `input[type="date"]` herdam entrelinha de lugares di
 três alturas na mesma linha - foi exatamente o que aconteceu até 02/09/2026. `--campo` (36px) fica
 entre `--controle` (o botão, 32px) e `--toque` (40px), e sobe para `--toque` em `(pointer: coarse)`.
 
+**O fundo do campo é `--campo-bg` (e a borda, `--campo-borda`)** - um token só, dentro e fora de
+grupo de modal, nos dois temas. E **fundo de campo é sempre `background-color`**, nunca o atalho
+`background`: o atalho zera `background-image`, e é por `background-image` que o ícone do
+calendário, o do relógio e a seta do `select` são desenhados. Foi assim que eles sumiram em
+02/10/2026. O `select` de formulário, de filtro e solto tem `appearance: none` e a seta desenhada
+a 10px da borda, o mesmo recuo do texto.
+
 Campo somente-leitura que exibe valor longo (`.campo-derivado`) corta com reticências e guarda o
 inteiro no `title`: um campo que cresce para duas linhas deixa de casar com os vizinhos.
 
@@ -102,7 +110,7 @@ inteiro no `title`: um campo que cresce para duas linhas deixa de casar com os v
 
 - **Grupo em modal é cartão.** `.form-grupo` dentro de `.modal` ganha borda
   arredondada, a legenda sobre a linha da borda e o fundo `--grupo-bg`; os
-  campos dentro ficam em `--surface`. Grupo com cartão, lista ou tabela fica
+  campos dentro têm o mesmo `--campo-bg` de fora. Grupo com cartão, lista ou tabela fica
   plano sozinho (`:has()`); o que o detector não pega leva `.plano`. Em
   página, o grupo continua seção com traço - o `.panel` já é a moldura.
 - **Rótulo em caixa normal, legenda em caixa alta.** É o que separa os dois.
@@ -158,6 +166,14 @@ multi-escolha com memória de sessão, outro mecanismo.
 Nenhum `#hex`, `rgb()` ou `hsl()` dentro de `src/modules/**`, no CSS ou no JS. Só `var(--token)`.
 Os tokens vivem em `src/styles/tokens.css`, com variante clara e escura - é o que faz o tema escuro
 sair de graça.
+
+**O tema é escolha da pessoa** (`core/tema.js`), aplicado como `<html data-tema="claro|escuro">`:
+o CSS obedece a `:root[data-tema="escuro"]`, **nunca** a `@media (prefers-color-scheme: dark)` -
+a preferência do sistema só decide enquanto a pessoa não escolheu, e isso é do `tema.js` e do
+script do `<head>`, não do CSS. Regra de **impressão** que redefine token precisa citar também
+`:root[data-tema="escuro"]` (ver `@media print` em `base.css`): esse seletor tem especificidade
+maior que um `:root` simples e venceria, e quem escolheu o escuro imprimiria texto claro em papel
+branco.
 
 Se falta uma cor, o caminho é **acrescentar um token** em `tokens.css` (nas duas variantes), não
 escrever a cor no módulo.
@@ -259,6 +275,13 @@ de graça.
 - **Não vale para a página inteira** nem para lista de conteúdo (a tabela, a
   lista de sugestões da busca): a rolagem principal da janela continua a do
   sistema.
+
+## Mapa com pino
+
+`shared/ui/mapa-pino.js` é o único lugar que cria um mapa (Leaflet, carregado só quando um
+formulário com mapa abre - exceção nomeada no `CLAUDE.md`). Ele **desmonta o mapa anterior ao
+montar o próximo**, porque o Leaflet prende um ouvinte de `resize` por mapa: quem usa o componente
+não precisa destruir nada e **não cria `L.map` por fora dele**. O contêiner leva `.mapa-pino`.
 
 ## R18 - O padrão de lista
 

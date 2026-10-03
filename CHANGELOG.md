@@ -19,6 +19,7 @@ partir das versões do FundHub que mudaram algo para quem usa o SATE.
 
 | SATE | FundHub | Em resumo |
 |---|---|---|
+| 0.18.0 | 0.39.0 | data só com dia e mês, servidor responsável com telefone automático, tema e cor por pessoa |
 | 0.17.1 | 0.38.1 | pedido com local novo pela busca, disponibilidade de segunda a sexta com o dia destacado |
 | 0.17.0 | 0.38.0 | pedido simplificado, locais com mapa, conferência de local |
 | 0.16.1 | 0.37.1 | rodapé próprio; campos com texto menor e dica em tom mais claro |
@@ -41,6 +42,62 @@ partir das versões do FundHub que mudaram algo para quem usa o SATE.
 | 0.3.0 | 0.9.0 | catálogo de locais |
 | 0.2.0 | 0.7.0 | atividade livre, transporte adaptado, calendário escolar |
 | 0.1.0 | 0.5.0 | a escola pede, a SME valida |
+
+---
+
+## [0.39.0] - 2026-10-03
+
+> SATE 0.18.0.
+>
+> **Rodar a migration 045 no Supabase.** Sem ela, tudo funciona, menos a escolha de
+> Gestor 1 e Gestor 2, que avisa que o banco ainda não foi atualizado.
+
+### Adicionado
+- **Tema claro ou escuro.** O interruptor "Tema escuro" fica no menu que abre no seu nome e
+  em Configurações. Vale no FundHub e no SATE, acompanha a sua conta em outro aparelho, e
+  duas abas abertas acompanham uma à outra. Sem escolha, o sistema segue o do aparelho. A
+  impressão sai sempre clara.
+- **Gestor 1 e Gestor 2.** A função é escolhida no local de trabalho do servidor (e no
+  cadastro de servidor novo) e aparece junto do cargo. Quando a função muda, informe a
+  data da troca: o período anterior fica no histórico e a ficha do servidor mostra os dois
+  períodos. A data da troca não pode ser futura nem anterior ao início do período. Se o
+  local já tem alguém com a mesma função, o sistema só avisa.
+- **Mapa no cadastro da escola.** Clique no mapa ou arraste o pino para preencher a
+  localização. Nas configurações de Escolas, a lista das escolas sem localização fica à
+  vista, com o botão "Acertar no mapa".
+- **SATE: servidor(a) responsável sugerido.** Ao escolher a escola, o campo sugere a equipe
+  dela e o telefone vem preenchido; dá para trocar ou digitar outro nome.
+- **SATE: cor por pessoa.** Cada pessoa escolhe a cor do SATE para si; quem nunca escolheu
+  vê a cor que a rede definiu. "Configurações" entra no menu do SATE para todos: a escola
+  vê só o tema e a cor.
+
+### Alterado
+- **SATE: data do pedido só com dia e mês.** Digite `1403` e o campo mostra `14/03`; o ano
+  é o atual, ou o seguinte se a data já passou. A data por extenso aparece logo abaixo.
+- **SATE: novos nomes.** "Saída do evento" no lugar de "retorno" e "servidor(a)
+  responsável" no lugar de "professor(a)", em todas as telas. O período do pedido ganhou
+  destaque.
+- **Supervisão fora da equipe da escola.** O supervisor acompanha a escola, mas não faz
+  parte da equipe: aparece em um bloco à parte na ficha da escola e deixa de entrar na
+  sugestão de responsável do SATE, em Horários por escola e na cobertura. Em Horários, ele
+  aparece pelo local de trabalho dele na Secretaria.
+- **Ficha da escola reorganizada.** As tags ficam sob o nome, a equipe vem na ordem
+  Gestor 1, Gestor 2 e coordenação, e os dados menos usados ficam em "Mais detalhes",
+  recolhido.
+- **Configurações em blocos que abrem e fecham.** O sistema lembra quais ficaram abertos.
+- **Telefone já com uma linha** nos cadastros, sem moldura em volta, e o tipo "Fixo" é
+  reconhecido pelo número.
+- **E-mail institucional do servidor:** ao digitar `@`, o sistema sugere o domínio da rede.
+- **Filtros das listas não esticam mais** para ocupar a linha toda.
+- **SATE: "Ver como escola"** mostra o nome completo da escola. A escola não vê mais o link
+  para o FundHub nem "Meus dados".
+
+### Corrigido
+- **Ícones de calendário e de relógio** que tinham sumido dos campos de data e hora nas
+  janelas.
+- **Seta das listas de escolha** colada na borda do campo; agora tem o mesmo recuo do texto.
+- **Fundo dos campos de formulário** pouco distinto do fundo da janela, principalmente no
+  tema escuro.
 
 ---
 
