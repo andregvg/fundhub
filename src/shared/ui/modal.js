@@ -44,7 +44,7 @@ let soltarFoco = null;
 
 // ── Dado digitado (spec 2026-10-02, D6) ──────────────────────
 // A linha de base de cada campo é tirada no PRIMEIRO TOQUE da pessoa
-// (tecla ou ponteiro), não na abertura. Assim digitar e apagar volta a
+// (tecla, ponteiro ou `beforeinput`), não na abertura. Assim digitar e apagar volta a
 // "limpo", e um formulário que recebe valores depois de aberto (busca
 // carregada, endereço preenchido ao escolher o local) não vira "sujo"
 // sozinho: o código mudou campos que a pessoa não tocou.
@@ -66,6 +66,12 @@ function aoTocar(e) {
   const el = e.target.closest?.(CAMPO) || e.target.closest?.('label')?.control;
   if (!el || bases.has(el) || !el.closest('.modal-body form')) return;
   bases.set(el, valorDoCampo(el));
+  // Rádio: marcar B desmarca A sem toque em A. Sem a base do grupo todo,
+  // voltar de B para A deixaria um "sujo" falso (A nunca teve base).
+  if (el.type === 'radio' && el.name) {
+    for (const r of el.form?.elements ?? [])
+      if (r.type === 'radio' && r.name === el.name && !bases.has(r)) bases.set(r, valorDoCampo(r));
+  }
 }
 
 // As quatro portas de DISPENSA pela pessoa - fundo, Esc, × e ← - passam
@@ -92,6 +98,10 @@ export function montarModal() {
   const m = document.getElementById('modal');
   m?.addEventListener('keydown', aoTocar, true);
   m?.addEventListener('pointerdown', aoTocar, true);
+  // Autopreenchimento, ditado e teclado de celular mudam o valor sem keydown;
+  // o `beforeinput` também vem antes da mudança. Não há `focusin` de propósito:
+  // ele daria base ao campo focado na abertura, antes de qualquer preenchimento tardio.
+  m?.addEventListener('beforeinput', aoTocar, true);
 }
 
 const aberto = () => document.getElementById('modal-back')?.classList.contains('open');
@@ -117,6 +127,8 @@ export function abrirModal(html, { voltar = null, tamanho = 'medio', protegerSai
   m.className = `modal ${tamanho}`;
   m.innerHTML = html;
   bases = new Map();
+  // Decidido na abertura: modal cujo <form> só é desenhado depois (corpo
+  // assíncrono) precisa passar `protegerSaida: true`.
   proteger = protegerSaida ?? !!m.querySelector('.modal-body form');
   m.setAttribute('aria-hidden', 'false');
   back.classList.add('open');
