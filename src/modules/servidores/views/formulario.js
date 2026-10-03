@@ -176,14 +176,25 @@ export function formServidor(s, ctx, { voltar = null } = {}) {
 // E-mail institucional (spec 2026-10-03, D6): ao digitar o "@", o domínio
 // da rede entra JÁ SELECIONADO - quem tem o domínio padrão segue em frente,
 // quem tem outro continua digitando e o texto selecionado é substituído.
-// Só no primeiro "@", e só quando ele é o último caractere: colar um
-// e-mail inteiro ou editar o meio não dispara nada.
+// Só quando o "@" acaba de nascer e é o último caractere, com algo antes dele:
+// colar um e-mail inteiro, editar o meio ou abrir um cadastro que já tem
+// e-mail não dispara nada.
 // `type="text"` e não "email": o campo de e-mail não aceita setSelectionRange.
 function ligarDominio(el) {
+  // O valor anterior, e não `e.data`: teclado de celular e digitação
+  // composta entregam a palavra inteira num evento só ("nome@"), e o "@"
+  // nunca chega sozinho.
+  let antes = el.value;
   el.addEventListener('input', (e) => {
-    if (e.data !== '@' || el.value.indexOf('@') !== el.value.length - 1) return;
+    const acabouDeDigitarArroba = !antes.includes('@')
+      && el.value.indexOf('@') === el.value.length - 1
+      && el.value.length > 1
+      && !String(e.inputType || '').startsWith('delete');
+    antes = el.value;
+    if (!acabouDeDigitarArroba) return;
     const ate = el.value.length;
     el.value += CONFIG.dominioInstitucional.slice(1);
+    antes = el.value;
     el.setSelectionRange(ate, el.value.length);
   });
 }
