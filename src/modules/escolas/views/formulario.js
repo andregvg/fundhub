@@ -114,7 +114,7 @@ export function abrirForm(u, ctx, { voltar = null } = {}) {
     // não existe mais e não pode tomar o lugar do mapa do modal atual.
     if (document.getElementById('ef-mapa') !== mapaEl) return;
     mapaAtual = m;
-    if (!m) mapaEl.setAttribute('hidden', '');
+    if (!m) (mapaEl.closest('.col-full') || mapaEl).setAttribute('hidden', '');
   });
   // Coordenada digitada à mão: o pino acompanha.
   const aoDigitar = () => {

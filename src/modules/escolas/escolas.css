@@ -31,7 +31,8 @@
 }
 
 /* Listas de resultado recolhidas: o painel de configuração é curto, e
-   uma lista de 30 escolas aberta empurraria tudo para fora da tela. */
+   uma lista de 30 escolas aberta empurraria tudo para fora da tela. A de
+   "Sem localização" só nasce aberta quando é curta (localizar.js). */
 .geo-lista { border-top: 1px solid var(--border); padding-top: 10px; font-size: 13.5px; }
 .geo-lista summary { cursor: pointer; font-weight: 600; }
 .geo-lista .form-hint { margin: 6px 0; }

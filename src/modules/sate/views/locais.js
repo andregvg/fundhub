@@ -134,13 +134,16 @@ export function abrirLocal(l, { preenchido = {}, aoSalvar = null } = {}, ctxExte
   document.getElementById('l-lat').addEventListener('change', aoMudarCoordenadaAMao);
   document.getElementById('l-lng').addEventListener('change', aoMudarCoordenadaAMao);
 
-  montarMapaPino(document.getElementById('l-mapa'), {
+  const mapaEl = document.getElementById('l-mapa');
+  montarMapaPino(mapaEl, {
     lat: Number.isFinite(lat) ? lat : null,
     lng: Number.isFinite(lng) ? lng : null,
     aoMover,
   }).then((m) => {
+    // Resposta tardia de um modal que já não existe não toma o lugar do atual.
+    if (document.getElementById('l-mapa') !== mapaEl) return;
     mapaAtual = m;
-    if (!m) document.getElementById('l-mapa')?.setAttribute('hidden', '');
+    if (!m) (mapaEl.closest('.col-full') || mapaEl).setAttribute('hidden', '');
   });
 }
 

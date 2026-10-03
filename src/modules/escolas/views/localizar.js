@@ -55,6 +55,7 @@ export async function pintarLocalizacao(box) {
 function desenharResumo(box, r, ultima) {
   const pode = podeEscrever('escolas');
   const n = r.aLocalizar.length;
+  const semLocal = [...r.aLocalizar, ...r.semEndereco];
   const pct = r.total ? Math.round((r.localizadas / r.total) * 100) : 0;
   const minutos = Math.max(1, Math.round((n * 1.3) / 60));
 
@@ -75,8 +76,6 @@ function desenharResumo(box, r, ultima) {
 
       ${ultima ? resultadoHtml(ultima) : ''}
 
-      ${pendentesHtml([...r.aLocalizar, ...r.semEndereco], pode)}
-
       ${n ? `
         <div class="geo-lote-acao">
           <button type="button" class="btn-primary" id="geo-iniciar" ${pode ? '' : 'disabled'}>
@@ -84,11 +83,13 @@ function desenharResumo(box, r, ultima) {
           <span class="form-hint">Leva cerca de ${minutos} min. Dá para fechar esta janela: a busca continua.</span>
         </div>`
       : `<p class="geo-lote-ok">${ico('ok', { tam: 14 })} Todas as escolas com endereço já estão localizadas.</p>`}
+
+      ${pendentesHtml(semLocal, pode)}
     </div>`;
 
   box.querySelector('#geo-iniciar')?.addEventListener('click', () => iniciar(box));
   box.querySelectorAll('[data-acertar]').forEach(b => b.addEventListener('click', () => {
-    const u = [...r.aLocalizar, ...r.semEndereco].find(x => String(x.id) === b.dataset.acertar);
+    const u = semLocal.find(x => String(x.id || x.numero) === b.dataset.acertar);
     if (u) acertarNoMapa(box, u);
   }));
 }
@@ -97,15 +98,19 @@ function desenharResumo(box, r, ultima) {
 // O resultado da última busca vive na memória e some ao recarregar. Esta
 // lista vem do cadastro: enquanto a escola não tiver ponto, ela está aqui
 // (spec 2026-10-03, D15).
+// Depois da ação principal. Até LISTA_ABERTA_MAX nasce aberta; acima disso
+// nasce fechada, com a contagem no título - uma lista longa aberta
+// empurraria o botão "Localizar" para fora da tela.
+const LISTA_ABERTA_MAX = 10;
 function pendentesHtml(lista, pode) {
   if (!lista.length) return '';
   return `
-    <details class="geo-lista" open>
+    <details class="geo-lista" ${lista.length <= LISTA_ABERTA_MAX ? 'open' : ''}>
       <summary>Sem localização (${lista.length})</summary>
       <p class="form-hint">O que a busca pelo endereço não achou se acerta olhando: abra a escola e ponha o pino no lugar.</p>
       <ul>${lista.map(u => `<li>
         <span>${esc(u.nome)}<span class="di-meta">${esc(u.endereco || 'sem endereço cadastrado')}</span></span>
-        ${pode ? `<button type="button" class="mini-btn" data-acertar="${esc(u.id)}">${ico('visita', { tam: 12 })} Acertar no mapa</button>` : ''}
+        ${pode ? `<button type="button" class="mini-btn" data-acertar="${esc(u.id || u.numero)}">${ico('visita', { tam: 12 })} Acertar no mapa</button>` : ''}
       </li>`).join('')}</ul>
     </details>`;
 }

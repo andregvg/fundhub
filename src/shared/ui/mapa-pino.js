@@ -21,6 +21,12 @@ const CENTRO = [-21.1775, -47.8103];
 
 let carregando = null;
 
+// O mapa anterior, para desmontá-lo quando o próximo nascer. O Leaflet liga
+// um ouvinte de `resize` em `window` a cada L.map() e só o desliga em
+// remove(); trocar o innerHTML do modal não desliga nada. Há um modal por
+// vez no hub: o mapa de antes já não está na tela quando outro é pedido.
+let mapaAnterior = null;
+
 function carregarLeaflet() {
   if (window.L?.map) return Promise.resolve(window.L);
   if (carregando) return carregando;
@@ -41,11 +47,16 @@ export async function montarMapaPino(el, { lat = null, lng = null, aoMover = () 
   let L;
   try { L = await carregarLeaflet(); } catch (_) { return null; }
   if (!el.isConnected) return null;   // o modal fechou enquanto carregava
+  // Só depois da conferência acima: um pedido que chegou tarde não pode
+  // derrubar o mapa que está em uso.
+  try { mapaAnterior?.remove(); } catch (_) { /* contêiner já fora do documento */ }
+  mapaAnterior = null;
   const tem = Number.isFinite(lat) && Number.isFinite(lng);
   const mapa = L.map(el).setView(tem ? [lat, lng] : CENTRO, tem ? 17 : 13);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19, attribution: '© OpenStreetMap',
   }).addTo(mapa);
+  mapaAnterior = mapa;
   const pino = L.marker(tem ? [lat, lng] : CENTRO, { draggable: true, opacity: tem ? 1 : 0.5 }).addTo(mapa);
   const mover = (a, b) => { pino.setLatLng([a, b]).setOpacity(1); mapa.setView([a, b], Math.max(mapa.getZoom(), 16)); };
   pino.on('dragend', () => { const p = pino.getLatLng(); pino.setOpacity(1); aoMover(p.lat, p.lng); });
