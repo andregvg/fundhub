@@ -196,8 +196,13 @@ body.menu-aberto .sidebar { transform: translateX(0); }
 .um-linha { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 6px 0; font-size: 12.5px; }
 .um-lbl { color: var(--muted); }
 .um-acesso { font-weight: 600; text-align: right; }
-/* O interruptor do tema é uma .um-linha: rótulo à esquerda, trilho à direita. */
-.um-tema { width: 100%; min-height: 0; cursor: pointer; }
+/* O interruptor do tema é uma .um-linha: rótulo à esquerda, trilho à direita.
+   `.user-panel .um-tema` (e não só `.um-tema`) porque `.switch`, importado
+   depois em components.css, tem a mesma especificidade de uma classe só e
+   venceria: o rótulo sairia 14px/600 ao lado de "Último acesso" e "Dados"
+   em 12.5px/400. Em toque, o alvo continua o do .switch (--toque). */
+.user-panel .um-tema { width: 100%; min-height: 0; font-size: 12.5px; font-weight: 400; cursor: pointer; }
+@media (pointer: coarse) { .user-panel .um-tema { min-height: var(--toque); } }
 
 .um-link,
 .um-sair {
@@ -371,9 +376,18 @@ body.menu-aberto .sidebar { transform: translateX(0); }
      e cada módulo acabava escrevendo cor literal no próprio CSS de
      impressão para se defender, o que a R9 proíbe e o verificador acusa.
      Redefinido em UM lugar, todo módulo imprime certo de graça.
+     O seletor cita o tema escuro de propósito: `:root[data-tema="escuro"]`
+     (tokens.css) tem especificidade (0,2,0) e venceria um `:root` simples
+     (0,1,0) mesmo vindo depois na página - quem escolheu o tema escuro
+     imprimiria texto claro em papel branco. Empatando em (0,2,0), vale a
+     ordem, e base.css vem depois de tokens.css. --campo-bg/--campo-borda
+     entram porque o bloco escuro também os redefine. O `color-scheme: light`
+     tira o escuro dos controles nativos que forem para o papel.
      Cor literal é aceitável aqui: base.css é kernel, não `src/modules/**`,
      e papel não tem tema. */
-  :root {
+  :root,
+  :root[data-tema="escuro"] {
+    color-scheme: light;
     --bg: #fff;
     --surface: #fff;
     --surface-2: #fff;
@@ -384,6 +398,8 @@ body.menu-aberto .sidebar { transform: translateX(0); }
     --muted: #555;
     --shadow: none;
     --shadow-btn: none;
+    --campo-bg: #fff;
+    --campo-borda: #999;
   }
   .topbar, .footer, .sidebar, .sidebar-back, .no-print, .toasts, .bell-wrap { display: none !important; }
   .app { padding: 0; max-width: none; }

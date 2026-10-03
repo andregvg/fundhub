@@ -41,8 +41,12 @@ export async function abrirPortao(app, { marca, sistema, chrome = {}, aoEntrar, 
       getPerfilAtual().catch(() => null),
       carregarConfiguracoes().catch(() => {}),
     ]);
-    // Preferências carregadas: o tema da conta vence o do aparelho.
-    sincronizarTemaDaConta();
+    // Preferências carregadas: o tema da conta vence o do aparelho - mas só
+    // na PRIMEIRA entrada de cada login. `entrar` roda também na renovação do
+    // token e na volta para a aba; sincronizar a cada uma desfaria, no meio
+    // da sessão, a escolha local cuja gravação na conta falhou. Sem esperar:
+    // o reenvio não pode atrasar a entrada.
+    if (!montado) sincronizarTemaDaConta();
 
     // Autenticou, domínio certo - mas não está na allowlist.
     if (perfil?.naoCadastrado) {

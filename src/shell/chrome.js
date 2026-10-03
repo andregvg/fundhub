@@ -34,6 +34,16 @@ const sidebar = () => document.getElementById('sidebar');
 const fundo   = () => document.getElementById('sidebar-back');
 const toggle  = () => document.getElementById('nav-toggle');
 
+// Tema trocado em outro lugar (Configurações, outra aba): o interruptor do
+// menu de usuário acompanha. Registrado UMA vez, no escopo do módulo: o menu
+// é refeito a cada login, mas este ouvinte é de `document` e sobrevive a
+// ele - por isso o interruptor é procurado na hora do evento, e não preso
+// por closure a um menu que já saiu da página.
+document.addEventListener('tema:mudou', (e) => {
+  const caixa = document.getElementById('um-tema');
+  if (caixa) caixa.checked = e.detail === 'escuro';
+});
+
 // Papéis reais (migration 021_permissoes_segmentos.sql, tabela `papel`).
 const PAPEL_ROTULO = {
   admin_sme: 'Administrador',
@@ -126,9 +136,6 @@ export function marcarNav(hash) {
     a.classList.toggle('active', a.dataset.rota === alvo));
 }
 
-// Ouvinte de `tema:mudou` ligado? (ver setChrome)
-let temaLigado = false;
-
 // ── Menu de usuário ──────────────────────────────────────────
 // `opts` (o SATE usa; o FundHub fica no padrão):
 //   base         prefixo dos links que levam ao FundHub ("./" no sate.html)
@@ -196,17 +203,6 @@ export function setChrome(logado, user, perfil, opts = {}) {
     });
     const tema = menu.querySelector('#um-tema');
     tema.addEventListener('change', () => definirTema(tema.checked ? 'escuro' : 'claro'));
-  }
-  // Trocado em outro lugar (Configurações): o interruptor acompanha. Ouvinte
-  // de document, que sobrevive ao logout (o menu é refeito a cada login) -
-  // por isso uma vez só, com o interruptor procurado na hora, e não preso
-  // por closure ao menu que já saiu da página.
-  if (!temaLigado) {
-    temaLigado = true;
-    document.addEventListener('tema:mudou', (e) => {
-      const caixa = document.getElementById('um-tema');
-      if (caixa) caixa.checked = e.detail === 'escuro';
-    });
   }
 
   menu.querySelector('.um-email').textContent = email;
