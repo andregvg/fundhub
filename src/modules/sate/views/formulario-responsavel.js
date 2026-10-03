@@ -22,6 +22,9 @@ let equipe = [];
 // Trocar de escola duas vezes: a resposta da primeira não pode pintar por
 // cima da segunda (mesmo padrão de pedidoTrajeto em formulario.js).
 let pedido = 0;
+// O telefone que a SUGESTÃO pôs no campo. Só esse valor pode ser desfeito
+// quando o nome deixa de casar; o que a pessoa digitou nunca é apagado.
+let telDaSugestao = '';
 
 export const responsavelHtml = () => `
   <fieldset class="form-grupo">
@@ -37,20 +40,32 @@ export const responsavelHtml = () => `
 
 export function ligarResponsavel() {
   equipe = [];
+  telDaSugestao = '';
   pedido++;
   const nome = document.getElementById('f-prof');
   const tel = document.getElementById('f-tel');
   // Casou com alguém da equipe: o telefone vem do cadastro. Continua
-  // editável - o número do dia da visita pode ser outro.
+  // editável - o número do dia da visita pode ser outro. Se o nome muda e
+  // deixa de casar, o telefone que a sugestão pôs sai junto: o número vai
+  // para a empresa de transporte, e o de outra pessoa não pode ficar.
   nome.addEventListener('input', () => {
     const p = equipe.find(x => norm(x.nome).trim() === norm(nome.value).trim());
-    if (p?.telefone) tel.value = exibirTelefone(p.telefone);
+    if (p?.telefone) {
+      telDaSugestao = exibirTelefone(p.telefone);
+      tel.value = telDaSugestao;
+    } else if (telDaSugestao && tel.value === telDaSugestao) {
+      tel.value = '';
+      telDaSugestao = '';
+    }
   });
   tel.addEventListener('blur', () => { tel.value = formatarTelefone(tel.value); });
 }
 
 export async function carregarEquipe(unidadeId) {
   const meu = ++pedido;
+  // A equipe da escola anterior não vale para a nova enquanto a resposta não chega.
+  equipe = [];
+  document.getElementById('f-prof-lista')?.replaceChildren();
   let lista = [];
   if (isUuid(unidadeId)) {
     try { lista = await getEquipeDaUnidade(unidadeId); } catch (_) { /* segue como texto livre */ }
@@ -58,5 +73,6 @@ export async function carregarEquipe(unidadeId) {
   const dl = document.getElementById('f-prof-lista');
   if (meu !== pedido || !dl) return;
   equipe = lista.filter(p => !p.supervisao);
-  dl.innerHTML = equipe.map(p => `<option value="${esc(p.nome)}" label="${esc(p.cargo)}"></option>`).join('');
+  // Sem `label`: o Firefox mostra e filtra a lista pelo label, e o nome sumiria.
+  dl.innerHTML = equipe.map(p => `<option value="${esc(p.nome)}"></option>`).join('');
 }

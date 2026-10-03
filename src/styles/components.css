@@ -877,6 +877,7 @@ input.caixa-alta { text-transform: uppercase; }
   letter-spacing: 0;
   line-height: 1.4;
 }
+.form-hint.err { color: var(--danger); }
 .modal-acoes { display: flex; gap: 8px; margin-bottom: 16px; }
 
 /* ── Login ────────────────────────────────────────────────── */

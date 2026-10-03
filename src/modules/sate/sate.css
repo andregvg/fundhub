@@ -357,23 +357,22 @@ body.app-sate { --info-bg: color-mix(in srgb, var(--brand) 12%, var(--surface));
 /* Data sem ano: campo de texto dd/mm com o botão do calendário por dentro,
    e o <input type="date"> nativo escondido atrás dele - é ele que abre o
    seletor. */
-.data-curta { position: relative; display: flex; }
-.data-curta > input[type="text"] { flex: 1 1 auto; min-width: 0; padding-right: 38px; }
-.data-curta-btn {
+.sol-data { position: relative; display: flex; }
+.sol-data > input[type="text"] { flex: 1 1 auto; min-width: 0; padding-right: 38px; }
+.sol-data-btn {
   position: absolute; top: 1px; right: 1px; bottom: 1px; width: 34px;
   display: grid; place-items: center;
   border: 0; border-radius: var(--radius-btn); background: transparent;
   color: var(--muted); cursor: pointer;
 }
-.data-curta-btn:hover { color: var(--brand); }
+.sol-data-btn:hover { color: var(--brand); }
 /* 1px e transparente, mas PRESENTE: display:none impediria o showPicker, e
    é a posição dele que ancora o calendário sob o canto direito do campo. */
-.data-curta > input.data-curta-nativo {
+.sol-data > input.sol-data-nativo {
   position: absolute; right: 0; bottom: 0;
   width: 1px; height: 1px; min-height: 0; padding: 0; border: 0;
   opacity: 0; pointer-events: none;
 }
-.form-hint.err { color: var(--danger); }
 
 /* Período calculado: selo, não texto de dica (D2, 1e). */
 .sol-periodo {

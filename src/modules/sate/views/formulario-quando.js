@@ -13,7 +13,7 @@
 // campo visível mudou.
 // ============================================================
 import { periodoDe, PERIODOS } from '../regras.model.js';
-import { mascaraDiaMes, dataDeDiaMes, diaMesDe, fmtExtenso } from '../../../shared/format.js';
+import { mascaraDiaMes, dataDeDiaMes, diaMesDe, fmtExtenso, fmtData } from '../../../shared/format.js';
 import { marcarVazio } from '../../../shared/ui/campo-data-hora.js';
 import { esc, val } from '../../../shared/dom.js';
 import { ico } from '../../../shared/ui/icones.js';
@@ -26,13 +26,17 @@ export const quandoHtml = (minData) => `
     <div class="campos duas">
       <div class="lbl col-2">
         <label for="f-dia">Data</label>
-        <span class="data-curta">
+        <span class="sol-data">
           <input id="f-dia" type="text" inputmode="numeric" autocomplete="off" placeholder="dd/mm"
                  maxlength="10" required aria-describedby="f-data-ext" />
-          <button type="button" class="data-curta-btn" id="f-data-btn"
+          <button type="button" class="sol-data-btn" id="f-data-btn"
                   aria-label="Escolher a data no calendário">${ico('calendario', { tam: 16 })}</button>
-          <input id="f-data" class="data-curta-nativo" type="date" min="${esc(minData)}"
-                 tabindex="-1" aria-hidden="true" />
+          <!-- form="f-data-fora" (id que não existe): o campo escondido não pertence a
+               formulário nenhum e fica fora da validação - o balão do navegador
+               ancoraria num ponto de 1px. A validade é do #f-dia, visível. O min
+               fica: é ele que apaga os dias do calendário. -->
+          <input id="f-data" class="sol-data-nativo" type="date" min="${esc(minData)}"
+                 form="f-data-fora" tabindex="-1" aria-hidden="true" />
         </span>
         <small class="form-hint" id="f-data-ext" aria-live="polite">${DICA}</small>
       </div>
@@ -61,12 +65,18 @@ export function ligarQuando(aoMudar) {
   const nativo = document.getElementById('f-data');
   const ext = document.getElementById('f-data-ext');
 
+  // Três estados: data que não existe, data antes da primeira possível
+  // (ambos erro, e o campo visível fica inválido para o navegador) e o
+  // resto (data por extenso, ou a dica enquanto se digita).
   const pintarExtenso = () => {
     const digitos = dia.value.replace(/\D/g, '').length;
     const completo = digitos === 4 || digitos === 8;
-    const invalida = completo && !nativo.value;
-    ext.textContent = nativo.value ? fmtExtenso(nativo.value) : (invalida ? 'Essa data não existe.' : DICA);
-    ext.classList.toggle('err', invalida);
+    let erro = '';
+    if (completo && !nativo.value) erro = 'Essa data não existe.';
+    else if (nativo.value && nativo.min && nativo.value < nativo.min) erro = `A primeira data possível é ${fmtData(nativo.min)}.`;
+    ext.textContent = erro || (nativo.value ? fmtExtenso(nativo.value) : DICA);
+    ext.classList.toggle('err', !!erro);
+    dia.setCustomValidity(erro);
   };
 
   dia.addEventListener('input', () => {
