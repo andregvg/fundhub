@@ -17,7 +17,7 @@
 - Todo valor vindo do banco **ou digitado** passa por `esc()` antes de entrar em template literal (R5).
 - Nenhuma cor literal em `src/modules/**` - só `var(--token)` (R9). Cor literal só em `tokens.css` e nas data URIs de `components.css`.
 - **Fundo de campo é sempre `background-color`, nunca o atalho `background`** (D1): o atalho apaga o ícone desenhado como `background-image`.
-- Model nunca toca DOM; view nunca chama `sb()` (R3). Só `*.model.js` atravessa a fronteira de módulo (R2). Zero ciclos (R4): `vinculos.model.js` importa `servidores.model.js`, **nunca o contrário**.
+- Model nunca toca DOM; view nunca chama `sb()` (R3). Só `*.model.js` atravessa a fronteira de módulo (R2). Zero ciclos (R4): a direção é `equipe.model.js` → `vinculos.model.js` → `servidores.model.js`, **nunca o contrário**.
 - Data civil é string `yyyy-mm-dd`; nada de `toISOString`/`toLocale*` fora de `shared/format.js` (R8).
 - View ≤ 400 linhas, model ≤ 250 (R11). Arquivo novo ≥ ~60 linhas.
 - PT-BR em código, comentário, commit e interface. Comentários explicam o **porquê**, na densidade do arquivo vizinho.
@@ -430,16 +430,18 @@ git push origin dev
 - Create: `src/modules/sate/views/formulario-responsavel.js`
 - Modify: `src/modules/sate/views/formulario.js`
 - Modify: `src/modules/sate/sate.css`
-- Modify: `src/modules/servidores/vinculos.model.js` (`eSupervisao` + marca `supervisao`)
+- Create: `src/modules/servidores/equipe.model.js` (recebe `getEquipeDaUnidade`, que SAI de `vinculos.model.js`; ganha `eSupervisao` e a marca `supervisao`)
+- Modify: `src/modules/servidores/vinculos.model.js` (sai `getEquipeDaUnidade`)
+- Modify: `src/modules/escolas/views/detalhe.js` (só o caminho do import de `getEquipeDaUnidade`)
 - Create: `tests/vinculos.test.mjs`
 - Docs: `docs/modulos/sate.md`
 
 **Interfaces:**
-- Consumes: `mascaraDiaMes`, `dataDeDiaMes`, `diaMesDe`, `fmtExtenso` (`shared/format.js`); `marcarVazio` (`shared/ui/campo-data-hora.js`); `periodoDe`, `PERIODOS` (`sate/regras.model.js`); `getEquipeDaUnidade` (`servidores/vinculos.model.js`).
+- Consumes: `mascaraDiaMes`, `dataDeDiaMes`, `diaMesDe`, `fmtExtenso` (`shared/format.js`); `marcarVazio` (`shared/ui/campo-data-hora.js`); `periodoDe`, `PERIODOS` (`sate/regras.model.js`); `getEquipeDaUnidade` (`servidores/equipe.model.js`).
 - Produces:
   - `quandoHtml(minData: string): string`, `ligarQuando(aoMudar: () => void): void`. Os ids `f-data` (date nativo, fonte da verdade `yyyy-mm-dd`), `f-emb`, `f-ret` **não mudam** - o resto do formulário continua lendo `val('f-data')`.
   - `responsavelHtml(): string`, `ligarResponsavel(): void`, `carregarEquipe(unidadeId: string): Promise<void>`. Ids `f-prof` e `f-tel` não mudam.
-  - `vinculos.model.js`: `CARGO_SUPERVISAO = 'Supervisor(a)'`, `eSupervisao(cargo: string): boolean`; `getEquipeDaUnidade()` passa a devolver `supervisao: boolean` em cada pessoa.
+  - `servidores/equipe.model.js` (model novo, API pública): `CARGO_SUPERVISAO = 'Supervisor(a)'`, `eSupervisao(cargo: string): boolean`; `getEquipeDaUnidade(unidadeId)` (movida de `vinculos.model.js`) passa a devolver `supervisao: boolean` em cada pessoa.
 
 - [ ] **Step 1: Teste que falha.** `tests/vinculos.test.mjs`:
 
@@ -448,7 +450,7 @@ git push origin dev
 // da escola) - spec 2026-10-03, D13.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { eSupervisao } from '../src/modules/servidores/vinculos.model.js';
+import { eSupervisao } from '../src/modules/servidores/equipe.model.js';
 
 test('supervisão é reconhecida pelo rótulo canônico e pelo legado', () => {
   assert.equal(eSupervisao('Supervisor(a)'), true);
@@ -462,9 +464,26 @@ test('supervisão é reconhecida pelo rótulo canônico e pelo legado', () => {
 
 `node --test tests/vinculos.test.mjs` → falha ("eSupervisao is not a function").
 
-- [ ] **Step 2: Model.** Em `vinculos.model.js`, depois de `rotulaCargo`:
+- [ ] **Step 2: Model novo - `src/modules/servidores/equipe.model.js`.** `getEquipeDaUnidade` SAI de `vinculos.model.js` (apagar a função e o comentário dela de lá; tirar de lá os imports que ficarem sem uso - `getServidoresDaUnidade`, e `vinculosAbertos` se nada mais o usar) e passa a morar aqui, com a regra de supervisão. Motivo: `vinculos.model.js` é o CADASTRO do vínculo e estouraria o teto de 250 linhas com o que as Tarefas 4 e 8 acrescentam; a LEITURA da equipe é outro agregado. O arquivo nasce pequeno, mas é importado por dois módulos já nesta tarefa (Escolas e SATE).
 
 ```js
+// ============================================================
+// FundHub - modules/servidores/equipe.model.js
+// A EQUIPE de uma unidade: quem trabalha lá agora, com que cargo - a
+// leitura que as outras telas fazem do vínculo (ficha da escola, pedido
+// do SATE, Horários).
+//
+// Separado de vinculos.model.js por ser outro agregado, e não só para
+// caber no teto: aquele é o CADASTRO do vínculo (criar, editar,
+// encerrar); este é a LEITURA da equipe, com as regras de quem é equipe
+// e quem não é. Os dois são API pública do módulo (R2).
+//
+// Direção dos imports (R4): equipe → vinculos → servidores. Nunca o
+// contrário.
+// ============================================================
+import { getServidoresDaUnidade, vinculosAbertos } from './servidores.model.js';
+import { rotulaCargo } from './vinculos.model.js';
+
 // Supervisão NÃO é equipe da escola (spec 2026-10-03, D13): o supervisor
 // trabalha na Secretaria e acompanha várias unidades. O vínculo dele com a
 // escola continua existindo - é o que registra "supervisiona esta escola"
@@ -473,11 +492,18 @@ test('supervisão é reconhecida pelo rótulo canônico e pelo legado', () => {
 // mora aqui, num lugar só, para virar marca no banco se um dia precisar.
 export const CARGO_SUPERVISAO = 'Supervisor(a)';
 export const eSupervisao = (cargo) => rotulaCargo(cargo) === CARGO_SUPERVISAO;
-```
 
-Em `getEquipeDaUnidade`, calcular os vínculos da unidade uma vez e marcar:
-
-```js
+// Quem tem local de trabalho aberto na unidade, já na forma de LEITURA que
+// outra tela exibe: { id, nome, cargo, email, telefone, supervisao }.
+//   - o cargo é o do(s) vínculo(s) aberto(s) NESTA unidade, não o geral -
+//     quem responde por duas unidades aparece em cada uma com o cargo de lá;
+//   - o telefone é o principal, ou o primeiro se nenhum for;
+//   - `supervisao` marca quem só SUPERVISIONA a unidade: quem consome
+//     decide onde mostrar (a ficha da escola separa; o SATE e Horários
+//     deixam de fora).
+// Ordenada por nome. Lê o cache de servidores, que toda gravação invalida.
+export async function getEquipeDaUnidade(unidadeId) {
+  const servidores = await getServidoresDaUnidade(unidadeId);
   return servidores.map(s => {
     const daqui = vinculosAbertos(s).filter(v => v.unidade_id === unidadeId);
     const cargo = [...new Set(daqui.map(v => rotulaCargo(v.papel)).filter(Boolean))].join(' · ');
@@ -490,9 +516,10 @@ Em `getEquipeDaUnidade`, calcular os vínculos da unidade uma vez e marcar:
       supervisao: daqui.length > 0 && daqui.every(v => eSupervisao(v.papel)),
     };
   }).sort((a, b) => a.nome.localeCompare(b.nome, 'pt'));
+}
 ```
 
-Atualizar o comentário de cabeçalho da função (a forma de leitura agora inclui `supervisao`). `node --test tests/vinculos.test.mjs` → passa.
+Em `escolas/views/detalhe.js`, o import passa a `import { getEquipeDaUnidade } from '../../servidores/equipe.model.js';`. Conferir que ninguém mais importava a função do lugar antigo: `grep -rn "getEquipeDaUnidade" src`. Atualizar o cabeçalho de `vinculos.model.js` se ele citar a equipe. `node --test tests/vinculos.test.mjs` → passa.
 
 - [ ] **Step 3: `formulario-quando.js`.**
 
@@ -610,7 +637,7 @@ export function ligarQuando(aoMudar) {
 // Sem equipe cadastrada, sem permissão de leitura ou com a consulta
 // falhando, a lista fica vazia e o campo é texto livre - como era.
 // ============================================================
-import { getEquipeDaUnidade } from '../../servidores/vinculos.model.js';
+import { getEquipeDaUnidade } from '../../servidores/equipe.model.js';
 import { esc, norm } from '../../../shared/dom.js';
 import { isUuid } from '../../../shared/format.js';
 import { formatarTelefone, exibirTelefone } from '../../../shared/ui/phones.js';
@@ -738,7 +765,7 @@ Antes de acrescentar `.form-hint.err`, `grep -n "form-hint.err\|\.err" src/style
 
 ```bash
 node --test tests/ && python .claude/scripts/verificar_arquitetura.py
-git add src/modules/sate src/modules/servidores/vinculos.model.js tests/vinculos.test.mjs docs/modulos/sate.md
+git add src/modules/sate src/modules/servidores src/modules/escolas/views/detalhe.js tests/vinculos.test.mjs docs/modulos/sate.md
 git commit -m "feat(sate): data sem ano, servidor responsavel com sugestao da equipe e periodo em destaque"
 git push origin dev
 ```
@@ -1304,6 +1331,7 @@ git push origin dev
 - Create: `supabase/migrations/045_funcao_gestor_e_supervisao.sql`
 - Modify: `src/modules/servidores/servidores.model.js`
 - Modify: `src/modules/servidores/vinculos.model.js`
+- Modify: `src/modules/servidores/equipe.model.js`
 - Test: `tests/vinculos.test.mjs`
 
 **Interfaces:**
@@ -1315,11 +1343,12 @@ git push origin dev
 - Produces (`vinculos.model.js`):
   - `FUNCOES = [{ valor: 1, rotulo: 'Gestor 1' }, { valor: 2, rotulo: 'Gestor 2' }]`
   - `temFuncao(cargo: string): boolean`
+  - `criarVinculo({ servidor_id, unidade_id, papel, ingresso, fim, funcao = null })`, `atualizarVinculo(id, { unidade_id, papel, ingresso, fim, funcao = null })`
+  - `mudarFuncao(servidorId, vinculo, funcao: 1|2, desde: 'yyyy-mm-dd'): Promise<vinculo>`
+- Produces (`equipe.model.js`):
   - `ordemNaEquipe(v): 0|1|2|3|4`
   - `vinculosDeEquipe(s): vinculo[]` - abertos e que não são supervisão.
   - `getEquipeDaUnidade(unidadeId)` → `[{ id, nome, cargo, email, telefone, supervisao, ordem }]`, ordenada por `ordem`, cargo, nome; `cargo` com a função.
-  - `criarVinculo({ servidor_id, unidade_id, papel, ingresso, fim, funcao = null })`, `atualizarVinculo(id, { unidade_id, papel, ingresso, fim, funcao = null })`
-  - `mudarFuncao(servidorId, vinculo, funcao: 1|2, desde: 'yyyy-mm-dd'): Promise<vinculo>`
   - `quemTemFuncao(unidadeId, funcao, excetoServidorId): Promise<servidor|null>`
 
 - [ ] **Step 1: Migration.** Conferir que `045` é o próximo número (`ls supabase/migrations | tail -3`).
@@ -1368,7 +1397,8 @@ select registrar_migration('045',
 
 ```js
 import { rotulaVinculo, cargoExibidoDe } from '../src/modules/servidores/servidores.model.js';
-import { temFuncao, ordemNaEquipe, vinculosDeEquipe } from '../src/modules/servidores/vinculos.model.js';
+import { temFuncao } from '../src/modules/servidores/vinculos.model.js';
+import { ordemNaEquipe, vinculosDeEquipe } from '../src/modules/servidores/equipe.model.js';
 
 test('a função entra no rótulo do cargo, só para gestor', () => {
   assert.equal(rotulaVinculo({ papel: 'Gestor(a)', funcao: 1 }), 'Gestor(a) 1');
@@ -1471,25 +1501,16 @@ export function cargoExibidoDe(s) {
 }
 ```
 
-- [ ] **Step 4: `vinculos.model.js`.** Imports:
+- [ ] **Step 4: `equipe.model.js` - ordem e função.** Imports passam a:
 
 ```js
-import {
-  limparCacheServidores, getServidoresDaUnidade, vinculosAbertos, CARGO_GESTOR, rotulaVinculo,
-} from './servidores.model.js';
-import { addDias } from '../../shared/format.js';
+import { getServidoresDaUnidade, vinculosAbertos, CARGO_GESTOR, rotulaVinculo } from './servidores.model.js';
+import { rotulaCargo, temFuncao } from './vinculos.model.js';
 ```
 
 Depois de `eSupervisao`:
 
 ```js
-export const FUNCOES = Object.freeze([
-  { valor: 1, rotulo: 'Gestor 1' },
-  { valor: 2, rotulo: 'Gestor 2' },
-]);
-export const temFuncao = (cargo) => rotulaCargo(cargo) === CARGO_GESTOR;
-const funcaoValida = (f) => (f === 1 || f === 2 ? f : null);
-
 // Posição na equipe da escola (D7): Gestor 1, Gestor 2, gestor sem função
 // definida, coordenação, demais.
 export function ordemNaEquipe(v) {
@@ -1515,7 +1536,38 @@ export const vinculosDeEquipe = (s) => vinculosAbertos(s).filter(v => !eSupervis
     || a.cargo.localeCompare(b.cargo, 'pt') || a.nome.localeCompare(b.nome, 'pt'));
 ```
 
-(Atualizar o comentário de cabeçalho: "Ordenada por nome" → a ordem nova.)
+(Atualizar o comentário de cabeçalho: a forma de leitura ganha `ordem`, e "Ordenada por nome" vira a ordem nova.)
+
+E, no fim do arquivo:
+
+```js
+// Quem já ocupa a função na unidade - para AVISAR, não para barrar (R15):
+// numa transição os dois períodos se encostam.
+export async function quemTemFuncao(unidadeId, funcao, excetoServidorId) {
+  const servidores = await getServidoresDaUnidade(unidadeId);
+  return servidores.find(s => s.id !== excetoServidorId && vinculosAbertos(s)
+    .some(v => v.unidade_id === unidadeId && temFuncao(v.papel) && v.funcao === funcao)) || null;
+}
+```
+
+- [ ] **Step 4b: `vinculos.model.js` - gravar a função.** Imports:
+
+```js
+import { limparCacheServidores, CARGO_GESTOR } from './servidores.model.js';
+import { addDias } from '../../shared/format.js';
+```
+
+(manter no import de `servidores.model.js` o que o arquivo ainda usar.) Depois de `rotulaCargo`:
+
+```js
+// Função do gestor (spec 2026-10-03, D12): só o cargo Gestor(a) tem.
+export const FUNCOES = Object.freeze([
+  { valor: 1, rotulo: 'Gestor 1' },
+  { valor: 2, rotulo: 'Gestor 2' },
+]);
+export const temFuncao = (cargo) => rotulaCargo(cargo) === CARGO_GESTOR;
+const funcaoValida = (f) => (f === 1 || f === 2 ? f : null);
+```
 
 Gravação com a função, degradando sem a 045:
 
@@ -1591,17 +1643,9 @@ export async function mudarFuncao(servidorId, vinculo, funcao, desde) {
   invalidar();
   return data;
 }
-
-// Quem já ocupa a função na unidade - para AVISAR, não para barrar (R15):
-// numa transição os dois períodos se encostam.
-export async function quemTemFuncao(unidadeId, funcao, excetoServidorId) {
-  const servidores = await getServidoresDaUnidade(unidadeId);
-  return servidores.find(s => s.id !== excetoServidorId && vinculosAbertos(s)
-    .some(v => v.unidade_id === unidadeId && temFuncao(v.papel) && v.funcao === funcao)) || null;
-}
 ```
 
-Conferir `wc -l src/modules/servidores/vinculos.model.js` ≤ 250.
+Conferir `wc -l src/modules/servidores/*.model.js`: cada um ≤ 250.
 
 - [ ] **Step 5: Testes passam.** `node --test tests/` → tudo verde.
 
@@ -1627,9 +1671,9 @@ git push origin dev
 - Docs: `docs/modulos/servidores.md`
 
 **Interfaces:**
-- Consumes: `FUNCOES`, `temFuncao`, `mudarFuncao`, `quemTemFuncao`, `criarVinculo`/`atualizarVinculo` com `funcao` (`vinculos.model.js`); `rotulaVinculo`, `cargoExibidoDe` (`servidores.model.js`).
+- Consumes: `FUNCOES`, `temFuncao`, `mudarFuncao`, `criarVinculo`/`atualizarVinculo` com `funcao` (`vinculos.model.js`); `quemTemFuncao` (`equipe.model.js`); `rotulaVinculo`, `cargoExibidoDe` (`servidores.model.js`).
 
-- [ ] **Step 1: `vinculo.js` - os dois campos.** Import: `import { criarVinculo, atualizarVinculo, excluirVinculo, rotulaCargo, FUNCOES, temFuncao, mudarFuncao, quemTemFuncao } from '../vinculos.model.js';`.
+- [ ] **Step 1: `vinculo.js` - os dois campos.** Imports: `import { criarVinculo, atualizarVinculo, excluirVinculo, rotulaCargo, FUNCOES, temFuncao, mudarFuncao } from '../vinculos.model.js';` e `import { quemTemFuncao } from '../equipe.model.js';`.
 
 No grupo "Local de trabalho", depois do `#v-novo-wrap`:
 
@@ -1757,7 +1801,7 @@ git push origin dev
 - Docs: `docs/modulos/horarios.md`
 
 **Interfaces:**
-- Consumes: `eSupervisao`, `vinculosDeEquipe` (`servidores/vinculos.model.js`); `rotulaVinculo` (`servidores/servidores.model.js`).
+- Consumes: `eSupervisao`, `vinculosDeEquipe` (`servidores/equipe.model.js`); `rotulaVinculo` (`servidores/servidores.model.js`).
 
 - [ ] **Step 1: Por escola.** Em `carregar()`, logo depois do `Promise.all` (antes da contagem):
 
@@ -1775,7 +1819,7 @@ e o `cargoDe` local passa a ler só o vínculo de equipe:
   const cargoDe = (s) => rotulaCargo(vinculosDeEquipe(s).find(v => v.unidade_id === unidadeId)?.papel || '');
 ```
 
-Importar `vinculosDeEquipe` de `../../servidores/vinculos.model.js`; tirar `vinculosAbertos` do import se ficar sem uso. Onde a grade **exibe** o cargo da linha (procurar `it.cargo` / `.cargo` em `por-escola.js` e `grade.js`), o texto mostrado passa a ser `rotulaVinculo` do vínculo de equipe daquela unidade - a chave usada em `cargosGestao.has(cargo)` continua o cargo sem função. Se a exibição estiver dentro de `ordenarParaGrade` (model), acrescentar ao item um campo `cargoExibido` calculado pela view e usar só na pintura; **não** mudar `cargo`.
+Importar `vinculosDeEquipe` de `../../servidores/equipe.model.js`; tirar `vinculosAbertos` do import se ficar sem uso. Onde a grade **exibe** o cargo da linha (procurar `it.cargo` / `.cargo` em `por-escola.js` e `grade.js`), o texto mostrado passa a ser `rotulaVinculo` do vínculo de equipe daquela unidade - a chave usada em `cargosGestao.has(cargo)` continua o cargo sem função. Se a exibição estiver dentro de `ordenarParaGrade` (model), acrescentar ao item um campo `cargoExibido` calculado pela view e usar só na pintura; **não** mudar `cargo`.
 
 - [ ] **Step 2: Por servidor.** `comVinculo = servidores.filter(s => vinculosDeEquipe(s).length);`. Na montagem de `locais`:
 
@@ -1792,9 +1836,9 @@ Importar `vinculosDeEquipe` de `../../servidores/vinculos.model.js`; tirar `vinc
   for (const v of vinculosDeEquipe(s)) if (v.unidade && !locais.has(v.unidade.id)) locais.set(v.unidade.id, v.unidade);
 ```
 
-Em `painelLocal`: `const vinc = vinculosDeEquipe(s).find(v => v.unidade_id === local.id);`. Importar `eSupervisao, vinculosDeEquipe`.
+Em `painelLocal`: `const vinc = vinculosDeEquipe(s).find(v => v.unidade_id === local.id);`. Importar `eSupervisao, vinculosDeEquipe` de `../../servidores/equipe.model.js`.
 
-- [ ] **Step 3: Equipe gestora.** Em `cargos.js`, depois de carregar: `cargos = cargos.filter(c => !eSupervisao(c));` (import de `eSupervisao`), com o comentário: supervisão não compõe a equipe da escola, então não é escolha.
+- [ ] **Step 3: Equipe gestora.** Em `cargos.js`, depois de carregar: `cargos = cargos.filter(c => !eSupervisao(c));` (import de `eSupervisao`, de `../../servidores/equipe.model.js`), com o comentário: supervisão não compõe a equipe da escola, então não é escolha.
 
 - [ ] **Step 4: Outros leitores.** `grep -rn "getServidoresDaUnidade\|getBlocos(" src --include=*.js` e, para cada tela fora de `horarios/` que monte equipe ou cobertura por escola (o cartão "Hoje" do dashboard, se for o caso), aplicar o mesmo filtro `vinculosDeEquipe`. Relatar o que foi encontrado, mesmo que nada.
 
@@ -1976,7 +2020,7 @@ git push origin dev
 - Docs: `docs/modulos/escolas.md`
 
 **Interfaces:**
-- Consumes: `getEquipeDaUnidade(unidadeId)` → `[{ id, nome, cargo, email, telefone, supervisao, ordem }]`, já ordenada (Tarefa 8).
+- Consumes: `getEquipeDaUnidade(unidadeId)` (`servidores/equipe.model.js`) → `[{ id, nome, cargo, email, telefone, supervisao, ordem }]`, já ordenada (Tarefa 8).
 
 - [ ] **Step 1: Cabeçalho com as tags.** O `modalHead` aceita HTML no subtítulo:
 
@@ -2036,7 +2080,7 @@ Conferir que `campo('INEP', esc(u.inep))` com `u.inep` vazio devolve `''` (o `ca
 ```js
   // Supervisão não é equipe (spec 2026-10-03, D13): é dado da escola, em
   // bloco próprio. A lista já vem na ordem da equipe - Gestor 1, Gestor 2,
-  // coordenação, demais (vinculos.model.js).
+  // coordenação, demais (servidores/equipe.model.js).
   const equipe = pessoas.filter(p => !p.supervisao);
   const supervisao = pessoas.filter(p => p.supervisao);
 
