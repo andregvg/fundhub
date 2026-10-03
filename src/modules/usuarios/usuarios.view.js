@@ -187,7 +187,7 @@ function abrirForm(p) {
           </div>
         </fieldset>
 
-        <fieldset class="form-grupo">
+        <fieldset class="form-grupo plano">
           <legend>Permissões por módulo</legend>
           <div class="campos">
             <details id="f-perm-box">

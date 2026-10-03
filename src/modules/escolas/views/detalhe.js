@@ -8,6 +8,8 @@
 // contexto a partir dos models, e por isso abre igual por cima da lista
 // de Escolas ou da ficha de um servidor. Spec
 // 2026-09-13-fichas-entre-modulos-design.md.
+// O cabeçalho mostra só o nome; o nome no SAE vai para "Cadastros e links"
+// quando difere (spec 2026-10-02, D5).
 // ============================================================
 import { getUnidades } from '../escolas.model.js';
 import { linkMaps } from '../../locais/locais.model.js';
@@ -15,7 +17,7 @@ import { getEquipeDaUnidade } from '../../servidores/vinculos.model.js';
 import { podeEscrever } from '../../../core/permissoes.js';
 import { podeAbrirFicha } from '../../../core/registry.js';
 import { abrirFicha } from '../../../core/router.js';
-import { esc } from '../../../shared/dom.js';
+import { esc, norm } from '../../../shared/dom.js';
 import { modalHead, abrirModal } from '../../../shared/ui/modal.js';
 import { telefonesTexto, exibirTelefone, paraE164 } from '../../../shared/ui/phones.js';
 import { loading, erroBox } from '../../../shared/ui/feedback.js';
@@ -69,7 +71,7 @@ function detalhe(u, ctx, opts) {
   const campo = (l, v) => v ? `<div class="field"><div class="lbl">${l}</div><div class="val">${v}</div></div>` : '';
 
   abrirModal(`
-    ${modalHead(esc(u.nome), esc(u.nome_oficial || ''))}
+    ${modalHead(`<span class="nome-oficial">${esc(u.nome)}</span>`)}
     <div class="modal-body">
       ${chips ? `<div class="tags" style="margin-bottom:14px">${chips}</div>` : ''}
       <div class="modal-acoes">
@@ -86,6 +88,8 @@ function detalhe(u, ctx, opts) {
       ${campo('E-mail institucional', u.email ? `<a href="mailto:${esc(u.email)}">${esc(u.email)}</a>` : '')}
 
       <h3 class="bloco-tit">Cadastros e links</h3>
+      ${u.nome_oficial && norm(u.nome_oficial).trim() !== norm(u.nome).trim()
+        ? campo('Nome no SAE', esc(u.nome_oficial)) : ''}
       ${campo('INEP', esc(u.inep))}
       ${campo('Regional', esc(u.regional))}
       ${u.site_apm ? campo('Site APM', `<a href="${esc(u.site_apm)}" target="_blank" rel="noopener">abrir</a>`) : ''}

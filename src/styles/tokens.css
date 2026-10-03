@@ -201,3 +201,35 @@
 @media (pointer: coarse) {
   :root { --campo: var(--toque); --campo-fonte: 16px; }
 }
+
+/* Fundo atrás de modal e confirmação (spec 2026-10-02, D4). O desfoque
+   (components.css) é o que tira a legibilidade do conteúdo de trás; o
+   escurecimento não precisa ir até o preto. --overlay-leve: confirmação
+   ABERTA SOBRE um modal - os dois fundos se somariam. */
+:root {
+  --overlay: rgba(10, 15, 30, .62);
+  --overlay-leve: rgba(10, 15, 30, .35);
+}
+@media (prefers-color-scheme: dark) {
+  :root { --overlay: rgba(0, 0, 0, .72); --overlay-leve: rgba(0, 0, 0, .4); }
+}
+
+/* Tons DERIVADOS da cor de destaque (spec 2026-10-02, D1 e D5) -
+   declarados em `body`, não em `:root`. O SATE troca o --brand no
+   <body> (sate.css); uma variável declarada em :root seria calculada
+   lá, com o azul do hub, e o SATE verde ganharia cabeçalho azul. É o
+   mesmo motivo de sate.css redeclarar --info-bg. */
+body {
+  --grupo-bg: color-mix(in srgb, var(--brand) 4%, var(--surface));
+  --grupo-borda: color-mix(in srgb, var(--brand) 16%, var(--border));
+  --cabecalho-bg: color-mix(in srgb, var(--brand) 9%, var(--surface));
+  --cabecalho-borda: color-mix(in srgb, var(--brand) 22%, var(--border));
+}
+@media (prefers-color-scheme: dark) {
+  body {
+    --grupo-bg: color-mix(in srgb, var(--brand) 7%, var(--surface));
+    --grupo-borda: color-mix(in srgb, var(--brand) 26%, var(--border));
+    --cabecalho-bg: color-mix(in srgb, var(--brand) 15%, var(--surface));
+    --cabecalho-borda: color-mix(in srgb, var(--brand) 32%, var(--border));
+  }
+}

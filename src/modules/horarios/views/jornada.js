@@ -332,7 +332,7 @@ function pintar() {
     const linhas = estado.porEscala[estado.escala][estado.variante][d.n].filter(l => !l.excluir);
     const problemas = validarDia(linhas.filter(l => l.inicio && l.fim));
     const total = totalDoDia(linhas.filter(l => l.inicio && l.fim));
-    return `<fieldset class="form-grupo hj-dia" data-dia="${d.n}">
+    return `<fieldset class="form-grupo plano hj-dia" data-dia="${d.n}">
       <legend>${esc(d.nome)} ${total ? `<span class="hj-total">${esc(duracao(total))}</span>` : ''}</legend>
       <div class="hj-linhas">
         ${linhas.map((l, i) => `

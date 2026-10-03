@@ -52,7 +52,7 @@ export function abrirFormulario(contexto) {
   const minData = aprovador ? hojeISO() : addDias(hojeISO(), antecedenciaMinDias());
 
   abrirModal(`
-    ${modalHead('Nova solicitação', 'Transporte para atividade extraclasse')}
+    ${modalHead('Nova solicitação')}
     <div class="modal-body">
       <form id="sol-form" class="esc-form">
 
