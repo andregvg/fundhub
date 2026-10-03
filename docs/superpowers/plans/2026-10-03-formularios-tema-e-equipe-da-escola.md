@@ -28,7 +28,7 @@
 - Antes de cada commit: `git diff --cached` lido procurando dado real.
 - Versões-alvo, **só na Tarefa 13**: `CONFIG.versao` **0.39.0**, `CONFIG.versaoSate` **0.18.0**.
 
-**Rodar os testes:** `node --test tests/` (na raiz).
+**Rodar os testes:** `node --test tests/*.mjs` (na raiz).
 **Verificar arquitetura:** `python .claude/scripts/verificar_arquitetura.py`.
 
 **Navegador (dev-local), quando a tarefa pedir** - seguir a memória `fundhub-teste-devlocal`:
@@ -136,7 +136,7 @@ select.campo-solto {
 - [ ] **Step 8: Verificar e commitar.**
 
 ```bash
-node --test tests/ && python .claude/scripts/verificar_arquitetura.py
+node --test tests/*.mjs && python .claude/scripts/verificar_arquitetura.py
 git add src/styles/tokens.css src/styles/components.css
 git commit -m "fix(ui): icones de data e hora de volta, fundo proprio do campo, seta do select e filtros sem esticar"
 git push origin dev
@@ -275,7 +275,7 @@ function ligarDominio(el) {
 }
 ```
 
-- [ ] **Step 6: Testes passam.** `node --test tests/` → tudo verde.
+- [ ] **Step 6: Testes passam.** `node --test tests/*.mjs` → tudo verde.
 
 - [ ] **Step 7: Navegador.** "Novo servidor": uma linha de telefone à vista, sem moldura, alinhada à grade; sem interruptor "principal"; "+ telefone" cria a segunda e o interruptor aparece nas duas. Digitar `nome@` no e-mail → domínio completa, selecionado; digitar `x` substitui a seleção. "Nova escola" e "Meus dados": mesma linha, tipo inicial Fixo. Largura 380: a linha empilha. Console limpo.
 
@@ -415,7 +415,7 @@ export function diaMesDe(iso) {
 - [ ] **Step 5: Commit.**
 
 ```bash
-node --test tests/
+node --test tests/*.mjs
 git add src/shared/format.js tests/format-dia-mes.test.mjs
 git commit -m "feat(format): data civil a partir de dia e mes, com o ano assumido"
 git push origin dev
@@ -764,7 +764,7 @@ Antes de acrescentar `.form-hint.err`, `grep -n "form-hint.err\|\.err" src/style
 - [ ] **Step 8: Tutorial e commit.** `docs/modulos/sate.md`: passos 6 e 7 de "pedir transporte" (data com dia e mês, saída do evento, servidor(a) responsável com sugestão e telefone automático) e a tabela de período ("Saída do evento").
 
 ```bash
-node --test tests/ && python .claude/scripts/verificar_arquitetura.py
+node --test tests/*.mjs && python .claude/scripts/verificar_arquitetura.py
 git add src/modules/sate src/modules/servidores src/modules/escolas/views/detalhe.js tests/vinculos.test.mjs docs/modulos/sate.md
 git commit -m "feat(sate): data sem ano, servidor responsavel com sugestao da equipe e periodo em destaque"
 git push origin dev
@@ -837,7 +837,7 @@ A rota `#/ver-como` continua acessível a quem aprova (é como se troca de escol
 - [ ] **Step 5: Tutorial e commit.** `docs/modulos/sate.md`: trocar "retorno" por "saída do evento" e "professor(a) responsável" por "servidor(a) responsável" em todo o texto; a seção "Ver como escola", se existir, diz que o menu fica igual ao da escola.
 
 ```bash
-node --test tests/ && python .claude/scripts/verificar_arquitetura.py
+node --test tests/*.mjs && python .claude/scripts/verificar_arquitetura.py
 git add src/sate.js src/modules/sate tests docs/modulos/sate.md
 git commit -m "feat(sate): saida do evento e servidor responsavel em todas as telas; escola sem link para o FundHub"
 git push origin dev
@@ -1050,7 +1050,7 @@ Em `base.css`, depois de `.um-acesso`:
 - [ ] **Step 9: Commit.**
 
 ```bash
-node --test tests/ && python .claude/scripts/verificar_arquitetura.py
+node --test tests/*.mjs && python .claude/scripts/verificar_arquitetura.py
 git add index.html sate.html src/core/tema.js src/main.js src/sate.js src/shell src/styles src/modules/sate/sate.css src/modules/docs/docs.content.js tests/tema.test.mjs
 git commit -m "feat(tema): claro ou escuro pela escolha da pessoa, no menu de usuario do FundHub e do SATE"
 git push origin dev
@@ -1315,7 +1315,7 @@ async function paginaConfiguracoes() {
 - [ ] **Step 8: Tutoriais e commit.** `docs/modulos/configuracoes.md` (blocos expansíveis, tema em "Geral" e no menu de usuário) e `docs/modulos/sate.md` (Configurações para todos: tema e cor são de cada pessoa).
 
 ```bash
-node --test tests/ && python .claude/scripts/verificar_arquitetura.py
+node --test tests/*.mjs && python .claude/scripts/verificar_arquitetura.py
 git add src/modules/configuracoes src/modules/sate src/sate.js tests docs/modulos
 git commit -m "feat(configuracoes): blocos expansiveis, tema em Geral e cor do SATE por pessoa"
 git push origin dev
@@ -1647,7 +1647,7 @@ export async function mudarFuncao(servidorId, vinculo, funcao, desde) {
 
 Conferir `wc -l src/modules/servidores/*.model.js`: cada um ≤ 250.
 
-- [ ] **Step 5: Testes passam.** `node --test tests/` → tudo verde.
+- [ ] **Step 5: Testes passam.** `node --test tests/*.mjs` → tudo verde.
 
 - [ ] **Step 6: Commit.**
 
@@ -1784,7 +1784,7 @@ m.formVinculo({ id: 's1', nome: 'SERVIDOR EXEMPLO', vinculos: [] },
 - [ ] **Step 6: Tutorial e commit.** `docs/modulos/servidores.md`: tarefa nova "Informar se o gestor é Gestor 1 ou Gestor 2" e "Registrar uma troca de função" (com e sem data); em "Regras que o sistema aplica", o aviso de função repetida (avisa, não bloqueia) e que a função só existe no cargo de gestor.
 
 ```bash
-node --test tests/ && python .claude/scripts/verificar_arquitetura.py
+node --test tests/*.mjs && python .claude/scripts/verificar_arquitetura.py
 git add src/modules/servidores src/modules/meus-dados docs/modulos/servidores.md
 git commit -m "feat(servidores): Gestor 1 e Gestor 2 no local de trabalho, com troca datada e historico"
 git push origin dev
@@ -1842,7 +1842,7 @@ Em `painelLocal`: `const vinc = vinculosDeEquipe(s).find(v => v.unidade_id === l
 
 - [ ] **Step 4: Outros leitores.** `grep -rn "getServidoresDaUnidade\|getBlocos(" src --include=*.js` e, para cada tela fora de `horarios/` que monte equipe ou cobertura por escola (o cartão "Hoje" do dashboard, se for o caso), aplicar o mesmo filtro `vinculosDeEquipe`. Relatar o que foi encontrado, mesmo que nada.
 
-- [ ] **Step 5: Verificar.** `node --test tests/` (os testes de grade continuam passando) e, no navegador, `#/horarios`: a tela abre sem erro por escola e por servidor; configuração (engrenagem) lista os cargos sem "Supervisor(a)". Console limpo.
+- [ ] **Step 5: Verificar.** `node --test tests/*.mjs` (os testes de grade continuam passando) e, no navegador, `#/horarios`: a tela abre sem erro por escola e por servidor; configuração (engrenagem) lista os cargos sem "Supervisor(a)". Console limpo.
 
 - [ ] **Step 6: Tutorial e commit.** `docs/modulos/horarios.md`: em "Regras que o sistema aplica", supervisão não entra na grade nem na cobertura da escola.
 
@@ -2004,7 +2004,7 @@ Ajustar `escolas.css` se o `<li>` precisar de `display: flex; justify-content: s
 - [ ] **Step 7: Tutorial e commit.** `docs/modulos/escolas.md`: tarefa "Acertar a localização de uma escola no mapa" (pelo formulário e pela lista "Sem localização" das configurações).
 
 ```bash
-node --test tests/ && python .claude/scripts/verificar_arquitetura.py
+node --test tests/*.mjs && python .claude/scripts/verificar_arquitetura.py
 git add -A src/shared/ui/mapa-pino.js src/modules/sate src/modules/escolas src/styles/components.css src/core/router.js CLAUDE.md .claude/rules docs/modulos/escolas.md
 git commit -m "feat(escolas): mapa com pino no cadastro e lista das escolas sem localizacao"
 git push origin dev
@@ -2122,7 +2122,7 @@ No ramo de erro (`catch`), pintar o erro em `box` e limpar `#esc-supervisao`. Ap
 - [ ] **Step 6: Tutorial e commit.** `docs/modulos/escolas.md`: a ficha (supervisão separada, ordem da equipe, "Mais detalhes").
 
 ```bash
-node --test tests/ && python .claude/scripts/verificar_arquitetura.py
+node --test tests/*.mjs && python .claude/scripts/verificar_arquitetura.py
 git add src/modules/escolas src/styles/components.css docs/modulos/escolas.md
 git commit -m "feat(escolas): ficha com tags no cabecalho, supervisao a parte, equipe ordenada e mais detalhes"
 git push origin dev
@@ -2156,7 +2156,7 @@ git push origin dev
 - [ ] **Step 4: Verificação final.**
 
 ```bash
-node --test tests/
+node --test tests/*.mjs
 python .claude/scripts/verificar_arquitetura.py
 grep -rn "dev@local" src/                       # só docs.content.js
 grep -rn "prefers-color-scheme" src --include=*.css   # vazio
