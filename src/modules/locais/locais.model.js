@@ -15,7 +15,7 @@
 // ============================================================
 import { sb, hasSupabase } from '../../core/supabase.js';
 import { registrarCache } from '../../shared/cache.js';
-import { norm } from '../../shared/dom.js';
+import { norm, semelhanca } from '../../shared/dom.js';
 
 const COLS = 'id, nome, endereco, numero, bairro, desembarque, latitude, longitude, maps_url, ativo, obs';
 // Sem a migration 044 numero/bairro não existem (42703): lê do jeito antigo.
@@ -110,7 +110,10 @@ export function locaisParecidos(alvo, locais, max = 5) {
   return (locais || [])
     .filter(l => l.ativo)
     .map(l => {
-      const nome = palavras(l.nome).some(p => nomeAlvo.has(p) || [...nomeAlvo].some(a => a.startsWith(p.slice(0, 5)) || p.startsWith(a.slice(0, 5))));
+      // Prefixo de 5 letras (o critério antigo) OU uma letra de diferença
+      // (spec 2026-10-02, D13): "Muzeu" e "Theatro" também contam.
+      const nome = palavras(l.nome).some(p => nomeAlvo.has(p) || [...nomeAlvo].some(a =>
+        a.startsWith(p.slice(0, 5)) || p.startsWith(a.slice(0, 5)) || semelhanca(a, p) !== null));
       const bairro = !!bairroAlvo && norm(l.bairro).trim() === bairroAlvo;
       return { l, pontos: (nome ? 2 : 0) + (bairro ? 1 : 0) };
     })
@@ -247,4 +250,22 @@ export function linkRota(pontos) {
   const meio = validos.slice(1, -1);
   if (meio.length) params.set('waypoints', meio.map(c).join('|'));
   return `https://www.google.com/maps/dir/?${params}`;
+}
+
+// O local cadastrado (ativo) que já ocupa este endereço, ou null. Avisa
+// quem digita um local NOVO que o lugar talvez já exista com outro nome
+// (spec 2026-10-02, D13). A rua é comparada sem acento, caixa e
+// pontuação, com a abreviação do logradouro expandida ("R." = "Rua").
+const LOGRADOURO = { r: 'rua', av: 'avenida', al: 'alameda', pc: 'praca', pca: 'praca', rod: 'rodovia', tv: 'travessa', est: 'estrada' };
+function chaveRua(s) {
+  const p = norm(s).replace(/[^a-z0-9]+/g, ' ').trim().split(' ').filter(Boolean);
+  if (p.length && LOGRADOURO[p[0]]) p[0] = LOGRADOURO[p[0]];
+  return p.join(' ');
+}
+const chaveNumero = (n) => norm(n).replace(/\s+/g, '');
+
+export function localNoEndereco(rua, numero, locais) {
+  const r = chaveRua(rua), n = chaveNumero(numero);
+  if (!r || !n) return null;
+  return (locais || []).find(l => l.ativo && chaveRua(l.endereco) === r && chaveNumero(l.numero) === n) || null;
 }

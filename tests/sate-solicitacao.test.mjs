@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { periodoDe, tituloDoPedido, responsavelDoPedido, PERIODOS, alocarFichas } from '../src/modules/sate/regras.model.js';
 import { JANELA, TIPICO, trajetoParaVaga, intervaloDaViagem } from '../src/modules/sate/disponibilidade.model.js';
-import { enderecoCompleto, locaisParecidos } from '../src/modules/locais/locais.model.js';
+import { enderecoCompleto, locaisParecidos, localNoEndereco } from '../src/modules/locais/locais.model.js';
 import { localAConferir } from '../src/modules/sate/sate.model.js';
 
 test('periodoDe: manhã, integral, tarde, noite', () => {
@@ -86,4 +86,27 @@ test('alocarFichas ordena integral junto da manhã', () => {
     { id: 'b', periodo: 'integral', horario_embarque: '08:00', qtd_onibus: 1, qtd_alunos: 10 },
   ], { capacidade: 44 });
   assert.equal(f[0].solicitacao.id, 'b');
+});
+
+test('locaisParecidos: tolera erro de digitação no nome', () => {
+  const locais = [
+    { id: '1', nome: 'Museu Exemplo', bairro: 'Centro', ativo: true },
+    { id: '2', nome: 'Parque Distante', bairro: 'Jardim', ativo: true },
+  ];
+  const r = locaisParecidos({ nome: 'Muzeu Exenplo', bairro: '' }, locais).map(l => l.id);
+  assert.deepEqual(r, ['1']);
+});
+
+test('localNoEndereco: mesma rua e número, sem acento, caixa ou abreviação', () => {
+  const locais = [
+    { id: '1', nome: 'Museu Exemplo', endereco: 'Rua São Exemplo', numero: '100', ativo: true },
+    { id: '2', nome: 'Parque Exemplo', endereco: 'Avenida Exemplo', numero: '20', ativo: true },
+    { id: '3', nome: 'Antigo Exemplo', endereco: 'Rua Velha Exemplo', numero: '5', ativo: false },
+  ];
+  assert.equal(localNoEndereco('r. sao exemplo', '100', locais)?.id, '1');
+  assert.equal(localNoEndereco('Av Exemplo', ' 20 ', locais)?.id, '2');
+  assert.equal(localNoEndereco('Rua São Exemplo', '101', locais), null);
+  assert.equal(localNoEndereco('Rua Velha Exemplo', '5', locais), null);   // inativo
+  assert.equal(localNoEndereco('', '100', locais), null);
+  assert.equal(localNoEndereco('Rua São Exemplo', '', locais), null);
 });

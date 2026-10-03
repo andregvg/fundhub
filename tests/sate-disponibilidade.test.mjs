@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   intervaloDaViagem, montarLinha, livresPara, escadaDaTarde, proximoHorario,
-  faltaParaConfirmar, livresNoPeriodo, totalDoDia,
+  faltaParaConfirmar, livresNoPeriodo, totalDoDia, semanaUtil,
 } from '../src/modules/sate/disponibilidade.model.js';
 
 const frota = (...porDia) => porDia.map((onibus, dia) => ({ dia, onibus, vans: 0 }));
@@ -95,4 +95,15 @@ test('proximoHorario acha o primeiro embarque em que cabe', () => {
   const l = linha(frota(9), [oc(420, 850, 6)]);
   assert.equal(proximoHorario(l, { ini: 780, fim: 1020, precisa: 5, periodo: 'tarde' }), 850);
   assert.equal(proximoHorario(l, { ini: 780, fim: 1020, precisa: 10, periodo: 'tarde' }), null);
+});
+
+// 05/10/2026 é segunda-feira.
+test('semanaUtil: dia útil fica em foco na própria semana', () => {
+  assert.deepEqual(semanaUtil('2026-10-07'), { segunda: '2026-10-05', sexta: '2026-10-09', foco: '2026-10-07' });
+  assert.deepEqual(semanaUtil('2026-10-05'), { segunda: '2026-10-05', sexta: '2026-10-09', foco: '2026-10-05' });
+  assert.deepEqual(semanaUtil('2026-10-09'), { segunda: '2026-10-05', sexta: '2026-10-09', foco: '2026-10-09' });
+});
+test('semanaUtil: sábado e domingo levam à segunda seguinte', () => {
+  assert.deepEqual(semanaUtil('2026-10-10'), { segunda: '2026-10-12', sexta: '2026-10-16', foco: '2026-10-12' });
+  assert.deepEqual(semanaUtil('2026-10-11'), { segunda: '2026-10-12', sexta: '2026-10-16', foco: '2026-10-12' });
 });

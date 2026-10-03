@@ -158,6 +158,18 @@ export function faltaParaConfirmar(s, linha, paradas = []) {
   return { onibus: falta('onibus', Number(s.qtd_onibus) || 0), vans: falta('vans', Number(s.qtd_vans) || 0) };
 }
 
+// A semana ÚTIL (segunda a sexta) a mostrar para `iso`, e o dia em foco.
+// POR ENQUANTO, SEM FIM DE SEMANA (spec 2026-10-02, D9): sábado e domingo
+// levam à semana seguinte, com o foco na segunda - é onde está o próximo
+// dia útil, e é para frente que a escola planeja. Aritmética de
+// calendário: o Date só diz o dia da semana (R8).
+export function semanaUtil(iso) {
+  const dow = new Date(iso + 'T00:00:00').getDay();   // 0 = domingo
+  const foco = dow === 6 ? addDias(iso, 2) : dow === 0 ? addDias(iso, 1) : iso;
+  const segunda = addDias(foco, 1 - new Date(foco + 'T00:00:00').getDay());
+  return { segunda, sexta: addDias(segunda, 4), foco };
+}
+
 // ── Leitura ──────────────────────────────────────────────────
 // Dev-local: linha vazia (frota zero). Sem a 042, cai no saldo por
 // período da 036 e marca `aproximado` - a tela avisa "contagem sem
