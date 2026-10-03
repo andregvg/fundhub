@@ -209,10 +209,12 @@ span.gira-90, span.gira-menos90, span.gira-180 { display: inline-flex; }
 :is(.esc-form, .form-grid, .form-grupo) .search {
   --lado: calc(var(--campo) - 2px);
   height: var(--campo);
+  border-color: var(--campo-borda);
   border-radius: var(--radius-btn);
-  background: var(--surface-2);
+  background-color: var(--campo-bg);
   box-shadow: none;
 }
+:is(.esc-form, .form-grid, .form-grupo) .search:focus-within { border-color: var(--brand); }   /* a borda acima tem a mesma especificidade e viria depois */
 /* O input de dentro NÃO é campo: a moldura é do .search. A regra de campo de
    `.esc-form input` (mais abaixo, mesma especificidade de `.search input`)
    vencia por ordem e desenhava uma segunda caixa dentro do controle. */
@@ -272,7 +274,7 @@ span.gira-90, span.gira-menos90, span.gira-180 { display: inline-flex; }
   border-radius: var(--radius-btn);
   /* --surface, e não --surface-2: dentro do painel (que já é --surface-2)
      o controle precisa ler como controle SOBRE a superfície. */
-  background: var(--surface);
+  background-color: var(--surface);
   color: var(--form-field);
   font-size: var(--campo-fonte);
   font-weight: 400;
@@ -519,7 +521,7 @@ span.gira-90, span.gira-menos90, span.gira-180 { display: inline-flex; }
   padding: 0 10px;
   border: 1px solid var(--border);
   border-radius: var(--radius-btn);
-  background: var(--surface);
+  background-color: var(--surface);
   color: var(--form-field);
   font: inherit;
   font-size: var(--campo-fonte);
@@ -688,9 +690,9 @@ span.gira-90, span.gira-menos90, span.gira-180 { display: inline-flex; }
 .esc-form input, .esc-form select, .esc-form textarea {
   min-height: var(--campo);
   padding: 7px 10px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--campo-borda);
   border-radius: var(--radius-btn);
-  background: var(--surface-2);
+  background-color: var(--campo-bg);   /* -color, nunca o atalho: ver D1 */
   color: var(--form-field);
   font-size: var(--campo-fonte);   /* idem */
   font-weight: 400;
@@ -797,6 +799,28 @@ input[type="time"]::-webkit-calendar-picker-indicator { display: none; }
     input[type="time"] {
       background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2393a0bd' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpolyline points='12 6 12 12 16 14'/%3E%3C/svg%3E");
     }
+  }
+}
+
+/* Seta do <select> desenhada por nós (spec 2026-10-03, D4): a nativa cola
+   na borda direita, e o recuo dela não é estilizável. Fica a 10px - o
+   mesmo recuo do texto digitado. Mesma técnica e mesma ressalva dos ícones
+   de data e hora acima: data URI não enxerga var(), então são duas cores
+   copiadas de --muted (tokens.css). */
+:is(.form-grid, .esc-form, .filtro-campo) select:not([multiple]),
+select.campo-solto {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23656d76' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 12px 12px;
+  padding-right: 30px;
+}
+@media (prefers-color-scheme: dark) {
+  :is(.form-grid, .esc-form, .filtro-campo) select:not([multiple]),
+  select.campo-solto {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2393a0bd' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
   }
 }
 
@@ -1335,11 +1359,6 @@ body:has(.modal-back.open) .confirmar-back.open { -webkit-backdrop-filter: none;
    grupo como filho direto: o espaço entre grupos passa a ser só a margem,
    os 16px da spec. */
 .modal .esc-form:has(> .form-grupo:not(.plano)) { gap: 0; }
-/* Campo mais claro que o grupo: é o que o separa do fundo tingido. */
-.modal .form-grupo:not(.plano):not(:has(.card, .person, .people, .solic, .dash-item, .tabela, .panel, .tiles))
-  :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea, .search) {
-  background: var(--surface);
-}
 
 /* Elemento de dica que ainda não tem texto (o período calculado antes dos
    horários) não ocupa linha da grade nem margem (spec 2026-10-02, D1/2e). */
@@ -1393,9 +1412,9 @@ body:has(.modal-back.open) .confirmar-back.open { -webkit-backdrop-filter: none;
      centro. Com padding, o botão de editar (28px) somado ao padding
      estourava os 36px e o campo saía mais alto que os vizinhos. */
   padding: 0 10px;
-  border: 1px dashed var(--border);
+  border: 1px dashed var(--campo-borda);
   border-radius: var(--radius-btn);
-  background: var(--surface-2);
+  background-color: var(--campo-bg);
   color: var(--form-field);
   font-size: var(--campo-fonte);
   font-weight: 400;
@@ -1510,8 +1529,9 @@ hr.sep { margin: 20px 0; border: 0; border-top: 1px solid var(--border); }
      Centrar alinharia o toggle com o rótulo dos vizinhos, não com os
      campos. */
   .painel-filtros { flex-direction: row; flex-wrap: wrap; align-items: end; gap: 10px 16px; }
-  /* Os campos dividem a linha inteira; o resto ocupa só o que precisa. */
-  .painel-filtros .filtro-campo { flex: 1 1 180px; }
+  /* Não cresce (spec 2026-10-03, D8): um select de três opções esticado
+     até a borda do painel lê como campo de texto. Sobra espaço à direita. */
+  .painel-filtros .filtro-campo { flex: 0 1 220px; }
   .painel-filtros .switch,
   .painel-filtros .chip-filtro { flex: 0 0 auto; align-self: end; }
   /* O grupo de chips PODE encolher (0 1 auto) e tem min-width: 0: com
