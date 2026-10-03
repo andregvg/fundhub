@@ -17,7 +17,7 @@ import { criarSolicitacao } from '../sate.model.js';
 import {
   lerOcupacao, intervaloDaViagem, livresPara, totalDoDia, proximoHorario, livresNoPeriodo, trajetoParaVaga,
 } from '../disponibilidade.model.js';
-import { periodoDe, PERIODOS, onibusPara, vansPara, avaliarPedido } from '../regras.model.js';
+import { periodoDe, onibusPara, vansPara, avaliarPedido } from '../regras.model.js';
 import { calcularTrajeto, retratoTrajeto, explicarTrajeto } from '../rota.model.js';
 import {
   capacidadeOnibus, capacidadeVan, antecedenciaMinDias,
@@ -26,6 +26,8 @@ import {
 import { getDiaCalendario } from '../../calendario/calendario.model.js';
 import { cadastroRapidoHtml, ligarCadastroRapido } from './frota-rapida.js';
 import { destinoHtml, ligarDestino, lerDestino, validarDestino } from './formulario-destino.js';
+import { quandoHtml, ligarQuando } from './formulario-quando.js';
+import { responsavelHtml, ligarResponsavel, carregarEquipe } from './formulario-responsavel.js';
 import { esc, val, falha } from '../../../shared/dom.js';
 import { hojeISO, addDias, fmtData, isUuid } from '../../../shared/format.js';
 import { paraE164, formatarTelefone } from '../../../shared/ui/phones.js';
@@ -76,23 +78,9 @@ export function abrirFormulario(contexto) {
 
         ${destinoHtml()}
 
-        <fieldset class="form-grupo">
-          <legend>Quando</legend>
-          <div class="campos duas">
-            <label class="col-2">Data <input id="f-data" type="date" min="${minData}" required /></label>
-            <label>Horário de embarque <input id="f-emb" type="time" required /></label>
-            <label>Horário de retorno <input id="f-ret" type="time" required /></label>
-            <p class="form-hint col-2" id="f-periodo" aria-live="polite"></p>
-          </div>
-        </fieldset>
+        ${quandoHtml(minData)}
 
-        <fieldset class="form-grupo">
-          <legend>Responsável pela visita</legend>
-          <div class="campos duas">
-            <label>Professor(a) responsável <input id="f-prof" type="text" required /></label>
-            <label>Telefone / WhatsApp <input id="f-tel" type="tel" inputmode="tel" placeholder="(00) 00000-0000" required /></label>
-          </div>
-        </fieldset>
+        ${responsavelHtml()}
 
         <fieldset class="form-grupo">
           <legend>Acessibilidade</legend>
@@ -139,6 +127,9 @@ function opcoesEscola(unidades, perfil) {
 function ligar() {
   const form = document.getElementById('sol-form');
 
+  // A escola escolhida decide o trajeto e quem pode ser o responsável.
+  const aoMudarEscola = () => { pintarTrajeto(); carregarEquipe(escolaId()); };
+
   ligarDestino(ctx.locais, () => { pintarTrajeto(); revisar(); });
   buscaEscola?.destruir();
   buscaEscola = null;
@@ -148,30 +139,23 @@ function ligar() {
       rotulo: 'Escola',
       opcoes: escolas.map(u => ({ id: u.id || u.numero, rotulo: u.nome, detalhe: u.segmento || '', busca: u.apelido || '' })),
       placeholder: 'Digite para buscar a escola…',
-      onChange: pintarTrajeto,
+      onChange: aoMudarEscola,
     });
   } else {
-    document.getElementById('f-esc').addEventListener('change', pintarTrajeto);
+    document.getElementById('f-esc').addEventListener('change', aoMudarEscola);
   }
   trajeto = null;
 
-  document.getElementById('f-emb').addEventListener('change', () => { pintarPeriodo(); revisar(); });
-  document.getElementById('f-ret').addEventListener('change', () => { pintarPeriodo(); revisar(); });
-  for (const id of ['f-data', 'f-alunos', 'f-cadeira']) {
+  for (const id of ['f-alunos', 'f-cadeira']) {
     document.getElementById(id).addEventListener('change', revisar);
   }
   document.getElementById('f-alunos').addEventListener('input', revisar);
-  document.getElementById('f-tel').addEventListener('blur', (e) => { e.target.value = formatarTelefone(e.target.value); });
 
   form.addEventListener('submit', enviar);
-  pintarPeriodo();
+  ligarQuando(revisar);
+  ligarResponsavel();
+  carregarEquipe(escolaId());   // escola única já vem escolhida
   revisar();
-}
-
-// O período é calculado (spec D4): a escola vê o resultado, não escolhe.
-function pintarPeriodo() {
-  const p = periodoDe(val('f-emb'), val('f-ret'));
-  document.getElementById('f-periodo').textContent = p ? `Período: ${PERIODOS[p]}` : '';
 }
 
 // ── Trajeto ──────────────────────────────────────────────────
@@ -294,10 +278,10 @@ async function enviar(e) {
   if (!qtd) return falha(msg, 'Informe o nº de estudantes.');
   const erroDestino = validarDestino(d);
   if (erroDestino) return falha(msg, erroDestino);
-  if (!data || !emb || !ret) return falha(msg, 'Informe a data e os horários de embarque e de retorno.');
-  if (periodo !== 'noite' && ret <= emb) return falha(msg, 'O retorno precisa ser depois do embarque.');
+  if (!data || !emb || !ret) return falha(msg, 'Informe a data e os horários de embarque e de saída do evento.');
+  if (periodo !== 'noite' && ret <= emb) return falha(msg, 'A saída do evento precisa ser depois do embarque.');
   if (data < hojeISO()) return falha(msg, 'A data não pode ser no passado.');
-  if (!val('f-prof') || !val('f-tel')) return falha(msg, 'Informe o professor(a) responsável e o telefone.');
+  if (!val('f-prof') || !val('f-tel')) return falha(msg, 'Informe o servidor(a) responsável e o telefone.');
 
   // Bloqueios do calendário escolar. Quem aprova passa por cima.
   if (!aprovador) {
@@ -365,9 +349,9 @@ async function enviar(e) {
       falha(msg, 'Não há ônibus livres para este horário. Escolha outro horário ou outra data.');
       pintarSaldo();
     } else if (err.code === '23502' && String(err.message || '').startsWith('Informe o horario')) {
-      falha(msg, 'Informe o horário de embarque e o de retorno.');
+      falha(msg, 'Informe o horário de embarque e o de saída do evento.');
     } else if (err.code === '23502' && String(err.message || '').startsWith('Informe o professor')) {
-      falha(msg, 'Informe o professor(a) responsável e o telefone.');
+      falha(msg, 'Informe o servidor(a) responsável e o telefone.');
     } else if (err.code === '23502' && String(err.message || '').startsWith('Informe nome, endereco')) {
       falha(msg, 'Informe nome, endereço, número e bairro do local.');
     } else if (err.code === '23503' && String(err.message || '').startsWith('Local nao encontrado')) {

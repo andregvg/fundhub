@@ -13,7 +13,7 @@
 // ============================================================
 import { getUnidades } from '../escolas.model.js';
 import { linkMaps } from '../../locais/geografia.model.js';
-import { getEquipeDaUnidade } from '../../servidores/vinculos.model.js';
+import { getEquipeDaUnidade } from '../../servidores/equipe.model.js';
 import { podeEscrever } from '../../../core/permissoes.js';
 import { podeAbrirFicha } from '../../../core/registry.js';
 import { abrirFicha } from '../../../core/router.js';
@@ -118,7 +118,7 @@ function detalhe(u, ctx, opts) {
   pintarEquipe(document.getElementById('esc-equipe'), u, { voltar: reabrir, aoMudar: opts.aoMudar });
 }
 
-// A equipe vem do model de VÍNCULOS (getEquipeDaUnidade), e não de
+// A equipe vem do model da EQUIPE (getEquipeDaUnidade), e não de
 // `u.pessoas` (vw_escola_pessoas): é o que traz o id para abrir a ficha, o
 // telefone para a máscara, e o cache que toda gravação em servidor ou local
 // de trabalho invalida - editar alguém por cima desta ficha e voltar mostra

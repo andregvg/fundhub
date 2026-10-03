@@ -352,3 +352,39 @@ body.app-sate { --info-bg: color-mix(in srgb, var(--brand) 12%, var(--surface));
 /* ── Conferir local (spec 2026-09-27, D6) ────────────────────── */
 .conf-digitado { padding: 10px 12px; border: 1px dashed var(--border); border-radius: var(--radius-btn); }
 .conf-titulo { margin: 16px 0 8px; font-size: 14px; }
+
+/* ── Quando (spec 2026-10-03, D2) ────────────────────────────── */
+/* Data sem ano: campo de texto dd/mm com o botão do calendário por dentro,
+   e o <input type="date"> nativo escondido atrás dele - é ele que abre o
+   seletor. */
+.data-curta { position: relative; display: flex; }
+.data-curta > input[type="text"] { flex: 1 1 auto; min-width: 0; padding-right: 38px; }
+.data-curta-btn {
+  position: absolute; top: 1px; right: 1px; bottom: 1px; width: 34px;
+  display: grid; place-items: center;
+  border: 0; border-radius: var(--radius-btn); background: transparent;
+  color: var(--muted); cursor: pointer;
+}
+.data-curta-btn:hover { color: var(--brand); }
+/* 1px e transparente, mas PRESENTE: display:none impediria o showPicker, e
+   é a posição dele que ancora o calendário sob o canto direito do campo. */
+.data-curta > input.data-curta-nativo {
+  position: absolute; right: 0; bottom: 0;
+  width: 1px; height: 1px; min-height: 0; padding: 0; border: 0;
+  opacity: 0; pointer-events: none;
+}
+.form-hint.err { color: var(--danger); }
+
+/* Período calculado: selo, não texto de dica (D2, 1e). */
+.sol-periodo {
+  justify-self: start; align-self: start;   /* grade (largo) e coluna (estreito) */
+  display: inline-flex; align-items: center; gap: 7px;
+  margin: 0; padding: 5px 12px;
+  border: 1px solid color-mix(in srgb, var(--brand) 30%, var(--border));
+  border-radius: 999px;
+  background: var(--info-bg);
+  color: var(--brand); font-size: 13px;
+}
+.sol-periodo > span { color: var(--muted); }
+.sol-periodo > b { font-weight: 700; }
+.sol-periodo:empty { display: none; }

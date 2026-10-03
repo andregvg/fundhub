@@ -182,8 +182,8 @@ alerta para conferir.
 3. Em **Destino**, busque o local no campo **Local** - digite parte do nome e escolha da lista. Endereço, Número e Bairro aparecem preenchidos sozinhos. A lista abre quando você clica no campo, digita ou aperta a seta para baixo. Se você errar uma letra ("Muzeu"), a lista mostra os locais **Parecidos**.
 4. **O lugar não está na lista?** Depois de digitar pelo menos 3 letras do nome, escolha o último item, **Usar “nome digitado” como novo local** (se a lista tiver outros locais, o item aparece em tom apagado, como **Nenhum destes? Cadastrar “nome digitado”**). O campo passa a mostrar a etiqueta **Novo local**, e você preenche **Endereço**, **Número** e **Bairro** - os três são obrigatórios, porque é isso que a empresa de transporte lê na ficha do motorista. O **×** do campo volta à busca.
 5. Ao preencher o endereço de um local novo, se ele já for o de um local cadastrado, aparece "Este endereço já é de …" com o botão **Usar este**, que troca para o local já cadastrado. É só um aviso: você pode seguir com o local novo.
-6. Em **Quando**, informe a data e os horários de embarque e de retorno - os dois são **obrigatórios**: é a partir deles que o sistema conta quantos ônibus estão livres e calcula o **período**, mostrado logo abaixo dos campos, sem que você precise escolher (a tabela logo abaixo da lista mostra a regra).
-7. Em **Responsável pela visita**, informe o professor(a) responsável e o telefone/WhatsApp - os dois são **obrigatórios**, para a empresa de transporte e a Gerência conseguirem falar com alguém em caso de dúvida.
+6. Em **Quando**, digite a **Data** só com dia e mês, sem barra: `1403` vira `14/03`, e logo abaixo o sistema escreve a data por extenso, já com o ano. O ano é o atual - ou o próximo, se a data já passou. Se o dia não existir (como `3102`), aparece "Essa data não existe." em vermelho. O botão com o calendário, dentro do campo, abre o calendário para escolher, e quem preferir pode digitar o ano também. Depois informe o **Horário de embarque** e o **Horário de saída do evento**, também só com números (`0730` vira 07h30) - os dois são **obrigatórios**: é a partir deles que o sistema conta quantos ônibus estão livres e calcula o **período**, mostrado em destaque logo abaixo dos campos, sem que você precise escolher (a tabela logo abaixo da lista mostra a regra).
+7. Em **Responsável pela visita**, informe o **Servidor(a) responsável** e o **Telefone / WhatsApp** - os dois são **obrigatórios**, para a empresa de transporte e a Gerência conseguirem falar com alguém em caso de dúvida. Ao escolher a escola, o campo do nome passa a sugerir a equipe dela (gestores e coordenadores): é só começar a digitar e escolher na lista, e o telefone vem preenchido com o que está no cadastro - você pode trocá-lo, se o número do dia da visita for outro. Se o responsável não está na lista (um professor, por exemplo), digite o nome e o telefone normalmente.
 8. Em **Acessibilidade**, informe quantos estudantes usam **cadeira de rodas** e quantos são **surdos**, e marque **Outra necessidade específica** se houver mais alguma coisa - descreva-a em Observações. O sistema calcula sozinho quantos ônibus e quantas vans adaptadas são necessários; surdo não muda o veículo, mas o dado vai para a ficha da viagem.
 9. Escolhidos a escola e o destino, aparece o **tempo de viagem** estimado até lá. Se não aparecer, a linha diz o porquê - o pedido pode ser enviado assim mesmo.
 10. **Acompanhe a linha de saldo** logo acima do botão de enviar: "3 ônibus livres para embarque às 13:00 em 05/10 · este pedido usa 2". Antes de preencher os dois horários, ela mostra o número do período, o mesmo que aparece em Disponibilidade; depois, conta pelo horário exato, e se atualiza sozinha a cada troca.
@@ -193,7 +193,7 @@ alerta para conferir.
 
 O **período** é calculado assim:
 
-| Embarque | Retorno | Período |
+| Embarque | Saída do evento | Período |
 |---|---|---|
 | antes das 12h | até 12h | Manhã |
 | antes das 12h | depois das 12h | Manhã e tarde |
@@ -414,8 +414,8 @@ pedido segue normalmente.
   aprova: sem veículo cadastrado não há o que reservar.
 - **Faltar ônibus no horário pedido, para a escola.** O número de veículos é
   inviolável: se não há ônibus livre naquele horário, o pedido não é aceito.
-- **Horário de embarque ou de retorno em branco.**
-- **Retorno antes do embarque.** Não vale para a **noite**: um pedido
+- **Horário de embarque ou de saída do evento em branco.**
+- **Saída do evento antes do embarque.** Não vale para a **noite**: um pedido
   noturno pode voltar depois da meia-noite.
 - **Pedir sem antecedência mínima.** A escola precisa pedir com pelo menos
   5 dias. Quem aprova não tem esse limite.
@@ -423,7 +423,7 @@ pedido segue normalmente.
 - **Novo local sem endereço, número e bairro.** Os três são obrigatórios,
   além do nome, quando o destino não vem da lista de locais - é o que a
   empresa de transporte vai ler na ficha.
-- **Pedido sem o professor(a) responsável ou sem o telefone/WhatsApp.**
+- **Pedido sem o servidor(a) responsável ou sem o telefone/WhatsApp.**
 
 ### O que apenas avisa
 
@@ -534,4 +534,4 @@ Negado é um pedido que **nunca** chegou a valer - foi recusado na análise.
 Cancelado é um pedido que **estava de pé** e foi desfeito. Os dois exigem
 justificativa.
 
-> Atualizado na versão 0.38.1.
+> Atualizado na versão 0.39.0.
