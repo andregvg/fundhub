@@ -164,29 +164,67 @@ span.gira-90, span.gira-menos90, span.gira-180 { display: inline-flex; }
 /* Linhas extras de filtro abaixo da busca (segmento, flags). */
 .toolbar-linha { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
 .toolbar-linha:last-of-type { margin-bottom: 16px; }
+/* Caixa de busca: UM controle (spec 2026-10-02, D7). A lupa mora num
+   quadrado de fundo próprio à esquerda, separado do texto por um fio.
+   O quadrado é o próprio <svg>: lado = altura - 2px de borda, e o padding
+   empurra o desenho de 16px para o centro geométrico - não depende de
+   line-height. Altura FIXA (height, não min-height): com min-height o
+   controle podia crescer e o quadrado ficaria para trás. O fio é sombra
+   interna, e não borda, para não tirar meio pixel do centro. */
 .search {
+  --lado: calc(var(--toque) - 2px);
   flex: 1 1 100%;
   display: flex;
   align-items: center;
-  gap: 8px;
-  min-height: var(--toque);
-  padding: 8px 13px;
+  height: var(--toque);
+  padding: 0 6px 0 0;
+  overflow: hidden;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 11px;
   box-shadow: var(--shadow);
 }
+.search > .ico:first-child {
+  width: var(--lado);
+  height: var(--lado);
+  padding: calc((var(--lado) - 16px) / 2);
+  background: var(--surface-3);
+  box-shadow: inset -1px 0 0 var(--border);
+  color: var(--muted);
+}
+.search:focus-within { border-color: var(--brand); }
 /* Variante compacta: um controle único (data, ano) dentro de uma .toolbar,
    que não deve esticar. NÃO usar como campo de filtro - filtro mora em
    .painel-filtros com .filtro-campo, que tem o rótulo acima. */
 .search.compacta { flex: 0 0 auto; }
 .search input {
-  width: 100%;
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 100%;
+  padding: 0 10px;
   border: 0;
   outline: 0;
   background: transparent;
   color: var(--text);
   font-size: var(--campo-fonte);   /* 16px em toque: evita o zoom do iOS */
+}
+/* Dentro de formulário a busca é mais um campo: altura, raio e fundo dos
+   vizinhos, sem sombra. Antes saía com 40px contra 36px e sombra. */
+:is(.esc-form, .form-grid, .form-grupo) .search {
+  --lado: calc(var(--campo) - 2px);
+  height: var(--campo);
+  border-radius: var(--radius-btn);
+  background: var(--surface-2);
+  box-shadow: none;
+}
+/* O input de dentro NÃO é campo: a moldura é do .search. A regra de campo de
+   `.esc-form input` (mais abaixo, mesma especificidade de `.search input`)
+   vencia por ordem e desenhava uma segunda caixa dentro do controle. */
+:is(.esc-form, .form-grid, .form-grupo) .search input {
+  min-height: 0;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 0;
 }
 .count { color: var(--muted); font-size: 13px; }
 .vazio { color: var(--muted); font-style: italic; }
@@ -1096,8 +1134,8 @@ body:has(.modal-back.open) .confirmar-back.open { -webkit-backdrop-filter: none;
 .tabela-topo .search {
   flex: 1 1 auto;
   min-width: 0;
-  min-height: var(--campo);
-  padding: 4px 10px;
+  --lado: calc(var(--campo) - 2px);
+  height: var(--campo);
   border-radius: var(--radius-btn);
   background: var(--surface-2);
   box-shadow: none;
@@ -1605,12 +1643,19 @@ hr.sep { margin: 20px 0; border: 0; border-top: 1px solid var(--border); }
 @keyframes girar { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .topbar-acao.girando .ico { animation: none; } }
 
-/* ── Busca com seleção (shared/ui/busca-selecao.js) ────────── */
-.bs { position: relative; flex: 1 1 260px; }
+/* ── Busca com seleção (shared/ui/busca-selecao.js) ──────────
+   A lista ancora em .bs-ancora, que contém SÓ o controle e a lista: com
+   left/right 0 ela tem exatamente a largura e o left do campo, em
+   qualquer contexto (spec 2026-10-02, D7). Antes ancorava em .bs, cuja
+   largura vinha de um flex pensado para a toolbar. */
+.bs { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.toolbar .bs { flex: 1 1 260px; }
+.bs-ancora { position: relative; }
 .bs-campo { width: 100%; }
+.bs-novo { flex: 0 0 auto; margin-right: 4px; }
 .bs-limpar {
   display: inline-flex; align-items: center; justify-content: center;
-  width: 22px; height: 22px; border: 0; border-radius: 6px;
+  flex: 0 0 auto; width: 22px; height: 22px; border: 0; border-radius: 6px;
   background: none; color: var(--muted); cursor: pointer;
 }
 .bs-limpar:hover { background: var(--surface-3); color: var(--text); }
@@ -1618,8 +1663,9 @@ hr.sep { margin: 20px 0; border: 0; border-top: 1px solid var(--border); }
   position: absolute; z-index: 60; top: calc(100% + 4px); left: 0; right: 0;
   max-height: 300px; overflow-y: auto; margin: 0; padding: 4px; list-style: none;
   background: var(--surface); border: 1px solid var(--border);
-  border-radius: 11px; box-shadow: var(--shadow);
+  border-radius: var(--radius-btn); box-shadow: var(--shadow);
 }
+.toolbar .bs-lista { border-radius: 11px; }
 .bs-item {
   display: flex; align-items: baseline; gap: 8px;
   padding: 8px 10px; border-radius: 8px; cursor: pointer;
@@ -1628,4 +1674,11 @@ hr.sep { margin: 20px 0; border: 0; border-top: 1px solid var(--border); }
 .bs-rot { font-size: 14px; }
 .bs-det { margin-left: auto; color: var(--muted); font-size: 12px; }
 .bs-nada { padding: 14px 10px; color: var(--muted); font-size: 13px; text-align: center; }
+/* "Parecidos": a busca exata não achou nada e estes estão a uma letra. */
+.bs-sub { padding: 6px 10px 2px; color: var(--muted); font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+/* Criar um item novo: o último da lista. Apagado quando há itens acima -
+   o duplicado exige escolha deliberada (spec 2026-10-02, D13). */
+.bs-criar { align-items: center; margin-top: 4px; border-top: 1px solid var(--border); border-radius: 0 0 8px 8px; color: var(--brand); }
+.bs-criar:first-child { margin-top: 0; border-top: 0; border-radius: 8px; }
+.bs-criar.apagado { color: var(--muted); }
 @media (pointer: coarse) { .bs-item { min-height: var(--toque); align-items: center; } }
