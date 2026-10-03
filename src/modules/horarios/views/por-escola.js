@@ -15,8 +15,8 @@ import { janelaDaUnidade } from '../horarios.config.js';
 // (R11 - horarios.model.js estourou 250 linhas). Ver progress.md, Ruling 13.
 import { getExibicao, definirCobertura } from '../exibicao.model.js';
 import { ordenarParaGrade, janelaDaGrade } from '../grade.model.js';
-import { getServidoresDaUnidade, rotulaVinculo } from '../../servidores/servidores.model.js';
-import { vinculosDeEquipe } from '../../servidores/equipe.model.js';
+import { getServidoresDaUnidade } from '../../servidores/servidores.model.js';
+import { vinculosDeEquipe, soSupervisiona, rotuloDoVinculo } from '../../servidores/equipe.model.js';
 import { getCargosGestao, rotulaCargo } from '../../servidores/vinculos.model.js';
 import { getUnidades } from '../../escolas/escolas.model.js';
 import { esc } from '../../../shared/dom.js';
@@ -139,14 +139,23 @@ async function carregar() {
   // contagem nem na cobertura. O supervisor tem horário próprio, na
   // Secretaria. Os blocos que ele já tinha aqui ficam no banco, só não
   // aparecem.
-  servidores = servidores.filter(s => vinculosDeEquipe(s).some(v => v.unidade_id === unidadeId));
+  const havia = servidores.length > 0;
+  servidores = servidores.filter(s => !soSupervisiona(s, unidadeId));
+  // Blocos e linhas de exibição de quem saiu também: sem isto as variantes e
+  // o condutor da sub-linha, e o botão de restaurar a ordem, enxergariam
+  // dados antigos do supervisor.
+  const daEquipe = new Set(servidores.map(s => s.id));
+  blocos = blocos.filter(b => daEquipe.has(b.servidor_id));
 
   document.getElementById('h-count').textContent = `${servidores.length} servidor(es) neste local`;
 
   if (!servidores.length) {
-    corpo.innerHTML = emptyState(ico('equipe', { tam: 32 }), 'Nenhum servidor neste local',
-      `Esta unidade não tem ninguém com local de trabalho atual. Cadastre em
-       <a href="#/servidores?unidade=${esc(unidadeId)}">Servidores</a>.`);
+    corpo.innerHTML = havia
+      ? emptyState(ico('equipe', { tam: 32 }), 'Nenhum servidor neste local',
+          'Esta unidade só tem supervisão vinculada, e a supervisão não compõe a grade da escola.')
+      : emptyState(ico('equipe', { tam: 32 }), 'Nenhum servidor neste local',
+          `Esta unidade não tem ninguém com local de trabalho atual. Cadastre em
+           <a href="#/servidores?unidade=${esc(unidadeId)}">Servidores</a>.`);
     return;
   }
 
@@ -158,7 +167,7 @@ async function carregar() {
   // `cargo` (sem a função) segue sendo a chave de comparação e de ordenação;
   // `cargoExibido` ("Gestor(a) 1") é só o que a grade escreve na tela.
   const itens = ordenarParaGrade(servidores, { exibicao, cargosGestao, cargoDe })
-    .map(it => ({ ...it, cargoExibido: rotulaVinculo({ ...vinculoAqui(it.servidor), papel: it.cargo }) }));
+    .map(it => ({ ...it, cargoExibido: rotuloDoVinculo(vinculoAqui(it.servidor)) }));
   linhas = itens.filter(it => it.exibir);
   const fora = itens.filter(it => !it.exibir);
 
@@ -210,7 +219,7 @@ async function carregar() {
 
   corpo.innerHTML = seletorEscala
     + (mostrarCobertura ? `<p class="form-hint">Cobertura da escola: ${esc(paraHora(janela.ini).slice(0, 5))} às ${esc(paraHora(janela.fim).slice(0, 5))}.</p>` : '')
-    + botaoResetHtml({ podeEditar: ctxAtual.podeEditar, temExibicao: exibicao.length > 0 })
+    + botaoResetHtml({ podeEditar: ctxAtual.podeEditar, temExibicao: exibicao.some(e => daEquipe.has(e.servidor_id)) })
     + legendaHtml(linhas, { podeEditar: ctxAtual.podeEditar })
     // `janela: regua` é a régua (desenho); `janelaCobertura: janela` é a
     // janela configurada (regra) - `lacunasCobertura` continua sendo

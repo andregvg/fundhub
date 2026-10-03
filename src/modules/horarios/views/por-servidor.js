@@ -8,9 +8,8 @@
 import { DIAS, getBlocosDoServidor, validarDia, totalDoDia, duracao } from '../horarios.model.js';
 import { escolherBlocos, rotulaEscala, variantesDe } from '../escalas.model.js';
 import { posicaoNaBarra, marcasDaBarra, janelaDaGrade, JANELA_FABRICA } from '../grade.model.js';
-import { getServidores, rotulaVinculo } from '../../servidores/servidores.model.js';
-import { vinculosDeEquipe, soSupervisiona } from '../../servidores/equipe.model.js';
-import { rotulaCargo } from '../../servidores/vinculos.model.js';
+import { getServidores } from '../../servidores/servidores.model.js';
+import { vinculosDeEquipe, soSupervisiona, rotuloDoVinculo } from '../../servidores/equipe.model.js';
 import { esc, vazio } from '../../../shared/dom.js';
 import { loading, emptyState, erroBox } from '../../../shared/ui/feedback.js';
 import { criarBuscaSelecao } from '../../../shared/ui/busca-selecao.js';
@@ -162,7 +161,7 @@ function painelLocal(s, local) {
   return `<section class="panel hb-painel">
     <h2>
       ${esc(local.apelido || local.nome)}
-      <small class="hb-sub">${esc(rotulaVinculo({ ...vinc, papel: rotulaCargo(vinc?.papel) }))} · ${duracao(totalSemana)} na semana</small>
+      <small class="hb-sub">${esc(rotuloDoVinculo(vinc))} · ${duracao(totalSemana)} na semana</small>
     </h2>
     <div class="hb-grade">${semana}</div>
   </section>`;

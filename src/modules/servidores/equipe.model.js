@@ -22,7 +22,24 @@ import { rotulaCargo, temFuncao } from './vinculos.model.js';
 // Reconhecida pelo rótulo canônico (o que a migration 023 produz); a regra
 // mora aqui, num lugar só, para virar marca no banco se um dia precisar.
 export const CARGO_SUPERVISAO = 'Supervisor(a)';
+// Pergunta pelo CARGO (a lista da equipe gestora). Para saber se um VÍNCULO
+// é de supervisão, o cargo não basta: ver vinculoDeSupervisao.
 export const eSupervisao = (cargo) => rotulaCargo(cargo) === CARGO_SUPERVISAO;
+
+// Supervisão é regra do VÍNCULO, não só do cargo (correção de 03/10/2026):
+// o supervisor acompanha escolas, mas TRABALHA na Secretaria - e o vínculo
+// dele lá tem o mesmo cargo. Cargo de supervisão numa ESCOLA é supervisão;
+// num local interno da SME (Sede, gerência) é o local de trabalho dele, e
+// é por lá que ele aparece em Horários.
+// Unidade sem `tipo` conta como escola: é a base anterior à migration 023
+// (ou um vínculo lido sem o embed da unidade), e o engano seguro é não
+// tratar supervisor como equipe de escola.
+const emEscola = (v) => !v?.unidade?.tipo || v.unidade.tipo === 'escola';
+export const vinculoDeSupervisao = (v) => eSupervisao(v?.papel) && emEscola(v);
+
+// O cargo do vínculo para EXIBIR: canônico (o legado "gestor" vira
+// "Gestor(a)") e, no de gestor, com a função - "Gestor(a) 1".
+export const rotuloDoVinculo = (v) => rotulaVinculo({ ...v, papel: rotulaCargo(v?.papel) });
 
 // Posição na equipe da escola (D7): Gestor 1, Gestor 2, gestor sem função
 // definida, coordenação, demais.
@@ -34,14 +51,14 @@ export function ordemNaEquipe(v) {
 
 // Os vínculos que fazem da pessoa EQUIPE de algum lugar: abertos, e não de
 // supervisão. É o que Horários lê.
-export const vinculosDeEquipe = (s) => vinculosAbertos(s).filter(v => !eSupervisao(v.papel));
+export const vinculosDeEquipe = (s) => vinculosAbertos(s).filter(v => !vinculoDeSupervisao(v));
 
 // A unidade é só SUPERVISIONADA pela pessoa: há vínculo aberto de supervisão
 // nela e nenhum de equipe. Quem coordena uma escola e supervisiona outra tem
 // a primeira como local de jornada; a segunda, não (D14).
 export function soSupervisiona(s, unidadeId) {
   if (vinculosDeEquipe(s).some(v => v.unidade_id === unidadeId)) return false;
-  return vinculosAbertos(s).some(v => v.unidade_id === unidadeId && eSupervisao(v.papel));
+  return vinculosAbertos(s).some(v => v.unidade_id === unidadeId && vinculoDeSupervisao(v));
 }
 
 // Quem tem local de trabalho aberto na unidade, já na forma de LEITURA que
@@ -61,14 +78,14 @@ export async function getEquipeDaUnidade(unidadeId) {
   return servidores.map(s => {
     const daqui = vinculosAbertos(s).filter(v => v.unidade_id === unidadeId);
     const cargo = [...new Set(daqui
-      .map(v => rotulaVinculo({ ...v, papel: rotulaCargo(v.papel) })).filter(Boolean))].join(' · ');
+      .map(rotuloDoVinculo).filter(Boolean))].join(' · ');
     const tels = s.telefones || [];
     const tel = tels.find(t => t.principal) || tels[0];
     return {
       id: s.id, nome: s.nome, cargo, email: s.email || '', telefone: tel?.numero || '',
       // Só supervisão NESTA unidade: quem é coordenador aqui e supervisor de
       // outra escola continua sendo equipe daqui.
-      supervisao: daqui.length > 0 && daqui.every(v => eSupervisao(v.papel)),
+      supervisao: soSupervisiona(s, unidadeId),
       ordem: Math.min(4, ...daqui.map(ordemNaEquipe)),
     };
   }).sort((a, b) => a.ordem - b.ordem

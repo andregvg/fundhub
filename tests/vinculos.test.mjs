@@ -2,7 +2,7 @@
 // da escola) - spec 2026-10-03, D13.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { eSupervisao, ordemNaEquipe, vinculosDeEquipe, soSupervisiona } from '../src/modules/servidores/equipe.model.js';
+import { eSupervisao, ordemNaEquipe, vinculosDeEquipe, soSupervisiona, vinculoDeSupervisao, rotuloDoVinculo } from '../src/modules/servidores/equipe.model.js';
 import { rotulaVinculo, cargoExibidoDe } from '../src/modules/servidores/servidores.model.js';
 import { temFuncao, funcaoValida, _gravarComFuncao } from '../src/modules/servidores/vinculos.model.js';
 
@@ -146,4 +146,31 @@ test('soSupervisiona: a escola só supervisionada não é local de jornada', () 
   assert.equal(soSupervisiona(s, 'esc-b'), false);    // é equipe lá
   assert.equal(soSupervisiona(s, 'esc-c'), false);    // sem vínculo nenhum
   assert.equal(soSupervisiona(s, 'esc-d'), false);    // supervisão já encerrada
+});
+
+// ── Supervisão é regra do VÍNCULO (correção de 03/10/2026) ──
+test('vinculoDeSupervisao: cargo de supervisão só conta numa escola', () => {
+  const v = (papel, tipo) => ({ papel, unidade: tipo ? { tipo } : undefined });
+  assert.equal(vinculoDeSupervisao(v('Supervisor(a)', 'escola')), true);
+  assert.equal(vinculoDeSupervisao(v('Supervisor(a)', 'sede')), false);      // trabalha na Secretaria
+  assert.equal(vinculoDeSupervisao(v('Supervisor(a)', 'interno')), false);
+  assert.equal(vinculoDeSupervisao(v('Supervisor(a)')), true);               // sem unidade/tipo: conta como escola
+  assert.equal(vinculoDeSupervisao(v('Coordenador(a)', 'escola')), false);
+  assert.equal(vinculoDeSupervisao(v('supervisor', 'escola')), true);        // legado
+});
+
+test('o supervisor aparece pelo local de trabalho na Secretaria, não pelas escolas', () => {
+  const s = { vinculos: [
+    { papel: 'Supervisor(a)', fim: null, unidade_id: 'esc-a', unidade: { id: 'esc-a', tipo: 'escola' } },
+    { papel: 'Supervisor(a)', fim: null, unidade_id: 'sede', unidade: { id: 'sede', tipo: 'sede' } },
+  ] };
+  assert.deepEqual(vinculosDeEquipe(s).map(v => v.unidade_id), ['sede']);
+  assert.equal(soSupervisiona(s, 'sede'), false);
+  assert.equal(soSupervisiona(s, 'esc-a'), true);
+});
+
+test('rotuloDoVinculo normaliza o cargo legado e leva a função do gestor', () => {
+  assert.equal(rotuloDoVinculo({ papel: 'gestor', funcao: 1 }), 'Gestor(a) 1');
+  assert.equal(rotuloDoVinculo({ papel: 'Coordenador(a)' }), 'Coordenador(a)');
+  assert.equal(rotuloDoVinculo(null), '');
 });

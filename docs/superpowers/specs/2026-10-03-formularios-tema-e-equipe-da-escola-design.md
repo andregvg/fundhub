@@ -229,6 +229,13 @@ O vínculo dele com a escola **continua existindo** - é o que registra "supervi
 escola" e o que dá a ele acesso aos dados dela. O que muda é a leitura: é **supervisão**,
 não equipe.
 
+**Supervisão é regra do vínculo, não só do cargo** (correção de 03/10/2026). O cargo
+`Supervisor(a)` numa **escola** é supervisão; o mesmo cargo num local **interno da SME**
+(Sede, gerência) é o local de trabalho do supervisor, e é por lá que ele aparece em
+Horários. Unidade sem `tipo` conta como escola (base anterior à migration 023): o
+engano seguro é não tratar supervisor como equipe de escola. A regra mora em
+`servidores/equipe.model.js` (`vinculoDeSupervisao`).
+
 Uma regra só, em `servidores/vinculos.model.js`, dona do domínio "cargo":
 `getEquipeDaUnidade()` passa a devolver cada pessoa com a função no rótulo, a marca de
 supervisão e já na ordem da D7. Ficha da escola, SATE e Horários leem daí.
