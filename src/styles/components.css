@@ -804,6 +804,8 @@ input.caixa-alta { text-transform: uppercase; }
 .auth-card h1 .hub { color: var(--brand); }
 .auth-sub { margin: 0 0 20px; color: var(--muted); font-size: 14px; }
 .auth-form { display: flex; flex-direction: column; gap: 8px; text-align: left; }
+/* Login mantém rótulo em caixa alta de propósito: não é rótulo de campo de
+   formulário no sentido da spec 2026-10-02 D2 - não "corrigir". */
 .auth-form label { color: var(--form-label); font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
 .auth-form input {
   padding: 12px 13px;
@@ -1265,7 +1267,7 @@ body:has(.modal-back.open) .confirmar-back.open { -webkit-backdrop-filter: none;
    29px entre moldura e moldura (medido). O gap sai quando o formulário tem
    grupo como filho direto: o espaço entre grupos passa a ser só a margem,
    os 16px da spec. */
-.modal .esc-form:has(> .form-grupo) { gap: 0; }
+.modal .esc-form:has(> .form-grupo:not(.plano)) { gap: 0; }
 /* Campo mais claro que o grupo: é o que o separa do fundo tingido. */
 .modal .form-grupo:not(.plano):not(:has(.card, .person, .people, .solic, .dash-item, .tabela, .panel, .tiles))
   :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea, .search) {

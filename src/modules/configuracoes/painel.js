@@ -58,8 +58,11 @@ export async function pintarConfigDoModulo(box, mod, ctx = {}) {
   // `<select>` do tipo 'opcao' não recebia altura de lugar nenhum. Marcado
   // aqui, todo painel - os de hoje e os que vierem - nasce no padrão sem
   // precisar saber disso.
+  // `plano`: o bloco da configuração já é um cartão com desenho próprio
+  // (configuracoes.css, cabeçalho em barra); a moldura de grupo de modal
+  // (components.css, spec 2026-10-02 D1) o desfiguraria.
   box.innerHTML = `<div class="esc-form cfg-form">${porGrupo.map(g => `
-    <fieldset class="form-grupo">
+    <fieldset class="form-grupo plano">
       <legend>${esc(g.rotulo)}</legend>
       ${g.itens.map(i => itemHtml(i, mod.id, podeRede)).join('')}
     </fieldset>`).join('')}</div>`;
