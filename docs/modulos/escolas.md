@@ -7,10 +7,10 @@
 - Buscar uma escola por nome, apelido, bairro ou pelo nome de quem está na
   equipe.
 - Filtrar por segmento, por oferta, e por "tem transporte" / "atende EJA".
-- Abrir a ficha de uma escola: contatos, endereço, cadastros e a equipe. O
-  cabeçalho da ficha mostra só o nome da escola; o nome que consta no SAE
-  aparece em **Cadastros e links**, como **Nome no SAE**, quando é diferente
-  do nome.
+- Abrir a ficha de uma escola: contatos, endereço, supervisão e equipe. Sob o
+  nome da escola ficam as tags (segmento, oferta, transporte, EJA). Os
+  cadastros menos consultados - **Nome no SAE** (só quando diferente do nome),
+  INEP, regional e site da APM - ficam recolhidos em **Mais detalhes**.
 - Da equipe, abrir a ficha de uma pessoa - ou já a edição dela - sem sair da
   escola.
 - Cadastrar uma escola nova e editar os dados de uma existente.
@@ -33,7 +33,7 @@ sistema, nos bastidores.
 
 1. Clique em **Nova escola**.
 2. Preencha ao menos o **Nome** (é o que aparece nas listas). Apelido, nome
-   oficial (aparece na ficha como **Nome no SAE**), segmento, oferta, endereço, e-mail, telefones e cadastros (INEP,
+   oficial (aparece na ficha, em **Mais detalhes**, como **Nome no SAE**), segmento, oferta, endereço, e-mail, telefones e cadastros (INEP,
    APM) são opcionais.
 3. Ligue **Transporte de alunos** e **Atende EJA** se for o caso.
 4. Clique em **Criar**.
@@ -128,10 +128,19 @@ fica salvo.
 Essas três são preferências suas - seguem o seu login e não mudam a tela de
 mais ninguém.
 
+### Ver os detalhes de cadastro de uma escola
+
+1. Abra a ficha da escola e role até o fim.
+2. Clique em **Mais detalhes** (ou chegue nele com Tab e use Enter ou Espaço).
+   Aparecem o **Nome no SAE** (quando é diferente do nome da escola), o
+   **INEP**, a **Regional** e o **Site APM**.
+3. Clique de novo para recolher. Se nenhum desses dados estiver preenchido, o
+   bloco não aparece.
+
 ### Ver ou editar alguém da equipe
 
 1. Abra a ficha da escola.
-2. Em **Equipe**, clique no card da pessoa. A ficha dela abre por cima da
+2. Em **Equipe** (ou em **Supervisão**), clique no card da pessoa. A ficha dela abre por cima da
    escola.
 3. Para voltar à escola, use a seta **←** no topo da ficha (ou a tecla Esc).
 
@@ -141,7 +150,10 @@ já atualizada. O lápis só aparece para quem pode editar servidores.
 
 ### Incluir ou encerrar alguém na equipe
 
-A equipe vem dos locais de trabalho de cada pessoa. Na ficha da escola, o botão
+A equipe vem dos locais de trabalho de cada pessoa, na ordem Gestor(a) 1,
+Gestor(a) 2, coordenação e demais. Quem apenas supervisiona a escola aparece em
+**Supervisão**, um bloco à parte: o supervisor acompanha a escola, mas não faz
+parte da equipe dela, e por isso não entra na contagem da equipe. Na ficha da escola, o botão
 **Gerir em Servidores** abre a lista de Servidores já filtrada por aquela
 unidade - é lá que se inclui ou encerra o local de trabalho de alguém.
 
@@ -153,6 +165,10 @@ unidade - é lá que se inclui ou encerra o local de trabalho de alguém.
   nove dígitos. Você digita com parênteses e traço ou só os números, tanto faz:
   o sistema arruma e mostra sempre no mesmo formato. Sem DDD, assume 16.
 - Excluir uma escola não pode ser desfeito.
+- **Supervisão fica separada da equipe.** O supervisor aparece só em
+  **Supervisão**; a equipe lista quem trabalha na escola. Sem ninguém em um dos
+  blocos, a ficha avisa "Sem supervisão informada." ou "Sem pessoas
+  vinculadas.".
 - **Latitude e longitude andam juntas.** Se só uma for preenchida, o sistema
   guarda a escola sem localização - meia coordenada não aponta lugar nenhum.
 - **Localizar pelo endereço não salva sozinho.** Ele só preenche os campos;
@@ -168,7 +184,8 @@ unidade - é lá que se inclui ou encerra o local de trabalho de alguém.
 
 ## Ligações com outros módulos
 
-- A **equipe** vem dos locais de trabalho abertos, cadastrados em Servidores.
+- A **equipe** e a **supervisão** vêm dos locais de trabalho abertos,
+  cadastrados em Servidores.
   Cada card abre a ficha da pessoa, e da ficha dela dá para abrir de volta a
   escola - a seta ← refaz o caminho passo a passo.
 - **SATE**, **Afastamentos**, **Calendário** e **Horários** apontam para as

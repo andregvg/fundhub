@@ -1092,6 +1092,8 @@ body:has(.modal-back.open) .confirmar-back.open { -webkit-backdrop-filter: none;
 .modal-head h2 { margin: 0 0 2px; font-size: 18px; letter-spacing: -.01em; }
 .modal-head h2 .nome-oficial { text-transform: uppercase; font-size: 16.5px; }
 .modal-head small { color: var(--muted); }
+/* Tags sob o título (ficha da escola): o <small> vira a linha delas. */
+.modal-head small:has(> .tags) { display: block; margin-top: 6px; }
 /* A rolagem é do CORPO, não do cartão: é isso que mantém o cabeçalho e
    o rodapé de formulário parados num modal longo. */
 .modal-body { flex: 1 1 auto; overflow-y: auto; padding: 18px 18px 22px; }

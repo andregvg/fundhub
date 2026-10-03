@@ -8,8 +8,9 @@
 // contexto a partir dos models, e por isso abre igual por cima da lista
 // de Escolas ou da ficha de um servidor. Spec
 // 2026-09-13-fichas-entre-modulos-design.md.
-// O cabeçalho mostra só o nome; o nome no SAE vai para "Cadastros e links"
-// quando difere (spec 2026-10-02, D5).
+// O cabeçalho mostra o nome e, embaixo, as tags; o nome no SAE vai para
+// "Mais detalhes" quando difere (spec 2026-10-03, D7). A supervisão tem
+// bloco próprio, separado da equipe (D13).
 // ============================================================
 import { getUnidades } from '../escolas.model.js';
 import { linkMaps } from '../../locais/geografia.model.js';
@@ -71,9 +72,9 @@ function detalhe(u, ctx, opts) {
   const campo = (l, v) => v ? `<div class="field"><div class="lbl">${l}</div><div class="val">${v}</div></div>` : '';
 
   abrirModal(`
-    ${modalHead(`<span class="nome-oficial">${esc(u.nome)}</span>`)}
+    ${modalHead(`<span class="nome-oficial">${esc(u.nome)}</span>`,
+      chips ? `<span class="tags">${chips}</span>` : '')}
     <div class="modal-body">
-      ${chips ? `<div class="tags" style="margin-bottom:14px">${chips}</div>` : ''}
       <div class="modal-acoes">
         ${ctx.podeEditar ? `<button class="mini-btn" id="edit-esc">${ico('editar')} Editar</button>` : ''}
         <a class="mini-btn" href="#/horarios?unidade=${esc(u.id)}">${ico('horario')} Horários da equipe</a>
@@ -87,12 +88,8 @@ function detalhe(u, ctx, opts) {
       ${campo('Telefones', tel)}
       ${campo('E-mail institucional', u.email ? `<a href="mailto:${esc(u.email)}">${esc(u.email)}</a>` : '')}
 
-      <h3 class="bloco-tit">Cadastros e links</h3>
-      ${u.nome_oficial && norm(u.nome_oficial).trim() !== norm(u.nome).trim()
-        ? campo('Nome no SAE', esc(u.nome_oficial)) : ''}
-      ${campo('INEP', esc(u.inep))}
-      ${campo('Regional', esc(u.regional))}
-      ${u.site_apm ? campo('Site APM', `<a href="${esc(u.site_apm)}" target="_blank" rel="noopener">abrir</a>`) : ''}
+      <h3 class="bloco-tit">Supervisão</h3>
+      <div class="people" id="esc-supervisao">${loading()}</div>
 
       <hr class="sep" />
       <div class="vinc-head">
@@ -103,6 +100,8 @@ function detalhe(u, ctx, opts) {
       <p class="form-hint" style="margin-top:10px">
         A equipe vem dos locais de trabalho atuais. Para incluir ou encerrar alguém, use Servidores.
       </p>
+
+      ${maisDetalhes(u, campo)}
     </div>`, { tamanho: 'largo', voltar: opts.voltar });
 
   if (ctx.podeEditar) {
@@ -115,7 +114,19 @@ function detalhe(u, ctx, opts) {
   // A ficha abre na hora e a equipe chega depois: na primeira vez ela
   // depende da lista de servidores, e segurar a ficha inteira por isso
   // faria o clique parecer travado.
-  pintarEquipe(document.getElementById('esc-equipe'), u, { voltar: reabrir, aoMudar: opts.aoMudar });
+  pintarEquipe(document.getElementById('esc-equipe'), document.getElementById('esc-supervisao'), u, { voltar: reabrir, aoMudar: opts.aoMudar });
+}
+
+// O que não precisa aparecer de cara (spec 2026-10-03, D7): identificadores
+// que se consultam de vez em quando. Sem nenhum preenchido, o bloco nem nasce.
+function maisDetalhes(u, campo) {
+  const itens = [
+    u.nome_oficial && norm(u.nome_oficial).trim() !== norm(u.nome).trim() ? campo('Nome no SAE', esc(u.nome_oficial)) : '',
+    campo('INEP', esc(u.inep)),
+    campo('Regional', esc(u.regional)),
+    u.site_apm ? campo('Site APM', `<a href="${esc(u.site_apm)}" target="_blank" rel="noopener">abrir</a>`) : '',
+  ].join('');
+  return itens ? `<details class="mais-detalhes"><summary>Mais detalhes</summary>${itens}</details>` : '';
 }
 
 // A equipe vem do model da EQUIPE (getEquipeDaUnidade), e não de
@@ -124,34 +135,42 @@ function detalhe(u, ctx, opts) {
 // de trabalho invalida - editar alguém por cima desta ficha e voltar mostra
 // a equipe já atualizada. Quem é a equipe e com que cargo é regra do
 // vínculo, e fica lá; esta tela só desenha.
-async function pintarEquipe(box, u, abrirOpts) {
+async function pintarEquipe(box, boxSup, u, abrirOpts) {
   let pessoas;
   try {
     pessoas = await getEquipeDaUnidade(u.id);
   } catch (err) {
     if (box.isConnected) box.innerHTML = erroBox(err);
+    if (boxSup?.isConnected) boxSup.innerHTML = '';
     return;
   }
   // O modal pode ter sido trocado enquanto a lista chegava (← rápido, outra
   // ficha por cima): ligar ouvintes num nó desconectado seria trabalho perdido.
   if (!box.isConnected) return;
 
-  const tit = document.getElementById('esc-equipe-tit');
-  if (tit) tit.textContent = `Equipe (${pessoas.length})`;
+  // Supervisão não é equipe (spec 2026-10-03, D13): é dado da escola, em
+  // bloco próprio. A lista já vem na ordem da equipe - Gestor 1, Gestor 2,
+  // coordenação, demais (servidores/equipe.model.js).
+  const equipe = pessoas.filter(p => !p.supervisao);
+  const supervisao = pessoas.filter(p => p.supervisao);
 
-  if (!pessoas.length) {
-    box.innerHTML = '<p class="count">Sem pessoas vinculadas.</p>';
-    return;
-  }
+  const tit = document.getElementById('esc-equipe-tit');
+  if (tit) tit.textContent = `Equipe (${equipe.length})`;
 
   const verServidor = podeAbrirFicha('servidores');
   const editarServidor = verServidor && podeEscrever('servidores');
-  box.innerHTML = pessoas.map(p => cardPessoa(p, { clicavel: verServidor, editar: editarServidor })).join('');
+  const cards = (lista) => lista.map(p => cardPessoa(p, { clicavel: verServidor, editar: editarServidor })).join('');
 
-  box.querySelectorAll('[data-abrir-servidor]').forEach(b => b.addEventListener('click', () =>
-    abrirFicha('servidores', b.dataset.abrirServidor, abrirOpts)));
-  box.querySelectorAll('[data-editar-servidor]').forEach(b => b.addEventListener('click', () =>
-    abrirFicha('servidores', b.dataset.editarServidor, { ...abrirOpts, editar: true })));
+  box.innerHTML = equipe.length ? cards(equipe) : '<p class="count">Sem pessoas vinculadas.</p>';
+  if (boxSup) boxSup.innerHTML = supervisao.length ? cards(supervisao) : '<p class="count">Sem supervisão informada.</p>';
+
+  // Os dois blocos são nós novos desta abertura: ligar uma vez, aqui.
+  for (const raiz of [box, boxSup].filter(Boolean)) {
+    raiz.querySelectorAll('[data-abrir-servidor]').forEach(b => b.addEventListener('click', () =>
+      abrirFicha('servidores', b.dataset.abrirServidor, abrirOpts)));
+    raiz.querySelectorAll('[data-editar-servidor]').forEach(b => b.addEventListener('click', () =>
+      abrirFicha('servidores', b.dataset.editarServidor, { ...abrirOpts, editar: true })));
+  }
 }
 
 // Sem apelido: ele serve para ACHAR a pessoa numa lista, e a ficha do
