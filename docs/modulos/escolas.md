@@ -33,7 +33,7 @@ sistema, nos bastidores.
 
 1. Clique em **Nova escola**.
 2. Preencha ao menos o **Nome** (é o que aparece nas listas). Apelido, nome
-   oficial, segmento, oferta, endereço, e-mail, telefones e cadastros (INEP,
+   oficial (aparece na ficha como **Nome no SAE**), segmento, oferta, endereço, e-mail, telefones e cadastros (INEP,
    APM) são opcionais.
 3. Ligue **Transporte de alunos** e **Atende EJA** se for o caso.
 4. Clique em **Criar**.

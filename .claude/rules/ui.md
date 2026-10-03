@@ -106,10 +106,14 @@ inteiro no `title`: um campo que cresce para duas linhas deixa de casar com os v
   plano sozinho (`:has()`); o que o detector não pega leva `.plano`. Em
   página, o grupo continua seção com traço - o `.panel` já é a moldura.
 - **Rótulo em caixa normal, legenda em caixa alta.** É o que separa os dois.
+  Exceção de propósito: o formulário de login (`.auth-form`) mantém o rótulo em caixa alta.
 - **Foco é a borda**, na cor de destaque, sem anel. Caixa e rádio ficam com o anel.
 - **Modal com formulário pergunta antes de descartar** o que a pessoa
   digitou, nas quatro portas (fundo, Esc, ×, ←). `fecharModal()` pelo código
   não pergunta. Formulário que grava na hora: `abrirModal(html, { protegerSaida: false })`.
+  A decisão é por toque: a linha de base é tirada quando a pessoa toca no campo
+  (`keydown`, `pointerdown` ou `beforeinput`; num grupo de rádio, o grupo
+  inteiro de uma vez). Valor posto por código nunca conta como digitado.
 - **Busca com seleção abre por gesto** (clique, digitação, ↓), não pelo foco,
   e tolera erro de digitação ("Parecidos") quando a busca exata não acha nada.
 
@@ -133,6 +137,7 @@ filho direto (`components.css`). Um módulo novo com esse mesmo desenho (linha =
 ganha a altura certa sem precisar declarar nada. Não se aplica a botão de ação de lista/modal
 (`.modal-acoes`, `.solic-acoes`) nem a `.campo-derivado` (não tem `input`/`select`, é `<span>`) -
 nenhum dos dois tem campo como filho direto do mesmo container.
+
 A mesma regra vale para a barra com `.campo-solto`: botão e busca da barra descem/sobem para `--campo`.
 
 ## Filtros: um painel por tela de lista

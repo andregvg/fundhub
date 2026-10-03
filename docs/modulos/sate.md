@@ -177,66 +177,28 @@ alerta para conferir.
 
 ### Pedir transporte
 
-1. No menu, em **Solicitações**, clique no botão **Nova solicitação**. Abre uma
-   janela com o formulário dividido em blocos: Origem, Destino, Quando,
-   Responsável pela visita, Acessibilidade e Observações da escola.
-2. Em **Origem**, escolha a escola, as turmas e o número de estudantes. Quem
-   aprova procura a escola **pelo nome** no campo **Escola**: digite parte do
-   nome e escolha na lista. Para a escola, o campo só pede escolha se você
-   enxergar mais de uma unidade.
-3. Em **Destino**, busque o local no campo **Local** - digite parte do nome e
-   escolha da lista. Endereço, Número e Bairro aparecem preenchidos sozinhos.
-   A lista abre quando você clica no campo, digita ou aperta a seta para
-   baixo. Se você errar uma letra ("Muzeu"), a lista mostra os locais
-   **Parecidos**.
-   - **O lugar não está na lista?** Termine de digitar o nome e escolha o
-     último item, **Usar “nome digitado” como novo local** (se a lista tiver
-     outros locais, o item aparece em tom apagado, como **Nenhum destes?
-     Cadastrar “nome digitado”**). O campo passa a mostrar a etiqueta **Novo
-     local**, e você preenche **Endereço**, **Número** e **Bairro** - os três
-     são obrigatórios, porque é isso que a empresa de transporte lê na ficha
-     do motorista. O **×** do campo volta à busca.
-   - Ao preencher o endereço de um local novo, se ele já for o de um local
-     cadastrado, aparece "Este endereço já é de …" com o botão **Usar este**,
-     que troca para o local já cadastrado. É só um aviso: você pode seguir com
-     o local novo.
-4. Em **Quando**, informe a data e os horários de embarque e de retorno - os
-   dois são **obrigatórios**: é a partir deles que o sistema conta quantos
-   ônibus estão livres e calcula o **período**, mostrado logo abaixo dos
-   campos, sem que você precise escolher:
+1. No menu, em **Solicitações**, clique no botão **Nova solicitação**. Abre uma janela com o formulário dividido em blocos: Origem, Destino, Quando, Responsável pela visita, Acessibilidade e Observações da escola.
+2. Em **Origem**, escolha a escola, as turmas e o número de estudantes. Quem aprova procura a escola **pelo nome** no campo **Escola**: digite parte do nome e escolha na lista. Se você é de uma escola só, o campo já vem preenchido.
+3. Em **Destino**, busque o local no campo **Local** - digite parte do nome e escolha da lista. Endereço, Número e Bairro aparecem preenchidos sozinhos. A lista abre quando você clica no campo, digita ou aperta a seta para baixo. Se você errar uma letra ("Muzeu"), a lista mostra os locais **Parecidos**.
+4. **O lugar não está na lista?** Depois de digitar pelo menos 3 letras do nome, escolha o último item, **Usar “nome digitado” como novo local** (se a lista tiver outros locais, o item aparece em tom apagado, como **Nenhum destes? Cadastrar “nome digitado”**). O campo passa a mostrar a etiqueta **Novo local**, e você preenche **Endereço**, **Número** e **Bairro** - os três são obrigatórios, porque é isso que a empresa de transporte lê na ficha do motorista. O **×** do campo volta à busca.
+5. Ao preencher o endereço de um local novo, se ele já for o de um local cadastrado, aparece "Este endereço já é de …" com o botão **Usar este**, que troca para o local já cadastrado. É só um aviso: você pode seguir com o local novo.
+6. Em **Quando**, informe a data e os horários de embarque e de retorno - os dois são **obrigatórios**: é a partir deles que o sistema conta quantos ônibus estão livres e calcula o **período**, mostrado logo abaixo dos campos, sem que você precise escolher (a tabela logo abaixo da lista mostra a regra).
+7. Em **Responsável pela visita**, informe o professor(a) responsável e o telefone/WhatsApp - os dois são **obrigatórios**, para a empresa de transporte e a Gerência conseguirem falar com alguém em caso de dúvida.
+8. Em **Acessibilidade**, informe quantos estudantes usam **cadeira de rodas** e quantos são **surdos**, e marque **Outra necessidade específica** se houver mais alguma coisa - descreva-a em Observações. O sistema calcula sozinho quantos ônibus e quantas vans adaptadas são necessários; surdo não muda o veículo, mas o dado vai para a ficha da viagem.
+9. Escolhidos a escola e o destino, aparece o **tempo de viagem** estimado até lá. Se não aparecer, a linha diz o porquê - o pedido pode ser enviado assim mesmo.
+10. **Acompanhe a linha de saldo** logo acima do botão de enviar: "3 ônibus livres para embarque às 13:00 em 05/10 · este pedido usa 2". Antes de preencher os dois horários, ela mostra o número do período, o mesmo que aparece em Disponibilidade; depois, conta pelo horário exato, e se atualiza sozinha a cada troca.
+11. Se faltar ônibus no horário escolhido e houver um horário do mesmo período em que o pedido caberia, a linha sugere: "A partir das 14h10 há ônibus suficientes." Quem aprova, num dia **sem nenhuma frota**, vê ali mesmo um cadastro rápido - Rótulo, quantos ônibus e até quando - para resolver sem sair do formulário.
+12. Se ainda assim não houver como enviar, a linha explica o motivo e o botão de enviar fica desabilitado - escolha outro horário ou outra data.
+13. Envie. O pedido nasce **pendente de autorização** e já reserva a vaga.
 
-   | Embarque | Retorno | Período |
-   |---|---|---|
-   | antes das 12h | até 12h | Manhã |
-   | antes das 12h | depois das 12h | Manhã e tarde |
-   | das 12h às 18h | qualquer horário | Tarde |
-   | a partir das 18h | qualquer horário (inclusive depois da meia-noite) | Noite |
+O **período** é calculado assim:
 
-5. Em **Responsável pela visita**, informe o professor(a) responsável e o
-   telefone/WhatsApp - os dois são **obrigatórios**, para a empresa de
-   transporte e a Gerência conseguirem falar com alguém em caso de dúvida.
-6. Em **Acessibilidade**, informe quantos estudantes usam **cadeira de
-   rodas** e quantos são **surdos**, e marque **Outra necessidade
-   específica** se houver mais alguma coisa - descreva-a em Observações. O
-   sistema calcula sozinho quantos ônibus e quantas vans adaptadas são
-   necessários; surdo não muda o veículo, mas o dado vai para a ficha da
-   viagem.
-7. Escolhidos a escola e o destino, aparece o **tempo de viagem** estimado
-   até lá. Se não aparecer, a linha diz o porquê - o pedido pode ser
-   enviado assim mesmo.
-8. **Acompanhe a linha de saldo** logo acima do botão de enviar: "3 ônibus
-   livres para embarque às 13:00 em 05/10 · este pedido usa 2". Antes de
-   preencher os dois horários, ela mostra o número do período, o mesmo que
-   aparece em Disponibilidade; depois, conta pelo horário exato, e se
-   atualiza sozinha a cada troca.
-9. Se faltar ônibus no horário escolhido e houver um horário do mesmo período
-   em que o pedido caberia, a linha sugere: "A partir das 14h10 há ônibus
-   suficientes." Quem aprova, num dia **sem nenhuma frota**, vê ali mesmo um
-   cadastro rápido - Rótulo, quantos ônibus e até quando - para resolver sem
-   sair do formulário.
-10. Se ainda assim não houver como enviar, a linha explica o motivo e o botão
-    de enviar fica desabilitado - escolha outro horário ou outra data.
-11. Envie. O pedido nasce **pendente de autorização** e já reserva a vaga.
+| Embarque | Retorno | Período |
+|---|---|---|
+| antes das 12h | até 12h | Manhã |
+| antes das 12h | depois das 12h | Manhã e tarde |
+| das 12h às 18h | qualquer horário | Tarde |
+| a partir das 18h | qualquer horário (inclusive depois da meia-noite) | Noite |
 
 Um pedido feito com um **Novo local** entra marcado como *local a conferir* -
 ver a seção "Conferir local", mais abaixo.
