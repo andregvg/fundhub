@@ -13,8 +13,9 @@ lateral:
 |---|---|
 | **Solicitações** | todos |
 | **Disponibilidade** | todos |
-| **Fichas de ônibus**, **Frota**, **Locais**, **Configurações** | quem aprova |
+| **Fichas de ônibus**, **Frota**, **Locais** | quem aprova |
 | **Catálogo** | todos |
+| **Configurações** | todos (quem aprova vê também as regras da rede) |
 
 **Como usar o SATE** abre este tutorial.
 
@@ -32,12 +33,25 @@ clique em **Ver como escola** no menu, busque a escola e escolha.
   inviolável, só a própria unidade na lista).
 - Uma faixa no topo avisa em toda página. **Nada é gravado** nessa visão: os
   botões de decisão somem e o envio de pedido fica desativado.
-- O menu fica igual ao da escola: durante a visão, somem **Ver como escola**,
-  **Configurações** e **Ir para o FundHub**. A escola não é levada ao FundHub.
+- O menu fica igual ao da escola: durante a visão, somem **Ver como escola**
+  e **Ir para o FundHub**. A escola não é levada ao FundHub. **Configurações**
+  continua no menu e mostra só o tema e a cor, como para a escola.
 - **Voltar à minha visão**, na faixa, encerra e devolve o seu menu. Fechar a
   aba também.
-A cor principal do SATE é escolhida em **Configurações** e vale para a rede
-toda.
+
+### Tema e cor (todos)
+
+Em **Configurações**, no menu, cada pessoa escolhe como o SATE aparece para
+ela:
+
+- **Tema escuro** - liga ou desliga o tema escuro. Vale para o SATE e para o
+  FundHub, neste aparelho e na sua conta.
+- **Cor principal do SATE** - a cor de destaque dos botões, do menu e da
+  marca. A escolha é **só sua**: não muda a tela de ninguém. Quem nunca
+  escolheu vê a cor que a rede tinha definido antes.
+
+Quem aprova vê, logo abaixo, também a frota e as regras de agendamento, que
+valem para a rede toda.
 
 ## O que dá para fazer aqui
 

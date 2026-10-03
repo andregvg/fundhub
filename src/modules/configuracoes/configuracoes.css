@@ -72,10 +72,20 @@
 .cfg-painel-nome { flex: 1 1 auto; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; }
 .cfg-painel-setas { display: inline-flex; gap: 4px; flex: 0 0 auto; }
 
-/* ── Tela agregadora: um bloco por módulo ────────────────── */
-.cfg-mod + .cfg-mod { margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--border); }
+/* ── Tela agregadora: um bloco expansível por módulo ─────── */
+.cfg-mod + .cfg-mod { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
 .cfg-mod-head { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
-.cfg-mod-head h2 { font-size: 15px; margin: 0; }
+.cfg-mod-head h2 { font-size: 15px; margin: 0; flex: 1 1 auto; min-width: 0; }
+/* Cabeçalho do bloco é o <summary> (spec 2026-10-03, D9): clicável inteiro,
+   sem o marcador nativo, com a seta à direita girando ao abrir. O `chevron`
+   do conjunto de ícones aponta para BAIXO em repouso: aberto fica como está,
+   fechado gira para a direita. */
+.cfg-mod-head { cursor: pointer; list-style: none; user-select: none; }
+.cfg-mod-head::-webkit-details-marker { display: none; }
+.cfg-mod-seta { display: grid; place-items: center; color: var(--muted); transform: rotate(-90deg); transition: transform .15s ease; }
+.cfg-mod[open] > .cfg-mod-head .cfg-mod-seta { transform: none; }
+.cfg-mod-head:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; border-radius: var(--radius-btn); }
+.cfg-mod:not([open]) > .cfg-mod-head { margin-bottom: 0; }
 
 /* Painéis de Horários: cobertura por tipo e dia da semana de escala.
    O rótulo do tipo ocupa a linha inteira e os dois campos vêm embaixo,

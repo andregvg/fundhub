@@ -5,6 +5,7 @@
 
 ## O que dá para fazer aqui
 
+- Ligar o **tema escuro**, para todo o sistema.
 - Mudar preferências que valem só para o seu acesso (por exemplo, exibir o
   telefone no card de Escolas e de Servidores).
 - Onde você tem permissão de escrita num módulo, mudar decisões que valem para
@@ -13,6 +14,11 @@
 Cada módulo que tem algo a ajustar mostra uma **engrenagem** no canto superior
 direito. Ela abre as opções daquele módulo ali mesmo. A tela **Configurações**
 (no menu, em "Minha conta") reúne as opções de todos os módulos num lugar só.
+
+O **tema escuro** também tem interruptor no menu que abre ao clicar no seu
+nome, no alto da tela (o ícone da pessoa). Os dois são o mesmo ajuste: mexeu
+num, o outro acompanha. O tema vale para o FundHub e para o SATE, neste
+aparelho e na sua conta.
 
 ## Quem pode o quê
 
@@ -39,7 +45,12 @@ como se comporta.
 ### Ver todas as configurações de uma vez
 
 1. No menu lateral, em "Minha conta", abra **Configurações**.
-2. Cada módulo aparece como um bloco, com as opções agrupadas por assunto.
+2. Cada módulo aparece como um bloco **fechado**, só com o nome. Clique no
+   nome (ou chegue nele com a tecla Tab e aperte Enter) para abrir; clique de
+   novo para fechar. O bloco **Geral**, com o tema escuro, vem aberto na
+   primeira vez. O sistema lembra quais blocos você deixou abertos neste
+   navegador.
+3. Dentro de cada bloco, as opções vêm agrupadas por assunto.
 
 Algumas configurações são listas ou tabelas que você edita ali mesmo - por
 exemplo, em Escolas, os locais de trabalho internos da SME (gerências e
@@ -70,4 +81,4 @@ novo) ou é uma configuração da rede que você não tem permissão para mudar.
 **Minhas preferências somem quando eu saio?**
 Não. Elas são do seu e-mail, não do navegador.
 
-> Atualizado na versão 0.37.0.
+> Atualizado na versão 0.39.0.

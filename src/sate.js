@@ -25,7 +25,7 @@ import { montarNav, marcarNav, marcarAtualizacao, atualizarMeusDados } from './s
 import { render, PAGINAS, PAGINA_INICIAL } from './modules/sate/sate.view.js';
 import { corSate } from './modules/sate/sate.config.js';
 import * as notificacoes from './modules/notificacoes/notificacoes.service.js';
-import { pintarConfigDoModulo } from './modules/configuracoes/painel.js';
+import { pintarConfigDoModulo, pintarTema } from './modules/configuracoes/painel.js';
 import { getUnidades } from './modules/escolas/escolas.model.js';
 import { markdownParaHtml } from './modules/ajuda/markdown.js';
 import { criarBuscaSelecao } from './shared/ui/busca-selecao.js';
@@ -127,7 +127,7 @@ function gruposDoMenu() {
     .filter(([, p]) => !p.aprovador || aprovador)
     .map(([id, p]) => ({ rota: `#/${id}`, ico: p.ico, nome: p.rotulo }));
   const conta = [
-    ...(aprovador ? [{ rota: '#/configuracoes', ico: 'config', nome: 'Configurações' }] : []),
+    { rota: '#/configuracoes', ico: 'config', nome: 'Configurações' },
     // Fora da simulação: durante ela, a saída é o botão da faixa do topo.
     ...(estado.podeAprovar && !simulando ? [{ rota: '#/ver-como', ico: 'escola', nome: 'Ver como escola' }] : []),
     { rota: '#/ajuda', ico: 'ajuda', nome: 'Como usar o SATE' },
@@ -150,7 +150,7 @@ async function rotear() {
     marcarNav('#/ajuda');
     return paginaAjuda();
   }
-  if (id === 'configuracoes' && aprovadorEfetivo()) {
+  if (id === 'configuracoes') {
     marcarNav('#/configuracoes');
     return paginaConfiguracoes();
   }
@@ -177,16 +177,25 @@ async function rotear() {
   window.scrollTo(0, 0);
 }
 
-// As configurações do módulo como PÁGINA, e não modal: no SATE elas são um
-// item do menu, e o mesmo desenho que o FundHub usa na tela agregadora.
+// Configurações como PÁGINA. Para todos (spec 2026-10-03, D20): tema e cor
+// são de cada pessoa. Quem aprova vê, abaixo, as configurações da rede; a
+// escola (e quem a simula) vê só a aparência.
 async function paginaConfiguracoes() {
+  const aprovador = aprovadorEfetivo();
   app.innerHTML = `
     <div class="page-head">
       <h1>Configurações</h1>
-      <p>Frota, regras de agendamento e a cor do SATE. Valem para a rede toda.</p>
+      <p>${aprovador
+        ? 'O tema e a cor são seus. Frota e regras de agendamento valem para a rede toda.'
+        : 'O tema e a cor do SATE. Valem só para você.'}</p>
     </div>
+    <div id="sate-tema"></div>
     <div id="sate-config">${loading()}</div>`;
-  await pintarConfigDoModulo(document.getElementById('sate-config'), moduloPorId('sate'));
+  pintarTema(document.getElementById('sate-tema'));
+  const box = document.getElementById('sate-config');
+  // A cor vale na hora, sem recarregar.
+  box.addEventListener('cfg:salva', (e) => { if (e.detail.chave === 'cor') aplicarCor(); });
+  await pintarConfigDoModulo(box, moduloPorId('sate'), {}, { soPessoais: !aprovador });
 }
 
 // O tutorial do SATE, dentro do SATE. É o MESMO arquivo que a Ajuda do

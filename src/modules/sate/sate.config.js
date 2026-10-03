@@ -17,7 +17,7 @@
 // SATE: ficava escondido numa engrenagem e ninguém achava o que estava
 // cadastrado (spec 2026-09-26, D2).
 // ============================================================
-import { conf } from '../../core/configuracoes.js';
+import { conf, pref } from '../../core/configuracoes.js';
 
 // Os padrões vivem AQUI, no acesso, e não em core/configuracoes.js -
 // aquele arquivo só sabe "o que foi gravado".
@@ -53,8 +53,10 @@ export const antecedenciaMinDias = () => num('antecedencia_min_dias', PADRAO.ant
 export const capacidadeOnibus = () => num('capacidade_onibus', PADRAO.capacidade_onibus) || PADRAO.capacidade_onibus;
 // Velocidade é divisor: zero cai no padrão, como as capacidades. Margem
 // zero é escolha legítima ("não conte manobra").
-// Cor principal da página do SATE. Valor fora da lista cai no padrão -
-// um texto estranho gravado não pode deixar a página sem cor de marca.
+// Cor principal da página do SATE - de CADA PESSOA (spec 2026-10-03, D20).
+// A cor que a rede tinha escolhido vira o padrão de quem nunca escolheu.
+// Valor fora da lista cai no padrão: um texto estranho gravado não pode
+// deixar a página sem cor de marca.
 export const CORES = Object.freeze([
   { valor: 'verde', rotulo: 'Verde (padrão)' },
   { valor: 'azul', rotulo: 'Azul (a do FundHub)' },
@@ -62,7 +64,7 @@ export const CORES = Object.freeze([
   { valor: 'vinho', rotulo: 'Vinho' },
 ]);
 export const corSate = () => {
-  const v = conf('sate', 'cor');
+  const v = pref('sate', 'cor') ?? conf('sate', 'cor');
   return CORES.some(c => c.valor === v) ? v : PADRAO.cor;
 };
 
@@ -74,10 +76,13 @@ export const trajetoProvisorioMin = () => num('trajeto_provisorio_min', PADRAO.t
 export const DECLARACAO = {
   itens: [
     {
-      chave: 'cor', escopo: 'rede', grupo: 'exibicao',
-      tipo: 'opcao', opcoes: CORES, padrao: PADRAO.cor,
+      chave: 'cor', escopo: 'usuario', grupo: 'exibicao',
+      tipo: 'opcao', opcoes: CORES,
+      // Getter: o padrão exibido é a cor EM VIGOR para quem ainda não
+      // escolheu (a da rede), e a declaração é lida antes do login.
+      get padrao() { return corSate(); },
       rotulo: 'Cor principal do SATE',
-      dica: 'A cor de destaque da página do SATE: botões, menu e marca. Vale para a rede toda.',
+      dica: 'A cor de destaque do SATE para você: botões, menu e marca.',
     },
     {
       chave: 'intervalo_min_periodos', escopo: 'rede', grupo: 'regras',

@@ -1,16 +1,37 @@
 // ============================================================
 // FundHub - modules/configuracoes/configuracoes.view.js
-// Agregador puro (como dashboard/viagens): um bloco por módulo que a
-// pessoa pode ver e que declara `config`, na ordem do registro. Usa o
-// MESMO renderizador que a engrenagem (painel.js).
+// Agregador puro (como dashboard/viagens): o bloco "Geral" (tema) e um
+// bloco expansível por módulo que a pessoa pode ver e que declara `config`,
+// na ordem do registro. Usa o MESMO renderizador que a engrenagem (painel.js).
 // ============================================================
 import { MODULOS, veModulo } from '../../core/registry.js';
 import { esc } from '../../shared/dom.js';
 import { ico } from '../../shared/ui/icones.js';
-import { emptyState } from '../../shared/ui/feedback.js';
-import { pintarConfigDoModulo } from './painel.js';
+import { pintarConfigDoModulo, pintarTema } from './painel.js';
 
-const cssEscape = (s) => String(s).replace(/["\\]/g, '\\$&');
+// Quais blocos ficaram abertos - conveniência do navegador, a tela
+// funciona sem. Primeiro acesso: só o "Geral".
+const CHAVE_ABERTOS = 'fundhub:cfg-abertos';
+function lerAbertos() {
+  try {
+    const v = JSON.parse(localStorage.getItem(CHAVE_ABERTOS) || 'null');
+    return new Set(Array.isArray(v) ? v : ['geral']);
+  } catch (_) { return new Set(['geral']); }
+}
+function gravarAbertos(set) {
+  try { localStorage.setItem(CHAVE_ABERTOS, JSON.stringify([...set])); } catch (_) { /* sem lembrança */ }
+}
+
+// <details> nativo: teclado, leitor de tela e abrir/fechar sem JS. O nome
+// do módulo é o <summary>; a seta gira pelo [open] (configuracoes.css).
+const blocoHtml = (id, icone, nome, aberto) => `
+  <details class="cfg-mod" data-mod="${esc(id)}" ${aberto ? 'open' : ''}>
+    <summary class="cfg-mod-head">
+      ${ico(icone, { tam: 18 })}<h2>${esc(nome)}</h2>
+      <span class="cfg-mod-seta" aria-hidden="true">${ico('chevron', { tam: 16 })}</span>
+    </summary>
+    <div class="cfg-mod-corpo"></div>
+  </details>`;
 
 export async function render(app, ctx = {}) {
   const perfil = ctx.perfil || null;
@@ -29,20 +50,29 @@ export async function render(app, ctx = {}) {
     <div id="cfg-lista"></div>`;
 
   const lista = app.querySelector('#cfg-lista');
-  if (!alvos.length) {
-    lista.innerHTML = emptyState(ico('config', { tam: 32 }), 'Nada para configurar',
-      'Os módulos que você usa ainda não têm opções.');
-    return;
-  }
+  const abertos = lerAbertos();
+  lista.innerHTML = blocoHtml('geral', 'config', 'Geral', abertos.has('geral'))
+    + alvos.map(m => blocoHtml(m.id, m.ico || 'config', m.nome, abertos.has(m.id))).join('');
 
-  lista.innerHTML = alvos.map(m => `
-    <section class="cfg-mod" data-mod="${esc(m.id)}">
-      <div class="cfg-mod-head">${ico(m.ico || 'config', { tam: 18 })}<h2>${esc(m.nome)}</h2></div>
-      <div class="cfg-mod-corpo"></div>
-    </section>`).join('');
+  // Cada bloco é desenhado na PRIMEIRA abertura: antes a página esperava
+  // todos os módulos em fila, mesmo os que ninguém ia abrir.
+  const pintar = async (det) => {
+    if (det.dataset.pintado) return;
+    det.dataset.pintado = '1';
+    const corpo = det.querySelector('.cfg-mod-corpo');
+    if (det.dataset.mod === 'geral') { pintarTema(corpo); return; }
+    const mod = alvos.find(m => m.id === det.dataset.mod);
+    if (mod) await pintarConfigDoModulo(corpo, mod, { perfil });
+  };
 
-  for (const m of alvos) {
-    const box = lista.querySelector(`[data-mod="${cssEscape(m.id)}"] .cfg-mod-corpo`);
-    await pintarConfigDoModulo(box, m, { perfil });
-  }
+  // `toggle` não borbulha: ouvinte na fase de captura.
+  lista.addEventListener('toggle', (e) => {
+    const det = e.target.closest?.('details.cfg-mod');
+    if (!det) return;
+    if (det.open) { abertos.add(det.dataset.mod); pintar(det); }
+    else abertos.delete(det.dataset.mod);
+    gravarAbertos(abertos);
+  }, true);
+
+  for (const det of lista.querySelectorAll('details.cfg-mod[open]')) await pintar(det);
 }

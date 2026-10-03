@@ -311,6 +311,9 @@ body.app-sate { --info-bg: color-mix(in srgb, var(--brand) 12%, var(--surface));
 .sate-simulacao .mini-btn { margin-left: auto; }
 .sate-ver-como { max-width: 520px; display: flex; flex-direction: column; gap: 12px; }
 
+/* Página Configurações: o tema (cartão próprio) e as regras da rede, um sobre o outro. */
+#sate-tema { margin-bottom: 16px; }
+
 /* ── Página Locais: mapa (Leaflet) ───────────────────────────
    Altura fixa: o Leaflet precisa de um contêiner medido. */
 .local-mapa { height: 280px; border: 1px solid var(--border); border-radius: var(--radius-btn); }

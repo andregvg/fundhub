@@ -13,6 +13,7 @@
 // esconder faria a tela mentir sobre por que o sistema se comporta assim.
 // ============================================================
 import { conf, pref, definirConf, definirPref, GRUPOS } from '../../core/configuracoes.js';
+import { temaAtual, definirTema } from '../../core/tema.js';
 import { podeEscrever } from '../../core/permissoes.js';
 import { chavePerm, veModulo } from '../../core/registry.js';
 import { esc } from '../../shared/dom.js';
@@ -28,9 +29,41 @@ export async function abrirPainelConfig(mod) {
   await pintarConfigDoModulo(document.getElementById('cfg-modal-body'), mod, {});
 }
 
+// O interruptor do tema, no mesmo desenho de um item de configuração. Não é
+// item de módulo nenhum: é do sistema inteiro, e por isso tem renderizador
+// próprio - usado pelo bloco "Geral" do FundHub e pela página de
+// configurações do SATE (spec 2026-10-03, D11 e D20).
+export function pintarTema(box) {
+  if (!box) return;
+  box.innerHTML = `<div class="esc-form cfg-form">
+    <fieldset class="form-grupo plano">
+      <legend>Aparência</legend>
+      <div class="cfg-item cfg-simples">
+        <label class="lbl" for="cfg-tema">Tema escuro
+          <span class="form-hint cfg-dica">Vale para o FundHub e para o SATE, neste aparelho e na sua conta.</span></label>
+        <label class="switch">
+          <input type="checkbox" id="cfg-tema" ${temaAtual() === 'escuro' ? 'checked' : ''} />
+          <span class="switch-trilho" aria-hidden="true"></span></label>
+      </div>
+    </fieldset></div>`;
+  const inp = box.querySelector('#cfg-tema');
+  inp.addEventListener('change', () => definirTema(inp.checked ? 'escuro' : 'claro'));
+  // Trocado pelo menu de usuário com esta tela aberta: o interruptor
+  // acompanha. O ouvinte é de `document` e se desliga sozinho quando a tela
+  // sai - senão cada visita a Configurações deixaria um para trás.
+  const aoMudar = (e) => {
+    if (!inp.isConnected) { document.removeEventListener('tema:mudou', aoMudar); return; }
+    inp.checked = e.detail === 'escuro';
+  };
+  document.addEventListener('tema:mudou', aoMudar);
+}
+
 // Desenha os grupos e itens de UM módulo dentro de `box`. Usado pela
 // modal e, um módulo por vez, pela tela agregadora.
-export async function pintarConfigDoModulo(box, mod, ctx = {}) {
+// `soPessoais`: só os itens de escopo `usuario` (spec 2026-10-03, D20). É a
+// página de configurações do SATE vista pela escola - quem não decide frota
+// e regras não precisa vê-las ali, nem desabilitadas.
+export async function pintarConfigDoModulo(box, mod, ctx = {}, { soPessoais = false } = {}) {
   if (!box) return;
   const perm = chavePerm(mod);
   if (!veModulo(mod)) { box.innerHTML = ''; return; }
@@ -41,7 +74,7 @@ export async function pintarConfigDoModulo(box, mod, ctx = {}) {
   } catch (err) { box.innerHTML = erroBox(err); return; }
 
   const podeRede = podeEscrever(perm);
-  const itens = declaracao?.itens || [];
+  const itens = (declaracao?.itens || []).filter(i => !soPessoais || i.escopo === 'usuario');
   const porGrupo = GRUPOS
     .map(g => ({ ...g, itens: itens.filter(i => i.grupo === g.id) }))
     .filter(g => g.itens.length);
@@ -154,6 +187,9 @@ function ligar(box, modId, podeRede) {
       if (escopo === 'rede') await definirConf(modId, chave, valor);
       else await definirPref(modId, chave, valor);
       toast({ titulo: 'Configuração salva', tipo: 'sucesso' });
+      // Quem hospeda o painel reage ao que foi salvo sem conhecer os itens
+      // (o SATE reaplica a cor na hora).
+      box.dispatchEvent(new CustomEvent('cfg:salva', { bubbles: true, detail: { modulo: modId, chave } }));
     } catch (err) {
       toast({ titulo: 'Não foi possível salvar', texto: err.message || String(err), tipo: 'erro' });
     } finally {
