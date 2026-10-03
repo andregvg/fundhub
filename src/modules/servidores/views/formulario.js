@@ -2,8 +2,8 @@
 // FundHub - servidores/views/formulario.js  (criar, editar, excluir)
 // ============================================================
 import { CONFIG } from '../../../core/config.js';
-import { criarServidor, atualizarServidor, excluirServidor, cargoDe, localDeTrabalhoDe, vinculosAbertos } from '../servidores.model.js';
-import { criarVinculo } from '../vinculos.model.js';
+import { criarServidor, atualizarServidor, excluirServidor, cargoExibidoDe, localDeTrabalhoDe, vinculosAbertos } from '../servidores.model.js';
+import { criarVinculo, FUNCOES, temFuncao } from '../vinculos.model.js';
 import { eLocalInterno } from '../../escolas/escolas.model.js';
 import { sincronizarTelefones } from '../../telefones/telefones.model.js';
 import { esc, falha } from '../../../shared/dom.js';
@@ -27,7 +27,7 @@ let buscaLocalNovo = null;
 export function formServidor(s, ctx, { voltar = null } = {}) {
   const novo = !s;
   const v = (k) => esc(s?.[k] ?? '');
-  const cargo = s ? cargoDe(s) : '';
+  const cargo = s ? cargoExibidoDe(s) : '';
   const local = s ? localDeTrabalhoDe(s, { completo: true }) : '';
 
   buscaLocalNovo?.destruir();
@@ -100,6 +100,12 @@ export function formServidor(s, ctx, { voltar = null } = {}) {
             <label class="col-full" id="s-cargo-novo-wrap" hidden>Qual cargo / função?
               <input id="s-cargo-novo" placeholder="Ex.: Vice-diretor(a)" />
             </label>
+            <label class="col-full" id="s-funcao-wrap" hidden>Função
+              <select id="s-funcao">
+                <option value="">Não definida</option>
+                ${FUNCOES.map(f => `<option value="${f.valor}">${esc(f.rotulo)}</option>`).join('')}
+              </select>
+            </label>
             <label>Início <input id="s-vinc-ini" type="date" /></label>
           </div>
         </fieldset>` : ''}
@@ -137,11 +143,20 @@ export function formServidor(s, ctx, { voltar = null } = {}) {
       vazioTexto: 'Nada com esse nome',
     });
     const selCargo = document.getElementById('s-cargo');
+    const cargoNovo = document.getElementById('s-cargo-novo');
+    // A função só existe no cargo de gestor (D12), venha o cargo da lista
+    // ou do campo "Qual cargo / função?".
+    const pintarFuncao = () => {
+      const cargo = selCargo.value === OUTRO ? cargoNovo.value : selCargo.value;
+      document.getElementById('s-funcao-wrap').hidden = !temFuncao(cargo);
+    };
     selCargo.addEventListener('change', () => {
       const outro = selCargo.value === OUTRO;
       document.getElementById('s-cargo-novo-wrap').hidden = !outro;
-      if (outro) document.getElementById('s-cargo-novo').focus();
+      if (outro) cargoNovo.focus();
+      pintarFuncao();
     });
+    cargoNovo.addEventListener('input', pintarFuncao);
   }
 
   // Máscara enquanto digita. O caso comum é digitar do começo ao fim;
@@ -232,7 +247,10 @@ async function salvarServidor(e, s, ctx, voltar) {
     if (unidade_id && !String(papel).trim()) {
       return falha(msg, 'Escolha também o cargo do local de trabalho, ou deixe o local em branco.');
     }
-    if (unidade_id) vinc = { unidade_id, papel, ingresso };
+    if (unidade_id) {
+      const funcao = temFuncao(papel) ? (Number(document.getElementById('s-funcao').value) || null) : null;
+      vinc = { unidade_id, papel, ingresso, funcao };
+    }
     else if (String(papel).trim()) {
       toast({ titulo: 'Cargo ignorado', texto: 'Escolha um local de trabalho para registrar o cargo.', tipo: 'atencao' });
     }

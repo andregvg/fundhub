@@ -1,7 +1,7 @@
 // ============================================================
 // FundHub - servidores/views/lista.js  (busca, filtros e cards)
 // ============================================================
-import { vinculosAbertos, localDeTrabalhoDe } from '../servidores.model.js';
+import { vinculosAbertos, localDeTrabalhoDe, rotulaVinculo } from '../servidores.model.js';
 import { rotulaCargo } from '../vinculos.model.js';
 import { esc, norm } from '../../../shared/dom.js';
 import { emptyState } from '../../../shared/ui/feedback.js';
@@ -60,7 +60,8 @@ export function pintarLista(box, lista, ctx) {
 
 function card(s) {
   const abertos = vinculosAbertos(s);
-  const cargos = [...new Set(abertos.map(v => rotulaCargo(v.papel)).filter(Boolean))]
+  // Exibição: com a função ("Gestor(a) 1"). O filtro e a busca acima comparam o cargo puro.
+  const cargos = [...new Set(abertos.map(v => rotulaVinculo({ ...v, papel: rotulaCargo(v.papel) })).filter(Boolean))]
     .map(c => `<span class="seg">${esc(c)}</span>`).join('');
 
   const lugares = abertos.length

@@ -9,7 +9,8 @@
 // Pode ser aberto sobre a ficha do servidor: quem chama passa
 // `voltar`, e o Esc desempilha em vez de fechar tudo.
 // ============================================================
-import { criarVinculo, atualizarVinculo, excluirVinculo, rotulaCargo } from '../vinculos.model.js';
+import { criarVinculo, atualizarVinculo, excluirVinculo, rotulaCargo, FUNCOES, temFuncao, mudarFuncao } from '../vinculos.model.js';
+import { quemTemFuncao } from '../equipe.model.js';
 import { eLocalInterno } from '../../escolas/escolas.model.js';
 import { esc, falha } from '../../../shared/dom.js';
 import { modalHead, abrirModal } from '../../../shared/ui/modal.js';
@@ -63,6 +64,17 @@ export function formVinculo(s, vinculo, ctx, { voltar = null } = {}) {
               Qual cargo / função?
               <input id="v-novo" value="${esc(conhecido ? '' : cargoAtual)}" placeholder="Ex.: Vice-diretor(a)" />
             </label>
+            <label class="col-full" id="v-funcao-wrap" hidden>Função
+              <select id="v-funcao">
+                <option value="">Não definida</option>
+                ${FUNCOES.map(f => `<option value="${f.valor}" ${vinculo?.funcao === f.valor ? 'selected' : ''}>${esc(f.rotulo)}</option>`).join('')}
+              </select>
+            </label>
+            <label class="col-full" id="v-desde-wrap" hidden>Mudou a partir de
+              <input id="v-desde" type="date" />
+              <small class="form-hint">Preencha se a pessoa trocou de função: o período anterior fica no histórico.
+                Em branco, o registro é só corrigido.</small>
+            </label>
           </div>
         </fieldset>
 
@@ -100,6 +112,24 @@ export function formVinculo(s, vinculo, ctx, { voltar = null } = {}) {
     if (outro) document.getElementById('v-novo').focus();
   });
 
+  // A função só existe no cargo de gestor (D12). "Mudou a partir de" só
+  // aparece quando há uma TROCA a datar: local de trabalho atual, que já
+  // tinha função, e a escolhida é outra. Definir a função de quem não tinha
+  // nenhuma é correção - sem pergunta.
+  const cargoEscolhido = () => (sel.value === OUTRO ? document.getElementById('v-novo').value : sel.value);
+  const funcaoEscolhida = () => Number(document.getElementById('v-funcao').value) || null;
+  const eTroca = () => Boolean(vinculo && !vinculo.fim && vinculo.funcao
+    && funcaoEscolhida() && funcaoEscolhida() !== vinculo.funcao);
+  const pintarFuncao = () => {
+    const gestor = temFuncao(cargoEscolhido());
+    document.getElementById('v-funcao-wrap').hidden = !gestor;
+    document.getElementById('v-desde-wrap').hidden = !(gestor && eTroca());
+  };
+  sel.addEventListener('change', pintarFuncao);
+  document.getElementById('v-novo').addEventListener('input', pintarFuncao);
+  document.getElementById('v-funcao').addEventListener('change', pintarFuncao);
+  pintarFuncao();
+
   document.getElementById('vc-form').addEventListener('submit', (e) => salvar(e, s, vinculo, ctx, voltar, buscaLocal));
   document.getElementById('v-del')?.addEventListener('click', () => removerVinculo(s, vinculo.id, ctx));
 }
@@ -118,18 +148,39 @@ async function salvar(e, s, vinculo, ctx, voltar, buscaLocal) {
   // Fim antes do início é impossível, não indesejável: barra (R15).
   if (ingresso && fim && fim < ingresso) return falha(msg, 'O término não pode ser anterior ao início.');
 
+  const funcao = temFuncao(papel) ? (Number(document.getElementById('v-funcao').value) || null) : null;
+  const desde = document.getElementById('v-desde-wrap').hidden ? '' : document.getElementById('v-desde').value;
+
+  // Troca datada: é a única coisa que este salvamento faz. Misturar com
+  // mudança de local ou de datas deixaria ambíguo a que período cada
+  // alteração pertence.
+  if (desde) {
+    const mexeuNoResto = unidade_id !== vinculo.unidade_id
+      || (ingresso || null) !== (vinculo.ingresso || null) || (fim || null) !== (vinculo.fim || null)
+      || rotulaCargo(papel) !== rotulaCargo(vinculo.papel);
+    if (mexeuNoResto) return falha(msg, 'Salve a troca de função separada das outras alterações.');
+  }
+
   const btn = document.getElementById('v-save'); btn.disabled = true; btn.textContent = 'Salvando…';
   try {
-    if (vinculo) await atualizarVinculo(vinculo.id, { unidade_id, papel, ingresso, fim });
-    else await criarVinculo({ servidor_id: s.id, unidade_id, papel, ingresso, fim });
+    if (desde) await mudarFuncao(s.id, vinculo, funcao, desde);
+    else if (vinculo) await atualizarVinculo(vinculo.id, { unidade_id, papel, ingresso, fim, funcao });
+    else await criarVinculo({ servidor_id: s.id, unidade_id, papel, ingresso, fim, funcao });
+
+    // Aviso, não erro (R15): numa transição dois gestores com a mesma
+    // função se encostam. A consulta é depois de gravar e não derruba nada.
+    // Mostrado depois do toast de sucesso: o aviso é a última coisa lida.
+    let outro = null;
+    if (funcao && !fim) outro = await quemTemFuncao(unidade_id, funcao, s.id).catch(() => null);
     const novoCtx = await ctx.recarregar();
     // Volta para o modal de baixo já com o dado novo: passamos o ctx
     // recarregado para quem chamou reconstruir a tela a partir dele.
     if (voltar) voltar(novoCtx); else novoCtx.abrirDetalhe(s.id);
     const encerrou = vinculo && !vinculo.fim && fim;
-    const titulo = !vinculo ? 'Local de trabalho adicionado'
+    const titulo = desde ? 'Função alterada' : !vinculo ? 'Local de trabalho adicionado'
       : (encerrou ? 'Local de trabalho encerrado' : 'Local de trabalho atualizado');
     toast({ titulo, texto: s.nome, tipo: 'sucesso' });
+    if (outro) toast({ titulo: `Esta escola já tem Gestor ${funcao}`, texto: outro.nome, tipo: 'atencao' });
   } catch (err) {
     // Erro de gravação: inline quando dá para corrigir no formulário
     // aberto, toast quando não dá - reportarErro decide pelo código.

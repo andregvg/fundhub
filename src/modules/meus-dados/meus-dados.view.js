@@ -17,7 +17,7 @@
 // link mágico ou conta Google.
 // ============================================================
 import { getMeuPerfil, salvarMeuNome } from '../usuarios/usuarios.model.js';
-import { atualizarServidor, localDeTrabalhoDe, cargoDe, vinculosAbertos } from '../servidores/servidores.model.js';
+import { atualizarServidor, localDeTrabalhoDe, cargoExibidoDe, vinculosAbertos } from '../servidores/servidores.model.js';
 import { rotulaCargo } from '../servidores/vinculos.model.js';
 import { sincronizarTelefones, getTelefonesMapas } from '../telefones/telefones.model.js';
 import { recarregarPerfil } from '../../core/perfil.js';
@@ -146,7 +146,7 @@ function blocoServidor() {
             <label>Código funcional <input value="${esc(s.codigo_funcional || '')}" readonly /></label>
             <label>Local de trabalho <input value="${esc(localDeTrabalhoDe(s, { completo: true }) || 'sem local de trabalho')}"
               title="${esc(localDeTrabalhoDe(s, { completo: true }) || 'sem local de trabalho')}" readonly /></label>
-            <label>Cargo / função <input value="${esc(cargoDe(s) || 'cargo não informado')}" readonly /></label>
+            <label>Cargo / função <input value="${esc(cargoExibidoDe(s) || 'cargo não informado')}" readonly /></label>
             <label>Ingresso na rede <input value="${esc(s.inicio_rede ? fmtData(s.inicio_rede) : '')}" readonly /></label>
           </div>
           <small class="form-hint">Nome, documentos e local de trabalho constam da folha -

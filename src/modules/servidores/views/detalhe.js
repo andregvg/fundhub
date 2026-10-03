@@ -8,7 +8,7 @@
 // de Servidores ou da ficha de uma escola. Spec
 // 2026-09-13-fichas-entre-modulos-design.md.
 // ============================================================
-import { getServidores, cargoDe, localDeTrabalhoDe } from '../servidores.model.js';
+import { getServidores, cargoExibidoDe, rotulaVinculo, localDeTrabalhoDe } from '../servidores.model.js';
 import { getLocais, eLocalInterno } from '../../escolas/escolas.model.js';
 import { getCargos, rotulaCargo } from '../vinculos.model.js';
 import { podeEscrever } from '../../../core/permissoes.js';
@@ -79,7 +79,7 @@ function detalhe(id, ctx, opts) {
   // exibição do mesmo fato - a lista de vínculos abaixo já traz cargo,
   // escola e período. O apelido sai daqui: ele ajuda a ACHAR a pessoa, e
   // isso é papel do card na lista, não da ficha dela.
-  const sub = [cargoDe(s), localDeTrabalhoDe(s, { completo: true })]
+  const sub = [cargoExibidoDe(s), localDeTrabalhoDe(s, { completo: true })]
     .filter(Boolean).map(esc).join(' · ');
 
   const acoes = ctx.podeEditar ? `
@@ -168,7 +168,7 @@ function listaVinculos(s, podeEditar) {
            aria-label="Abrir ficha da escola ${nome}">${nome}</button>`
       : `<div class="pname">${interno ? ico('sede', { tam: 12 }) + ' ' : ''}${nome}</div>`;
     return `<div class="person ${encerrado ? 'inativo' : ''} ${clicavel ? 'clicavel' : ''}">
-      <div class="role">${esc(rotulaCargo(v.papel))}${encerrado ? ' · encerrado' : ''}</div>
+      <div class="role">${esc(rotulaVinculo({ ...v, papel: rotulaCargo(v.papel) }))}${encerrado ? ' · encerrado' : ''}</div>
       ${pname}
       <div class="pmeta">
         ${periodo ? `<span>${esc(periodo)}</span>` : ''}

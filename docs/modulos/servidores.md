@@ -11,6 +11,8 @@
 - Registrar um local de trabalho da pessoa - uma escola, a Sede ou uma
   gerência/subsecretaria da SME - com cargo e período.
 - Encerrar um local de trabalho quando a pessoa deixa de atuar ali.
+- Informar se um gestor é **Gestor 1** ou **Gestor 2** e registrar a troca de
+  função, com o histórico guardado.
 - Abrir, a partir da ficha, a ficha da escola onde a pessoa trabalha.
 - Ajustar o card (na engrenagem): exibir o telefone e escolher quantos cards
   cabem por linha em telas largas.
@@ -34,8 +36,9 @@ local de trabalho.
 2. Preencha o nome completo (obrigatório). Apelido, nascimento, documentos,
    e-mail institucional e telefones são opcionais.
 3. Em **Local de trabalho** (opcional), você já pode informar onde a pessoa
-   trabalha: escolha o local, o cargo e a data de início. Deixe em branco para
-   adicionar depois.
+   trabalha: escolha o local, o cargo e a data de início. Se o cargo for
+   Gestor(a), aparece o campo **Função**: escolha Gestor 1 ou Gestor 2 (ou
+   deixe **Não definida**). Deixe o grupo em branco para adicionar depois.
 4. Clique em **Criar**.
 
 ### Informar e-mail e telefones
@@ -65,6 +68,40 @@ local de trabalho.
    local atual.
 5. Clique em **Adicionar**.
 
+### Informar se o gestor é Gestor 1 ou Gestor 2
+
+1. Na ficha do servidor, clique no lápis ao lado do local de trabalho (ou em
+   **Adicionar local de trabalho**, se for um registro novo).
+2. Em **Cargo / função**, deixe **Gestor(a)**. Logo abaixo aparece o campo
+   **Função**.
+3. Escolha **Gestor 1** ou **Gestor 2**.
+4. Clique em **Salvar**. A função passa a aparecer junto do cargo, como
+   "Gestor(a) 1", na ficha, na lista de servidores e na equipe da escola.
+
+Para quem ainda não tinha função, esse é sempre um ajuste do registro: o
+sistema não pergunta data nenhuma. Escolher **Não definida** também só limpa o
+campo.
+
+### Registrar uma troca de função
+
+Use quando a pessoa **era** Gestor 1 ou Gestor 2 e passou a ser a outra função
+na mesma escola.
+
+1. Na ficha do servidor, clique no lápis ao lado do local de trabalho atual.
+2. Em **Função**, escolha a nova. Aparece o campo **Mudou a partir de**.
+3. Com a troca de verdade, preencha **Mudou a partir de** com a data em que a
+   nova função começou. O período anterior termina na véspera e fica no
+   histórico, junto dos locais encerrados: aparecem duas linhas, uma para cada
+   função.
+4. Se na verdade foi só um engano de cadastro (a pessoa sempre foi a outra
+   função), deixe **Mudou a partir de** em branco: o registro é apenas
+   corrigido e nada vai para o histórico.
+5. Clique em **Salvar**.
+
+Com a data preenchida, o salvamento só faz a troca. Se você também mudou o
+local, o cargo, o início ou o término, o sistema pede que essas alterações
+sejam salvas separadamente.
+
 ### Abrir a escola de um local de trabalho
 
 1. Na ficha do servidor, em **Locais de trabalho**, clique no card da escola.
@@ -90,6 +127,15 @@ trabalho.
 - **Término antes do início** é impossível - o sistema bloqueia o salvamento.
 - **Um mesmo cargo aberto no mesmo local** não pode se repetir para a mesma
   pessoa - o sistema bloqueia.
+- **Troca de função com outras alterações juntas** é bloqueada: quando
+  **Mudou a partir de** está preenchido, o sistema só aceita a troca, para não
+  misturar períodos diferentes.
+- **A função só existe no cargo de Gestor(a).** Em qualquer outro cargo o
+  campo não aparece, e a função não é guardada.
+- **Função repetida na escola** é só um aviso: se você marcar Gestor 1 numa
+  escola que já tem um Gestor 1 atual, o sistema mostra o nome de quem já
+  ocupa e salva assim mesmo, porque numa transição os dois períodos se
+  encostam.
 - **Local de trabalho sem cargo** não é aceito: se você escolher um local na
   modal de cadastro, precisa escolher também o cargo.
 - **Documento fora do formato** (CPF, RG) é só um aviso: salva assim mesmo,
@@ -122,6 +168,11 @@ trabalho.
 **Cadastrei um servidor e ele não aparece na lista.**
 Se você tem um segmento marcado no filtro, um cadastro ainda sem local de
 trabalho aparece mesmo assim. Se não aparecer, recarregue a página.
+
+**O gestor mudou de Gestor 2 para Gestor 1. Preciso preencher a data?**
+Preencha **Mudou a partir de** se quiser manter o histórico dos dois períodos.
+Em branco, o registro é só corrigido, como se a pessoa sempre tivesse sido
+Gestor 1.
 
 **A pessoa mudou de escola. Registro um local novo ou edito o antigo?**
 Encerre o local antigo (preencha o Término) e registre um novo. Assim o
