@@ -33,8 +33,10 @@ let tabela = null;
 // "nenhuma frota" vazio, escondendo a falha em vez de explicá-la.
 let erroCarga = null;
 // Filtro de sessão da página: sobrevive à troca de página, não ao recarregar.
-const filtro = { situacao: 'vigente', tipo: '', de: '', ate: '' };
-const CHIPS = [['vigente', 'Vigentes'], ['futura', 'Futuras'], ['encerrada', 'Encerradas'], ['todas', 'Todas']];
+// "Todas" é o padrão e vem primeiro (spec 2026-10-02, D10): quem abre a
+// página quer ver o que existe, e uma frota futura escondida parecia sumida.
+const filtro = { situacao: 'todas', tipo: '', de: '', ate: '' };
+const CHIPS = [['todas', 'Todas'], ['vigente', 'Vigentes'], ['futura', 'Futuras'], ['encerrada', 'Encerradas']];
 
 export function render(ctx) {
   tabela = null;

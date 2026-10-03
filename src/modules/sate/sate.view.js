@@ -23,9 +23,9 @@ import * as paginaCatalogo from './views/catalogo.js';
 import * as paginaLocais from './views/locais.js';
 
 // A ordem aqui é a ordem no menu. `aprovador: true` = só quem tem escrita.
+// `desc` é opcional: sem ela, a página não tem frase de apoio.
 export const PAGINAS = Object.freeze({
-  solicitacoes: { rotulo: 'Solicitações', ico: 'documento', view: paginaSolicitacoes,
-    desc: 'Pedidos de transporte para atividades extraclasse e a validação da Gerência.' },
+  solicitacoes: { rotulo: 'Solicitações', ico: 'documento', view: paginaSolicitacoes },
   disponibilidade: { rotulo: 'Disponibilidade', ico: 'calendario', view: paginaDisponibilidade,
     desc: 'Quantos ônibus estão livres em cada dia e período, para planejar o pedido.' },
   fichas: { rotulo: 'Fichas de ônibus', ico: 'imprimir', view: paginaFichas, aprovador: true,
@@ -54,7 +54,7 @@ export async function render(app, { perfil, aprovador, id, irPara, simulando = n
     </div>` : ''}
     <div class="page-head">
       <h1>${esc(pagina.rotulo)}</h1>
-      <p>${esc(pagina.desc)}</p>
+      ${pagina.desc ? `<p>${esc(pagina.desc)}</p>` : ''}
     </div>
     <div id="sate-body">${loading()}</div>`;
 

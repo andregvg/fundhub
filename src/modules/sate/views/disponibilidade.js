@@ -1,6 +1,7 @@
 // ============================================================
 // FundHub - sate/views/disponibilidade.js  (página Disponibilidade - todos)
-// Uma semana por vez: quantos ônibus (e vans) estão livres em cada dia e
+// Uma semana útil por vez (segunda a sexta, por enquanto), com o dia em
+// foco destacado: quantos ônibus (e vans) estão livres em cada dia e
 // período. Spec: 2026-09-26-sate-frota-e-disponibilidade-design.md § D3.
 //
 // A escola planeja ANTES de pedir. Os números são para uma viagem típica
@@ -12,7 +13,7 @@
 // A escola vê só números - nunca de quem é a reserva (mesma promessa da
 // 036). Quem aprova vê também, ao abrir o dia, a composição por rótulo.
 // ============================================================
-import { lerOcupacao, livresNoPeriodo, escadaDaTarde, totalDoDia } from '../disponibilidade.model.js';
+import { lerOcupacao, livresNoPeriodo, escadaDaTarde, totalDoDia, semanaUtil } from '../disponibilidade.model.js';
 import { getFrotas, rotulaTipo } from '../frota.model.js';
 import { PERIODOS } from '../sate.model.js';
 import { paraHora } from '../regras.model.js';
@@ -23,23 +24,21 @@ import { ico } from '../../../shared/ui/icones.js';
 
 let ctx = null;
 let segunda = null;   // data civil da segunda-feira da semana à vista
+let foco = null;      // o dia destacado: a data escolhida ou, sem escolha, hoje
 let linhaAtual = null;   // última ocupação carregada SEM ficar velha (ver `pedido`)
 // Cada carregar() recebe um número: clicar "próxima semana" duas vezes
 // rápido dispara duas buscas, e sem isto a resposta da primeira - mais
 // lenta - pintaria por cima da segunda, com o cabeçalho de uma semana e
 // os números de outra (mesmo padrão de `pedidoSaldo` em formulario.js).
 let pedido = 0;
-
-// Segunda-feira da semana de `iso`. Aritmética de calendário (R8 permite):
-// só o dia da semana sai do Date, e o resultado volta por addDias.
-function segundaDe(iso) {
-  const dow = new Date(iso + 'T00:00:00').getDay();   // 0 = domingo
-  return addDias(iso, dow === 0 ? -6 : 1 - dow);
-}
+// POR ENQUANTO, SEM FIM DE SEMANA (spec 2026-10-02, D9): deslocamentos a
+// partir da segunda. A volta do sábado e do domingo é aqui e em
+// semanaUtil() (disponibilidade.model.js).
+const DIAS_UTEIS = [0, 1, 2, 3, 4];
 
 export function render(contexto) {
   ctx = contexto;
-  segunda = segunda || segundaDe(hojeISO());
+  if (!foco) ({ segunda, foco } = semanaUtil(hojeISO()));
   ctx.box().innerHTML = `
     <div class="toolbar disp-nav">
       <button type="button" class="mini-btn" id="disp-ant" aria-label="Semana anterior">${ico('voltar')}</button>
@@ -50,11 +49,14 @@ export function render(contexto) {
     <div id="disp-corpo">${loading()}</div>
     <p class="form-hint">Os números são para uma viagem típica de cada período. O formulário de pedido confere o horário exato.</p>`;
 
+  // Escolher uma data (ou "Hoje") muda o FOCO e leva à semana dele; as
+  // setas só trocam a semana - o foco fica onde a pessoa o pôs.
+  const focar = (iso) => { ({ segunda, foco } = semanaUtil(iso)); carregar(); };
   const ir = (nova) => { segunda = nova; carregar(); };
   document.getElementById('disp-ant').addEventListener('click', () => ir(addDias(segunda, -7)));
   document.getElementById('disp-prox').addEventListener('click', () => ir(addDias(segunda, 7)));
-  document.getElementById('disp-hoje').addEventListener('click', () => ir(segundaDe(hojeISO())));
-  document.getElementById('disp-data').addEventListener('change', (e) => { if (e.target.value) ir(segundaDe(e.target.value)); });
+  document.getElementById('disp-hoje').addEventListener('click', () => focar(hojeISO()));
+  document.getElementById('disp-data').addEventListener('change', (e) => { if (e.target.value) focar(e.target.value); });
   document.getElementById('disp-corpo').addEventListener('click', abrirDia);
   // Acessibilidade do card `role="button"`: Enter/Espaço abre igual ao clique.
   document.getElementById('disp-corpo').addEventListener('keydown', (e) => {
@@ -72,19 +74,21 @@ async function carregar() {
   box.innerHTML = loading();
   const meu = ++pedido;
   const seg = segunda;   // cópia local: `segunda` pode mudar antes da resposta chegar
-  const domingo = addDias(seg, 6);
+  const sexta = addDias(seg, DIAS_UTEIS[DIAS_UTEIS.length - 1]);
   let linha;
-  try { linha = await lerOcupacao(seg, domingo); }
+  try { linha = await lerOcupacao(seg, sexta); }
   catch (err) { if (meu === pedido) box.innerHTML = erroBox(err); return; }
   if (meu !== pedido) return;   // resposta velha: outra busca já está em curso ou chegou antes
   if (!document.getElementById('disp-corpo')) return;
 
   linhaAtual = linha;
   const hoje = hojeISO();
-  const dias = [0, 1, 2, 3, 4, 5, 6].map(i => ({ i, data: addDias(seg, i) }));
+  const campoData = document.getElementById('disp-data');
+  if (campoData) campoData.value = foco;   // o campo mostra o dia em foco
+  const dias = DIAS_UTEIS.map(i => ({ i, data: addDias(seg, i) }));
   box.innerHTML = `
     ${linha.aproximado ? '<p class="sol-aviso">Contagem sem horário: o banco ainda não tem a atualização desta versão. Os números são por período.</p>' : ''}
-    <h2 class="disp-semana">${esc(fmtData(seg))} a ${esc(fmtData(domingo))}</h2>
+    <h2 class="disp-semana">${esc(fmtData(seg))} a ${esc(fmtData(sexta))}</h2>
     <div class="disp-grade">${dias.map(d => diaHtml(linha, d, hoje)).join('')}</div>`;
 }
 
@@ -93,9 +97,14 @@ function diaHtml(linha, { i, data }, hoje) {
   const tot = totalDoDia(linha, i, 'onibus');
   const totVan = totalDoDia(linha, i, 'vans');
   const passado = data < hoje;
+  // O dia em foco, na cor do SATE (o --brand do <body>). aria-current diz
+  // ao leitor de tela o que o destaque diz ao olho.
+  const emFoco = data === foco;
+  const marca = `${passado ? 'passado' : ''} ${emFoco ? 'foco' : ''}`;
+  const atual = emFoco ? ' aria-current="date"' : '';
   const cab = `<div class="disp-dia-cab"><b>${esc(DOW[dow])}</b> <span>${esc(fmtData(data))}</span></div>`;
   if (!tot && !totVan) {
-    return `<div class="disp-dia ${passado ? 'passado' : ''}">${cab}<span class="vazio">sem frota</span></div>`;
+    return `<div class="disp-dia ${marca}"${atual}>${cab}<span class="vazio">sem frota</span></div>`;
   }
   const n = (v) => Math.max(0, v);
   const linhaPer = (p) => {
@@ -109,7 +118,7 @@ function diaHtml(linha, { i, data }, hoje) {
   const vans = totVan ? `<div class="disp-per disp-van"><span>${ico('cadeirante', { tam: 12 })} Vans</span>
       <span>${['manha', 'tarde', 'noite'].map(p => n(livresNoPeriodo(linha, i, p, 'vans'))).join(' · ')}</span></div>` : '';
   const abrir = ctx.aprovador ? ` data-dia="${esc(data)}" data-i="${i}" role="button" tabindex="0" aria-label="Ver a composição da frota de ${esc(fmtData(data))}"` : '';
-  return `<div class="disp-dia ${passado ? 'passado' : ''} ${ctx.aprovador ? 'clicavel' : ''}"${abrir}>
+  return `<div class="disp-dia ${marca} ${ctx.aprovador ? 'clicavel' : ''}"${abrir}${atual}>
     ${cab}
     <div class="disp-tot">${tot} ônibus no dia</div>
     ${['manha', 'tarde', 'noite'].map(linhaPer).join('')}
