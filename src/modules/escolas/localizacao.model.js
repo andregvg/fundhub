@@ -6,7 +6,7 @@
 // para caber no teto: aquele arquivo é o CADASTRO (ler, criar, editar);
 // este é uma TAREFA - tem começo, progresso, fim e pode ser interrompida.
 // O que ele escreve passa pelo cadastro (`atualizarUnidade`), e o que ele
-// sabe de geografia vem de `locais.model.js`. Nenhuma das duas coisas é
+// sabe de geografia vem de `geografia.model.js`. Nenhuma das duas coisas é
 // reimplementada aqui.
 //
 // A tarefa mora no MODEL, e não na tela, de propósito: fechar o painel
@@ -20,7 +20,7 @@
 import { getUnidades, atualizarUnidade } from './escolas.model.js';
 import {
   geocodificar, precisaoDe, naCidade, variantesDeEndereco, temCoordenada,
-} from '../locais/locais.model.js';
+} from '../locais/geografia.model.js';
 
 const INTERVALO_MS = 1100;          // um pouco acima de 1 s, com folga
 const FALHAS_SEGUIDAS_MAX = 3;      // serviço fora do ar: para, não insiste

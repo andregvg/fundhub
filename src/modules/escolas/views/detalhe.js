@@ -12,7 +12,7 @@
 // quando difere (spec 2026-10-02, D5).
 // ============================================================
 import { getUnidades } from '../escolas.model.js';
-import { linkMaps } from '../../locais/locais.model.js';
+import { linkMaps } from '../../locais/geografia.model.js';
 import { getEquipeDaUnidade } from '../../servidores/vinculos.model.js';
 import { podeEscrever } from '../../../core/permissoes.js';
 import { podeAbrirFicha } from '../../../core/registry.js';

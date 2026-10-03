@@ -5,9 +5,8 @@
 // Todos veem; quem aprova o SATE (não é o mesmo que admin do hub, D7)
 // edita. Usa modules/locais/locais.model.js.
 // ============================================================
-import {
-  criarLocal, atualizarLocal, excluirLocal, geocodificar, linkMaps, enderecoCompleto, temCoordenada,
-} from '../../locais/locais.model.js';
+import { criarLocal, atualizarLocal, excluirLocal, enderecoCompleto } from '../../locais/locais.model.js';
+import { geocodificar, linkMaps, temCoordenada } from '../../locais/geografia.model.js';
 import { esc, val, checked, falha } from '../../../shared/dom.js';
 import { emptyState } from '../../../shared/ui/feedback.js';
 import { abrirModal, modalHead, fecharModal } from '../../../shared/ui/modal.js';

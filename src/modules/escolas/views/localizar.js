@@ -15,7 +15,7 @@ import {
   resumoLocalizacao, localizarEscolas, cancelarLocalizacao,
   tarefaLocalizacao, acompanharLocalizacao,
 } from '../localizacao.model.js';
-import { linkMaps } from '../../locais/locais.model.js';
+import { linkMaps } from '../../locais/geografia.model.js';
 import { podeEscrever } from '../../../core/permissoes.js';
 import { esc } from '../../../shared/dom.js';
 import { loading, erroBox } from '../../../shared/ui/feedback.js';

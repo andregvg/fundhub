@@ -3,7 +3,7 @@
 // ============================================================
 import { criarUnidade, atualizarUnidade, excluirUnidade } from '../escolas.model.js';
 import { sincronizarTelefones } from '../../telefones/telefones.model.js';
-import { geocodificar, linkMaps, temCoordenada } from '../../locais/locais.model.js';
+import { geocodificar, linkMaps, temCoordenada } from '../../locais/geografia.model.js';
 import { esc, falha } from '../../../shared/dom.js';
 import { modalHead, abrirModal, fecharModal } from '../../../shared/ui/modal.js';
 import { phonesEditorHtml, montarPhonesEditor, lerPhonesEditor } from '../../../shared/ui/phones.js';

@@ -5,9 +5,10 @@
 // Spec: 2026-09-13-sate-rota-design.md.
 //
 // O que é genérico de lugar (localizar endereço, perguntar a distância ao
-// OpenStreetMap, montar link de mapa) mora em `locais.model.js`. Aqui fica
-// o que só o SATE sabe: quais são as paradas, como distância vira tempo
-// de ônibus, o cache de trechos e o retrato gravado na solicitação.
+// OpenStreetMap, montar link de mapa) mora em `locais/geografia.model.js`.
+// Aqui fica o que só o SATE sabe: quais são as paradas, como distância
+// vira tempo de ônibus, o cache de trechos e o retrato gravado na
+// solicitação.
 //
 // Velocidade e margem chegam por PARÂMETRO, e não lidas de
 // `sate.config.js`: aquele arquivo importa uma view (o painel da frota),
@@ -18,7 +19,8 @@
 // ============================================================
 import { sb, hasSupabase } from '../../core/supabase.js';
 import { agoraISO } from '../../shared/format.js';
-import { distanciaPorEstrada, temCoordenada, getLocais } from '../locais/locais.model.js';
+import { distanciaPorEstrada, temCoordenada } from '../locais/geografia.model.js';
+import { getLocais } from '../locais/locais.model.js';
 import { getParticipacoes, ativa } from './participacoes.model.js';
 
 // ── Puras ────────────────────────────────────────────────────
