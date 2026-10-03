@@ -1493,10 +1493,18 @@ hr.sep { margin: 20px 0; border: 0; border-top: 1px solid var(--border); }
 /* ── Editor de telefones (shared/ui/phones.js) ────────────── */
 .phones { margin: 4px 0 12px; }
 .phones > .lbl { margin-bottom: 6px; }
-.phone-rows { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
+/* Em pilha (celular) o vão entre LINHAS é maior que o vão entre CAMPOS: com a
+   moldura fora, o espaço é o que agrupa cada telefone - senão não dá para
+   dizer a qual deles pertencem o interruptor e a lixeira. */
+.phone-rows { display: flex; flex-direction: column; gap: 18px; margin-bottom: 8px; }
 /* A linha é parte da grade do formulário, não um cartão dentro dele (spec
    2026-10-03, D5): sem borda, fundo nem padding próprios. */
-.phone-row { display: grid; grid-template-columns: 1fr; gap: 8px; }
+.phone-row {
+  /* Tipo · número · rótulo, declarados uma vez e usados nas duas grades (com e
+     sem o interruptor de principal). */
+  --phone-cols: 124px minmax(142px, 1.1fr) minmax(88px, 1fr);
+  display: grid; grid-template-columns: 1fr; gap: 8px;
+}
 /* Um telefone só: não há "principal" a escolher. O rádio continua no DOM
    (lerPhonesEditor o lê), só não aparece. */
 .phone-rows:has(> .phone-row:only-child) .phone-pri { display: none; }
@@ -1556,14 +1564,16 @@ hr.sep { margin: 20px 0; border: 0; border-top: 1px solid var(--border); }
      que quebrava primeiro. Os campos têm a métrica de todo campo do hub
      (altura, fonte, recuo): o espaço vem da largura, não do achatamento. */
   .phone-row {
-    grid-template-columns: 124px minmax(132px, 1.1fr) minmax(96px, 1fr) auto auto;
+    grid-template-columns: var(--phone-cols) auto auto;
     align-items: center;
     gap: 8px;
   }
+  /* Lado a lado, as linhas voltam ao vão dos campos. */
+  .phone-rows { gap: 8px; }
   /* O interruptor oculto não ocupa célula: sem esta regra o "remover" cai na
      coluna do principal e a última, vazia, ainda gasta o vão de 8px. */
   .phone-rows:has(> .phone-row:only-child) .phone-row {
-    grid-template-columns: 124px minmax(132px, 1.1fr) minmax(96px, 1fr) auto;
+    grid-template-columns: var(--phone-cols) auto;
   }
 }
 

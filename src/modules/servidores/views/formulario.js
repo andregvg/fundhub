@@ -197,6 +197,9 @@ function ligarDominio(el) {
     antes = el.value;
     el.setSelectionRange(ate, el.value.length);
   });
+  // E-mail colado com espaço no fim reprovaria o `pattern` antes do trim()
+  // do salvar (o type="email" é que aparava). Apara ao sair do campo.
+  el.addEventListener('change', () => { el.value = el.value.trim(); antes = el.value; });
 }
 
 async function salvarServidor(e, s, ctx, voltar) {

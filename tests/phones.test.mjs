@@ -2,7 +2,7 @@
 // texto (× / +).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { phonesEditorHtml } from '../src/shared/ui/phones.js';
+import { phonesEditorHtml, pareceFixo } from '../src/shared/ui/phones.js';
 
 test('o botão de remover telefone usa a lixeira, não um × de texto', () => {
   const html = phonesEditorHtml([{ numero: '(16) 3333-3333', tipo: 'fixo' }]);
@@ -35,6 +35,15 @@ test('a linha inicial usa o tipo padrão de quem chama', () => {
 test('lista com telefones não ganha linha extra', () => {
   const html = phonesEditorHtml([{ numero: '(00) 0000-0000', tipo: 'fixo' }]);
   assert.equal((html.match(/class="phone-row"/g) || []).length, 1);
+});
+
+// A cortesia de tipo vale nos dois sentidos: o servidor nasce com "Celular",
+// e quem digita um fixo precisa ver o tipo acompanhar o número.
+test('pareceFixo: 8 digitos locais, com ou sem DDD', () => {
+  assert.equal(pareceFixo('(00) 0000-0000'), true);
+  assert.equal(pareceFixo('0000-0000'), true);
+  assert.equal(pareceFixo('(00) 00000-0000'), false);
+  assert.equal(pareceFixo(''), false);
 });
 
 // ── E.164: o formato de gravação ──────────────────────────────

@@ -46,8 +46,8 @@ sistema, nos bastidores.
 2. Se o número for celular ou WhatsApp, troque o tipo ao lado dele. Se quiser,
    escreva um rótulo (por exemplo, "Secretaria").
 3. Para registrar mais um número, clique em **+ telefone**. A partir do
-   segundo, aparece em cada linha o botão de **principal**: marque o número
-   que deve aparecer primeiro.
+   segundo, aparece um interruptor ao lado de cada número: ligue o do telefone
+   que é o principal, o que deve aparecer primeiro.
 4. Para tirar um número, clique na lixeira da linha. Uma linha deixada em
    branco não é salva.
 

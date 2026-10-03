@@ -47,10 +47,11 @@ local de trabalho.
    digitando: o que você escrever substitui o trecho selecionado.
 3. O primeiro telefone já aparece pronto para preencher, com o tipo
    **Celular**. Digite o número; o sistema arruma a pontuação sozinho. Se for
-   fixo ou WhatsApp, troque o tipo ao lado do número.
+   fixo ou WhatsApp, troque o tipo ao lado do número. Se você digitar um
+   número de fixo, o tipo muda sozinho para **Fixo** ao sair do campo.
 4. Para registrar mais um número, clique em **+ telefone**. A partir do
-   segundo, aparece em cada linha o botão de **principal**: marque o número
-   que deve ser usado primeiro.
+   segundo, aparece um interruptor ao lado de cada número: ligue o do telefone
+   que é o principal, o que deve ser usado primeiro.
 5. Para tirar um número, clique na lixeira da linha. Uma linha deixada em
    branco não é salva.
 

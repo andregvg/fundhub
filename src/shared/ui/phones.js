@@ -113,6 +113,13 @@ export function pareceCelular(valor) {
   return local.length === 9 && local.startsWith('9');
 }
 
+// Espelho de pareceCelular: 8 dígitos locais (com DDD ou sem) = fixo.
+export function pareceFixo(valor) {
+  const d = String(valor || '').replace(/\D/g, '');
+  const local = d.length > 9 ? d.slice(2) : d;
+  return local.length === 8;
+}
+
 // HTML do editor. `lista` = [{ id?, tipo, rotulo, numero, principal }].
 // Lista vazia nasce com UMA linha em branco (spec 2026-10-03, D5): o caso
 // comum é ter um telefone, e "+ telefone" fica para o segundo. Linha sem
@@ -177,8 +184,10 @@ export function montarPhonesEditor(root) {
     if (!campo) return;
     aplicarMascara(campo);
     // Cortesia: ao reconhecer um celular, ajusta o tipo - mas só se
-    // ainda estiver no default 'fixo', para não desfazer a escolha
-    // de quem marcou WhatsApp de propósito.
+    // ainda estiver em 'fixo', para não desfazer a escolha de quem marcou
+    // WhatsApp de propósito. O sentido inverso (celular → fixo) fica no
+    // focusout: um celular passa por 10 dígitos no meio da digitação, e o
+    // tipo piscaria.
     const tipo = campo.closest('.phone-row')?.querySelector('.phone-tipo');
     if (tipo && tipo.value === 'fixo' && pareceCelular(campo.value)) tipo.value = 'celular';
   });
@@ -186,7 +195,13 @@ export function montarPhonesEditor(root) {
   // Ao sair do campo, completa o DDD de quem digitou só o local.
   box.addEventListener('focusout', (e) => {
     const campo = e.target.closest('.phone-num');
-    if (campo && campo.value.trim()) campo.value = normalizarTelefone(campo.value);
+    if (!campo || !campo.value.trim()) return;
+    campo.value = normalizarTelefone(campo.value);
+    // Editor que nasce em 'celular' (servidor): quem digita um fixo não
+    // pode ficar com "Celular" gravado. WhatsApp nunca é mexido.
+    const tipo = campo.closest('.phone-row')?.querySelector('.phone-tipo');
+    if (tipo && tipo.value === 'celular' && box.dataset.tipoPadrao === 'celular'
+        && pareceFixo(campo.value)) tipo.value = 'fixo';
   });
 
   // A lista pode vir do banco sem nenhum principal marcado.
