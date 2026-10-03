@@ -46,7 +46,7 @@ partir das versões do FundHub que mudaram algo para quem usa o SATE.
 
 ## [0.38.1] - 2026-10-02
 
-SATE 0.17.1.
+> SATE 0.17.1.
 
 ### Mudou
 - **Nova solicitação:** o local que não está na lista é cadastrado pela própria busca -

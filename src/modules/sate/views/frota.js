@@ -117,7 +117,7 @@ export function render(ctx) {
       substantivo: 'frotas',
       vazio: {
         ico: 'onibus', titulo: 'Nenhuma frota com esses filtros',
-        texto: 'Troque a situação para "Todas" ou clique em "Nova frota".',
+        texto: 'Mude a situação ou o tipo, ou clique em "Nova frota".',
       },
     });
   }

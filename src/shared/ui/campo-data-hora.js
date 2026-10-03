@@ -33,7 +33,10 @@ export function cliqueNoIcone(offsetX, larguraCampo) {
 
 const SELETOR = 'input:is([type="date"], [type="time"], [type="datetime-local"], [type="month"])';
 
-function marcarVazio(el) { el.toggleAttribute('data-vazio', !el.value); }
+// Dona única da marca `data-vazio`. Exportada para quem põe valor por
+// código (`el.value = …` não dispara evento) e quer a cor certa na hora,
+// sem esperar o campo perder o foco.
+export function marcarVazio(el) { el.toggleAttribute('data-vazio', !el.value); }
 function varrer(raiz) {
   if (raiz.matches?.(SELETOR)) marcarVazio(raiz);
   raiz.querySelectorAll?.(SELETOR).forEach(marcarVazio);

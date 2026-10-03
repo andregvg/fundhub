@@ -21,6 +21,7 @@ import { esc } from '../../../shared/dom.js';
 import { hojeISO, addDias, fmtData, DOW } from '../../../shared/format.js';
 import { loading, erroBox } from '../../../shared/ui/feedback.js';
 import { ico } from '../../../shared/ui/icones.js';
+import { marcarVazio } from '../../../shared/ui/campo-data-hora.js';
 
 let ctx = null;
 let segunda = null;   // data civil da segunda-feira da semana à vista
@@ -42,7 +43,7 @@ export function render(contexto) {
   ctx.box().innerHTML = `
     <div class="toolbar disp-nav">
       <button type="button" class="mini-btn" id="disp-ant" aria-label="Semana anterior">${ico('voltar')}</button>
-      <input id="disp-data" class="campo-solto" type="date" aria-label="Ir para a data" />
+      <input id="disp-data" class="campo-solto" type="date" value="${esc(foco)}" aria-label="Ir para a data" />
       <button type="button" class="mini-btn" id="disp-prox" aria-label="Próxima semana">${ico('avancar')}</button>
       <button type="button" class="mini-btn" id="disp-hoje">Hoje</button>
     </div>
@@ -84,7 +85,10 @@ async function carregar() {
   linhaAtual = linha;
   const hoje = hojeISO();
   const campoData = document.getElementById('disp-data');
-  if (campoData) campoData.value = foco;   // o campo mostra o dia em foco
+  if (campoData) {
+    campoData.value = foco;   // o campo mostra o dia em foco
+    marcarVazio(campoData);   // valor posto por código não dispara evento: sem isto ficaria na cor do placeholder
+  }
   const dias = DIAS_UTEIS.map(i => ({ i, data: addDias(seg, i) }));
   box.innerHTML = `
     ${linha.aproximado ? '<p class="sol-aviso">Contagem sem horário: o banco ainda não tem a atualização desta versão. Os números são por período.</p>' : ''}

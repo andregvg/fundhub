@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { cliqueNoIcone, LARGURA_ICONE } from '../src/shared/ui/campo-data-hora.js';
+import { cliqueNoIcone, marcarVazio, LARGURA_ICONE } from '../src/shared/ui/campo-data-hora.js';
 
 test('clique no meio do campo nao conta como clique no icone', () => {
   assert.equal(cliqueNoIcone(10, 200), false);
@@ -21,4 +21,17 @@ test('um pixel antes da faixa do icone nao conta como icone', () => {
 test('LARGURA_ICONE e um numero positivo (sanity da constante)', () => {
   assert.equal(typeof LARGURA_ICONE, 'number');
   assert.ok(LARGURA_ICONE > 0);
+});
+
+test('marcarVazio liga data-vazio no campo sem valor e desliga no preenchido', () => {
+  const marcas = new Set();
+  const campo = {
+    value: '',
+    toggleAttribute: (nome, ligado) => (ligado ? marcas.add(nome) : marcas.delete(nome)),
+  };
+  marcarVazio(campo);
+  assert.ok(marcas.has('data-vazio'));
+  campo.value = '2026-01-15';
+  marcarVazio(campo);
+  assert.equal(marcas.has('data-vazio'), false);
 });

@@ -23,7 +23,7 @@ export async function render(app) {
       <p>Viagens confirmadas do dia, prontas para envio à empresa de transporte.</p>
     </div>
     <div class="toolbar no-print">
-      <input id="pv-data" class="campo-solto" type="date" value="${dataSel}" aria-label="Data" />
+      <input id="pv-data" class="campo-solto" type="date" value="${esc(dataSel)}" aria-label="Data" />
       <span class="count" id="pv-count"></span>
       <button id="pv-print" class="btn-primary">${ico('imprimir')} Imprimir</button>
     </div>

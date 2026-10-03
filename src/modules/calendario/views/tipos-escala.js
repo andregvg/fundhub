@@ -39,7 +39,11 @@ export async function abrirTiposEscala({ onMudou = () => {} } = {}) {
           <button type="submit" class="mini-btn" aria-label="Criar tipo de escala">${ico('adicionar', { tam: 14 })}</button>
         </form>
       </div>
-    </div>`);
+    </div>`, {
+    // Mini-formulário de "adicionar à lista" (cada alteração grava na hora),
+    // igual aos "Rótulos" da Frota: não há rascunho a perder ao fechar.
+    protegerSaida: false,
+  });
 
   catalogo = await getEscalas().catch(() => []);
   pintar();

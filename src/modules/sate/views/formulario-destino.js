@@ -85,8 +85,13 @@ export function ligarDestino(locais, mudou) {
       etiqueta: 'Novo local',
       rotulo: (termo, haOutros) => (haOutros ? `Nenhum destes? Cadastrar “${termo}”` : `Usar “${termo}” como novo local`),
       aoCriar: (termo) => {
+        // Só limpa o endereço ao sair de um local CADASTRADO (o endereço
+        // era dele). Criar de novo - ao corrigir o nome, por exemplo - não
+        // pode apagar o que a pessoa já digitou.
+        const doCadastro = !!escolhido;
         escolhido = null; novoNome = termo;
-        preencher(null); destravar(true); pintarMesmo();
+        if (doCadastro) preencher(null);
+        destravar(true); pintarMesmo();
         campo('f-dest-end').focus();
         aoMudar();
       },

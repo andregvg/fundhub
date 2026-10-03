@@ -30,7 +30,7 @@ export function render(contexto) {
     <div class="toolbar no-print">
       <input id="fi-data" class="campo-solto" type="date" value="${esc(filtro.data)}" aria-label="Data" />
       <select id="fi-per" class="campo-solto" aria-label="Período">
-        <option value="">Todos os períodos</option>
+        <option value="">Todos</option>
         ${Object.entries(PERIODOS).map(([k, v]) => `<option value="${esc(k)}">${esc(v)}</option>`).join('')}
       </select>
       <button id="fi-imprimir" class="btn-primary">${ico('imprimir')} Imprimir</button>
