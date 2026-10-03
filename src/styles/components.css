@@ -645,7 +645,7 @@ span.gira-90, span.gira-menos90, span.gira-180 { display: inline-flex; }
    embrulha o campo, é exatamente o que se quer.
    Caixa normal desde 02/10/2026 (spec D2): a legenda do grupo é que fica em caixa alta - é o que separa os dois papéis. */
 .lbl,
-.form-grid label,
+.form-grid label:not(.search),
 .esc-form > label,
 .form-grupo .campos label:not(.inline):not(.search):not(.switch) {
   display: flex;

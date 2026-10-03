@@ -173,7 +173,13 @@ export function criarBuscaSelecao(el, {
     lista.querySelector('.bs-item.on')?.scrollIntoView({ block: 'nearest' });
   }
 
-  input.addEventListener('click', () => { if (lista.hidden) abrir(''); });
+  // pointerdown e não click: dentro de um <label> envolvente o navegador repassa
+  // o click do item escolhido para este input e a lista reabriria sozinha.
+  // O repasse nunca produz pointerdown. A lupa conta como parte do campo.
+  el.querySelector('.bs-campo').addEventListener('pointerdown', (e) => {
+    if (e.target.closest('.bs-limpar')) return;
+    if (lista.hidden) abrir('');
+  });
   input.addEventListener('input', () => abrir(input.value));
   input.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowDown') { e.preventDefault(); mover(1); }
