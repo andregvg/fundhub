@@ -39,7 +39,7 @@ toda.
 ## O que dá para fazer aqui
 
 - Pedir transporte para uma atividade fora da escola, com o destino
-  escolhido na lista de locais ou digitado à mão.
+  escolhido na lista de locais ou cadastrado na hora, pela própria busca.
 - Acompanhar em que pé está cada pedido: solicitado, em análise, confirmado,
   negado ou cancelado.
 - Consultar, na página **Disponibilidade**, quantos veículos estão livres em
@@ -128,8 +128,11 @@ alguém aprovar. Negar o pedido ou cancelá-lo devolve a vaga na hora.
 ### Consultar a disponibilidade
 
 1. No menu, clique em **Disponibilidade**. A tela mostra uma semana por vez,
-   de segunda a domingo - as setas trocam de semana, e o campo de data pula
-   direto para o dia que você quiser.
+   de segunda a sexta (por enquanto, sem fim de semana). As setas trocam de
+   semana, **Hoje** volta para o dia de hoje, e o campo de data pula direto
+   para o dia que você quiser. O dia escolhido - ou hoje, se você não
+   escolheu nenhum - aparece **destacado** na cor do SATE. Escolher um sábado
+   ou domingo leva à semana seguinte, com a segunda-feira em destaque.
 2. Cada dia mostra quantos **ônibus** (e, quando há, quantas **vans**) estão
    livres na **Manhã**, na **Tarde** e na **Noite**.
 3. Na **Tarde** o número sobe ao longo do período, conforme os ônibus da
@@ -149,7 +152,9 @@ pedido confere o horário exato antes de enviar.
 A frota não se lança dia a dia: cadastra-se **quantos veículos existem** e
 **desde quando**.
 
-1. No menu, clique em **Frota** e depois em **Nova frota**.
+1. No menu, clique em **Frota** (ela abre mostrando **Todas** as frotas;
+   os botões **Vigentes**, **Futuras** e **Encerradas** estreitam a lista) e
+   depois em **Nova frota**.
 2. Escolha o **Rótulo** - de onde vêm os veículos ("Regular", "Feira do
    Livro"). Se ainda não existir, escolha **+ Novo rótulo…** e digite o nome.
 3. Escolha o **Tipo** (Ônibus ou Van adaptada), quantos **Veículos** e o
@@ -175,15 +180,26 @@ alerta para conferir.
 1. No menu, em **Solicitações**, clique no botão **Nova solicitação**. Abre uma
    janela com o formulário dividido em blocos: Origem, Destino, Quando,
    Responsável pela visita, Acessibilidade e Observações da escola.
-2. Em **Origem**, escolha a escola (só aparece a opção se você enxergar mais
-   de uma), as turmas e o número de estudantes.
+2. Em **Origem**, escolha a escola, as turmas e o número de estudantes. Quem
+   aprova procura a escola **pelo nome** no campo **Escola**: digite parte do
+   nome e escolha na lista. Para a escola, o campo só pede escolha se você
+   enxergar mais de uma unidade.
 3. Em **Destino**, busque o local no campo **Local** - digite parte do nome e
    escolha da lista. Endereço, Número e Bairro aparecem preenchidos sozinhos.
-   Não achou o lugar? Clique em **Local não está na lista**: liberam-se os
-   campos Nome do local, Endereço, Número e Bairro, para você preencher à mão
-   - os quatro são obrigatórios, porque é isso que a empresa de transporte lê
-   na ficha do motorista. Para voltar a escolher da lista, clique em
-   **Escolher da lista**.
+   A lista abre quando você clica no campo, digita ou aperta a seta para
+   baixo. Se você errar uma letra ("Muzeu"), a lista mostra os locais
+   **Parecidos**.
+   - **O lugar não está na lista?** Termine de digitar o nome e escolha o
+     último item, **Usar “nome digitado” como novo local** (se a lista tiver
+     outros locais, o item aparece em tom apagado, como **Nenhum destes?
+     Cadastrar “nome digitado”**). O campo passa a mostrar a etiqueta **Novo
+     local**, e você preenche **Endereço**, **Número** e **Bairro** - os três
+     são obrigatórios, porque é isso que a empresa de transporte lê na ficha
+     do motorista. O **×** do campo volta à busca.
+   - Ao preencher o endereço de um local novo, se ele já for o de um local
+     cadastrado, aparece "Este endereço já é de …" com o botão **Usar este**,
+     que troca para o local já cadastrado. É só um aviso: você pode seguir com
+     o local novo.
 4. Em **Quando**, informe a data e os horários de embarque e de retorno - os
    dois são **obrigatórios**: é a partir deles que o sistema conta quantos
    ônibus estão livres e calcula o **período**, mostrado logo abaixo dos
@@ -222,8 +238,14 @@ alerta para conferir.
     de enviar fica desabilitado - escolha outro horário ou outra data.
 11. Envie. O pedido nasce **pendente de autorização** e já reserva a vaga.
 
-Um pedido feito com **Local não está na lista** entra marcado como *local a
-conferir* - ver a seção "Conferir local", mais abaixo.
+Um pedido feito com um **Novo local** entra marcado como *local a conferir* -
+ver a seção "Conferir local", mais abaixo.
+
+Se você começou a preencher e tenta fechar a janela (pelo **×**, pela tecla
+**Esc** ou clicando fora), o sistema pergunta **Descartar o que você
+preencheu?** Escolha **Continuar editando** para voltar ao formulário ou
+**Descartar** para sair sem enviar. Se você não digitou nada, a janela fecha
+direto.
 
 Se o SATE ainda não tem nenhum veículo cadastrado, quem aprova vê, ao clicar
 em **Nova solicitação**, o aviso **Antes da primeira viagem, cadastre a
@@ -362,7 +384,7 @@ As escolas se localizam do mesmo jeito, no cadastro de **Escolas**.
 
 ### Conferir local
 
-Um pedido feito com **Local não está na lista** aparece marcado com a
+Um pedido feito com um **Novo local** aparece marcado com a
 etiqueta **Local a conferir**, tanto na lista quanto na ficha da solicitação.
 Enquanto o tempo de viagem dele não foi calculado, a contagem de vagas usa um
 tempo de viagem provisório e cauteloso (ver "Regras que o sistema aplica") -
@@ -436,8 +458,8 @@ pedido segue normalmente.
 - **Pedir sem antecedência mínima.** A escola precisa pedir com pelo menos
   5 dias. Quem aprova não tem esse limite.
 - **Negar ou cancelar sem justificativa.**
-- **Local digitado à mão sem nome, endereço, número e bairro.** Os quatro são
-  obrigatórios quando o destino não vem da lista de locais - é o que a
+- **Novo local sem endereço, número e bairro.** Os três são obrigatórios,
+  além do nome, quando o destino não vem da lista de locais - é o que a
   empresa de transporte vai ler na ficha.
 - **Pedido sem o professor(a) responsável ou sem o telefone/WhatsApp.**
 
@@ -450,6 +472,11 @@ pedido segue normalmente.
   a vaga foi contada com um tempo de viagem provisório e pergunta se quer
   confirmar mesmo assim - às vezes a SME precisa confirmar antes de conferir
   o endereço.
+- **Endereço que já é de um local cadastrado.** Ao cadastrar um novo local, o
+  sistema avisa e oferece **Usar este**, mas deixa seguir: dois nomes num
+  mesmo endereço às vezes são dois lugares diferentes.
+- **Fechar a janela com algo preenchido.** O sistema pergunta antes de
+  descartar - fechar sem querer faria perder o que foi digitado.
 - **Cadeirante sem van adaptada livre.** O pedido segue. Ao confirmar, quem
   aprova cria a van extra ou deixa o pedido *aguardando transporte adaptado*
   até a van ser resolvida.
@@ -545,4 +572,4 @@ Negado é um pedido que **nunca** chegou a valer - foi recusado na análise.
 Cancelado é um pedido que **estava de pé** e foi desfeito. Os dois exigem
 justificativa.
 
-> Atualizado na versão 0.38.0.
+> Atualizado na versão 0.38.1.

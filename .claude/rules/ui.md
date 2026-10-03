@@ -35,13 +35,14 @@ Sempre conferir `src/styles/components.css` antes de escrever CSS novo. O que j�
 - **Pessoa/vínculo em ficha:** `.people` + `.person` (+ `.role`, `.pname`, `.pmeta`); **card que abre outra ficha:** `.person.clicavel` + `.person-abrir` (o nome, como `<button>`) + `.person-acoes` (ação no canto) - padrão "link esticado", ver abaixo
 - **Cards e grades:** `.card` · `.cards` · `.tile` · `.tiles` · `.panel` · `.dash-grid` · `.md-grid`
 - **Stats:** `.stat-row` · `.stat-tile` · `.stat-num` · `.stat-label`
-- **Formulário:** `.esc-form` · `.esc-row` · `.form-grid` · `.form-grupo` · `.form-foot` · `.form-hint` · `.field` · `.lbl`
+- **Formulário:** `.esc-form` · `.esc-row` · `.form-grid` · `.form-grupo` (+ `.form-grupo.plano`, grupo de modal sem moldura) · `.form-foot` · `.form-hint` · `.field` · `.lbl`
 - **Botões:** `.btn-primary` · `.btn-secundario` · `.btn-perigo` (ação destrutiva de decisão: confirmar() ou rodapé de decisão de modal) · `.mini-btn` (com `.ok` / `.no`)
 - **Marcadores:** `.chip` · `.tag` · `.badge` · `.pill`
 - **Modal:** `.modal` e família - usar sempre via `shared/ui/modal.js`, nunca à mão
 - **Confirmação:** `.confirmar-back`/`.confirmar-card` - usar sempre via `shared/ui/confirmar.js`, nunca à mão
 - **Tabela:** `.tabela` e família - usar sempre via `shared/ui/tabela.js`, nunca à mão
-- **Busca:** `.search` (a caixa de busca por texto; `.compacta` = um controle único na toolbar)
+- **Busca:** `.search` (a caixa de busca por texto, com o quadrado da lupa à esquerda)
+- **Controle solto:** `.campo-solto` - data, `select` ou número sozinho numa barra, com `aria-label` (substituiu `.search.compacta`)
 - **Rolagem discreta:** `:is(.sidebar, .modal-body)` - barra fina, sem trilho, que segue o tema (ver abaixo)
 
 CSS de módulo (`<modulo>.css`) só **acrescenta** ao vocabulário comum; nunca redefine `.card`,
@@ -84,7 +85,7 @@ Todo formulário do hub lê em três níveis, e cada um tem um token:
 | Papel | Token | Forma |
 |---|---|---|
 | Legenda de bloco (`<legend>`) | `--form-legend` | 11.5px · 700 · ALTA · .06em · com traço embaixo |
-| Rótulo de campo (`<label>`) | `--form-label` | 11.5px · 700 · ALTA · .04em |
+| Rótulo de campo (`<label>`) | `--form-label` | 12.5px · 600 · caixa normal |
 | Conteúdo do campo | `--form-field` + `--campo-fonte` | 14px (16px em toque, contra o zoom do iOS) · 400 · caixa normal |
 
 Não escrever `--text` nem `--muted` direto num rótulo de formulário - use o token do papel.
@@ -96,6 +97,21 @@ entre `--controle` (o botão, 32px) e `--toque` (40px), e sobe para `--toque` em
 
 Campo somente-leitura que exibe valor longo (`.campo-derivado`) corta com reticências e guarda o
 inteiro no `title`: um campo que cresce para duas linhas deixa de casar com os vizinhos.
+
+## Grupos, foco e saída de modal (spec 2026-10-02)
+
+- **Grupo em modal é cartão.** `.form-grupo` dentro de `.modal` ganha borda
+  arredondada, a legenda sobre a linha da borda e o fundo `--grupo-bg`; os
+  campos dentro ficam em `--surface`. Grupo com cartão, lista ou tabela fica
+  plano sozinho (`:has()`); o que o detector não pega leva `.plano`. Em
+  página, o grupo continua seção com traço - o `.panel` já é a moldura.
+- **Rótulo em caixa normal, legenda em caixa alta.** É o que separa os dois.
+- **Foco é a borda**, na cor de destaque, sem anel. Caixa e rádio ficam com o anel.
+- **Modal com formulário pergunta antes de descartar** o que a pessoa
+  digitou, nas quatro portas (fundo, Esc, ×, ←). `fecharModal()` pelo código
+  não pergunta. Formulário que grava na hora: `abrirModal(html, { protegerSaida: false })`.
+- **Busca com seleção abre por gesto** (clique, digitação, ↓), não pelo foco,
+  e tolera erro de digitação ("Parecidos") quando a busca exata não acha nada.
 
 ## R17 - Altura de campo e de botão de linha
 
@@ -117,6 +133,7 @@ filho direto (`components.css`). Um módulo novo com esse mesmo desenho (linha =
 ganha a altura certa sem precisar declarar nada. Não se aplica a botão de ação de lista/modal
 (`.modal-acoes`, `.solic-acoes`) nem a `.campo-derivado` (não tem `input`/`select`, é `<span>`) -
 nenhum dos dois tem campo como filho direto do mesmo container.
+A mesma regra vale para a barra com `.campo-solto`: botão e busca da barra descem/sobem para `--campo`.
 
 ## Filtros: um painel por tela de lista
 

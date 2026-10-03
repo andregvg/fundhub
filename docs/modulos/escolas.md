@@ -7,7 +7,10 @@
 - Buscar uma escola por nome, apelido, bairro ou pelo nome de quem está na
   equipe.
 - Filtrar por segmento, por oferta, e por "tem transporte" / "atende EJA".
-- Abrir a ficha de uma escola: contatos, endereço, cadastros e a equipe.
+- Abrir a ficha de uma escola: contatos, endereço, cadastros e a equipe. O
+  cabeçalho da ficha mostra só o nome da escola; o nome que consta no SAE
+  aparece em **Cadastros e links**, como **Nome no SAE**, quando é diferente
+  do nome.
 - Da equipe, abrir a ficha de uma pessoa - ou já a edição dela - sem sair da
   escola.
 - Cadastrar uma escola nova e editar os dados de uma existente.
@@ -160,4 +163,4 @@ sistema envia só o endereço da escola, nunca dado de pessoa.
 A ficha de uma pessoa só abre para quem tem acesso ao módulo Servidores. Sem
 esse acesso, a equipe continua visível para leitura.
 
-> Atualizado na versão 0.32.0.
+> Atualizado na versão 0.38.1.

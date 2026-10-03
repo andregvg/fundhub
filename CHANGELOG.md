@@ -19,6 +19,7 @@ partir das versões do FundHub que mudaram algo para quem usa o SATE.
 
 | SATE | FundHub | Em resumo |
 |---|---|---|
+| 0.17.1 | 0.38.1 | pedido com local novo pela busca, disponibilidade de segunda a sexta com o dia destacado |
 | 0.17.0 | 0.38.0 | pedido simplificado, locais com mapa, conferência de local |
 | 0.16.1 | 0.37.1 | rodapé próprio; campos com texto menor e dica em tom mais claro |
 | 0.16.0 | 0.37.0 | frota, disponibilidade, vaga contada pelo horário |
@@ -42,6 +43,29 @@ partir das versões do FundHub que mudaram algo para quem usa o SATE.
 | 0.1.0 | 0.5.0 | a escola pede, a SME valida |
 
 ---
+
+## [0.38.1] - 2026-10-02
+
+SATE 0.17.1.
+
+### Mudou
+- **Nova solicitação:** o local que não está na lista é cadastrado pela própria busca -
+  digite o nome e escolha "Usar … como novo local". Erros de digitação mostram os locais
+  parecidos, e um endereço que já é de um local cadastrado avisa "Usar este". Quem aprova
+  procura a escola pelo nome, em vez de rolar a lista inteira. O título ficou só "Nova
+  solicitação".
+- **Disponibilidade:** mostra de segunda a sexta e destaca o dia escolhido (ou hoje) na cor
+  do SATE. O campo de data ficou do tamanho certo, sem ícone repetido.
+- **Frota** abre mostrando todas as frotas.
+- **Fichas de ônibus:** data e período lado a lado, do mesmo tamanho; o desenho do ônibus é
+  o mesmo em todo o sistema.
+- **Formulários em janela:** os grupos de campos ganharam moldura com o título na borda, os
+  nomes dos campos não estão mais em maiúsculas, e o campo selecionado tem uma borda só.
+- **Fechar uma janela com algo preenchido** pergunta antes de descartar.
+- O fundo atrás das janelas ficou mais escuro e desfocado, e o cabeçalho delas ganhou a cor
+  do sistema. A ficha da escola mostra só o nome no topo.
+- As caixas de busca têm a lupa num quadrado à esquerda, e acham o que foi digitado com uma
+  letra errada.
 
 ## [0.38.0] - 2026-09-27
 
