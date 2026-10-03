@@ -193,10 +193,6 @@ span.gira-90, span.gira-menos90, span.gira-180 { display: inline-flex; }
   color: var(--muted);
 }
 .search:focus-within { border-color: var(--brand); }
-/* Variante compacta: um controle único (data, ano) dentro de uma .toolbar,
-   que não deve esticar. NÃO usar como campo de filtro - filtro mora em
-   .painel-filtros com .filtro-campo, que tem o rótulo acima. */
-.search.compacta { flex: 0 0 auto; }
 .search input {
   flex: 1 1 auto;
   min-width: 0;
@@ -507,6 +503,39 @@ span.gira-90, span.gira-menos90, span.gira-180 { display: inline-flex; }
    grupos de ação de lista/modal (.modal-acoes, .solic-acoes...) -
    nenhum tem um input/select como filho direto do mesmo container. */
 :is(div, form):has(> input, > select) > .mini-btn { min-height: var(--campo); }
+
+/* Controle solto (spec 2026-10-02, D8): um campo nativo SOZINHO numa barra
+   - a data da Disponibilidade, data e período das Fichas, o ano das
+   Escalas. Aparência de campo de formulário, sem <label> de caixa em volta
+   (o nome vai em aria-label). Substituiu a busca em versão reduzida, que
+   vestia o campo de caixa de busca: ícone de calendário repetido (o type="date" já
+   traz o dele) e moldura dupla no <select>.
+   Data e select têm a MESMA largura: é o que alinha "data + período". Em
+   tela estreita, os soltos da mesma barra dividem a linha. */
+.campo-solto {
+  width: 11rem;
+  max-width: 100%;
+  height: var(--campo);
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-btn);
+  background: var(--surface);
+  color: var(--form-field);
+  font: inherit;
+  font-size: var(--campo-fonte);
+  line-height: 1.25;
+}
+.campo-solto[type="number"] { width: 6rem; }
+.toolbar > .campo-solto { flex: 1 1 9rem; min-width: 0; }
+.toolbar > .campo-solto[type="number"] { flex: 0 0 6rem; }
+@media (min-width: 560px) {
+  .toolbar > .campo-solto { flex: 0 0 11rem; }
+}
+/* R17 estendida: botão na mesma barra de um controle solto tem a altura do
+   campo (o .mini-btn já ganha pela regra estrutural acima). A busca da
+   mesma barra também desce para --campo, senão a linha teria 40 e 36px. */
+.toolbar:has(> .campo-solto) > :is(.btn-primary, .btn-secundario) { min-height: var(--campo); }
+.toolbar:has(> .campo-solto) .search { --lado: calc(var(--campo) - 2px); height: var(--campo); }
 
 /* ── Cards ────────────────────────────────────────────────── */
 .cards { display: grid; gap: 12px; grid-template-columns: 1fr; --por-linha: 3; }

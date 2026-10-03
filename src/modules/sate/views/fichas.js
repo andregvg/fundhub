@@ -28,13 +28,11 @@ export function render(contexto) {
   ctx = contexto;
   ctx.box().innerHTML = `
     <div class="toolbar no-print">
-      <label class="search compacta">${ico('calendario', { tam: 14 })}
-        <input id="fi-data" type="date" value="${esc(filtro.data)}" aria-label="Data" /></label>
-      <label class="search compacta">
-        <select id="fi-per" aria-label="Período">
-          <option value="">Todos os períodos</option>
-          ${Object.entries(PERIODOS).map(([k, v]) => `<option value="${esc(k)}">${esc(v)}</option>`).join('')}
-        </select></label>
+      <input id="fi-data" class="campo-solto" type="date" value="${esc(filtro.data)}" aria-label="Data" />
+      <select id="fi-per" class="campo-solto" aria-label="Período">
+        <option value="">Todos os períodos</option>
+        ${Object.entries(PERIODOS).map(([k, v]) => `<option value="${esc(k)}">${esc(v)}</option>`).join('')}
+      </select>
       <button id="fi-imprimir" class="btn-primary">${ico('imprimir')} Imprimir</button>
     </div>
     <div id="fi-body">${loading()}</div>`;

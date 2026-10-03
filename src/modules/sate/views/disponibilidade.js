@@ -43,8 +43,7 @@ export function render(contexto) {
   ctx.box().innerHTML = `
     <div class="toolbar disp-nav">
       <button type="button" class="mini-btn" id="disp-ant" aria-label="Semana anterior">${ico('voltar')}</button>
-      <label class="search compacta">${ico('calendario', { tam: 14 })}
-        <input id="disp-data" type="date" aria-label="Ir para a data" /></label>
+      <input id="disp-data" class="campo-solto" type="date" aria-label="Ir para a data" />
       <button type="button" class="mini-btn" id="disp-prox" aria-label="Próxima semana">${ico('avancar')}</button>
       <button type="button" class="mini-btn" id="disp-hoje">Hoje</button>
     </div>

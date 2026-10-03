@@ -50,9 +50,7 @@ export async function renderEscalas(box, ctx) {
   box.innerHTML = `
     <div class="toolbar">
       <div id="cal-esc-uni"></div>
-      <label class="search compacta">${ico('calendario')}
-        <input type="number" id="cal-esc-ano" min="2020" max="2099" value="${ano}"
-               aria-label="Ano" /></label>
+      <input type="number" id="cal-esc-ano" class="campo-solto" min="2020" max="2099" value="${ano}" aria-label="Ano" />
       ${ctx.podeEditar ? `<button type="button" class="btn-secundario" id="cal-esc-gerar">
         ${ico('adicionar')} Gerar TDC do ano</button>` : ''}
       ${ctx.podeEditar ? `<button type="button" class="mini-btn" id="cal-esc-tipos">

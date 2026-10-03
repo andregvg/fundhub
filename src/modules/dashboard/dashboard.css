@@ -24,7 +24,7 @@
 }
 
 .hoje-linha { display: flex; align-items: center; gap: 8px; margin: 8px 0; }
-.hoje-data { max-width: 220px; margin-bottom: 8px; }
+.hoje-data { display: block; margin-bottom: 8px; }
 .tag.hoje-tdc { color: var(--accent); background: color-mix(in srgb, var(--accent) 15%, transparent); }
 .hoje-afastados h3 { margin: 12px 0 6px; font-size: 13px; color: var(--muted); }
 .hoje-af {

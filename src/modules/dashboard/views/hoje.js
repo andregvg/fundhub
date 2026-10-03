@@ -28,8 +28,7 @@ export async function cartaoHoje(box) {
   // O título "Nesta data" vem do cabeçalho do painel (dashboard.view.js);
   // aqui só o campo de data e o corpo.
   box.innerHTML = `
-    <label class="search compacta hoje-data">${ico('calendario')}
-      <input type="date" id="hoje-dia" value="${esc(data)}" aria-label="Data" /></label>
+    <input type="date" id="hoje-dia" class="campo-solto hoje-data" value="${esc(data)}" aria-label="Data" />
     <div id="hoje-corpo">${loading()}</div>`;
 
   box.querySelector('#hoje-dia').addEventListener('change', (e) => {
