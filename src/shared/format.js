@@ -36,7 +36,48 @@ export function addDias(iso, n) {
   return d.toLocaleDateString('sv-SE');
 }
 
-export const isUuid = (s) => /^[0-9a-f]{8}-[0-9a-f]{4}-/i.test(String(s));
+// ── Data sem ano ─────────────────────────────────────────────
+// Campo "dd/mm" (spec 2026-10-03, D2): a pessoa digita dia e mês, o ano é
+// o vigente. Tudo aqui trabalha com STRING - a data civil nunca vira Date
+// para ser formatada (R8). O único Date é aritmética de calendário
+// (quantos dias tem o mês).
+
+// '1403' → '14/03' · '14032027' → '14/03/2027'. Progressiva: formata o
+// que já foi digitado.
+export function mascaraDiaMes(v) {
+  const d = String(v ?? '').replace(/\D/g, '').slice(0, 8);
+  if (d.length <= 2) return d;
+  if (d.length <= 4) return `${d.slice(0, 2)}/${d.slice(2)}`;
+  return `${d.slice(0, 2)}/${d.slice(2, 4)}/${d.slice(4)}`;
+}
+
+function existeDia(ano, mes, dia) {
+  if (!(mes >= 1 && mes <= 12 && dia >= 1)) return false;
+  return dia <= new Date(ano, mes, 0).getDate();   // dia 0 do mês seguinte = último deste
+}
+
+// 'dd/mm' ou 'dd/mm/aaaa' → 'yyyy-mm-dd', ou null se incompleto ou
+// inexistente. Sem ano: o de `hoje`; se a data já passou, o seguinte -
+// pedido de dezembro para fevereiro é caso real, e data no passado nunca é
+// o que a pessoa quis dizer.
+export function dataDeDiaMes(texto, hoje = hojeISO()) {
+  const d = String(texto ?? '').replace(/\D/g, '');
+  if (d.length !== 4 && d.length !== 8) return null;
+  const dd = d.slice(0, 2), mm = d.slice(2, 4);
+  const monta = (ano) => (existeDia(ano, Number(mm), Number(dd))
+    ? `${String(ano).padStart(4, '0')}-${mm}-${dd}` : null);
+  if (d.length === 8) return monta(Number(d.slice(4)));
+  const ano = Number(String(hoje).slice(0, 4));
+  const neste = monta(ano);
+  return neste && neste >= hoje ? neste : monta(ano + 1);
+}
+
+// '2026-03-14' → '14/03'
+export function diaMesDe(iso) {
+  return iso ? `${String(iso).slice(8, 10)}/${String(iso).slice(5, 7)}` : '';
+}
+
+export const isUuid =(s) => /^[0-9a-f]{8}-[0-9a-f]{4}-/i.test(String(s));
 
 export const horaAgora = () =>
   new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
