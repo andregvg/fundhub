@@ -14,7 +14,7 @@ import { toast } from '../../shared/ui/toast.js';
 export const PAINEIS_META = [
   { id: 'numeros',      titulo: 'Números do dia',      ico: 'dashboard' },
   { id: 'hoje',         titulo: 'Nesta data',          ico: 'horario' },
-  { id: 'extraclasse',  titulo: 'Extraclasse hoje',    ico: 'transporte',  perm: 'sate' },
+  { id: 'extraclasse',  titulo: 'Extraclasse hoje',    ico: 'onibus',  perm: 'sate' },
   { id: 'afastamentos', titulo: 'Afastamentos hoje',   ico: 'afastamento', perm: 'afastamentos' },
   { id: 'calendario',   titulo: 'Calendário hoje',     ico: 'calendario',  perm: 'calendario' },
   { id: 'ocorrencias',  titulo: 'Ocorrências de hoje', ico: 'ocorrencia',  perm: 'ocorrencias' },

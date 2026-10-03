@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { PAINEIS_META, ordemResolvida } from '../src/modules/dashboard/dashboard.config.js';
+import { TEM_ICONE } from '../src/shared/ui/icones.js';
 import { _semearParaTeste, limparConfiguracoes } from '../src/core/configuracoes.js';
 
 test('PAINEIS_META tem os seis painéis, com id e título', () => {
@@ -22,4 +23,10 @@ test('ordemResolvida respeita a preferência e descarta id que não existe mais'
 test('ordemResolvida acrescenta painel novo (fora da preferência) no fim', () => {
   _semearParaTeste({}, { 'dashboard/ordem_paineis': ['hoje', 'numeros'] });
   assert.deepEqual(ordemResolvida(['numeros', 'hoje', 'novo']), ['hoje', 'numeros', 'novo']);
+});
+
+test('todos os painéis têm um ícone que existe no conjunto', () => {
+  for (const p of PAINEIS_META) {
+    assert.ok(TEM_ICONE(p.ico), `painel "${p.id}" refere ícone "${p.ico}" que não existe`);
+  }
 });
