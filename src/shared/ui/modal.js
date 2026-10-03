@@ -18,9 +18,11 @@
 //   app.innerHTML = `… ${modalHtml()}`;
 //   montarModal();
 //   abrirModal(`${modalHead('Título')}<div class="modal-body">…</div>`);
+//   abrirModal(html, { protegerSaida: false });   // formulário que grava na hora
 // ============================================================
 import { ico } from './icones.js';
 import { prenderFoco } from './foco.js';
+import { confirmar } from './confirmar.js';
 
 // Marcação a incluir no final do HTML da página. O cartão fica DENTRO
 // do fundo: é o fundo que centraliza (grid + place-items), e um cartão
@@ -40,12 +42,56 @@ let voltarPara = null;
 let focoAnterior = null;
 let soltarFoco = null;
 
+// ── Dado digitado (spec 2026-10-02, D6) ──────────────────────
+// A linha de base de cada campo é tirada no PRIMEIRO TOQUE da pessoa
+// (tecla ou ponteiro), não na abertura. Assim digitar e apagar volta a
+// "limpo", e um formulário que recebe valores depois de aberto (busca
+// carregada, endereço preenchido ao escolher o local) não vira "sujo"
+// sozinho: o código mudou campos que a pessoa não tocou.
+const CAMPO = 'input, select, textarea';
+let bases = new Map();
+let proteger = false;
+
+export const valorDoCampo = (el) =>
+  (el.type === 'checkbox' || el.type === 'radio') ? el.checked : el.value;
+
+export function algumMudou(mapa) {
+  for (const [el, v] of mapa) if (el.isConnected !== false && valorDoCampo(el) !== v) return true;
+  return false;
+}
+
+// Clique no <label> de uma caixa de seleção também é toque nela.
+function aoTocar(e) {
+  if (!proteger) return;
+  const el = e.target.closest?.(CAMPO) || e.target.closest?.('label')?.control;
+  if (!el || bases.has(el) || !el.closest('.modal-body form')) return;
+  bases.set(el, valorDoCampo(el));
+}
+
+// As quatro portas de DISPENSA pela pessoa - fundo, Esc, × e ← - passam
+// por aqui. `fecharModal()` exportado continua direto: quem fecha pelo
+// código (depois de salvar) não pergunta nada.
+async function tentarFechar() {
+  if (proteger && algumMudou(bases)) {
+    const descartar = await confirmar('Descartar o que você preencheu?', {
+      detalhe: 'Se fechar agora, as informações digitadas serão perdidas.',
+      textoOk: 'Descartar', textoCancelar: 'Continuar editando', perigo: true,
+    });
+    if (!descartar) return;
+  }
+  fecharModal();
+}
+
 // O Esc não é ouvido aqui: ele vem com a armadilha de foco (foco.js),
 // que só existe enquanto o modal está aberto e só responde quando o
 // modal é a superfície de CIMA - com uma confirmação por cima, o Esc é
 // dela, e fecha só ela.
 export function montarModal() {
   document.getElementById('modal-back')?.addEventListener('click', aoCliqueFundo);
+  // Captura: a base precisa ser lida ANTES de a tecla ou o clique mudar o valor.
+  const m = document.getElementById('modal');
+  m?.addEventListener('keydown', aoTocar, true);
+  m?.addEventListener('pointerdown', aoTocar, true);
 }
 
 const aberto = () => document.getElementById('modal-back')?.classList.contains('open');
@@ -53,11 +99,11 @@ const aberto = () => document.getElementById('modal-back')?.classList.contains('
 // Só o fundo fecha. Sem esta checagem, um clique que começasse dentro do
 // cartão e terminasse fora fecharia o formulário no meio da digitação.
 function aoCliqueFundo(e) {
-  if (e.target.id === 'modal-back') fecharModal();
+  if (e.target.id === 'modal-back') tentarFechar();
 }
 
 // `tamanho`: 'estreito' (420px) | 'medio' (560px, padrão) | 'largo' (760px).
-export function abrirModal(html, { voltar = null, tamanho = 'medio' } = {}) {
+export function abrirModal(html, { voltar = null, tamanho = 'medio', protegerSaida = null } = {}) {
   garantirModal();
   const m = document.getElementById('modal');
   const back = document.getElementById('modal-back');
@@ -70,6 +116,8 @@ export function abrirModal(html, { voltar = null, tamanho = 'medio' } = {}) {
 
   m.className = `modal ${tamanho}`;
   m.innerHTML = html;
+  bases = new Map();
+  proteger = protegerSaida ?? !!m.querySelector('.modal-body form');
   m.setAttribute('aria-hidden', 'false');
   back.classList.add('open');
 
@@ -84,15 +132,15 @@ export function abrirModal(html, { voltar = null, tamanho = 'medio' } = {}) {
     btn.setAttribute('aria-label', 'Voltar');
     btn.innerHTML = ico('voltar');
     head?.prepend(btn);
-    btn.addEventListener('click', fecharModal);
+    btn.addEventListener('click', tentarFechar);
   }
 
-  m.querySelector('.modal-close')?.addEventListener('click', fecharModal);
+  m.querySelector('.modal-close')?.addEventListener('click', tentarFechar);
 
   // A armadilha é presa uma vez por PILHA, não por modal: o elemento é
   // sempre o mesmo (#modal, com o innerHTML trocado), e prender de novo
   // deixaria dois laços de Tab concorrendo sobre o mesmo nó.
-  if (!soltarFoco) soltarFoco = prenderFoco(m, { aoEsc: () => fecharModal() });
+  if (!soltarFoco) soltarFoco = prenderFoco(m, { aoEsc: () => tentarFechar() });
 
   // Primeiro campo do formulário, se houver; senão o botão de fechar. Um
   // modal de edição que abre com o foco no × obriga a pessoa a tabular
