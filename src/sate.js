@@ -19,9 +19,9 @@
 // ============================================================
 import { MODULOS, moduloPorId, nivelEfetivo, veModulo } from './core/registry.js';
 import { hasSupabase } from './core/supabase.js';
-import { OCULTO, LEITURA, ESCRITA } from './core/permissoes.js';
+import { OCULTO, PROPRIOS, LEITURA, ESCRITA } from './core/permissoes.js';
 import { abrirPortao } from './shell/portao.js';
-import { montarNav, marcarNav, marcarAtualizacao } from './shell/chrome.js';
+import { montarNav, marcarNav, marcarAtualizacao, atualizarMeusDados } from './shell/chrome.js';
 import { render, PAGINAS, PAGINA_INICIAL } from './modules/sate/sate.view.js';
 import { corSate } from './modules/sate/sate.config.js';
 import * as notificacoes from './modules/notificacoes/notificacoes.service.js';
@@ -39,6 +39,14 @@ import { ico } from './shared/ui/icones.js';
 const usaFundHub = () => MODULOS.some(m =>
   m.nav && m.rota && m.id !== 'sate' && !m.publico && veModulo(m));
 
+// Quem usa o SATE como ESCOLA não é levado ao FundHub - nem pelo menu, nem
+// pelo "Meus dados" (spec 2026-10-03, D19). Por enquanto: volta quando o
+// FundHub for aberto às escolas. NÃO é controle de acesso (R6): quem
+// digitar o endereço entra e vê o que o banco deixa. `simulando` conta
+// como escola - a simulação mostra o menu exatamente como ela o vê.
+const ehEscola = () => !!simulando || estado?.nivel === PROPRIOS;
+const ofereceFundHub = () => usaFundHub() && !ehEscola();
+
 const app = document.getElementById('app');
 const MARCA = {
   ico: 'onibus',
@@ -46,7 +54,7 @@ const MARCA = {
   sub: 'Transporte extraclasse da rede municipal. Entre com o e-mail institucional.',
 };
 
-let estado = null;   // { perfil, podeAprovar } depois da porta
+let estado = null;   // { perfil, nivel, podeAprovar, somenteLeitura } depois da porta
 
 // ── Ver como escola ──────────────────────────────────────────
 // Quem aprova escolhe uma escola e o SATE se desenha como ELA o vê: só as
@@ -72,6 +80,7 @@ function mudarSimulacao(v) {
   simulando = v;
   gravarSimulacao(v);
   montarNav(gruposDoMenu());
+  atualizarMeusDados();
   if (location.hash === `#/${PAGINA_INICIAL}`) rotear();
   else location.hash = `#/${PAGINA_INICIAL}`;
 }
@@ -98,11 +107,12 @@ function montarSate({ perfil }) {
   // linhas e a tela dizia sucesso) e "Nova solicitação" com a lista de
   // escolas vazia (spec 2026-09-26-sate-frota-e-disponibilidade, achado da
   // revisão final).
-  estado = { perfil, podeAprovar: nv === ESCRITA, somenteLeitura: nv === LEITURA };
+  estado = { perfil, nivel: nv, podeAprovar: nv === ESCRITA, somenteLeitura: nv === LEITURA };
   // Só quem aprova simula; um valor que sobrou de outra conta na mesma aba
   // não vale para quem não aprova.
   simulando = estado.podeAprovar ? lerSimulacao() : null;
   montarNav(gruposDoMenu());
+  atualizarMeusDados();
   rotear().then(marcarAtualizacao);
   // O sino, só com os avisos do SATE. Mesmo serviço e mesma permissão do
   // FundHub - aqui sem afastamentos e ocorrências, que seriam ruído.
@@ -117,9 +127,10 @@ function gruposDoMenu() {
     .map(([id, p]) => ({ rota: `#/${id}`, ico: p.ico, nome: p.rotulo }));
   const conta = [
     ...(aprovador ? [{ rota: '#/configuracoes', ico: 'config', nome: 'Configurações' }] : []),
-    ...(estado.podeAprovar ? [{ rota: '#/ver-como', ico: 'escola', nome: 'Ver como escola' }] : []),
+    // Fora da simulação: durante ela, a saída é o botão da faixa do topo.
+    ...(estado.podeAprovar && !simulando ? [{ rota: '#/ver-como', ico: 'escola', nome: 'Ver como escola' }] : []),
     { rota: '#/ajuda', ico: 'ajuda', nome: 'Como usar o SATE' },
-    ...(usaFundHub() ? [linkFundHub()] : []),
+    ...(ofereceFundHub() ? [linkFundHub()] : []),
   ];
   return [
     { rotulo: 'Transporte', itens: paginas },
@@ -215,11 +226,13 @@ async function paginaVerComo() {
   const box = document.getElementById('sim-busca');
   if (!box) return;
   criarBuscaSelecao(box, {
-    opcoes: unidades.map(u => ({ id: u.id, rotulo: u.apelido || u.nome, detalhe: u.segmento || '', busca: u.nome })),
+    opcoes: unidades.map(u => ({ id: u.id, rotulo: u.nome, detalhe: u.segmento || '', busca: u.apelido || '' })),
     placeholder: 'Buscar a escola…',
     onChange: (id) => {
       const u = unidades.find(x => x.id === id);
-      if (u) mudarSimulacao({ id: u.id, nome: u.apelido || u.nome });
+      // Nome completo, não o apelido (spec 2026-10-03, D18): é o que a faixa
+      // "Você está vendo o SATE como…" mostra, e apelido não identifica.
+      if (u) mudarSimulacao({ id: u.id, nome: u.nome });
     },
   });
 }
@@ -232,10 +245,11 @@ abrirPortao(app, {
   marca: MARCA,
   sistema: 'SATE',
   // "Meus dados" do menu de usuário leva ao FundHub, e só aparece para quem
-  // também o usa (usaFundHub). Atualizar recarrega a página do SATE, não o
-  // roteador do FundHub (que aqui não roda). O rodapé não leva o resumo de
-  // versão nem o link "Histórico completo" - eles falam do FundHub.
-  chrome: { base: './', aoAtualizar: () => rotear(), meusDados: usaFundHub, rodapeSate: true },
+  // também o usa e não é escola (ofereceFundHub). Atualizar recarrega a
+  // página do SATE, não o roteador do FundHub (que aqui não roda). O rodapé
+  // não leva o resumo de versão nem o link "Histórico completo" - eles
+  // falam do FundHub.
+  chrome: { base: './', aoAtualizar: () => rotear(), meusDados: ofereceFundHub, rodapeSate: true },
   aoEntrar: montarSate,
   aoSair: () => { estado = null; simulando = null; gravarSimulacao(null); notificacoes.parar(); limparToasts(); },
 });

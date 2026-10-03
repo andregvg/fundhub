@@ -199,10 +199,18 @@ export function setChrome(logado, user, perfil, opts = {}) {
   org.classList.toggle('local', s !== 'supabase');
   menu.querySelector('.user-btn').classList.toggle('is-admin', Boolean(perfil?.isAdmin));
 
-  // "Meus dados" mora no FundHub. No SATE, só aparece para quem também usa
-  // o FundHub - quem só usa o SATE não é levado a um sistema que não
-  // conhece (spec 2026-09-26-sate-identidade-propria, D3).
-  menu.querySelector('.um-link').hidden = !opcoesChrome.meusDados();
+  atualizarMeusDados();
+}
+
+// "Meus dados" mora no FundHub. No SATE, só aparece para quem também usa
+// o FundHub - quem só usa o SATE não é levado a um sistema que não
+// conhece (spec 2026-09-26-sate-identidade-propria, D3). Separada de
+// setChrome porque a resposta muda depois dele: o portão desenha o chrome
+// ANTES de o SATE saber o nível do usuário, e "Ver como escola" a muda no
+// meio da sessão (spec 2026-10-03, D19).
+export function atualizarMeusDados() {
+  const link = document.querySelector('.um-link');
+  if (link) link.hidden = !opcoesChrome.meusDados();
 }
 
 // ── Botão Atualizar ──────────────────────────────────────────

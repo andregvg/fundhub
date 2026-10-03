@@ -158,7 +158,7 @@ function ficha(f, cab, paradas) {
           </tr>
           <tr>
             <th>Embarque</th><td>${esc(s.horario_embarque || '—')}</td>
-            <th>Retorno</th><td>${esc(s.horario_retorno || '—')}</td>
+            <th>Saída do evento</th><td>${esc(s.horario_retorno || '—')}</td>
           </tr>
           <tr>
             <th>Lugares no ônibus</th><td class="fi-num-grande">${f.lugares}</td>

@@ -108,11 +108,11 @@ export function avaliarPedido(p) {
 
   // Sem os dois horários não há intervalo a conferir (spec D3).
   if (!horarioEmbarque || !horarioRetorno) {
-    erros.push({ codigo: 'sem_horario', texto: 'Informe o horário de embarque e o de retorno.' });
+    erros.push({ codigo: 'sem_horario', texto: 'Informe o horário de embarque e o de saída do evento.' });
   } else if (periodo !== 'noite') {
     // A noite pode voltar depois da meia-noite; os outros períodos, não.
     const e = paraMin(horarioEmbarque), r = paraMin(horarioRetorno);
-    if (e !== null && r !== null && r <= e) erros.push({ codigo: 'horarios', texto: 'O retorno precisa ser depois do embarque.' });
+    if (e !== null && r !== null && r <= e) erros.push({ codigo: 'horarios', texto: 'A saída do evento precisa ser depois do embarque.' });
   }
 
   if (onibus > 0) {

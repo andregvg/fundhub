@@ -77,7 +77,7 @@ export async function abrirDetalhe(solicitacao, contexto) {
     ${campo('Estudantes', `${s.qtd_alunos || 0}${s.qtd_cadeirante ? ` · ${ico('cadeirante', { tam: 13 })} ${s.qtd_cadeirante} cadeirante(s)` : ''}`)}
     ${campo('Veículos', `${s.qtd_onibus || 0} ônibus${s.qtd_vans ? ` · ${s.qtd_vans} van(s) adaptada(s)` : ''}`)}
     ${campo('Horários', s.horario_embarque || s.horario_retorno
-      ? `embarque ${esc(s.horario_embarque || '—')} · retorno ${esc(s.horario_retorno || '—')}`
+      ? `embarque ${esc(s.horario_embarque || '—')} · saída do evento ${esc(s.horario_retorno || '—')}`
       : vazio('não informados'))}
     ${campo('Destino', destino(s)
       ? `${esc(destino(s))}${enderecoDestino(s) ? `<div class="di-meta">${esc(enderecoDestino(s))}</div>` : ''}${conferirLocalHtml(s)}`

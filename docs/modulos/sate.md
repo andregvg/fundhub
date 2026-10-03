@@ -32,7 +32,10 @@ clique em **Ver como escola** no menu, busque a escola e escolha.
   inviolável, só a própria unidade na lista).
 - Uma faixa no topo avisa em toda página. **Nada é gravado** nessa visão: os
   botões de decisão somem e o envio de pedido fica desativado.
-- **Voltar à minha visão**, na faixa, encerra. Fechar a aba também.
+- O menu fica igual ao da escola: durante a visão, somem **Ver como escola**,
+  **Configurações** e **Ir para o FundHub**. A escola não é levada ao FundHub.
+- **Voltar à minha visão**, na faixa, encerra e devolve o seu menu. Fechar a
+  aba também.
 A cor principal do SATE é escolhida em **Configurações** e vale para a rede
 toda.
 
@@ -93,11 +96,11 @@ consegue fazer isso sozinha.
 
 Existe uma regra só, e ela decide tudo. A frota é de **veículos**, e o mesmo
 ônibus atende mais de uma viagem no dia: **cada viagem ocupa os seus veículos
-desde o embarque até eles ficarem livres de novo** - o retorno, mais o tempo
+desde o embarque até eles ficarem livres de novo** - a saída do evento, mais o tempo
 de viagem de volta, mais um intervalo mínimo de segurança (hoje **2 horas**).
 Uma viagem da **noite** ocupa os veículos até o **meio-dia do dia seguinte**.
 
-**Exemplo:** um ônibus retorna às 11h de uma viagem com 30 minutos de trajeto
+**Exemplo:** um ônibus sai do evento às 11h, numa viagem com 30 minutos de trajeto
 de volta. Ele fica livre às 11h30 e, somado o intervalo de 2 horas, só serve
 outro pedido **a partir das 13h30**.
 
@@ -113,7 +116,7 @@ pedindo:
 O tempo de viagem de volta é **calculado pelo sistema** a partir da distância
 entre as escolas e o destino (ver *Trajeto e tempo de viagem*, mais abaixo). A
 volta leva o mesmo tempo da ida. Se o trajeto não pôde ser calculado - uma
-escola sem localização, por exemplo -, a regra conta o retorno sem tempo de
+escola sem localização, por exemplo -, a regra conta a saída do evento sem tempo de
 viagem, e a folga fica maior do que a real. O intervalo mínimo é ajustável nas
 configurações do módulo e vale para os **próximos** agendamentos - nunca
 desfaz o que já está confirmado.
@@ -263,7 +266,7 @@ na tela.
    ambíguo.
 3. Cada ficha traz origem com endereço, as paradas a mais (quando o ônibus
    passa em outra escola), destino com endereço, horários de embarque e
-   retorno, quantos lugares no ônibus e quantos na van adaptada.
+   saída do evento, quantos lugares no ônibus e quantos na van adaptada.
 4. Clique em **Imprimir**. Sai só o documento - menu, abas e filtros não vão
    para o papel, e nenhuma ficha é cortada ao meio entre duas folhas.
 

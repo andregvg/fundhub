@@ -37,7 +37,7 @@ export function abrirRemanejar(s, ctx, reabrir) {
           <div class="campos duas">
             <label>Data <input id="rm-data" type="date" required value="${v('data')}" /></label>
             <label>Horário de embarque <input id="rm-emb" type="time" value="${v('horario_embarque')}" /></label>
-            <label>Horário de retorno <input id="rm-ret" type="time" value="${v('horario_retorno')}" /></label>
+            <label>Horário de saída do evento <input id="rm-ret" type="time" value="${v('horario_retorno')}" /></label>
           </div>
         </fieldset>
         <fieldset class="form-grupo">
@@ -75,7 +75,7 @@ async function salvar(e, s, ctx, reabrir) {
   // "HH:MM" compara como texto na ordem certa. A noite pode voltar depois
   // da meia-noite (mesma exceção de regras.model.js) - só os outros
   // períodos exigem retorno depois do embarque no mesmo dia.
-  if (periodo !== 'noite' && emb && ret && ret <= emb) return falha(msg, 'O retorno precisa ser depois do embarque.');
+  if (periodo !== 'noite' && emb && ret && ret <= emb) return falha(msg, 'A saída do evento precisa ser depois do embarque.');
 
   const localId = document.getElementById('rm-local').value || null;
   const local = (ctx.locais || []).find(l => l.id === localId);
