@@ -16,7 +16,10 @@ import {
   tarefaLocalizacao, acompanharLocalizacao,
 } from '../localizacao.model.js';
 import { linkMaps } from '../../locais/geografia.model.js';
+import { abrirForm } from './formulario.js';
 import { podeEscrever } from '../../../core/permissoes.js';
+import { abrirConfiguracao } from '../../../core/router.js';
+import { moduloPorId } from '../../../core/registry.js';
 import { esc } from '../../../shared/dom.js';
 import { loading, erroBox } from '../../../shared/ui/feedback.js';
 import { toast } from '../../../shared/ui/toast.js';
@@ -72,6 +75,8 @@ function desenharResumo(box, r, ultima) {
 
       ${ultima ? resultadoHtml(ultima) : ''}
 
+      ${pendentesHtml([...r.aLocalizar, ...r.semEndereco], pode)}
+
       ${n ? `
         <div class="geo-lote-acao">
           <button type="button" class="btn-primary" id="geo-iniciar" ${pode ? '' : 'disabled'}>
@@ -82,6 +87,36 @@ function desenharResumo(box, r, ultima) {
     </div>`;
 
   box.querySelector('#geo-iniciar')?.addEventListener('click', () => iniciar(box));
+  box.querySelectorAll('[data-acertar]').forEach(b => b.addEventListener('click', () => {
+    const u = [...r.aLocalizar, ...r.semEndereco].find(x => String(x.id) === b.dataset.acertar);
+    if (u) acertarNoMapa(box, u);
+  }));
+}
+
+// ── Sem localização: a lista que não se perde ────────────────
+// O resultado da última busca vive na memória e some ao recarregar. Esta
+// lista vem do cadastro: enquanto a escola não tiver ponto, ela está aqui
+// (spec 2026-10-03, D15).
+function pendentesHtml(lista, pode) {
+  if (!lista.length) return '';
+  return `
+    <details class="geo-lista" open>
+      <summary>Sem localização (${lista.length})</summary>
+      <p class="form-hint">O que a busca pelo endereço não achou se acerta olhando: abra a escola e ponha o pino no lugar.</p>
+      <ul>${lista.map(u => `<li>
+        <span>${esc(u.nome)}<span class="di-meta">${esc(u.endereco || 'sem endereço cadastrado')}</span></span>
+        ${pode ? `<button type="button" class="mini-btn" data-acertar="${esc(u.id)}">${ico('visita', { tam: 12 })} Acertar no mapa</button>` : ''}
+      </li>`).join('')}</ul>
+    </details>`;
+}
+
+// O formulário da escola por cima do painel. Na engrenagem o painel É um
+// modal, e o formulário o substitui: `voltar` reabre a configuração. Na
+// página Configurações o painel fica atrás, e basta repintá-lo ao salvar.
+function acertarNoMapa(box, u) {
+  const noModal = Boolean(box.closest('.modal'));
+  const ctx = { recarregar: async () => { if (visivel(box)) await pintarLocalizacao(box); return ctx; } };
+  abrirForm(u, ctx, { voltar: noModal ? () => abrirConfiguracao(moduloPorId('escolas')) : null });
 }
 
 function iniciar(box) {

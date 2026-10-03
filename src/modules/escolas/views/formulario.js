@@ -6,11 +6,15 @@ import { sincronizarTelefones } from '../../telefones/telefones.model.js';
 import { geocodificar, linkMaps, temCoordenada } from '../../locais/geografia.model.js';
 import { esc, falha } from '../../../shared/dom.js';
 import { modalHead, abrirModal, fecharModal } from '../../../shared/ui/modal.js';
+import { montarMapaPino } from '../../../shared/ui/mapa-pino.js';
 import { phonesEditorHtml, montarPhonesEditor, lerPhonesEditor } from '../../../shared/ui/phones.js';
 import { confirmar } from '../../../shared/ui/confirmar.js';
 import { toast } from '../../../shared/ui/toast.js';
 import { reportarErro } from '../../../shared/ui/feedback.js';
 import { ico } from '../../../shared/ui/icones.js';
+
+// Handle do mapa aberto - o módulo tem um modal por vez.
+let mapaAtual = null;
 
 // `ctx`: { recarregar } - ver escolas.view.js § ctxAtual() e views/detalhe.js.
 // `voltar`: aberto sobre a ficha, salvar devolve para ela (a pilha do modal).
@@ -57,11 +61,12 @@ export function abrirForm(u, ctx, { voltar = null } = {}) {
           <legend>Localização</legend>
           <div class="campos auto">
             <label class="col-full">Endereço <input name="endereco" value="${v('endereco')}" /></label>
+            <div class="col-full"><div id="ef-mapa" class="mapa-pino"></div></div>
             <label>Latitude <input name="latitude" type="number" step="any" inputmode="decimal" value="${v('latitude')}" /></label>
             <label>Longitude <input name="longitude" type="number" step="any" inputmode="decimal" value="${v('longitude')}" /></label>
             <div class="col-full geo-linha">
               <button type="button" class="mini-btn" id="ef-geo">${ico('visita', { tam: 13 })} Localizar pelo endereço</button>
-              <span class="form-hint" id="ef-geo-dica" aria-live="polite">A localização é o que permite ao SATE calcular o tempo de viagem do ônibus.</span>
+              <span class="form-hint" id="ef-geo-dica" aria-live="polite">Clique no mapa ou arraste o pino para acertar o ponto. É a localização que permite ao SATE calcular o tempo de viagem do ônibus.</span>
             </div>
           </div>
         </fieldset>
@@ -92,6 +97,32 @@ export function abrirForm(u, ctx, { voltar = null } = {}) {
   montarPhonesEditor(document.getElementById('esc-form'));
   document.getElementById('esc-form').addEventListener('submit', (e) => salvar(e, u, ctx));
   document.getElementById('ef-geo').addEventListener('click', localizar);
+
+  // Mapa com pino (spec 2026-10-03, D15): o que o OpenStreetMap não acha
+  // pelo endereço, a pessoa acerta olhando. Sem rede ou com o CDN fora, o
+  // mapa não monta e o formulário segue com latitude e longitude à mão.
+  const f = document.getElementById('esc-form');
+  const mapaEl = document.getElementById('ef-mapa');
+  const num = (v) => (String(v).trim() === '' ? null : Number(v));
+  mapaAtual = null;
+  montarMapaPino(mapaEl, {
+    lat: num(f.latitude.value), lng: num(f.longitude.value),
+    aoMover: (lat, lng) => { f.latitude.value = lat.toFixed(6); f.longitude.value = lng.toFixed(6); },
+  }).then((m) => {
+    // O Leaflet carrega de forma assíncrona: se o formulário foi fechado
+    // (ou aberto de novo) enquanto isso, esta resposta é de um modal que
+    // não existe mais e não pode tomar o lugar do mapa do modal atual.
+    if (document.getElementById('ef-mapa') !== mapaEl) return;
+    mapaAtual = m;
+    if (!m) mapaEl.setAttribute('hidden', '');
+  });
+  // Coordenada digitada à mão: o pino acompanha.
+  const aoDigitar = () => {
+    const lat = num(f.latitude.value), lng = num(f.longitude.value);
+    if (temCoordenada(lat, lng)) mapaAtual?.mover(lat, lng);
+  };
+  f.latitude.addEventListener('change', aoDigitar);
+  f.longitude.addEventListener('change', aoDigitar);
 }
 
 // Endereço → latitude e longitude, pelo OpenStreetMap. Preenche os campos
@@ -115,6 +146,7 @@ async function localizar() {
     }
     f.latitude.value = r.lat.toFixed(6);
     f.longitude.value = r.lng.toFixed(6);
+    mapaAtual?.mover(r.lat, r.lng);
     dica.innerHTML = `Encontrado: ${esc(r.formatado)} · <a href="${esc(linkMaps(r.lat, r.lng))}" target="_blank" rel="noopener">conferir no mapa</a> antes de salvar.`;
   } catch (err) {
     dica.textContent = err?.name === 'AbortError' ? 'O serviço de mapa não respondeu. Tente de novo em instantes.' : (err?.message || String(err));

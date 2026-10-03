@@ -72,6 +72,29 @@ só sem o tempo de viagem.
 Com a escola localizada, o **ver no mapa** da ficha passa a abrir o ponto
 exato, e não uma busca pelo endereço.
 
+### Acertar a localização de uma escola no mapa
+
+Quando o endereço não basta para o sistema achar o lugar, dá para acertar o
+ponto olhando o mapa.
+
+1. Abra a escola e clique para **editar**. Em **Localização** há um mapa.
+   Se a escola ainda não tem ponto, ele abre no centro da cidade, com o pino
+   apagado.
+2. Clique no lugar certo do mapa, ou arraste o pino até lá. **Latitude** e
+   **Longitude** são preenchidas sozinhas.
+3. Se preferir, digite ou cole as coordenadas: o pino acompanha.
+4. Clique em **Salvar**.
+
+As escolas que ainda não têm localização aparecem sempre em **Sem
+localização**, na janela de configurações do módulo (a engrenagem no alto da
+tela). Clique em **Acertar no mapa** ao lado do nome: o cadastro da escola
+abre já com o mapa. Ao salvar, a escola sai da lista; se você tinha chegado
+pela engrenagem, volta à janela de configurações.
+
+Se o mapa não aparecer (sem internet, por exemplo), o formulário continua
+funcionando: preencha **Latitude** e **Longitude** à mão ou use **Localizar
+pelo endereço**.
+
 ### Localizar todas as escolas de uma vez
 
 Para não abrir escola por escola, a localização também roda em lote.

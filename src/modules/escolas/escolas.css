@@ -38,3 +38,5 @@
 .geo-lista ul { margin: 6px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 5px; }
 .geo-lista li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; }
 .geo-lista li a { display: inline-flex; align-items: center; gap: 3px; font-size: 12.5px; }
+.geo-lista li .di-meta { display: block; }
+.geo-lista li .mini-btn { margin-left: auto; }   /* "Acertar no mapa": à direita do nome */

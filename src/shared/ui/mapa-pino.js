@@ -1,10 +1,15 @@
 // ============================================================
-// FundHub - sate/views/mapa-local.js
-// Mapa com pino arrastável para acertar a coordenada de um local
-// (spec 2026-09-27, D7) - como o "Editar local" do agendamentos-fil.
+// FundHub - shared/ui/mapa-pino.js
+// Mapa com pino arrastável para acertar a coordenada de um ponto - o
+// cadastro de locais do SATE (spec 2026-09-27, D7) e o de escolas (spec
+// 2026-10-03, D15).
+//
+// É componente comum desde o segundo uso: Escolas não pode importar a tela
+// de outro módulo (R2), e duas cópias seriam dois lugares para manter a
+// versão e o SRI do Leaflet (spec 2026-10-03, D16).
 //
 // Leaflet é EXCEÇÃO NOMEADA à regra "sem dependência nova" (CLAUDE.md):
-// versão fixa, jsDelivr, SRI, e carregado SÓ quando este mapa é pedido -
+// versão fixa, jsDelivr, SRI, e carregado SÓ quando um formulário com mapa abre -
 // nenhuma outra tela paga por ele. Sem rede ou com o CDN fora, devolve
 // null e a tela segue com os campos de coordenada. Degrada, não quebra.
 // ============================================================
@@ -32,7 +37,7 @@ function carregarLeaflet() {
   return carregando;
 }
 
-export async function montarMapaLocal(el, { lat = null, lng = null, aoMover = () => {} } = {}) {
+export async function montarMapaPino(el, { lat = null, lng = null, aoMover = () => {} } = {}) {
   let L;
   try { L = await carregarLeaflet(); } catch (_) { return null; }
   if (!el.isConnected) return null;   // o modal fechou enquanto carregava

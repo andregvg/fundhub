@@ -204,6 +204,11 @@ span.gira-90, span.gira-menos90, span.gira-180 { display: inline-flex; }
   color: var(--text);
   font-size: var(--campo-fonte);   /* 16px em toque: evita o zoom do iOS */
 }
+/* Mapa com pino (shared/ui/mapa-pino.js): o contêiner onde o Leaflet se
+   monta. Altura declarada - sem ela o mapa nasce com 0px. */
+.mapa-pino { height: 280px; border: 1px solid var(--border); border-radius: var(--radius-btn); }
+@media (min-width: 720px) { .mapa-pino { height: 340px; } }
+
 /* Dentro de formulário a busca é mais um campo: altura, raio e fundo dos
    vizinhos, sem sombra. Antes saía com 40px contra 36px e sombra. */
 :is(.esc-form, .form-grid, .form-grupo) .search {

@@ -103,6 +103,16 @@ export async function route({ manterScroll = false } = {}) {
   if (!manterScroll) window.scrollTo(0, 0);
 }
 
+// Abre o painel de configuração de um módulo - o que a engrenagem faz. É
+// exportada porque uma tela aberta A PARTIR do painel (o formulário da
+// escola, pelo "Acertar no mapa") precisa voltar para ele, e uma view não
+// importa a view de outro módulo (R2). `import()` dinâmico: é a exceção
+// nomeada do painel, o mesmo alvo e só ele.
+export async function abrirConfiguracao(mod) {
+  const { abrirPainelConfig } = await import('../modules/configuracoes/painel.js');
+  abrirPainelConfig(mod);
+}
+
 // A barra de ações do módulo: ajuda à esquerda, engrenagem à direita -
 // ordem fixa em toda tela. Ajuda NAVEGA (tutorial é texto para ler com
 // calma); engrenagem abre modal (configurar é interrupção curta).
@@ -121,10 +131,7 @@ async function montarAcoesModulo(mod, nv) {
   if (typeof mod.config === 'function') {
     barra.insertAdjacentHTML('beforeend',
       `<button type="button" class="mod-acao" id="mod-cfg" aria-label="Configurações de ${esc(mod.nome)}">${ico('config')}</button>`);
-    document.getElementById('mod-cfg').addEventListener('click', async () => {
-      const { abrirPainelConfig } = await import('../modules/configuracoes/painel.js');
-      abrirPainelConfig(mod);
-    });
+    document.getElementById('mod-cfg').addEventListener('click', () => abrirConfiguracao(mod));
   }
 }
 

@@ -13,7 +13,7 @@ import { abrirModal, modalHead, fecharModal } from '../../../shared/ui/modal.js'
 import { confirmar } from '../../../shared/ui/confirmar.js';
 import { toast } from '../../../shared/ui/toast.js';
 import { ico } from '../../../shared/ui/icones.js';
-import { montarMapaLocal } from './mapa-local.js';
+import { montarMapaPino } from '../../../shared/ui/mapa-pino.js';
 
 let ctx = null;
 
@@ -102,7 +102,7 @@ export function abrirLocal(l, { preenchido = {}, aoSalvar = null } = {}, ctxExte
         <fieldset class="form-grupo">
           <legend>Localização</legend>
           <div class="campos auto">
-            <div class="col-full"><div id="l-mapa" class="local-mapa"></div></div>
+            <div class="col-full"><div id="l-mapa" class="mapa-pino"></div></div>
             <label>Latitude <input id="l-lat" type="number" step="any" inputmode="decimal" value="${Number.isFinite(lat) ? lat : ''}" /></label>
             <label>Longitude <input id="l-lng" type="number" step="any" inputmode="decimal" value="${Number.isFinite(lng) ? lng : ''}" /></label>
             <div class="col-full geo-linha">
@@ -134,7 +134,7 @@ export function abrirLocal(l, { preenchido = {}, aoSalvar = null } = {}, ctxExte
   document.getElementById('l-lat').addEventListener('change', aoMudarCoordenadaAMao);
   document.getElementById('l-lng').addEventListener('change', aoMudarCoordenadaAMao);
 
-  montarMapaLocal(document.getElementById('l-mapa'), {
+  montarMapaPino(document.getElementById('l-mapa'), {
     lat: Number.isFinite(lat) ? lat : null,
     lng: Number.isFinite(lng) ? lng : null,
     aoMover,
