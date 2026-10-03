@@ -67,7 +67,7 @@ async function carregar() {
   const pendentes = pendenciasDeFicha(confirmadas);
 
   if (!fichas.length && !pendentes.length) {
-    box.innerHTML = emptyState(ico('transporte', { tam: 32 }), 'Nenhuma viagem confirmada',
+    box.innerHTML = emptyState(ico('onibus', { tam: 32 }), 'Nenhuma viagem confirmada',
       `Não há transporte confirmado para ${esc(fmtData(filtro.data))}.`);
     return;
   }

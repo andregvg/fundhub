@@ -23,7 +23,7 @@ export function render(contexto) {
 
   box.innerHTML = barra + (atividades.length
     ? `<div class="cards">${atividades.map(card).join('')}</div>`
-    : emptyState(ico('transporte', { tam: 32 }), 'Catálogo vazio', perfil?.isAdmin
+    : emptyState(ico('onibus', { tam: 32 }), 'Catálogo vazio', perfil?.isAdmin
         ? 'Clique em “Nova atividade” ou rode o seed no SQL Editor.'
         : 'Peça a um administrador para cadastrar as atividades.'));
 
@@ -38,7 +38,7 @@ export function render(contexto) {
 function card(a) {
   const cor = a.cor || 'var(--brand)';
   const tags = [
-    a.usa_onibus ? `<span class="tag bus">${ico('transporte', { tam: 12 })} Usa ônibus</span>` : `<span class="tag">${ico('escola', { tam: 12 })} Na escola</span>`,
+    a.usa_onibus ? `<span class="tag bus">${ico('onibus', { tam: 12 })} Usa ônibus</span>` : `<span class="tag">${ico('escola', { tam: 12 })} Na escola</span>`,
     a.gerida_sme ? `<span class="tag">Gerida pela SME</span>` : `<span class="tag">Definida pela escola</span>`,
     a.precisa_declaracao ? `<span class="tag eja">${ico('documento', { tam: 12 })} Declaração</span>` : '',
     a.min_participantes ? `<span class="tag">Mín. ${esc(a.min_participantes)}</span>` : '',

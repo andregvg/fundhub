@@ -45,7 +45,7 @@ async function carregar() {
   document.getElementById('pv-count').textContent = `${lista.length} viagem(ns)`;
 
   if (!lista.length) {
-    body.innerHTML = emptyState(ico('transporte', { tam: 32 }), 'Sem viagens confirmadas',
+    body.innerHTML = emptyState(ico('onibus', { tam: 32 }), 'Sem viagens confirmadas',
       `Nenhuma solicitação confirmada para ${esc(fmtData(dataSel))}.`);
     return;
   }

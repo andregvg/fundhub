@@ -54,9 +54,14 @@ test('nome herdado de Object.prototype nao vaza pro svg', () => {
   }
 });
 
+test('um desenho só para ônibus: o caminhão antigo saiu', () => {
+  assert.equal(TEM_ICONE('transporte'), false);
+  assert.ok(TEM_ICONE('onibus'));
+});
+
 test('todos os icones do conjunto produzem svg', () => {
   const nomes = ['escola', 'sede', 'servidor', 'equipe', 'horario', 'calendario',
-    'afastamento', 'transporte', 'dashboard', 'modulos', 'ata', 'ocorrencia',
+    'afastamento', 'dashboard', 'modulos', 'ata', 'ocorrencia',
     'projeto', 'visita', 'acesso', 'auditoria', 'docs', 'sino', 'editar',
     'excluir', 'buscar', 'adicionar', 'fechar', 'ok', 'atencao', 'erro',
     'restrito', 'menu', 'perdido', 'vazio', 'fixo', 'celular', 'whatsapp',

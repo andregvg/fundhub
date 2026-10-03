@@ -39,7 +39,7 @@ export async function painelStats(box) {
   box.innerHTML = `<div class="stat-row">${
     statTile(ico('escola', { tam: 26 }), unidades.length, 'escolas')
     + statTile(ico('meta', { tam: 26 }), atividades.length, 'atividades no catálogo')
-    + statTile(ico('transporte', { tam: 26 }), '-', 'extraclasse hoje', 'stat-hoje')
+    + statTile(ico('onibus', { tam: 26 }), '-', 'extraclasse hoje', 'stat-hoje')
   }</div>`;
 }
 
@@ -55,7 +55,7 @@ export async function painelExtraclasse(box, hoje) {
   if (tile) tile.textContent = String(solics.length);
 
   if (!solics.length) {
-    box.innerHTML = emptyState(ico('transporte', { tam: 32 }), 'Nada hoje', 'Nenhuma atividade extraclasse agendada.');
+    box.innerHTML = emptyState(ico('onibus', { tam: 32 }), 'Nada hoje', 'Nenhuma atividade extraclasse agendada.');
     return;
   }
   box.innerHTML = solics.map(s => {

@@ -63,7 +63,7 @@ export async function render(app, ctx = {}) {
       </label>
       <label class="switch">
         <input type="checkbox" id="f-transporte" /><span class="switch-trilho" aria-hidden="true"></span>
-        ${ico('transporte', { tam: 14 })} Transporte
+        ${ico('onibus', { tam: 14 })} Transporte
       </label>
       <label class="switch">
         <input type="checkbox" id="f-eja" /><span class="switch-trilho" aria-hidden="true"></span>
@@ -159,7 +159,7 @@ function cardHtml(u) {
     ? (u.telefones || []).find(t => t.principal) || (u.telefones || [])[0]
     : null;
   const tags = [
-    u.tem_transporte ? `<span class="tag bus">${ico('transporte', { tam: 12 })} Transporte</span>` : '',
+    u.tem_transporte ? `<span class="tag bus">${ico('onibus', { tam: 12 })} Transporte</span>` : '',
     u.tem_eja ? `<span class="tag eja">${ico('noturno', { tam: 12 })} EJA</span>` : '',
     u.oferta ? `<span class="tag">${esc(u.oferta)}</span>` : '',
     tel ? `<span class="tag">${ico('fixo', { tam: 12 })} ${esc(exibirTelefone(tel.numero))}</span>` : '',

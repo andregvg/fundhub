@@ -62,7 +62,7 @@ function detalhe(u, ctx, opts) {
   const chips = [
     u.segmento ? `<span class="seg">${esc(u.segmento)}</span>` : '',
     u.oferta ? `<span class="tag">${esc(u.oferta)}</span>` : '',
-    u.tem_transporte ? `<span class="tag bus">${ico('transporte', { tam: 12 })} Transporte</span>` : '',
+    u.tem_transporte ? `<span class="tag bus">${ico('onibus', { tam: 12 })} Transporte</span>` : '',
     u.tem_eja ? `<span class="tag eja">${ico('noturno', { tam: 12 })} EJA</span>` : '',
   ].filter(Boolean).join('');
 
