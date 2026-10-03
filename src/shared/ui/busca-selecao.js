@@ -13,7 +13,7 @@
 //   detalhe - texto secundário na lista (cargo, segmento);
 //   busca   - texto extra contra o qual casar sem aparecer (apelido).
 // ============================================================
-import { esc, norm } from '../dom.js';
+import { esc, norm, semelhanca } from '../dom.js';
 import { ico } from './icones.js';
 
 // Todas as palavras do termo precisam casar, em qualquer ordem: quem
@@ -27,6 +27,30 @@ export function filtrarOpcoes(opcoes, termo) {
     const alvo = norm(`${o.rotulo || ''} ${o.detalhe || ''} ${o.busca || ''}`);
     return palavras.every(p => alvo.includes(p));
   });
+}
+
+// Segunda passada, só quando a exata não acha NADA (spec 2026-10-02, D7):
+// cada palavra do termo precisa parecer alguma palavra da opção. Quem
+// digita certo nunca vê isto; quem digitou "Muzeu" acha o museu.
+export function aproximarOpcoes(opcoes, termo, max = 5) {
+  const palavras = norm(termo).split(/\s+/).filter(Boolean);
+  if (!palavras.length) return [];
+  return (opcoes || [])
+    .map((o, i) => {
+      const alvo = norm(`${o.rotulo || ''} ${o.detalhe || ''} ${o.busca || ''}`)
+        .split(/[^a-z0-9]+/).filter(Boolean);
+      let custo = 0;
+      for (const p of palavras) {
+        const custos = alvo.map(q => semelhanca(p, q)).filter(c => c !== null);
+        if (!custos.length) return null;
+        custo += Math.min(...custos);
+      }
+      return { o, custo, i };
+    })
+    .filter(Boolean)
+    .sort((a, b) => a.custo - b.custo || a.i - b.i)
+    .slice(0, max)
+    .map(x => x.o);
 }
 
 export function criarBuscaSelecao(el, {
