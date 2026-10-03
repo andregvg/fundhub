@@ -12,8 +12,8 @@
 // Direção dos imports (R4): equipe → vinculos → servidores. Nunca o
 // contrário.
 // ============================================================
-import { getServidoresDaUnidade, vinculosAbertos } from './servidores.model.js';
-import { rotulaCargo } from './vinculos.model.js';
+import { getServidoresDaUnidade, vinculosAbertos, CARGO_GESTOR, rotulaVinculo } from './servidores.model.js';
+import { rotulaCargo, temFuncao } from './vinculos.model.js';
 
 // Supervisão NÃO é equipe da escola (spec 2026-10-03, D13): o supervisor
 // trabalha na Secretaria e acompanha várias unidades. O vínculo dele com a
@@ -24,20 +24,36 @@ import { rotulaCargo } from './vinculos.model.js';
 export const CARGO_SUPERVISAO = 'Supervisor(a)';
 export const eSupervisao = (cargo) => rotulaCargo(cargo) === CARGO_SUPERVISAO;
 
+// Posição na equipe da escola (D7): Gestor 1, Gestor 2, gestor sem função
+// definida, coordenação, demais.
+export function ordemNaEquipe(v) {
+  const cargo = rotulaCargo(v?.papel);
+  if (cargo === CARGO_GESTOR) return v.funcao === 1 ? 0 : v.funcao === 2 ? 1 : 2;
+  return cargo === 'Coordenador(a)' ? 3 : 4;
+}
+
+// Os vínculos que fazem da pessoa EQUIPE de algum lugar: abertos, e não de
+// supervisão. É o que Horários lê.
+export const vinculosDeEquipe = (s) => vinculosAbertos(s).filter(v => !eSupervisao(v.papel));
+
 // Quem tem local de trabalho aberto na unidade, já na forma de LEITURA que
-// outra tela exibe: { id, nome, cargo, email, telefone, supervisao }.
+// outra tela exibe: { id, nome, cargo, email, telefone, supervisao, ordem }.
 //   - o cargo é o do(s) vínculo(s) aberto(s) NESTA unidade, não o geral -
-//     quem responde por duas unidades aparece em cada uma com o cargo de lá;
+//     quem responde por duas unidades aparece em cada uma com o cargo de lá,
+//     e o de gestor leva a função ("Gestor(a) 1");
+//   - `ordem` é a posição na equipe (ordemNaEquipe): quem tem mais de um
+//     cargo aqui fica na do primeiro;
 //   - o telefone é o principal, ou o primeiro se nenhum for;
 //   - `supervisao` marca quem só SUPERVISIONA a unidade: quem consome
 //     decide onde mostrar (a ficha da escola separa; o SATE e Horários
 //     deixam de fora).
-// Ordenada por nome. Lê o cache de servidores, que toda gravação invalida.
+// Ordenada por `ordem`, depois cargo e nome. Lê o cache de servidores, que toda gravação invalida.
 export async function getEquipeDaUnidade(unidadeId) {
   const servidores = await getServidoresDaUnidade(unidadeId);
   return servidores.map(s => {
     const daqui = vinculosAbertos(s).filter(v => v.unidade_id === unidadeId);
-    const cargo = [...new Set(daqui.map(v => rotulaCargo(v.papel)).filter(Boolean))].join(' · ');
+    const cargo = [...new Set(daqui
+      .map(v => rotulaVinculo({ ...v, papel: rotulaCargo(v.papel) })).filter(Boolean))].join(' · ');
     const tels = s.telefones || [];
     const tel = tels.find(t => t.principal) || tels[0];
     return {
@@ -45,6 +61,16 @@ export async function getEquipeDaUnidade(unidadeId) {
       // Só supervisão NESTA unidade: quem é coordenador aqui e supervisor de
       // outra escola continua sendo equipe daqui.
       supervisao: daqui.length > 0 && daqui.every(v => eSupervisao(v.papel)),
+      ordem: Math.min(4, ...daqui.map(ordemNaEquipe)),
     };
-  }).sort((a, b) => a.nome.localeCompare(b.nome, 'pt'));
+  }).sort((a, b) => a.ordem - b.ordem
+    || a.cargo.localeCompare(b.cargo, 'pt') || a.nome.localeCompare(b.nome, 'pt'));
+}
+
+// Quem já ocupa a função na unidade - para AVISAR, não para barrar (R15):
+// numa transição os dois períodos se encostam.
+export async function quemTemFuncao(unidadeId, funcao, excetoServidorId) {
+  const servidores = await getServidoresDaUnidade(unidadeId);
+  return servidores.find(s => s.id !== excetoServidorId && vinculosAbertos(s)
+    .some(v => v.unidade_id === unidadeId && temFuncao(v.papel) && v.funcao === funcao)) || null;
 }

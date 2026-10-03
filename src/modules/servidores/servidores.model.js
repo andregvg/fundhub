@@ -17,10 +17,17 @@ import { registrarCache } from '../../shared/cache.js';
 // Telefones vêm da tabela dedicada (fonte única) - model → model.
 import { getTelefonesMapas } from '../telefones/telefones.model.js';
 
-const SEL = `*, vinculos:vinculo(
-  id, unidade_id, papel, ingresso, fim,
-  unidade:unidade_escolar(id, nome, apelido, tipo)
+// As colunas que podem faltar entram por partes: migrations são aplicadas
+// à mão, e entre o deploy e o SQL a consulta precisa cair para a forma que
+// o banco já entende (42703), em vez de quebrar a tela.
+const sel = ({ funcao, tipo }) => `*, vinculos:vinculo(
+  id, unidade_id, papel, ${funcao ? 'funcao, ' : ''}ingresso, fim,
+  unidade:unidade_escolar(id, nome, apelido${tipo ? ', tipo' : ''})
 )`;
+// Da mais completa para a mais antiga: tudo → sem a função do gestor (045)
+// → sem o tipo da unidade (023). Quem consome trata `funcao` ausente como
+// "não definida" e `tipo` ausente como "não é sede".
+const FORMAS = [{ funcao: true, tipo: true }, { funcao: false, tipo: true }, { funcao: false, tipo: false }];
 
 let _cache = null;
 export function limparCacheServidores() { _cache = null; }
@@ -29,28 +36,18 @@ registrarCache(limparCacheServidores);
 export async function getServidores() {
   if (_cache) return _cache;
   if (!hasSupabase()) { _cache = []; return _cache; }
-  const [{ data, error }, tel] = await Promise.all([
-    sb().from('servidor').select(SEL).order('nome'),
-    getTelefonesMapas(),
-  ]);
-  // Migration 023 ainda não rodou: sem a coluna `tipo`, o embed de
-  // unidade_escolar quebra a query inteira - refaz sem ela. Quem
-  // consome trata `tipo` ausente como "não é sede" (mesma idiom de
-  // `=== 'sede'` usada em todo o app), então a degradação é segura.
-  if (error?.code === '42703') {
-    const SEL_SEM_TIPO = SEL.replace(', tipo', '');
-    const { data: d2, error: e2 } = await sb().from('servidor').select(SEL_SEM_TIPO).order('nome');
-    if (e2) throw e2;
-    _cache = (d2 || []).map(s => ({
+  const tel = await getTelefonesMapas();
+  let ultimo = null;
+  for (const forma of FORMAS) {
+    const { data, error } = await sb().from('servidor').select(sel(forma)).order('nome');
+    if (error?.code === '42703') { ultimo = error; continue; }
+    if (error) throw error;
+    _cache = (data || []).map(s => ({
       ...s, vinculos: s.vinculos || [], telefones: tel.porServidor[s.id] || [],
     }));
     return _cache;
   }
-  if (error) throw error;
-  _cache = (data || []).map(s => ({
-    ...s, vinculos: s.vinculos || [], telefones: tel.porServidor[s.id] || [],
-  }));
-  return _cache;
+  throw ultimo;
 }
 
 // ── Derivações do vínculo ────────────────────────────────────
@@ -74,6 +71,23 @@ export function localDeTrabalhoDe(s, { completo = false } = {}) {
 export function cargoDe(s) {
   const cargos = vinculosAbertos(s).map(v => v.papel).filter(Boolean);
   return [...new Set(cargos)].join(' · ');
+}
+
+// Função do gestor (spec 2026-10-03, D12): 1 ou 2, só no cargo Gestor(a).
+// Entra no RÓTULO do cargo - "Gestor(a) 1" - e não num elemento novo de
+// tela. Mora aqui, com as outras derivações do vínculo, e não em
+// vinculos.model.js: aquele importa este, e o contrário fecharia um ciclo.
+export const CARGO_GESTOR = 'Gestor(a)';
+export function rotulaVinculo(v) {
+  const cargo = v?.papel || '';
+  return cargo === CARGO_GESTOR && (v.funcao === 1 || v.funcao === 2) ? `${cargo} ${v.funcao}` : cargo;
+}
+
+// Como cargoDe, mas para EXIBIR: com a função. cargoDe continua sendo a
+// chave de comparação (filtro por cargo, equipe gestora) - "Gestor(a) 1"
+// não é um cargo, é um cargo com função.
+export function cargoExibidoDe(s) {
+  return [...new Set(vinculosAbertos(s).map(rotulaVinculo).filter(Boolean))].join(' · ');
 }
 
 // Servidores com vínculo ABERTO numa unidade. Usado por Horários.
