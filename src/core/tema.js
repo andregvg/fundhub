@@ -17,13 +17,14 @@
 // falhar (sem rede, sessão vencida) e a escolha local já vale; se o login
 // seguinte adotasse a conta às cegas, ele desfaria justamente a escolha que
 // a pessoa acabou de fazer. Por isso a gravação que falhou deixa uma marca
-// PENDENTE no navegador, e o próximo login reenvia a escolha em vez de
-// adotar a conta (decidirSincronismo).
+// PENDENTE no navegador - com o e-mail de quem escolheu -, e o próximo login
+// DELA reenvia a escolha em vez de adotar a conta (decidirSincronismo).
 //
 // O script do <head> das duas páginas ESPELHA resolverTema(): mudou a
 // regra aqui, mude lá.
 // ============================================================
 import { pref, definirPref } from './configuracoes.js';
+import { sb, hasSupabase } from './supabase.js';
 
 const CHAVE = 'fundhub:tema';
 const CHAVE_PENDENTE = 'fundhub:tema-pendente';
@@ -39,11 +40,43 @@ export function resolverTema(gravado, sistemaEscuro) {
 function lerLocal() { try { return localStorage.getItem(CHAVE); } catch (_) { return null; } }
 function gravarLocal(tema) { try { localStorage.setItem(CHAVE, tema); } catch (_) { /* sem lembrança */ } }
 
-// A marca "a última escolha não chegou à conta".
-function marcarPendente(sim) {
-  try { sim ? localStorage.setItem(CHAVE_PENDENTE, '1') : localStorage.removeItem(CHAVE_PENDENTE); } catch (_) { /* sem lembrança */ }
+// A marca "a última escolha não chegou à conta" TEM DONO: { email, tema } -
+// quem escolheu e o valor enviado. Sem dono, num computador compartilhado a
+// escolha de A seria gravada na conta de B que entrasse em seguida.
+const ehMarca = (m) => Boolean(m) && typeof m === 'object' && typeof m.email === 'string' && TEMAS.includes(m.tema);
+function lerMarca() {
+  try {
+    const m = JSON.parse(localStorage.getItem(CHAVE_PENDENTE));
+    return ehMarca(m) ? m : null;   // o '1' de antes, ou lixo, conta como ausente
+  } catch (_) { return null; }
 }
-function temPendente() { try { return localStorage.getItem(CHAVE_PENDENTE) === '1'; } catch (_) { return false; } }
+function gravarMarca(email, tema) {
+  try { localStorage.setItem(CHAVE_PENDENTE, JSON.stringify({ email, tema })); } catch (_) { /* sem lembrança */ }
+}
+function apagarMarca() { try { localStorage.removeItem(CHAVE_PENDENTE); } catch (_) { /* sem lembrança */ } }
+// Limpa só se a marca ainda é a MESMA que esta gravação deixou: uma troca
+// posterior escreveu a sua, e a resposta de uma gravação antiga não a apaga.
+function apagarMarcaSe(email, tema) {
+  const m = lerMarca();
+  if (m && m.email === email && m.tema === tema) apagarMarca();
+}
+
+// Pura: esta marca vale para quem acabou de entrar? Só se for dele e se o
+// tema dela ainda é o que está no navegador (senão houve outra troca depois).
+export function marcaValeParaUsuario(marca, email, local) {
+  return ehMarca(marca) && Boolean(email)
+    && marca.email === String(email).toLowerCase() && marca.tema === local;
+}
+
+// O e-mail da sessão, lido do armazenamento do cliente (sem ir ao banco).
+// Sem sessão: não há conta para onde reenviar, então não há o que marcar.
+async function emailDaSessao() {
+  if (!hasSupabase()) return null;
+  try {
+    const { data } = await sb().auth.getSession();
+    return data?.session?.user?.email?.toLowerCase() || null;
+  } catch (_) { return null; }
+}
 
 // Pura: o que fazer no login com o tema da conta.
 //   'reenviar' - a última escolha feita aqui não chegou à conta: ela vale, e
@@ -77,18 +110,23 @@ export function iniciarTema() {
 }
 
 // Depois do login, com as preferências carregadas (ver o cabeçalho: a conta
-// vence, salvo escolha pendente de envio). Nunca lança.
-export async function sincronizarTemaDaConta() {
+// vence, salvo escolha pendente de envio). `email` é o de quem acabou de
+// entrar: marca de outra pessoa é dela, e nem é lida nem é apagada. Nunca lança.
+export async function sincronizarTemaDaConta(email) {
   const daConta = pref('geral', 'tema');
   const local = lerLocal();
-  const pendente = temPendente();
+  const dono = email ? String(email).toLowerCase() : null;
+  const pendente = marcaValeParaUsuario(lerMarca(), dono, local);
   const decisao = decidirSincronismo({ daConta, local, pendente });
   if (decisao === 'adotar') {
-    gravarLocal(daConta); marcarPendente(false); aplicar(daConta);
+    gravarLocal(daConta); aplicar(daConta);
+    // Só some a marca que é desta pessoa: a de outra continua à espera dela.
+    const m = lerMarca();
+    if (m && m.email === dono) apagarMarca();
   } else if (decisao === 'reenviar') {
-    try { await definirPref('geral', 'tema', local); marcarPendente(false); } catch (_) { /* segue pendente */ }
+    try { await definirPref('geral', 'tema', local); apagarMarcaSe(dono, local); } catch (_) { /* segue pendente */ }
   } else if (pendente && daConta === local) {
-    marcarPendente(false);
+    apagarMarcaSe(dono, local);
   }
 }
 
@@ -96,9 +134,14 @@ export async function definirTema(tema) {
   if (!TEMAS.includes(tema)) return;
   gravarLocal(tema);
   aplicar(tema);
+  const email = await emailDaSessao();
+  if (!email) return;   // sem sessão: a escolha local já vale, e não há conta a atualizar
   // Marca ANTES de tentar: se a gravação falhar (ou a página fechar no meio),
-  // o próximo login sabe que esta escolha ainda não chegou à conta.
-  marcarPendente(true);
-  // Sem banco, sem sessão ou sem a tabela: a escolha local já vale.
-  try { await definirPref('geral', 'tema', tema); marcarPendente(false); } catch (_) { /* fica pendente, só neste aparelho */ }
+  // o próximo login DESTA pessoa sabe que esta escolha ainda não chegou à conta.
+  gravarMarca(email, tema);
+  try {
+    await definirPref('geral', 'tema', tema);
+    // Duas trocas seguidas: só a gravação da escolha que ainda vale limpa a marca.
+    if (lerLocal() === tema) apagarMarcaSe(email, tema);
+  } catch (_) { /* fica pendente, só neste aparelho */ }
 }

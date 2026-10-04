@@ -400,6 +400,29 @@ body.menu-aberto .sidebar { transform: translateX(0); }
     --shadow-btn: none;
     --campo-bg: #fff;
     --campo-borda: #999;
+    /* Destaques: o bloco escuro também os redefine. Espelho dos valores
+       claros de tokens.css - mudou lá, mude aqui. */
+    --brand: #1d4ed8;
+    --brand-2: #0ea5a4;
+    --danger: #cf222e;
+    --ok: #1a7f37;
+    --sucesso-bg: color-mix(in srgb, var(--ok) 12%, var(--surface));
+    --atencao-bg: color-mix(in srgb, var(--accent) 14%, var(--surface));
+    --erro-bg: color-mix(in srgb, var(--danger) 12%, var(--surface));
+    --info-bg: color-mix(in srgb, var(--brand) 12%, var(--surface));
+    --sate-verde: #15803d;
+    --sate-azul: #1d4ed8;
+    --sate-petroleo: #0f766e;
+    --sate-vinho: #9f1239;
+    --serie-1: #6d8fd6;
+    --serie-2: #6fb3a4;
+    --serie-3: #c9a15f;
+    --serie-4: #a98cc4;
+    --serie-5: #d18f8f;
+    --serie-6: #7fa06b;
+    --eixo-fundamental: #1d4ed8;
+    --eixo-infantil: #b45309;
+    --eixo-todas: #57606a;
   }
   .topbar, .footer, .sidebar, .sidebar-back, .no-print, .toasts, .bell-wrap { display: none !important; }
   .app { padding: 0; max-width: none; }

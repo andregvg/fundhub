@@ -62,6 +62,6 @@ export async function montarMapaPino(el, { lat = null, lng = null, aoMover = () 
   pino.on('dragend', () => { const p = pino.getLatLng(); pino.setOpacity(1); aoMover(p.lat, p.lng); });
   mapa.on('click', (e) => { mover(e.latlng.lat, e.latlng.lng); aoMover(e.latlng.lat, e.latlng.lng); });
   // O modal acabou de abrir: o Leaflet mediu o contêiner antes do layout.
-  setTimeout(() => mapa.invalidateSize(), 60);
+  setTimeout(() => { if (mapaAnterior === mapa) mapa.invalidateSize(); }, 60);
   return { mover };
 }

@@ -40,18 +40,25 @@ export const PAGINAS = Object.freeze({
 
 export const PAGINA_INICIAL = 'solicitacoes';
 
+// A faixa de "Ver como escola" (src/sate.js): HTML vazio sem simulação. Vale
+// para TODA página durante ela - é fácil esquecer que se está numa visão
+// emprestada, e o botão é a única saída (o item do menu some enquanto dura).
+// Quem a desenha liga o botão `#sim-sair`. `dica` é uma linha a mais, abaixo.
+export const faixaSimulacaoHtml = (simulando, { dica = '' } = {}) => simulando ? `
+    <div class="sate-simulacao" role="status">
+      <span>Você está vendo o SATE como <b>${esc(simulando.nome)}</b>. Nada da escola é gravado nesta visualização.</span>
+      <button type="button" class="mini-btn" id="sim-sair">Voltar à minha visão</button>
+      ${dica ? `<span class="form-hint">${esc(dica)}</span>` : ''}
+    </div>` : '';
+
 // Desenha a página `id` em `app`. Quem chama já garantiu que a pessoa
 // pode vê-la (src/sate.js); `aprovador` decide o que aparece dentro.
 // `simulando` ({ id, nome } | null): quem aprova está vendo o SATE como
-// uma escola (src/sate.js). A faixa no topo diz isso em toda página - é
-// fácil esquecer que se está numa visão emprestada.
+// uma escola (src/sate.js); ver faixaSimulacaoHtml.
 export async function render(app, { perfil, aprovador, id, irPara, simulando = null, aoSairSimulacao, somenteLeitura = false }) {
   const pagina = PAGINAS[id];
   app.innerHTML = `
-    ${simulando ? `<div class="sate-simulacao" role="status">
-      <span>Você está vendo o SATE como <b>${esc(simulando.nome)}</b>. Nada é gravado nesta visualização.</span>
-      <button type="button" class="mini-btn" id="sim-sair">Voltar à minha visão</button>
-    </div>` : ''}
+    ${faixaSimulacaoHtml(simulando)}
     <div class="page-head">
       <h1>${esc(pagina.rotulo)}</h1>
       ${pagina.desc ? `<p>${esc(pagina.desc)}</p>` : ''}

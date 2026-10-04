@@ -17,6 +17,7 @@ import { mascaraDiaMes, dataDeDiaMes, diaMesDe, fmtExtenso, fmtData } from '../.
 import { marcarVazio } from '../../../shared/ui/campo-data-hora.js';
 import { esc, val } from '../../../shared/dom.js';
 import { ico } from '../../../shared/ui/icones.js';
+import { marcarTocado } from '../../../shared/ui/modal.js';
 
 const DICA = 'Dia e mês. O ano é o atual - ou o próximo, se a data já passou.';
 
@@ -87,6 +88,7 @@ export function ligarQuando(aoMudar) {
   });
   // Escolheu no calendário: o texto acompanha.
   nativo.addEventListener('change', () => {
+    marcarTocado(dia);   // a escolha no calendário é dela; o texto é escrito por código
     dia.value = nativo.value ? textoDe(nativo.value) : '';
     pintarExtenso();
     aoMudar();

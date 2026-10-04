@@ -5,7 +5,7 @@ import { criarUnidade, atualizarUnidade, excluirUnidade } from '../escolas.model
 import { sincronizarTelefones } from '../../telefones/telefones.model.js';
 import { geocodificar, linkMaps, temCoordenada } from '../../locais/geografia.model.js';
 import { esc, falha } from '../../../shared/dom.js';
-import { modalHead, abrirModal, fecharModal } from '../../../shared/ui/modal.js';
+import { modalHead, abrirModal, fecharModal, marcarTocado } from '../../../shared/ui/modal.js';
 import { montarMapaPino } from '../../../shared/ui/mapa-pino.js';
 import { phonesEditorHtml, montarPhonesEditor, lerPhonesEditor } from '../../../shared/ui/phones.js';
 import { confirmar } from '../../../shared/ui/confirmar.js';
@@ -107,7 +107,12 @@ export function abrirForm(u, ctx, { voltar = null } = {}) {
   mapaAtual = null;
   montarMapaPino(mapaEl, {
     lat: num(f.latitude.value), lng: num(f.longitude.value),
-    aoMover: (lat, lng) => { f.latitude.value = lat.toFixed(6); f.longitude.value = lng.toFixed(6); },
+    // O pino é gesto da pessoa: latitude e longitude passam a contar como
+    // digitadas (marcarTocado), senão o Esc perderia o ponto sem perguntar.
+    aoMover: (lat, lng) => {
+      marcarTocado(f.latitude); marcarTocado(f.longitude);
+      f.latitude.value = lat.toFixed(6); f.longitude.value = lng.toFixed(6);
+    },
   }).then((m) => {
     // O Leaflet carrega de forma assíncrona: se o formulário foi fechado
     // (ou aberto de novo) enquanto isso, esta resposta é de um modal que
@@ -144,6 +149,7 @@ async function localizar() {
       dica.textContent = 'Endereço não encontrado. Dá para copiar as coordenadas do Google Maps: clique com o botão direito no lugar e clique nos números.';
       return;
     }
+    marcarTocado(f.latitude); marcarTocado(f.longitude);   // "Localizar" também é gesto dela
     f.latitude.value = r.lat.toFixed(6);
     f.longitude.value = r.lng.toFixed(6);
     mapaAtual?.mover(r.lat, r.lng);

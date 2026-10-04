@@ -160,7 +160,7 @@ function blocoServidor() {
               <input id="md-apelido" value="${esc(s.apelido || '')}" /></label>
             <label>E-mail de contato
               <input id="md-email" type="email" value="${esc(s.email || '')}" /></label>
-            ${phonesEditorHtml(telefones)}
+            ${phonesEditorHtml(telefones, { tipoPadrao: 'celular' })}
           </div>
         </fieldset>
 

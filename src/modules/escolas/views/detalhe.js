@@ -18,7 +18,7 @@ import { getEquipeDaUnidade } from '../../servidores/equipe.model.js';
 import { podeEscrever } from '../../../core/permissoes.js';
 import { podeAbrirFicha } from '../../../core/registry.js';
 import { abrirFicha } from '../../../core/router.js';
-import { esc, norm } from '../../../shared/dom.js';
+import { esc, norm, urlSegura } from '../../../shared/dom.js';
 import { modalHead, abrirModal } from '../../../shared/ui/modal.js';
 import { telefonesTexto, exibirTelefone, paraE164 } from '../../../shared/ui/phones.js';
 import { loading, erroBox } from '../../../shared/ui/feedback.js';
@@ -124,7 +124,9 @@ function maisDetalhes(u, campo) {
     u.nome_oficial && norm(u.nome_oficial).trim() !== norm(u.nome).trim() ? campo('Nome no SAE', esc(u.nome_oficial)) : '',
     campo('INEP', esc(u.inep)),
     campo('Regional', esc(u.regional)),
-    u.site_apm ? campo('Site APM', `<a href="${esc(u.site_apm)}" target="_blank" rel="noopener">abrir</a>`) : '',
+    // Valor digitado à mão: só http(s) vira link; o resto aparece como texto.
+    u.site_apm ? campo('Site APM', urlSegura(u.site_apm)
+      ? `<a href="${esc(u.site_apm)}" target="_blank" rel="noopener">abrir</a>` : esc(u.site_apm)) : '',
   ].join('');
   return itens ? `<details class="mais-detalhes"><summary>Mais detalhes</summary>${itens}</details>` : '';
 }
@@ -141,7 +143,8 @@ async function pintarEquipe(box, boxSup, u, abrirOpts) {
     pessoas = await getEquipeDaUnidade(u.id);
   } catch (err) {
     if (box.isConnected) box.innerHTML = erroBox(err);
-    if (boxSup?.isConnected) boxSup.innerHTML = '';
+    // O erro completo fica sob "Equipe"; a supervisão só avisa, sem repetir.
+    if (boxSup?.isConnected) boxSup.innerHTML = '<p class="count">Não foi possível carregar.</p>';
     return;
   }
   // O modal pode ter sido trocado enquanto a lista chegava (← rápido, outra

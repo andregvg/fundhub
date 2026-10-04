@@ -23,7 +23,7 @@ const LEGADO = {
   coordenador: 'Coordenador(a)',
   supervisor: 'Supervisor(a)',
 };
-export const rotulaCargo = (p) => LEGADO[p] || p || '';
+export const rotulaCargo = (p) => Object.hasOwn(LEGADO, p) ? LEGADO[p] : (p || '');
 
 // Função do gestor (spec 2026-10-03, D12): só o cargo Gestor(a) tem.
 export const FUNCOES = Object.freeze([
@@ -137,9 +137,13 @@ export async function _gravarComFuncao(row, gravar) {
   return r;
 }
 
+// O que vai para a coluna `papel`. O banco exige 'Gestor(a)' EXATO (CHECK e
+// mudar_funcao_gestor); a tela aceita "gestor(a)" e o legado "gestor".
+export const papelParaGravar = (cargo) => temFuncao(cargo) ? CARGO_GESTOR : normalizaCargo(cargo);
+
 export async function criarVinculo({ servidor_id, unidade_id, papel, ingresso = null, fim = null, funcao = null }) {
   if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
-  const cargo = await cargoCanonico(papel);
+  const cargo = papelParaGravar(await cargoCanonico(papel));
   if (!cargo) throw new Error('Informe o cargo/função.');
   // `ano` continua no banco como carimbo (histórico e horários). Não
   // é critério de nada e não aparece em tela nenhuma.
@@ -158,7 +162,7 @@ export async function criarVinculo({ servidor_id, unidade_id, papel, ingresso = 
 
 export async function atualizarVinculo(id, { unidade_id, papel, ingresso = null, fim = null, funcao }) {
   if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
-  const cargo = await cargoCanonico(papel);
+  const cargo = papelParaGravar(await cargoCanonico(papel));
   if (!cargo) throw new Error('Informe o cargo/função.');
   const ano = ingresso ? Number(String(ingresso).slice(0, 4)) : new Date().getFullYear();
   const patch = { unidade_id, papel: cargo, ano, ingresso, fim };
@@ -211,6 +215,7 @@ const MENSAGENS_MUDANCA = [
   ['Funcao so existe', 'Só o cargo de gestor tem função.'],
   ['Funcao invalida', 'Escolha Gestor 1 ou Gestor 2.'],
   ['Funcao igual', 'A função já é essa.'],
+  ['Data da mudanca obrigatoria', 'Informe a partir de quando a função mudou.'],
   ['Data da mudanca no futuro', 'A mudança não pode ter data futura.'],
   ['Data da mudanca antes', 'A mudança precisa ser depois do início deste local de trabalho.'],
 ];

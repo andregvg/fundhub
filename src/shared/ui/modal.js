@@ -60,18 +60,34 @@ export function algumMudou(mapa) {
   return false;
 }
 
+// Tira a linha de base do campo, se ainda não houver. Rádio: marcar B
+// desmarca A sem toque em A; sem a base do grupo todo, voltar de B para A
+// deixaria um "sujo" falso (A nunca teve base).
+export function registrarBase(mapa, el) {
+  if (mapa.has(el)) return;
+  mapa.set(el, valorDoCampo(el));
+  if (el.type === 'radio' && el.name) {
+    for (const r of el.form?.elements ?? [])
+      if (r.type === 'radio' && r.name === el.name && !mapa.has(r)) mapa.set(r, valorDoCampo(r));
+  }
+}
+
 // Clique no <label> de uma caixa de seleção também é toque nela.
 function aoTocar(e) {
   if (!proteger) return;
   const el = e.target.closest?.(CAMPO) || e.target.closest?.('label')?.control;
-  if (!el || bases.has(el) || !el.closest('.modal-body form')) return;
-  bases.set(el, valorDoCampo(el));
-  // Rádio: marcar B desmarca A sem toque em A. Sem a base do grupo todo,
-  // voltar de B para A deixaria um "sujo" falso (A nunca teve base).
-  if (el.type === 'radio' && el.name) {
-    for (const r of el.form?.elements ?? [])
-      if (r.type === 'radio' && r.name === el.name && !bases.has(r)) bases.set(r, valorDoCampo(r));
-  }
+  if (!el || !el.closest('.modal-body form')) return;
+  registrarBase(bases, el);
+}
+
+// Para o CÓDIGO que escreve num campo EM RESPOSTA a um gesto da pessoa que
+// não é toque no campo - clique no mapa que põe o pino e preenche latitude e
+// longitude, data escolhida no calendário nativo. Chamar ANTES de escrever o
+// valor: o campo passa a contar como digitado, como se ela tivesse tocado.
+// Valor posto pelo código SEM gesto (busca que carrega, endereço preenchido)
+// continua não contando - por isso isto é opt-in, e não automático.
+export function marcarTocado(campo) {
+  if (proteger && campo?.closest?.('.modal-body form')) registrarBase(bases, campo);
 }
 
 // As quatro portas de DISPENSA pela pessoa - fundo, Esc, × e ← - passam

@@ -10,6 +10,11 @@ const ENTIDADES = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": 
 // Escapa texto para interpolação segura em HTML.
 export const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ENTIDADES[c]);
 
+// Só http(s) vira link: uma URL digitada à mão não pode abrir `javascript:` nem
+// `data:` num clique. Não apara espaços: quem usa o valor como href usa o texto
+// que foi testado, e o navegador tolera espaço antes do esquema.
+export const urlSegura = (s) => typeof s === 'string' && /^https?:\/\//i.test(s);
+
 // Campo sem valor. Nunca um traço solto: ele não informa nada, e não
 // distingue "ninguém cadastrou" de "carregou vazio por erro". Cada
 // chamada escolhe a mensagem, e é aí que está o valor do helper.

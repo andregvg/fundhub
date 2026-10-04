@@ -309,6 +309,7 @@ body.app-sate { --info-bg: color-mix(in srgb, var(--brand) 12%, var(--surface));
   background: var(--atencao-bg); font-size: 13.5px;
 }
 .sate-simulacao .mini-btn { margin-left: auto; }
+.sate-simulacao .form-hint { flex: 1 0 100%; color: inherit; }
 .sate-ver-como { max-width: 520px; display: flex; flex-direction: column; gap: 12px; }
 
 /* Página Configurações: o tema (cartão próprio) e as regras da rede, um sobre o outro. */

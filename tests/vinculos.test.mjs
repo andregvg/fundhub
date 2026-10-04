@@ -4,7 +4,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { eSupervisao, ordemNaEquipe, vinculosDeEquipe, soSupervisiona, vinculoDeSupervisao, rotuloDoVinculo } from '../src/modules/servidores/equipe.model.js';
 import { rotulaVinculo, cargoExibidoDe } from '../src/modules/servidores/servidores.model.js';
-import { temFuncao, funcaoValida, _gravarComFuncao } from '../src/modules/servidores/vinculos.model.js';
+import { temFuncao, funcaoValida, _gravarComFuncao, rotulaCargo, papelParaGravar } from '../src/modules/servidores/vinculos.model.js';
 
 test('supervisão é reconhecida pelo rótulo canônico e pelo legado', () => {
   assert.equal(eSupervisao('Supervisor(a)'), true);
@@ -173,4 +173,29 @@ test('rotuloDoVinculo normaliza o cargo legado e leva a função do gestor', () 
   assert.equal(rotuloDoVinculo({ papel: 'gestor', funcao: 1 }), 'Gestor(a) 1');
   assert.equal(rotuloDoVinculo({ papel: 'Coordenador(a)' }), 'Coordenador(a)');
   assert.equal(rotuloDoVinculo(null), '');
+});
+
+// O banco exige papel = 'Gestor(a)' EXATO (CHECK e função SQL); a tela e o
+// model reconhecem o gestor sem caixa nem espaços. O que se grava é a forma
+// exata (rodada final, item 2.2).
+test('o cargo de gestor é gravado na forma exata, qualquer que seja a digitação', () => {
+  assert.equal(papelParaGravar('gestor(a)'), 'Gestor(a)');
+  assert.equal(papelParaGravar(' GESTOR(A) '), 'Gestor(a)');
+  assert.equal(papelParaGravar('gestor'), 'Gestor(a)');         // legado
+  assert.equal(papelParaGravar('Gestor(a)'), 'Gestor(a)');
+});
+
+test('os demais cargos são gravados normalizados, sem mudar a caixa', () => {
+  assert.equal(papelParaGravar('  Vice-diretor(a)  '), 'Vice-diretor(a)');
+  assert.equal(papelParaGravar('Coordenador(a)   Pedagógico(a)'), 'Coordenador(a) Pedagógico(a)');
+});
+
+// Cargo é texto livre: um nome que existe em Object.prototype não é legado.
+test('cargo digitado com nome de propriedade herdada volta como veio', () => {
+  assert.equal(rotulaCargo('constructor'), 'constructor');
+  assert.equal(rotulaCargo('toString'), 'toString');
+  assert.equal(rotulaCargo('gestor'), 'Gestor(a)');
+  assert.equal(rotulaCargo(null), '');
+  assert.equal(temFuncao('toString'), false);
+  assert.equal(temFuncao('constructor'), false);
 });

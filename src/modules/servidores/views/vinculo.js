@@ -170,10 +170,12 @@ async function salvar(e, s, vinculo, ctx, voltar, buscaLocal) {
     // Aviso, não erro (R15): numa transição dois gestores com a mesma
     // função se encostam. A consulta é depois de gravar e não derruba nada.
     // Mostrado depois do toast de sucesso: o aviso é a última coisa lida.
-    // Só quando a função foi TOCADA neste salvamento (local novo, função
-    // diferente da que havia, ou troca datada): corrigir só a data de início
-    // de quem já era Gestor 1 não é motivo para avisar de novo.
-    const tocou = Boolean(desde) || !vinculo || funcao !== (vinculo.funcao || null);
+    // Só quando a função passou a valer num lugar ou período NOVO (local novo,
+    // função diferente, troca datada, outro local, ou local encerrado que foi
+    // reaberto): corrigir só a data de início de quem já era Gestor 1 não é
+    // motivo para avisar de novo.
+    const tocou = Boolean(desde) || !vinculo || funcao !== (vinculo.funcao || null)
+      || unidade_id !== vinculo.unidade_id || Boolean(vinculo.fim && !fim);
     let outro = null;
     if (funcao && !fim && tocou) outro = await quemTemFuncao(unidade_id, funcao, s.id).catch(() => null);
     const novoCtx = await ctx.recarregar();

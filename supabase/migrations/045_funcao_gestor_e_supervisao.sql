@@ -40,7 +40,14 @@ delete from cargo_gestao where cargo = 'Supervisor(a)';
 -- sao NOT NULL; id e criado_em tem default.
 -- current_date e a data do servidor (UTC): perto da meia-noite pode estar um
 -- dia a frente de Ribeirao Preto, o que so deixa a regra de "futuro" mais tolerante.
-create or replace function mudar_funcao_gestor(p_vinculo uuid, p_funcao smallint, p_desde date)
+-- O parametro e `int` (nao smallint): o SQL Editor passa o literal 1 como int, e
+-- o Postgres nao converte int em smallint na resolucao de funcao - com smallint
+-- a chamada `mudar_funcao_gestor('...', 1, '...')` dava "function does not
+-- exist". O drop tira a versao smallint, se alguem a aplicou antes: sem ele
+-- ficariam duas sobrecargas. A coluna continua smallint (cast no insert).
+drop function if exists mudar_funcao_gestor(uuid, smallint, date);
+
+create or replace function mudar_funcao_gestor(p_vinculo uuid, p_funcao int, p_desde date)
   returns vinculo
   language plpgsql
   set search_path = public
@@ -65,7 +72,10 @@ begin
   if v.funcao is not distinct from p_funcao then
     raise exception 'Funcao igual a atual' using errcode = 'P0001';
   end if;
-  if p_desde is null or p_desde > current_date then
+  if p_desde is null then
+    raise exception 'Data da mudanca obrigatoria' using errcode = 'P0001';
+  end if;
+  if p_desde > current_date then
     raise exception 'Data da mudanca no futuro' using errcode = 'P0001';
   end if;
   if v.ingresso is not null and p_desde <= v.ingresso then
@@ -75,12 +85,12 @@ begin
   -- Fecha ANTES de abrir: vinculo_aberto_unico nao aceita dois abertos iguais.
   update vinculo set fim = p_desde - 1 where id = v.id;
   insert into vinculo (servidor_id, unidade_id, papel, ano, ingresso, fim, funcao)
-    values (v.servidor_id, v.unidade_id, v.papel, extract(year from p_desde)::int, p_desde, null, p_funcao)
+    values (v.servidor_id, v.unidade_id, v.papel, extract(year from p_desde)::int, p_desde, null, p_funcao::smallint)
     returning * into novo;
   return novo;
 end $$;
 
-grant execute on function mudar_funcao_gestor(uuid, smallint, date) to authenticated;
+grant execute on function mudar_funcao_gestor(uuid, int, date) to authenticated;
 
 select religar_auditoria();
 

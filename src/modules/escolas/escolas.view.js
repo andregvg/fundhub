@@ -31,10 +31,13 @@ async function carregarContagem() {
   contagemServidores = {};
   if (!mostrarServidoresNoCard()) return;
   try {
-    const { getServidores, vinculosAbertos } = await import('../servidores/servidores.model.js');
+    // Mesma conta da ficha ("Equipe (N)"): quem é EQUIPE do local, sem a
+    // supervisão, e cada pessoa uma vez por unidade.
+    const [{ getServidores }, { vinculosDeEquipe }] = await Promise.all([
+      import('../servidores/servidores.model.js'), import('../servidores/equipe.model.js')]);
     for (const s of await getServidores()) {
-      for (const v of vinculosAbertos(s)) {
-        if (v.unidade_id) contagemServidores[v.unidade_id] = (contagemServidores[v.unidade_id] || 0) + 1;
+      for (const u of new Set(vinculosDeEquipe(s).map(v => v.unidade_id))) {
+        if (u) contagemServidores[u] = (contagemServidores[u] || 0) + 1;
       }
     }
   } catch (_) { contagemServidores = {}; }   // degrada: card fica sem o número

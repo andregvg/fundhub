@@ -29,6 +29,15 @@ export async function abrirPainelConfig(mod) {
   await pintarConfigDoModulo(document.getElementById('cfg-modal-body'), mod, {});
 }
 
+// Trocado pelo menu de usuário com esta tela aberta: o interruptor
+// acompanha. Registrado UMA vez, no escopo do módulo (mesmo desenho de
+// shell/chrome.js): o interruptor é procurado na hora do evento, então não
+// há ouvinte por visita nem preso a uma tela que já saiu.
+document.addEventListener('tema:mudou', (e) => {
+  const caixa = document.getElementById('cfg-tema');
+  if (caixa) caixa.checked = e.detail === 'escuro';
+});
+
 // O interruptor do tema, no mesmo desenho de um item de configuração. Não é
 // item de módulo nenhum: é do sistema inteiro, e por isso tem renderizador
 // próprio - usado pelo bloco "Geral" do FundHub e pela página de
@@ -48,14 +57,6 @@ export function pintarTema(box) {
     </fieldset></div>`;
   const inp = box.querySelector('#cfg-tema');
   inp.addEventListener('change', () => definirTema(inp.checked ? 'escuro' : 'claro'));
-  // Trocado pelo menu de usuário com esta tela aberta: o interruptor
-  // acompanha. O ouvinte é de `document` e se desliga sozinho quando a tela
-  // sai - senão cada visita a Configurações deixaria um para trás.
-  const aoMudar = (e) => {
-    if (!inp.isConnected) { document.removeEventListener('tema:mudou', aoMudar); return; }
-    inp.checked = e.detail === 'escuro';
-  };
-  document.addEventListener('tema:mudou', aoMudar);
 }
 
 // Desenha os grupos e itens de UM módulo dentro de `box`. Usado pela

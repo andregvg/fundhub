@@ -97,7 +97,9 @@ três alturas na mesma linha - foi exatamente o que aconteceu até 02/09/2026. `
 entre `--controle` (o botão, 32px) e `--toque` (40px), e sobe para `--toque` em `(pointer: coarse)`.
 
 **O fundo do campo é `--campo-bg` (e a borda, `--campo-borda`)** - um token só, dentro e fora de
-grupo de modal, nos dois temas. E **fundo de campo é sempre `background-color`**, nunca o atalho
+grupo de modal, nos dois temas. Exceção de propósito: o campo de **filtro** (`.filtro-campo`) e o
+`.campo-solto` ficam em `--surface`, porque estão sobre `--surface-2` (o painel e a barra) - com
+`--campo-bg` ali o campo some. E **fundo de campo é sempre `background-color`**, nunca o atalho
 `background`: o atalho zera `background-image`, e é por `background-image` que o ícone do
 calendário, o do relógio e a seta do `select` são desenhados. Foi assim que eles sumiram em
 02/10/2026. O `select` de formulário, de filtro e solto tem `appearance: none` e a seta desenhada
@@ -122,6 +124,10 @@ inteiro no `title`: um campo que cresce para duas linhas deixa de casar com os v
   A decisão é por toque: a linha de base é tirada quando a pessoa toca no campo
   (`keydown`, `pointerdown` ou `beforeinput`; num grupo de rádio, o grupo
   inteiro de uma vez). Valor posto por código nunca conta como digitado.
+  Exceção opt-in: quando o código escreve num campo EM RESPOSTA a um gesto da
+  pessoa que não é toque nele (o pino no mapa preenchendo latitude e longitude,
+  a data escolhida no calendário nativo), chame `marcarTocado(campo)` de
+  `shared/ui/modal.js` ANTES de escrever o valor.
 - **Busca com seleção abre por gesto** (clique, digitação, ↓), não pelo foco,
   e tolera erro de digitação ("Parecidos") quando a busca exata não acha nada.
 

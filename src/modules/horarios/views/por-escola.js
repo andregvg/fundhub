@@ -18,7 +18,7 @@ import { ordenarParaGrade, janelaDaGrade } from '../grade.model.js';
 import { getServidoresDaUnidade } from '../../servidores/servidores.model.js';
 import { vinculosDeEquipe, soSupervisiona, rotuloDoVinculo } from '../../servidores/equipe.model.js';
 import { getCargosGestao, rotulaCargo } from '../../servidores/vinculos.model.js';
-import { getUnidades } from '../../escolas/escolas.model.js';
+import { getUnidades, eLocalInterno } from '../../escolas/escolas.model.js';
 import { esc } from '../../../shared/dom.js';
 import { ico } from '../../../shared/ui/icones.js';
 import { toast } from '../../../shared/ui/toast.js';
@@ -84,8 +84,9 @@ export async function renderPorEscola(box, ctx) {
   } catch (err) { corpo.innerHTML = erroBox(err); return; }
 
   // O seletor respeita o segmento: quem cuida da Educação Infantil não
-  // precisa rolar por 90 EMEFs para achar o seu CEI. A sede não tem
-  // segmento - fica sempre visível, filtro nenhum a esconde.
+  // precisa rolar por 90 EMEFs para achar o seu CEI. Local interno (a sede,
+  // uma gerência) não tem segmento - fica sempre visível, filtro nenhum o
+  // esconde; é por ele que se acha o supervisor, que trabalha na Secretaria.
   seg = criarFiltroSegmento(document.getElementById('h-seg'), {
     perfil: ctx.perfil, chaveMemoria: 'fundhub:seg:horarios',
     onChange: () => { montarBusca(); if (!unidadeId) limparCorpo(); },
@@ -97,7 +98,7 @@ export async function renderPorEscola(box, ctx) {
 
 function opcoesUnidade() {
   const lista = ctxAtual.locais.filter(l =>
-    l.tipo === 'sede' || seg.combinaPorUnidade(l.id, idxUnidades));
+    eLocalInterno(l) || seg.combinaPorUnidade(l.id, idxUnidades));
   return [...lista].sort((a, b) => a.nome.localeCompare(b.nome, 'pt'))
     .map(l => ({ id: l.id, rotulo: l.nome, detalhe: l.tipo === 'sede' ? 'SME' : '', busca: l.apelido || '' }));
 }
@@ -141,9 +142,10 @@ async function carregar() {
   // aparecem.
   const havia = servidores.length > 0;
   servidores = servidores.filter(s => !soSupervisiona(s, unidadeId));
-  // Blocos e linhas de exibição de quem saiu também: sem isto as variantes e
-  // o condutor da sub-linha, e o botão de restaurar a ordem, enxergariam
-  // dados antigos do supervisor.
+  // Blocos de quem saiu também: sem isto as variantes e o condutor da
+  // sub-linha enxergariam dados antigos do supervisor. As linhas de exibição
+  // não são filtradas aqui; só o botão de restaurar a ordem as consulta, e
+  // pelo `daEquipe` (temExibicao, abaixo).
   const daEquipe = new Set(servidores.map(s => s.id));
   blocos = blocos.filter(b => daEquipe.has(b.servidor_id));
 

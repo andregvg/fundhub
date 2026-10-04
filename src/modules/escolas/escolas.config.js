@@ -20,7 +20,7 @@ export const DECLARACAO = {
       dica: 'Mostra o telefone principal da escola na lista.', padrao: false },
     { chave: 'servidores_no_card', escopo: 'usuario', grupo: 'exibicao',
       tipo: 'switch', rotulo: 'Exibir quantidade de servidores',
-      dica: 'Conta quem tem local de trabalho aberto na unidade.', padrao: false },
+      dica: 'Conta a equipe da unidade (quem tem local de trabalho aberto nela), sem a supervisão.', padrao: false },
     { chave: 'cards_por_linha', escopo: 'usuario', grupo: 'exibicao',
       tipo: 'numero', rotulo: 'Cards por linha (telas largas)',
       min: 1, max: 6, padrao: 3 },

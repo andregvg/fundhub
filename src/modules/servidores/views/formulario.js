@@ -289,8 +289,10 @@ async function salvarServidor(e, s, ctx, voltar) {
         if (vinc.funcao) outro = await quemTemFuncao(vinc.unidade_id, vinc.funcao, id).catch(() => null);
       } catch (err) {
         // O servidor já está no banco; não desfaz. A ficha resolve.
+        // Erro já traduzido pelo model (ex.: banco sem a função do gestor) diz o motivo.
         toast({ titulo: 'Servidor criado',
-                texto: 'O local de trabalho não pôde ser salvo - adicione pela ficha.', tipo: 'atencao' });
+                texto: err.amigavel ? err.message : 'O local de trabalho não pôde ser salvo - adicione pela ficha.',
+                tipo: 'atencao' });
       }
     }
     // Recarrega ANTES de fechar: o modal de baixo precisa reabrir com o

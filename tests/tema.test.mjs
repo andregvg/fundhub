@@ -1,7 +1,7 @@
 // Tema (spec 2026-10-03, D10): a escolha gravada vence; sem ela, o sistema.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { resolverTema, decidirSincronismo } from '../src/core/tema.js';
+import { resolverTema, decidirSincronismo, marcaValeParaUsuario } from '../src/core/tema.js';
 
 test('a escolha gravada vence o sistema', () => {
   assert.equal(resolverTema('claro', true), 'claro');
@@ -41,4 +41,34 @@ test('com marca pendente mas conta já igual, não há o que reenviar', () => {
 
 test('marca pendente sem escolha local não segura nada: adota a conta', () => {
   assert.equal(decidirSincronismo({ daConta: 'escuro', local: null, pendente: true }), 'adotar');
+});
+
+// A marca pendente tem dono: { email, tema } (rodada final, item 1.1).
+test('marca do próprio usuário, com o tema que está no local, vale', () => {
+  const marca = { email: 'a@exemplo.com', tema: 'escuro' };
+  assert.equal(marcaValeParaUsuario(marca, 'a@exemplo.com', 'escuro'), true);
+  assert.equal(marcaValeParaUsuario(marca, 'A@Exemplo.com', 'escuro'), true);
+});
+
+test('marca de OUTRO e-mail não vale para quem entrou', () => {
+  const marca = { email: 'a@exemplo.com', tema: 'escuro' };
+  assert.equal(marcaValeParaUsuario(marca, 'b@exemplo.com', 'escuro'), false);
+});
+
+test('marca "1" antiga, ausente ou malformada não vale', () => {
+  assert.equal(marcaValeParaUsuario('1', 'a@exemplo.com', 'escuro'), false);
+  assert.equal(marcaValeParaUsuario(null, 'a@exemplo.com', 'escuro'), false);
+  assert.equal(marcaValeParaUsuario({ tema: 'escuro' }, 'a@exemplo.com', 'escuro'), false);
+  assert.equal(marcaValeParaUsuario({ email: 'a@exemplo.com' }, 'a@exemplo.com', 'escuro'), false);
+});
+
+test('marca com tema diferente do local não vale (houve outra troca depois)', () => {
+  const marca = { email: 'a@exemplo.com', tema: 'claro' };
+  assert.equal(marcaValeParaUsuario(marca, 'a@exemplo.com', 'escuro'), false);
+});
+
+test('sem e-mail de quem entrou, nenhuma marca vale', () => {
+  const marca = { email: 'a@exemplo.com', tema: 'escuro' };
+  assert.equal(marcaValeParaUsuario(marca, null, 'escuro'), false);
+  assert.equal(marcaValeParaUsuario(marca, undefined, 'escuro'), false);
 });

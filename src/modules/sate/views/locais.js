@@ -9,7 +9,7 @@ import { criarLocal, atualizarLocal, excluirLocal, enderecoCompleto } from '../.
 import { geocodificar, linkMaps, temCoordenada } from '../../locais/geografia.model.js';
 import { esc, val, checked, falha } from '../../../shared/dom.js';
 import { emptyState } from '../../../shared/ui/feedback.js';
-import { abrirModal, modalHead, fecharModal } from '../../../shared/ui/modal.js';
+import { abrirModal, modalHead, fecharModal, marcarTocado } from '../../../shared/ui/modal.js';
 import { confirmar } from '../../../shared/ui/confirmar.js';
 import { toast } from '../../../shared/ui/toast.js';
 import { ico } from '../../../shared/ui/icones.js';
@@ -150,7 +150,11 @@ export function abrirLocal(l, { preenchido = {}, aoSalvar = null } = {}, ctxExte
 // Handle do mapa aberto no momento - módulo tem um modal por vez.
 let mapaAtual = null;
 
+// Chamado pelo pino e por "Localizar": os dois são gesto da pessoa, então
+// latitude e longitude passam a contar como digitadas (marcarTocado) antes de
+// receberem o valor - senão o Esc perderia o ponto sem perguntar.
 function aoMover(lat, lng) {
+  marcarTocado(document.getElementById('l-lat')); marcarTocado(document.getElementById('l-lng'));
   document.getElementById('l-lat').value = lat.toFixed(6);
   document.getElementById('l-lng').value = lng.toFixed(6);
   atualizarLinkMaps(lat, lng);

@@ -22,7 +22,7 @@ import { hasSupabase } from './core/supabase.js';
 import { OCULTO, PROPRIOS, LEITURA, ESCRITA } from './core/permissoes.js';
 import { abrirPortao } from './shell/portao.js';
 import { montarNav, marcarNav, marcarAtualizacao, atualizarMeusDados } from './shell/chrome.js';
-import { render, PAGINAS, PAGINA_INICIAL } from './modules/sate/sate.view.js';
+import { render, faixaSimulacaoHtml, PAGINAS, PAGINA_INICIAL } from './modules/sate/sate.view.js';
 import { corSate } from './modules/sate/sate.config.js';
 import * as notificacoes from './modules/notificacoes/notificacoes.service.js';
 import { pintarConfigDoModulo, pintarTema } from './modules/configuracoes/painel.js';
@@ -85,6 +85,11 @@ function mudarSimulacao(v) {
   if (location.hash === `#/${PAGINA_INICIAL}`) rotear();
   else location.hash = `#/${PAGINA_INICIAL}`;
 }
+
+// O botão da faixa (faixaSimulacaoHtml) numa página que o sate.js desenha.
+// Nó recém-criado a cada página: nada fica ligado em `document`.
+const ligarSaidaDaSimulacao = () =>
+  document.getElementById('sim-sair')?.addEventListener('click', () => mudarSimulacao(null));
 
 // A cor mora no <body>: tudo o que usa --brand muda junto (sate.css).
 const aplicarCor = () => { document.body.dataset.cor = corSate(); };
@@ -183,6 +188,7 @@ async function rotear() {
 async function paginaConfiguracoes() {
   const aprovador = aprovadorEfetivo();
   app.innerHTML = `
+    ${faixaSimulacaoHtml(simulando, { dica: 'O tema e a cor que você escolher aqui valem para a SUA conta, não para a da escola.' })}
     <div class="page-head">
       <h1>Configurações</h1>
       <p>${aprovador
@@ -191,6 +197,7 @@ async function paginaConfiguracoes() {
     </div>
     <div id="sate-tema"></div>
     <div id="sate-config">${loading()}</div>`;
+  ligarSaidaDaSimulacao();
   pintarTema(document.getElementById('sate-tema'));
   const box = document.getElementById('sate-config');
   // A cor vale na hora, sem recarregar.
@@ -203,8 +210,10 @@ async function paginaConfiguracoes() {
 // dois lugares de leitura (spec 2026-09-26-sate-identidade-propria, D1).
 async function paginaAjuda() {
   app.innerHTML = `
+    ${faixaSimulacaoHtml(simulando)}
     <div class="page-head"><h1>Como usar o SATE</h1></div>
     <article class="ajuda-doc" id="ajuda-doc">${loading()}</article>`;
+  ligarSaidaDaSimulacao();
   const box = document.getElementById('ajuda-doc');
   try {
     const resp = await fetch('docs/modulos/sate.md', { cache: 'no-cache' });
