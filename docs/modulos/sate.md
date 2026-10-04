@@ -31,13 +31,16 @@ clique em **Ver como escola** no menu, busque a escola e escolha.
 - O SATE passa a mostrar só as páginas da escola, só as viagens em que ela
   está envolvida, e o formulário com as regras dela (antecedência, frota
   inviolável, só a própria unidade na lista).
-- Uma faixa no topo avisa em toda página. **Nada é gravado** nessa visão: os
-  botões de decisão somem e o envio de pedido fica desativado.
-- O menu fica igual ao da escola: durante a visão, somem **Ver como escola**
-  e **Ir para o FundHub**. A escola não é levada ao FundHub. **Configurações**
-  continua no menu e mostra só o tema e a cor, como para a escola.
-- **Voltar à minha visão**, na faixa, encerra e devolve o seu menu. Fechar a
-  aba também.
+- Uma faixa no topo avisa em **toda página** - inclusive **Configurações** e
+  **Como usar o SATE**. **Nada da escola é gravado** nessa visão: os botões de
+  decisão somem e o envio de pedido fica desativado.
+- O menu fica igual ao da escola: durante a visão, somem **Ver como escola**,
+  **Ir para o FundHub** e as configurações da rede. **Meus dados** também some.
+  **Configurações** continua no menu e mostra só o tema e a cor.
+- O tema e a cor que você trocar em **Configurações** durante a visão são os
+  **seus**, não os da escola: continuam valendo quando a visão acaba.
+- **Voltar à minha visão**, na faixa, encerra e devolve o seu menu. É a única
+  saída - o item do menu some enquanto a visão dura. Fechar a aba também.
 
 ### Tema e cor (todos)
 

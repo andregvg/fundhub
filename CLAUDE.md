@@ -23,8 +23,8 @@ Decisões e o porquê de cada regra: [`docs/superpowers/specs/2026-08-25-arquite
 src/
 ├── main.js       entrada do FundHub (index.html): portão → moldura → roteador → serviços
 ├── sate.js       entrada do SATE (sate.html): mesmo portão, menu e rotas do SATE
-├── core/         KERNEL com estado: config, supabase, auth, perfil, permissoes, segmentos, registry, router
-├── shared/       KERNEL sem estado: dom, format, realtime + ui/{drawer,toast,feedback,phones,filtro-segmento}
+├── core/         KERNEL com estado: config, supabase, auth, perfil, permissoes, tema, configuracoes, segmentos, registry, router
+├── shared/       KERNEL sem estado: dom, format, realtime + ui/{modal,confirmar,tabela,toast,feedback,phones,busca-selecao,filtro-segmento,mapa-pino,…}
 ├── shell/        MOLDURA: portao.js (login, comum às duas entradas) · chrome.js (topo/menu/usuário) · pendente.js
 ├── modules/      UMA PASTA POR MÓDULO
 └── styles/       main.css (@imports) · tokens.css · base.css · components.css

@@ -60,13 +60,15 @@ partir das versões do FundHub que mudaram algo para quem usa o SATE.
 - **Gestor 1 e Gestor 2.** A função é escolhida no local de trabalho do servidor (e no
   cadastro de servidor novo) e aparece junto do cargo. Quando a função muda, informe a
   data da troca: o período anterior fica no histórico e a ficha do servidor mostra os dois
-  períodos. A data da troca não pode ser futura nem anterior ao início do período. Se o
-  local já tem alguém com a mesma função, o sistema só avisa.
+  períodos. A troca com data é recusada quando a data é futura ou quando é igual ou anterior
+  ao início do período: precisa ser depois do início. Se o local já tem alguém com a mesma
+  função, o sistema só avisa.
 - **Mapa no cadastro da escola.** Clique no mapa ou arraste o pino para preencher a
-  localização. Nas configurações de Escolas, a lista das escolas sem localização fica à
-  vista, com o botão "Acertar no mapa".
+  localização. Nas configurações de Escolas, a lista das escolas sem localização fica
+  sempre disponível (recolhida quando são muitas), com o botão "Acertar no mapa".
 - **SATE: servidor(a) responsável sugerido.** Ao escolher a escola, o campo sugere a equipe
-  dela e o telefone vem preenchido; dá para trocar ou digitar outro nome.
+  dela; ao escolher a pessoa, o telefone vem preenchido. Dá para trocar ou digitar outro
+  nome.
 - **SATE: cor por pessoa.** Cada pessoa escolhe a cor do SATE para si; quem nunca escolheu
   vê a cor que a rede definiu. "Configurações" entra no menu do SATE para todos: a escola
   vê só o tema e a cor.
@@ -78,9 +80,9 @@ partir das versões do FundHub que mudaram algo para quem usa o SATE.
   responsável" no lugar de "professor(a)", em todas as telas. O período do pedido ganhou
   destaque.
 - **Supervisão fora da equipe da escola.** O supervisor acompanha a escola, mas não faz
-  parte da equipe: aparece em um bloco à parte na ficha da escola e deixa de entrar na
-  sugestão de responsável do SATE, em Horários por escola e na cobertura. Em Horários, ele
-  aparece pelo local de trabalho dele na Secretaria.
+  parte da equipe: aparece em um bloco à parte na ficha da escola, não entra na sugestão de
+  responsável do SATE e deixa de entrar em Horários por escola e na cobertura. Em Horários,
+  ele aparece pelo local de trabalho dele na Secretaria.
 - **Ficha da escola reorganizada.** As tags ficam sob o nome, a equipe vem na ordem
   Gestor 1, Gestor 2 e coordenação, e os dados menos usados ficam em "Mais detalhes",
   recolhido.
@@ -90,7 +92,11 @@ partir das versões do FundHub que mudaram algo para quem usa o SATE.
 - **E-mail institucional do servidor:** ao digitar `@`, o sistema sugere o domínio da rede.
 - **Filtros das listas não esticam mais** para ocupar a linha toda.
 - **SATE: "Ver como escola"** mostra o nome completo da escola. A escola não vê mais o link
-  para o FundHub nem "Meus dados".
+  para o FundHub nem "Meus dados". A faixa que avisa da simulação aparece em todas as
+  páginas, inclusive Configurações e "Como usar o SATE", e é por ela que se volta à sua
+  visão.
+- **Fechar uma janela com algo preenchido** também pergunta antes de descartar quando o
+  que foi feito foi clicar no mapa ou escolher a data pelo calendário.
 
 ### Corrigido
 - **Ícones de calendário e de relógio** que tinham sumido dos campos de data e hora nas

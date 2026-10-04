@@ -35,7 +35,8 @@ view - o que não é legítimo é **formatar ou serializar** fora de `format.js`
 ### O que `shared/format.js` oferece
 
 `hojeISO()` · `fmtData(iso)` · `fmtExtenso(iso)` · `addDias(iso, n)` · `fmtDataHora(ts)` ·
-`horaAgora()` · `MESES` · `DOW` · `isUuid()`
+`horaAgora()` · `MESES` · `DOW` · `isUuid()` · `mascaraDiaMes(v)` · `dataDeDiaMes(texto)` ·
+`diaMesDe(iso)` (dia e mês sem ano, como o pedido do SATE digita)
 
 ## R15 - Validação em dois níveis
 

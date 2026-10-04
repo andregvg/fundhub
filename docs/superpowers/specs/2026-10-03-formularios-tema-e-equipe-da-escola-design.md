@@ -175,6 +175,13 @@ páginas, que têm a mesma origem) **e** na preferência da conta (`geral/tema`)
 a pessoa em outro aparelho. No login, a da conta vence. Falha ao gravar na conta não
 desfaz a escolha local.
 
+**A marca de "pendente" tem dono.** Gravar na conta pode falhar; nesse caso o navegador
+guarda `{ email, tema }` - quem escolheu e o valor enviado. No login só vale a marca do
+**mesmo e-mail** e cujo tema ainda é o local; a de outra pessoa é ignorada (e não
+apagada: é dela). A marca só é limpa quando a gravação que a deixou é a escolha que
+ainda vale. Sem isso, num computador compartilhado a escolha de A seria gravada na conta
+de B.
+
 ### D11 - Onde se troca o tema
 
 - **Menu de usuário** (FundHub e SATE): linha "Tema escuro" com interruptor. É o
@@ -236,8 +243,8 @@ Horários. Unidade sem `tipo` conta como escola (base anterior à migration 023)
 engano seguro é não tratar supervisor como equipe de escola. A regra mora em
 `servidores/equipe.model.js` (`vinculoDeSupervisao`).
 
-Uma regra só, em `servidores/vinculos.model.js`, dona do domínio "cargo":
-`getEquipeDaUnidade()` passa a devolver cada pessoa com a função no rótulo, a marca de
+Uma regra só, em `servidores/equipe.model.js` (que lê `vinculos.model.js`, dona do
+domínio "cargo", e nunca o contrário): `getEquipeDaUnidade()` passa a devolver cada pessoa com a função no rótulo, a marca de
 supervisão e já na ordem da D7. Ficha da escola, SATE e Horários leem daí.
 
 ### D14 - Horários sem supervisão
@@ -290,7 +297,10 @@ o banco deixa. Aqui só se decide o que o SATE *oferece*.
 
 "Ver como escola" já é só de quem aprova. **Durante a simulação**, o menu passa a ser
 exatamente o da escola - sem "Ver como escola", sem "Ir para o FundHub", sem as
-configurações da rede. A saída é o botão "Voltar à minha visão" da faixa do topo.
+configurações da rede. A saída é o botão "Voltar à minha visão" da faixa do topo, e por
+isso a faixa aparece em **toda página** durante a simulação - Configurações e "Como usar
+o SATE" inclusive -, com um aviso, na de Configurações, de que tema e cor trocados ali
+são da conta de quem simula, e não da escola.
 
 ### D20 - SATE: cor e tema são de cada pessoa
 

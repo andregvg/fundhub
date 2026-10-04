@@ -87,10 +87,11 @@ ponto olhando o mapa.
 
 As escolas que ainda não têm localização aparecem sempre em **Sem
 localização**, na janela de configurações do módulo (a engrenagem no alto da
-tela), logo abaixo do botão de localizar pelo endereço. Com mais de dez
-escolas, a lista abre fechada: clique no título para abrir. Clique em **Acertar no mapa** ao lado do nome: o cadastro da escola
-abre já com o mapa. Ao salvar, a escola sai da lista; se você tinha chegado
-pela engrenagem, volta à janela de configurações.
+tela), logo abaixo do botão **Localizar N escolas** (que só aparece enquanto
+houver escola a localizar). Com mais de dez escolas, a lista abre fechada:
+clique no título para abrir. Clique em **Acertar no mapa** ao lado do nome: o
+cadastro da escola abre já com o mapa. Ao salvar, a escola sai da lista; se
+você tinha chegado pela engrenagem, volta à janela de configurações.
 
 Se o mapa não aparecer (sem internet, por exemplo), o formulário continua
 funcionando: preencha **Latitude** e **Longitude** à mão ou use **Localizar
@@ -121,8 +122,9 @@ fica salvo.
 
 1. Clique na **engrenagem** no topo da tela.
 2. Ligue **Exibir telefone no card** para ver o telefone principal na lista.
-3. Ligue **Exibir quantidade de servidores** para ver quantas pessoas têm
-   local de trabalho aberto na unidade.
+3. Ligue **Exibir quantidade de servidores** para ver quantas pessoas formam a
+   equipe da unidade, a mesma conta de "Equipe" na ficha. A supervisão não
+   entra.
 4. Em **Cards por linha**, escolha de 1 a 6 (vale para telas largas; no celular
    os cards sempre empilham).
 

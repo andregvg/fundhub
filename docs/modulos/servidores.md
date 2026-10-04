@@ -142,7 +142,9 @@ trabalho.
   local que já tem um Gestor 1 atual, o sistema mostra o nome de quem já
   ocupa e salva assim mesmo, porque numa transição os dois períodos se
   encostam. O aviso vale também ao cadastrar um servidor novo com local de
-  trabalho, e só aparece quando a função foi mexida naquele salvamento.
+  trabalho. Só aparece quando a função passou a valer num lugar ou período
+  novo: função mexida, outro local de trabalho, ou um local que estava
+  encerrado e foi reaberto. Corrigir só uma data não avisa de novo.
 - **Local de trabalho sem cargo** não é aceito: se você escolher um local na
   modal de cadastro, precisa escolher também o cargo.
 - **Documento fora do formato** (CPF, RG) é só um aviso: salva assim mesmo,
