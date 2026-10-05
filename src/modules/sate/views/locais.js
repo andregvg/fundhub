@@ -7,7 +7,7 @@
 // ============================================================
 import { criarLocal, atualizarLocal, excluirLocal, enderecoCompleto } from '../../locais/locais.model.js';
 import { geocodificar, linkMaps, temCoordenada } from '../../locais/geografia.model.js';
-import { esc, val, checked, falha } from '../../../shared/dom.js';
+import { esc, val, checked, falha, falhaNoCampo } from '../../../shared/dom.js';
 import { emptyState } from '../../../shared/ui/feedback.js';
 import { abrirModal, modalHead, fecharModal, marcarTocado } from '../../../shared/ui/modal.js';
 import { confirmar } from '../../../shared/ui/confirmar.js';
@@ -210,7 +210,7 @@ async function salvar(e, l, c, aoSalvar) {
   e.preventDefault();
   const msg = document.getElementById('l-msg'); msg.className = 'auth-msg';
   const nome = val('l-nome');
-  if (!nome) return falha(msg, 'Informe o nome do local.');
+  if (!nome) return falhaNoCampo(msg, '#l-nome', 'Informe o nome do local.');
   const lat = parseFloat(val('l-lat'));
   const lng = parseFloat(val('l-lng'));
 

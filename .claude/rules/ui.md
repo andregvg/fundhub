@@ -108,6 +108,30 @@ a 10px da borda, o mesmo recuo do texto.
 Campo somente-leitura que exibe valor longo (`.campo-derivado`) corta com reticências e guarda o
 inteiro no `title`: um campo que cresce para duas linhas deixa de casar com os vizinhos.
 
+## Dica, obrigatório e erro de campo (04/10/2026)
+
+- **A dica (`.form-hint`) é apoio, não rótulo:** 12px, peso normal, `--muted` - sempre MENOR
+  que o rótulo (12.5px/600). Dica de UM campo vai **dentro do `<label>`, logo depois do
+  campo** (`<small class="form-hint">`): é isso que a cola nele. Dica solta num `<p>` depois de
+  dois campos fica a um vão de grade de distância e ninguém sabe de qual ela fala.
+- **Campo obrigatório ganha `*` sozinho.** Em modal, `shared/ui/modal.js` marca o rótulo de
+  todo campo com `required` (ou `aria-required`, que é o que a busca com seleção recebe por
+  `obrigatorio: true`). A view **não escreve o asterisco**: declara `required` e pronto -
+  inclusive quando o campo vira obrigatório no meio do preenchimento.
+- **Erro de validação aponta o campo.** `falhaNoCampo(msg, campo, texto)` (`shared/dom.js`)
+  no lugar de `falha(msg, texto)` sempre que o erro é de UM campo: marca `aria-invalid` (a
+  borda vermelha é do CSS, a mesma de `:user-invalid`), põe o foco e rola até ele. `falha`
+  fica para o erro que não é de campo nenhum.
+- **Grupo de um campo só não repete a legenda no rótulo:** o campo vai sem `<label>` visível,
+  com `aria-label`.
+- **Cabeçalho de modal:** `×` e `←` são um desenho só (`--controle`, borda e fundo leves) e
+  tudo se alinha pelo centro. O título fica SEMPRE centralizado na largura (sem o `←`, um
+  recuo do tamanho do `×` compensa o lado esquerdo). Ícone no título vai dentro do `<h2>`,
+  antes do texto - o alinhamento já é do `h2`.
+- **O campo contrasta na direção do tema:** no claro é o ponto mais claro (branco sobre o
+  cinza neutro do grupo); no escuro, o mais escuro. `--grupo-bg` e `--grupo-borda` são
+  neutros (`--surface-2`, `--border`) - a cor de destaque fica só no cabeçalho do modal.
+
 ## Grupos, foco e saída de modal (spec 2026-10-02)
 
 - **Grupo em modal é cartão.** `.form-grupo` dentro de `.modal` ganha borda

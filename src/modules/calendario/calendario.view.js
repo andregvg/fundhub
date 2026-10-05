@@ -7,7 +7,7 @@
 import { getCalendarioMes, upsertDiaCalendario, upsertPeriodo, upsertDias, TIPOS_DIA, getEscalasRede } from './calendario.model.js';
 import { renderEscalas } from './views/escalas.js';
 import { getEscalas, rotulaEscala } from '../horarios/escalas.model.js';
-import { esc, falha } from '../../shared/dom.js';
+import { esc, falhaNoCampo } from '../../shared/dom.js';
 import { MESES, DOW, hojeISO, fmtData } from '../../shared/format.js';
 import { loading, erroBox, reportarErro } from '../../shared/ui/feedback.js';
 import { modalHtml, modalHead, montarModal, abrirModal, fecharModal } from '../../shared/ui/modal.js';
@@ -220,7 +220,7 @@ async function salvar(e, iso) {
     obs: document.getElementById('d-obs').value.trim() || null,
   };
   const ate = document.getElementById('d-ate').value;
-  if (ate && ate < iso) return falha(msg, 'A data final do intervalo não pode ser antes deste dia.');
+  if (ate && ate < iso) return falhaNoCampo(msg, '#d-ate', 'A data final do intervalo não pode ser antes deste dia.');
 
   const btn = document.getElementById('d-save'); btn.disabled = true; btn.textContent = 'Salvando…';
   try {
@@ -290,16 +290,16 @@ async function importar(e) {
   e.preventDefault();
   const msg = document.getElementById('imp-msg'); msg.className = 'auth-msg';
   const txt = document.getElementById('imp-txt').value.trim();
-  if (!txt) return falha(msg, 'Cole os dados a importar.');
+  if (!txt) return falhaNoCampo(msg, '#imp-txt', 'Cole os dados a importar.');
 
   const linhas = txt.split(/\r?\n/).filter(l => l.trim());
-  if (linhas.length < 2) return falha(msg, 'Inclua o cabeçalho e ao menos uma linha.');
+  if (linhas.length < 2) return falhaNoCampo(msg, '#imp-txt', 'Inclua o cabeçalho e ao menos uma linha.');
   // Separador: TAB (TSV), senão ";" e por fim ","  (CSV).
   const usaSep = linhas[0].includes('\t') ? '\t' : (linhas[0].includes(';') ? ';' : ',');
   const hdr = linhas[0].split(usaSep).map(normHdr);
   const col = (nome) => hdr.indexOf(nome);
   const iData = col('data');
-  if (iData < 0) return falha(msg, 'Cabeçalho sem a coluna "data".');
+  if (iData < 0) return falhaNoCampo(msg, '#imp-txt', 'Cabeçalho sem a coluna "data".');
   const iLetivo = col('letivo'), iTipo = col('tipo'), iEvento = col('evento');
   const iBExt = hdr.findIndex(h => h.includes('extraclasse'));
   const iBAfa = hdr.findIndex(h => h.includes('afastamento'));
@@ -320,7 +320,7 @@ async function importar(e) {
       obs: iObs >= 0 ? (c[iObs] || '').trim() || null : null,
     });
   }
-  if (!rows.length) return falha(msg, 'Nenhuma linha com data válida.');
+  if (!rows.length) return falhaNoCampo(msg, '#imp-txt', 'Nenhuma linha com data válida.');
 
   const btn = document.getElementById('imp-save'); btn.disabled = true; btn.textContent = 'Importando…';
   try {

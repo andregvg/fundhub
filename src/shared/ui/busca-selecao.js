@@ -16,6 +16,7 @@
 // Opções do widget (spec 2026-10-02, D7 e D13):
 //   rotulo - desenha o rótulo do campo (`.lbl`, com `for`): o formulário
 //            fica com UM elemento, sem invólucro;
+//   obrigatorio - `aria-required` no campo; em modal, o rótulo ganha o "*";
 //   criar  - { etiqueta, rotulo(termo, haOutros), aoCriar(termo) }: último
 //            item da lista, para aceitar o texto digitado como item NOVO.
 // A lista abre por GESTO (clique, digitação, seta) e não pelo foco: um
@@ -65,7 +66,7 @@ let seq = 0;
 
 export function criarBuscaSelecao(el, {
   opcoes = [], valor = '', placeholder = 'Buscar...', rotulo = '',
-  vazioTexto = 'Nada encontrado', onChange = () => {}, criar = null,
+  vazioTexto = 'Nada encontrado', onChange = () => {}, criar = null, obrigatorio = false,
 } = {}) {
   let todas = [...opcoes];
   // Mesma guarda de definirValor: um valor inicial que não está em
@@ -84,6 +85,7 @@ export function criarBuscaSelecao(el, {
           ${ico('buscar')}
           <input type="text" id="${id}" class="bs-input" role="combobox" aria-expanded="false"
                  aria-controls="${id}-lista" aria-autocomplete="list" autocomplete="off"
+                 ${obrigatorio ? 'aria-required="true"' : ''}
                  placeholder="${esc(placeholder)}" />
           <span class="tag bs-novo" hidden>${esc(criar?.etiqueta || 'Novo')}</span>
           <button type="button" class="bs-limpar" aria-label="Limpar" hidden>${ico('fechar', { tam: 14 })}</button>
@@ -103,6 +105,8 @@ export function criarBuscaSelecao(el, {
     input.value = escolhido ? rotuloDe(escolhido) : criado;
     limpar.hidden = !(escolhido || criado);
     novo.hidden = !criado;
+    // Escolher não dispara `input`: a marca de erro (falhaNoCampo) sai por aqui.
+    if (escolhido || criado) input.removeAttribute('aria-invalid');
   }
 
   // Exatas primeiro; aproximadas só se a exata não achou nada; o item de

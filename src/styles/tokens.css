@@ -69,10 +69,12 @@
   /* Fundo e borda do campo de formulário (spec 2026-10-03, D3). Um token
      só, dentro e fora de grupo: antes o campo era --surface-2 solto e
      --surface dentro do grupo de modal, e nos dois casos ficava a um
-     passo do fundo do modal. O campo é AFUNDADO - mais escuro que a
-     superfície nos dois temas -, que é o que o separa do cartão do
-     grupo sem depender da cor de destaque. */
-  --campo-bg: #eef1f6;
+     passo do fundo do modal. O campo CONTRASTA com o que está em volta
+     na direção do tema (decisão do André, 04/10/2026): no claro ele é o
+     ponto MAIS CLARO (branco sobre o cinza do grupo); no escuro, o MAIS
+     ESCURO (afundado). Cinza sobre branco, como era, lia como campo
+     desabilitado. */
+  --campo-bg: #ffffff;
   --campo-borda: #c3cad3;
 
   /* Cor por tipo de afastamento (CORES_AFASTAMENTO, afastamentos.model.js) -
@@ -235,11 +237,14 @@
    lá, com o azul do hub, e o SATE verde ganharia cabeçalho azul. É o
    mesmo motivo de sate.css redeclarar --info-bg. */
 body {
-  /* claro E escuro: 4% e 15% (spec 2026-10-03, D2) */
-  --grupo-bg: color-mix(in srgb, var(--brand) 4%, var(--surface));
-  --grupo-borda: color-mix(in srgb, var(--brand) 15%, var(--border));
-  --cabecalho-bg: color-mix(in srgb, var(--brand) 9%, var(--surface));
-  --cabecalho-borda: color-mix(in srgb, var(--brand) 22%, var(--border));
+  /* O grupo é NEUTRO desde 04/10/2026: o tom da cor de destaque em todo
+     cartão, somado ao do cabeçalho, poluía a janela. Um passo de
+     superfície basta para separar o grupo do corpo e dar fundo ao campo. */
+  --grupo-bg: var(--surface-2);
+  --grupo-borda: var(--border);
+  /* No claro o tom é mais cheio (era 9%): mais perto de uma cor sólida. */
+  --cabecalho-bg: color-mix(in srgb, var(--brand) 16%, var(--surface));
+  --cabecalho-borda: color-mix(in srgb, var(--brand) 30%, var(--border));
 }
 /* No escuro só o cabeçalho muda de proporção: o grupo é igual nos dois
    temas (as variáveis de que depende já trocam sozinhas). */

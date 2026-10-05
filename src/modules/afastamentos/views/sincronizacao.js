@@ -12,7 +12,7 @@
 // autenticado. O sync automático está no backlog C do HANDOFF.
 // ============================================================
 import { TIPOS_AFASTAMENTO, MAPA_TIPOS_PLANILHA, sincronizarPlanilha } from '../afastamentos.model.js';
-import { esc, norm, falha, ok } from '../../../shared/dom.js';
+import { esc, norm, falha, falhaNoCampo, ok } from '../../../shared/dom.js';
 import { agoraISO } from '../../../shared/format.js';
 import { modalHead, abrirModal } from '../../../shared/ui/modal.js';
 
@@ -78,10 +78,10 @@ async function sincronizar(e, ctx) {
   e.preventDefault();
   const msg = document.getElementById('sync-msg'); msg.className = 'auth-msg';
   const txt = document.getElementById('sync-txt').value.trim();
-  if (!txt) return falha(msg, 'Cole os dados da planilha.');
+  if (!txt) return falhaNoCampo(msg, '#sync-txt', 'Cole os dados da planilha.');
 
   const linhas = txt.split(/\r?\n/).filter(l => l.trim());
-  if (linhas.length < 2) return falha(msg, 'Inclua o cabeçalho e ao menos uma linha.');
+  if (linhas.length < 2) return falhaNoCampo(msg, '#sync-txt', 'Inclua o cabeçalho e ao menos uma linha.');
   const sep = linhas[0].includes('\t') ? '\t' : (linhas[0].includes(';') ? ';' : ',');
   const hdr = linhas[0].split(sep).map(h => norm(h).replace(/\s+/g, '_'));
   const col = (n) => hdr.indexOf(n);
@@ -89,7 +89,7 @@ async function sincronizar(e, ctx) {
   const iNome = col('nome_completo'), iProc = col('processo'), iEsc = col('escola');
   const iStatus = col('status'), iOrigem = col('origem'), iObs = col('observacoes');
   const iCriadoEm = col('criado_em'), iCriadoPor = col('criado_por'), iAtualPor = col('atualizado_por');
-  if (iNome < 0 || iIni < 0) return falha(msg, 'Cabeçalho sem as colunas "nome_completo" e "data_inicio".');
+  if (iNome < 0 || iIni < 0) return falhaNoCampo(msg, '#sync-txt', 'Cabeçalho sem as colunas "nome_completo" e "data_inicio".');
 
   // Índices para casar gestor e escola por nome normalizado.
   const porServidor = new Map();

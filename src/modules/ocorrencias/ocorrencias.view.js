@@ -8,7 +8,7 @@ import {
   getOcorrencias, criarOcorrencia, atualizarOcorrencia, excluirOcorrencia,
 } from './ocorrencias.model.js';
 import { getUnidades } from '../escolas/escolas.model.js';
-import { esc, norm, val, falha } from '../../shared/dom.js';
+import { esc, norm, val, falhaNoCampo } from '../../shared/dom.js';
 import { hojeISO, fmtData, addDias } from '../../shared/format.js';
 import { loading, emptyState, erroBox, reportarErro } from '../../shared/ui/feedback.js';
 import { modalHtml, modalHead, montarModal, abrirModal, fecharModal } from '../../shared/ui/modal.js';
@@ -254,8 +254,8 @@ async function salvar(e, o) {
     status,
     encaminhado_para: status === 'encaminhada' ? (val('f-enc') || null) : null,
   };
-  if (!payload.assunto) return falha(msg, 'Informe o assunto.');
-  if (!payload.data) return falha(msg, 'Informe a data.');
+  if (!payload.assunto) return falhaNoCampo(msg, '#f-assunto', 'Informe o assunto.');
+  if (!payload.data) return falhaNoCampo(msg, '#f-data', 'Informe a data.');
 
   const btn = document.getElementById('f-save'); btn.disabled = true; btn.textContent = 'Salvando…';
   try {

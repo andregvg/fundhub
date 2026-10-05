@@ -4,7 +4,7 @@
 import { criarUnidade, atualizarUnidade, excluirUnidade } from '../escolas.model.js';
 import { sincronizarTelefones } from '../../telefones/telefones.model.js';
 import { geocodificar, linkMaps, temCoordenada } from '../../locais/geografia.model.js';
-import { esc, falha } from '../../../shared/dom.js';
+import { esc, falhaNoCampo } from '../../../shared/dom.js';
 import { modalHead, abrirModal, fecharModal, marcarTocado } from '../../../shared/ui/modal.js';
 import { montarMapaPino } from '../../../shared/ui/mapa-pino.js';
 import { phonesEditorHtml, montarPhonesEditor, lerPhonesEditor } from '../../../shared/ui/phones.js';
@@ -189,7 +189,7 @@ async function salvar(e, u, ctx) {
     tem_transporte: f.tem_transporte.checked,
     tem_eja: f.tem_eja.checked,
   };
-  if (!payload.nome) return falha(msg, 'Informe o nome.');
+  if (!payload.nome) return falhaNoCampo(msg, f.nome, 'Informe o nome.');
   const telefones = lerPhonesEditor(f);
 
   const btn = document.getElementById('ef-save'); btn.disabled = true; btn.textContent = 'Salvando…';

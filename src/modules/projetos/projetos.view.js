@@ -9,7 +9,7 @@ import {
   getInteresses, adicionarInteresse, removerInteresse,
 } from './projetos.model.js';
 import { getUnidades } from '../escolas/escolas.model.js';
-import { esc, norm, val, checked, falha } from '../../shared/dom.js';
+import { esc, norm, val, checked, falhaNoCampo } from '../../shared/dom.js';
 import { fmtData } from '../../shared/format.js';
 import { loading, emptyState, erroBox, reportarErro } from '../../shared/ui/feedback.js';
 import { modalHtml, modalHead, montarModal, abrirModal, fecharModal } from '../../shared/ui/modal.js';
@@ -217,7 +217,7 @@ function formInteresse(p) {
     const msg = document.getElementById('i-msg'); msg.className = 'auth-msg';
     const sel = document.getElementById('i-uni');
     const unidade_id = sel.value;
-    if (!unidade_id) return falha(msg, 'Selecione a escola.');
+    if (!unidade_id) return falhaNoCampo(msg, sel, 'Selecione a escola.');
     const escola = sel.selectedOptions[0]?.textContent || '';
     const btn = document.getElementById('i-save'); btn.disabled = true; btn.textContent = 'Salvando…';
     try {
@@ -293,8 +293,8 @@ async function salvar(e, p) {
     contato: val('f-contato') || null,
     observacoes: val('f-obs') || null,
   };
-  if (!payload.titulo) return falha(msg, 'Informe o título.');
-  if (payload.inicio && payload.fim && payload.fim < payload.inicio) return falha(msg, 'O fim não pode ser antes do início.');
+  if (!payload.titulo) return falhaNoCampo(msg, '#f-titulo', 'Informe o título.');
+  if (payload.inicio && payload.fim && payload.fim < payload.inicio) return falhaNoCampo(msg, '#f-fim', 'O fim não pode ser antes do início.');
 
   const btn = document.getElementById('f-save'); btn.disabled = true; btn.textContent = 'Salvando…';
   try {

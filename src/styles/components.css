@@ -867,13 +867,29 @@ input.caixa-alta { text-transform: uppercase; }
    dica em Escolas, Servidores, SATE e Projetos. */
 .form-hint {
   color: var(--muted);
-  font-size: 13px;
+  font-size: 12px;        /* MENOR que o rótulo (12.5px/600): a dica é apoio */
   font-weight: 400;
   text-transform: none;
   letter-spacing: 0;
-  line-height: 1.4;
+  line-height: 1.35;
 }
 .form-hint.err { color: var(--danger); }
+/* Dica logo abaixo do campo, dentro do rótulo: cola nele (o vão de 5px do
+   rótulo é entre o texto e o campo; aqui seria distância demais). */
+label > :is(input, select, textarea) + .form-hint { margin-top: -2px; }
+
+/* Campo obrigatório: o * é posto por shared/ui/modal.js em todo modal. */
+.lbl-txt > .obrig { margin-left: 2px; color: var(--danger); font-weight: 700; }
+
+/* Campo com erro. `aria-invalid` é posto por falhaNoCampo() (shared/dom.js)
+   quando a validação do formulário aponta UM campo; `:user-invalid` é o
+   navegador, depois de a pessoa mexer no campo ou tentar enviar. Na busca
+   com seleção a borda é do invólucro (.search), não do input. */
+:is(.form-grid, .esc-form) :is(input:not(.bs-input), select, textarea):is([aria-invalid="true"], :user-invalid),
+:is(.form-grid, .esc-form) .search:has([aria-invalid="true"]) {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--danger) 16%, transparent);
+}
 .modal-acoes { display: flex; gap: 8px; margin-bottom: 16px; }
 
 /* ── Login ────────────────────────────────────────────────── */
@@ -1074,19 +1090,38 @@ body:has(.modal-back.open) .confirmar-back.open { -webkit-backdrop-filter: none;
   transition: transform .18s ease;
 }
 .modal-back.open .modal { transform: none; }
+/* Tudo no cabeçalho se alinha pelo CENTRO da linha: título, ← e ×. Com
+   `start` o título colava no topo e sobrava espaço embaixo dele. */
 .modal-head {
   flex: 0 0 auto;
   display: flex;
   justify-content: space-between;
-  align-items: start;
-  gap: 12px;
-  padding: 16px 18px;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 18px;
   background: var(--cabecalho-bg);
   border-bottom: 1px solid var(--cabecalho-borda);
 }
-.modal-head h2 { margin: 0 0 2px; font-size: 18px; letter-spacing: -.01em; }
+/* Título SEMPRE no meio (decisão do André, 04/10/2026). Sem o ←, o recuo
+   à esquerda vale o × da direita - senão o centro sairia torto. */
+.modal-head { --botao-cab: var(--controle); }
+.modal-head > div { flex: 1 1 auto; min-width: 0; text-align: center; }
+.modal-head:not(:has(> .modal-voltar)) > div { padding-left: calc(var(--botao-cab) + 10px); }
+.modal-head .tags { justify-content: center; }
+/* Flex para o ícone do título (quando há) centralizar com o texto. */
+.modal-head h2 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.25;
+  letter-spacing: -.01em;
+}
+.modal-head h2 > .ico { flex: 0 0 auto; color: var(--brand); }
 .modal-head h2 .nome-oficial { text-transform: uppercase; font-size: 16.5px; }
-.modal-head small { color: var(--muted); }
+.modal-head small { display: block; margin-top: 1px; color: var(--muted); line-height: 1.3; }
 /* Tags sob o título (ficha da escola): o <small> vira a linha delas. */
 .modal-head small:has(> .tags) { display: block; margin-top: 6px; }
 /* A rolagem é do CORPO, não do cartão: é isso que mantém o cabeçalho e
@@ -1106,38 +1141,31 @@ body:has(.modal-back.open) .confirmar-back.open { -webkit-backdrop-filter: none;
   border-top: 1px solid var(--border);
   background: var(--surface);
 }
-.modal-close {
-  flex: 0 0 auto;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: var(--toque);
-  height: var(--toque);
-  border: 0;
-  border-radius: 9px;
-  background: transparent;
-  color: var(--text);
-  cursor: pointer;
-}
-.modal-close:hover { background: color-mix(in srgb, var(--brand) 14%, transparent); }
-/* Modal aberto sobre outro: o ← desempilha (ver shared/ui/modal.js). */
+/* Os dois botões do cabeçalho são UM desenho: × fecha, ← desempilha o
+   modal aberto sobre outro (ver shared/ui/modal.js). Mesmo tamanho, mesma
+   borda e mesmo fundo leve - é o que os faz ler como botão antes do hover. */
+.modal-close,
 .modal-voltar {
   flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: var(--controle);
-  height: var(--controle);
-  margin-right: 8px;
+  width: var(--botao-cab);
+  height: var(--botao-cab);
   border: 1px solid var(--cabecalho-borda);
   border-radius: var(--radius-btn);
-  background: transparent;
+  background: color-mix(in srgb, var(--text) 5%, transparent);
   color: var(--text);
   cursor: pointer;
+  transition: background-color .12s, border-color .12s, color .12s;
 }
-.modal-voltar:hover { background: color-mix(in srgb, var(--brand) 14%, transparent); }
+:is(.modal-close, .modal-voltar):hover {
+  border-color: color-mix(in srgb, var(--brand) 40%, var(--cabecalho-borda));
+  background: color-mix(in srgb, var(--brand) 14%, transparent);
+  color: var(--brand);
+}
 @media (pointer: coarse) {
-  .modal-voltar { width: var(--toque); height: var(--toque); }
+  .modal-head { --botao-cab: var(--toque); }
 }
 @media (min-width: 560px) {
   .modal-back { padding: 16px; }

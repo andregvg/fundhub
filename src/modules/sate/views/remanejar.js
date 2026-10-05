@@ -19,7 +19,7 @@ import { getParticipacoes } from '../participacoes.model.js';
 import { atualizarTrajeto, retratoTrajeto } from '../rota.model.js';
 import { velocidadeOnibusKmh, margemParadaMin } from '../sate.config.js';
 import { abrirFrotaExtra } from './frota-extra.js';
-import { esc, val, falha } from '../../../shared/dom.js';
+import { esc, val, falhaNoCampo } from '../../../shared/dom.js';
 import { modalHead, abrirModal } from '../../../shared/ui/modal.js';
 import { toast } from '../../../shared/ui/toast.js';
 import { reportarErro } from '../../../shared/ui/feedback.js';
@@ -71,11 +71,11 @@ async function salvar(e, s, ctx, reabrir) {
   // formulário da escola - quem remaneja não escolhe mais. Sem horário de
   // embarque válido, mantém o período que a viagem já tinha.
   const periodo = periodoDe(emb, ret) || s.periodo;
-  if (!val('rm-data')) return falha(msg, 'Informe a data.');
+  if (!val('rm-data')) return falhaNoCampo(msg, '#rm-data', 'Informe a data.');
   // "HH:MM" compara como texto na ordem certa. A noite pode voltar depois
   // da meia-noite (mesma exceção de regras.model.js) - só os outros
   // períodos exigem retorno depois do embarque no mesmo dia.
-  if (periodo !== 'noite' && emb && ret && ret <= emb) return falha(msg, 'A saída do evento precisa ser depois do embarque.');
+  if (periodo !== 'noite' && emb && ret && ret <= emb) return falhaNoCampo(msg, '#rm-ret', 'A saída do evento precisa ser depois do embarque.');
 
   const localId = document.getElementById('rm-local').value || null;
   const local = (ctx.locais || []).find(l => l.id === localId);

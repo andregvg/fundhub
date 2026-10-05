@@ -90,6 +90,33 @@ export function marcarTocado(campo) {
   if (proteger && campo?.closest?.('.modal-body form')) registrarBase(bases, campo);
 }
 
+// ── Campo obrigatório ganha "*" no rótulo ────────────────────
+// Vale para todo formulário aberto em modal, sem a view pedir: basta o campo
+// ter `required` (ou `aria-required`, na busca com seleção). O rótulo do hub
+// é uma coluna (texto em cima, campo embaixo), então o * não pode ser um
+// irmão do texto - cairia numa linha própria. O texto é embrulhado num
+// <span> e o * vai dentro dele.
+const OBRIGATORIO = ':is(input, select, textarea):is([required], [aria-required="true"])';
+
+function marcarObrigatorios(m) {
+  for (const rotulo of m.querySelectorAll('.modal-body form label')) {
+    const campo = rotulo.control;
+    const marca = rotulo.querySelector(':scope > .lbl-txt > .obrig');
+    if (!campo?.matches(OBRIGATORIO)) { marca?.remove(); continue; }
+    if (marca) continue;
+    let txt = rotulo.querySelector(':scope > .lbl-txt');
+    if (!txt) {
+      const no = [...rotulo.childNodes].find(n => n.nodeType === 3 && n.textContent.trim());
+      if (!no) continue;   // rótulo sem texto (só ícone): nada a marcar
+      txt = document.createElement('span');
+      txt.className = 'lbl-txt';
+      txt.textContent = no.textContent.trim();
+      no.replaceWith(txt);
+    }
+    txt.insertAdjacentHTML('beforeend', '<span class="obrig" title="Obrigatório" aria-hidden="true">*</span>');
+  }
+}
+
 // As quatro portas de DISPENSA pela pessoa - fundo, Esc, × e ← - passam
 // por aqui. `fecharModal()` exportado continua direto: quem fecha pelo
 // código (depois de salvar) não pergunta nada.
@@ -118,6 +145,12 @@ export function montarModal() {
   // o `beforeinput` também vem antes da mudança. Não há `focusin` de propósito:
   // ele daria base ao campo focado na abertura, antes de qualquer preenchimento tardio.
   m?.addEventListener('beforeinput', aoTocar, true);
+  // Observador e não uma chamada na abertura: há modal que desenha o
+  // formulário depois (corpo assíncrono) e campo que vira obrigatório no
+  // meio do preenchimento (o endereço de um local novo, no SATE). A marcação
+  // é idempotente, então a mudança que ela mesma causa não a realimenta.
+  if (m) new MutationObserver(() => marcarObrigatorios(m))
+    .observe(m, { childList: true, subtree: true, attributes: true, attributeFilter: ['required', 'aria-required'] });
 }
 
 const aberto = () => document.getElementById('modal-back')?.classList.contains('open');

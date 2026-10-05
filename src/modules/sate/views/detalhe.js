@@ -29,7 +29,7 @@ import { pontosDaViagem, explicarTrajeto, atualizarTrajeto, retratoTrajeto } fro
 import { linkRota } from '../../locais/geografia.model.js';
 import { enderecoCompleto } from '../../locais/locais.model.js';
 import { velocidadeOnibusKmh, margemParadaMin, trajetoProvisorioMin } from '../sate.config.js';
-import { esc, vazio, val, falha } from '../../../shared/dom.js';
+import { esc, vazio, val, falhaNoCampo } from '../../../shared/dom.js';
 import { fmtData, fmtDataHora } from '../../../shared/format.js';
 import { modalHead, abrirModal, fecharModal } from '../../../shared/ui/modal.js';
 import { loading } from '../../../shared/ui/feedback.js';
@@ -295,7 +295,7 @@ function pedirMotivo({ titulo, rotulo, botao, fn }) {
     const texto = val('mot-txt');
     // O banco também exige (CHECK da migration 035). Aqui é para a
     // pessoa saber antes de o servidor recusar.
-    if (!texto) return falha(msg, 'A justificativa é obrigatória.');
+    if (!texto) return falhaNoCampo(msg, '#mot-txt', 'A justificativa é obrigatória.');
     const btn = document.getElementById('mot-ok');
     btn.disabled = true;
     try {

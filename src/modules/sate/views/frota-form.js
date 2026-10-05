@@ -12,7 +12,7 @@ import {
   TIPOS, getRotulos, criarRotulo, arquivarRotulo, excluirRotulo,
   abrirFrota, criarLote, editarFrota,
 } from '../frota.model.js';
-import { esc, val, falha } from '../../../shared/dom.js';
+import { esc, val, falhaNoCampo } from '../../../shared/dom.js';
 import { hojeISO } from '../../../shared/format.js';
 import { modalHead, abrirModal, fecharModal } from '../../../shared/ui/modal.js';
 import { confirmar } from '../../../shared/ui/confirmar.js';
@@ -71,11 +71,11 @@ export async function abrirFormFrota({ frota = null, aoSalvar }) {
     const msg = document.getElementById('ff-msg'); msg.className = 'auth-msg';
     const qtd = parseInt(val('ff-qtd'), 10);
     const inicio = val('ff-inicio'), fim = val('ff-fim') || null;
-    if (!sel.value) return falha(msg, 'Escolha ou crie o rótulo.');
-    if (sel.value === NOVO && !val('ff-novo')) return falha(msg, 'Informe o nome do novo rótulo.');
-    if (!qtd || qtd < 1) return falha(msg, 'Informe quantos veículos.');
-    if (!inicio) return falha(msg, 'Informe o início.');
-    if (fim && fim < inicio) return falha(msg, 'A data de fim não pode ser antes do início.');
+    if (!sel.value) return falhaNoCampo(msg, sel, 'Escolha ou crie o rótulo.');
+    if (sel.value === NOVO && !val('ff-novo')) return falhaNoCampo(msg, '#ff-novo', 'Informe o nome do novo rótulo.');
+    if (!qtd || qtd < 1) return falhaNoCampo(msg, '#ff-qtd', 'Informe quantos veículos.');
+    if (!inicio) return falhaNoCampo(msg, '#ff-inicio', 'Informe o início.');
+    if (fim && fim < inicio) return falhaNoCampo(msg, '#ff-fim', 'A data de fim não pode ser antes do início.');
 
     const btn = document.getElementById('ff-ok'); btn.disabled = true;
     try {

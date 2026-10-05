@@ -19,6 +19,7 @@ partir das versões do FundHub que mudaram algo para quem usa o SATE.
 
 | SATE | FundHub | Em resumo |
 |---|---|---|
+| 0.18.1 | 0.39.1 | erro do pedido aponta o campo, asterisco nos obrigatórios, dica de hora nos dois horários |
 | 0.18.0 | 0.39.0 | data só com dia e mês, servidor responsável com telefone automático, tema e cor por pessoa |
 | 0.17.1 | 0.38.1 | pedido com local novo pela busca, disponibilidade de segunda a sexta com o dia destacado |
 | 0.17.0 | 0.38.0 | pedido simplificado, locais com mapa, conferência de local |
@@ -42,6 +43,33 @@ partir das versões do FundHub que mudaram algo para quem usa o SATE.
 | 0.3.0 | 0.9.0 | catálogo de locais |
 | 0.2.0 | 0.7.0 | atividade livre, transporte adaptado, calendário escolar |
 | 0.1.0 | 0.5.0 | a escola pede, a SME valida |
+
+---
+
+## [0.39.1] - 2026-10-04
+
+> SATE 0.18.1.
+
+### Alterado
+- **Campo obrigatório tem asterisco.** Em toda janela de cadastro, o campo que não pode ficar
+  em branco traz um asterisco ao lado do nome.
+- **Cabeçalho das janelas.** Título centralizado na altura, cabeçalho mais baixo, e os botões
+  de voltar e de fechar com o mesmo tamanho e a mesma aparência. O título fica no meio da
+  janela, e no tema claro o fundo do cabeçalho ganhou uma cor mais cheia.
+- **Formulários mais limpos.** Os blocos das janelas de cadastro perderam o tom colorido e
+  ficaram em cinza neutro. No tema claro os campos são brancos, mais claros que o fundo em
+  volta; no escuro, mais escuros.
+- **Dica abaixo do campo mais discreta.** O texto de ajuda ficou menor que o nome do campo e
+  colado nele, para não se confundir com o nome do campo seguinte.
+- **SATE: pedido de ônibus.** A janela passou a se chamar "Nova solicitação de ônibus". A dica
+  de como digitar a hora aparece logo abaixo dos dois horários, no formato do campo
+  (0730 → 07:30), e o campo de observações perdeu o nome repetido.
+
+### Corrigido
+- **O erro aponta o campo.** Ao salvar um cadastro com algo faltando ou errado - no pedido de
+  ônibus do SATE e nos demais formulários -, o sistema leva você até o campo, destaca-o em
+  vermelho e põe o cursor nele. Antes a mensagem aparecia só no pé da janela, sem dizer onde
+  estava o problema.
 
 ---
 

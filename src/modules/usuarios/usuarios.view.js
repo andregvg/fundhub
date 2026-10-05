@@ -25,7 +25,7 @@ import { getServidores } from '../servidores/servidores.model.js';
 import { MODULOS, chavePerm } from '../../core/registry.js';
 import { NIVEIS, OCULTO, rotulaNivel } from '../../core/permissoes.js';
 import { SEGMENTOS, ATALHOS, expandir, atalhoDe, rotuloSelecao } from '../../core/segmentos.js';
-import { esc, val, checked, falha, vazio } from '../../shared/dom.js';
+import { esc, val, checked, falhaNoCampo, vazio } from '../../shared/dom.js';
 import { fmtDataHora } from '../../shared/format.js';
 import { loading, erroBox, reportarErro } from '../../shared/ui/feedback.js';
 import { montarTabela } from '../../shared/ui/tabela.js';
@@ -280,8 +280,8 @@ async function salvar(e, p, lerSegs, lerExcecoes, buscaServidor) {
   e.preventDefault();
   const msg = document.getElementById('f-msg'); msg.className = 'auth-msg';
   const email = val('f-email').toLowerCase();
-  if (!email) return falha(msg, 'Informe o e-mail.');
-  if (!isInstitucional(email)) return falha(msg, 'Use um e-mail do domínio institucional (@educacao.pmrp.sp.gov.br).');
+  if (!email) return falhaNoCampo(msg, '#f-email', 'Informe o e-mail.');
+  if (!isInstitucional(email)) return falhaNoCampo(msg, '#f-email', 'Use um e-mail do domínio institucional (@educacao.pmrp.sp.gov.br).');
 
   const payload = {
     email,

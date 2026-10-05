@@ -3,7 +3,7 @@
 // Atividades extraclasse geridas pela SME. Todos veem; admin edita.
 // ============================================================
 import { criarAtividade, atualizarAtividade, excluirAtividade } from '../atividades.model.js';
-import { esc, slug, val, checked, falha } from '../../../shared/dom.js';
+import { esc, slug, val, checked, falha, falhaNoCampo } from '../../../shared/dom.js';
 import { emptyState } from '../../../shared/ui/feedback.js';
 import { confirmar } from '../../../shared/ui/confirmar.js';
 import { toast } from '../../../shared/ui/toast.js';
@@ -107,7 +107,7 @@ async function salvar(e, a) {
   const msg = document.getElementById('a-msg'); msg.className = 'auth-msg';
 
   const nome = val('a-nome');
-  if (!nome) return falha(msg, 'Informe o nome da atividade.');
+  if (!nome) return falhaNoCampo(msg, '#a-nome', 'Informe o nome da atividade.');
   const min = parseInt(val('a-min'), 10);
 
   // Local escolhido do catálogo: grava local_id + snapshot de nome/endereço

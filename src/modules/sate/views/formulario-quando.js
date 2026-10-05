@@ -41,9 +41,10 @@ export const quandoHtml = (minData) => `
         </span>
         <small class="form-hint" id="f-data-ext" aria-live="polite">${DICA}</small>
       </div>
-      <label>Horário de embarque <input id="f-emb" type="time" required /></label>
-      <label>Horário de saída do evento <input id="f-ret" type="time" required /></label>
-      <p class="form-hint col-2">Somente números, ex.: 0730 → 07h30</p>
+      <label>Horário de embarque <input id="f-emb" type="time" required aria-describedby="f-emb-dica" />
+        <small class="form-hint" id="f-emb-dica">Só os números: 0730 → 07:30</small></label>
+      <label>Horário de saída do evento <input id="f-ret" type="time" required aria-describedby="f-ret-dica" />
+        <small class="form-hint" id="f-ret-dica">Só os números: 1130 → 11:30</small></label>
       <p class="sol-periodo col-2" id="f-periodo" aria-live="polite"></p>
     </div>
   </fieldset>`;

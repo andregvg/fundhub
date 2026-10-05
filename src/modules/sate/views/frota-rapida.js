@@ -13,7 +13,7 @@
 // substituir a aberta do mesmo rótulo que começa depois (abrir_frota).
 // ============================================================
 import { criarLote, getRotulos, criarRotulo } from '../frota.model.js';
-import { esc, val, falha } from '../../../shared/dom.js';
+import { esc, val, falhaNoCampo } from '../../../shared/dom.js';
 import { fmtData, addDias } from '../../../shared/format.js';
 import { toast } from '../../../shared/ui/toast.js';
 import { reportarErro } from '../../../shared/ui/feedback.js';
@@ -54,11 +54,11 @@ export function ligarCadastroRapido(data, aoCadastrar) {
   ok.addEventListener('click', async () => {
     const msg = document.getElementById('cf-msg'); msg.className = 'auth-msg';
     const qtd = parseInt(val('cf-qtd'), 10);
-    if (!sel.value) return falha(msg, 'Escolha ou crie o rótulo.');
-    if (sel.value === NOVO && !val('cf-novo')) return falha(msg, 'Informe o nome do rótulo.');
-    if (!qtd || qtd < 1) return falha(msg, 'Informe quantos ônibus.');
+    if (!sel.value) return falhaNoCampo(msg, sel, 'Escolha ou crie o rótulo.');
+    if (sel.value === NOVO && !val('cf-novo')) return falhaNoCampo(msg, '#cf-novo', 'Informe o nome do rótulo.');
+    if (!qtd || qtd < 1) return falhaNoCampo(msg, '#cf-qtd', 'Informe quantos ônibus.');
     const fim = val('cf-fim') || data;
-    if (fim < data) return falha(msg, 'A data final não pode ser antes do dia do pedido.');
+    if (fim < data) return falhaNoCampo(msg, '#cf-fim', 'A data final não pode ser antes do dia do pedido.');
     ok.disabled = true;
     try {
       let rotuloId = sel.value;

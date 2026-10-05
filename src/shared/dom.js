@@ -73,4 +73,23 @@ export const checked = (id) => Boolean(qs('#' + id)?.checked);
 
 // Mensagem de erro/sucesso nos rodapés de formulário.
 export function falha(el, txt) { el.classList.add('err'); el.textContent = txt; }
+// Erro de UM campo: além da mensagem no rodapé, o campo fica marcado
+// (`aria-invalid` - a borda de erro é do CSS), recebe o foco e é trazido para
+// o meio da tela. A marca sai quando a pessoa mexe nele. Sem campo, é `falha`.
+// `campo` é o elemento ou um seletor CSS ('#f-data').
+export function falhaNoCampo(el, campo, txt) {
+  falha(el, txt);
+  if (typeof campo === 'string') campo = document.querySelector(campo);
+  if (!campo) return;
+  campo.setAttribute('aria-invalid', 'true');
+  const limpar = () => {
+    campo.removeAttribute('aria-invalid');
+    campo.removeEventListener('input', limpar);
+    campo.removeEventListener('change', limpar);
+  };
+  campo.addEventListener('input', limpar);
+  campo.addEventListener('change', limpar);
+  campo.focus({ preventScroll: true });
+  campo.scrollIntoView({ block: 'center', behavior: 'smooth' });
+}
 export function ok(el, txt) { el.classList.add('ok'); el.textContent = txt; }

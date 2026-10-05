@@ -28,12 +28,13 @@ import { cadastroRapidoHtml, ligarCadastroRapido } from './frota-rapida.js';
 import { destinoHtml, ligarDestino, lerDestino, validarDestino } from './formulario-destino.js';
 import { quandoHtml, ligarQuando } from './formulario-quando.js';
 import { responsavelHtml, ligarResponsavel, carregarEquipe } from './formulario-responsavel.js';
-import { esc, val, falha } from '../../../shared/dom.js';
+import { esc, val, falha, falhaNoCampo } from '../../../shared/dom.js';
 import { hojeISO, addDias, fmtData, isUuid } from '../../../shared/format.js';
 import { paraE164, formatarTelefone } from '../../../shared/ui/phones.js';
 import { criarBuscaSelecao } from '../../../shared/ui/busca-selecao.js';
 import { modalHead, abrirModal, fecharModal } from '../../../shared/ui/modal.js';
 import { toast } from '../../../shared/ui/toast.js';
+import { ico } from '../../../shared/ui/icones.js';
 import { reportarErro } from '../../../shared/ui/feedback.js';
 
 let ctx = null;
@@ -61,7 +62,7 @@ export function abrirFormulario(contexto) {
   const minData = aprovador ? hojeISO() : addDias(hojeISO(), antecedenciaMinDias());
 
   abrirModal(`
-    ${modalHead('Nova solicitação')}
+    ${modalHead(ico('onibus', { tam: 20 }) + 'Nova solicitação de ônibus')}
     <div class="modal-body">
       <form id="sol-form" class="esc-form">
 
@@ -94,7 +95,7 @@ export function abrirFormulario(contexto) {
         <fieldset class="form-grupo">
           <legend>Observações da escola</legend>
           <div class="campos">
-            <label>Observações <textarea id="f-obs" rows="2" placeholder="Informações adicionais relevantes…"></textarea></label>
+            <textarea id="f-obs" rows="2" aria-label="Observações da escola" placeholder="Informações adicionais relevantes…"></textarea>
           </div>
         </fieldset>
 
@@ -139,6 +140,7 @@ function ligar() {
       rotulo: 'Escola',
       opcoes: escolas.map(u => ({ id: u.id || u.numero, rotulo: u.nome, detalhe: u.segmento || '', busca: u.apelido || '' })),
       placeholder: 'Digite para buscar a escola…',
+      obrigatorio: true,
       onChange: aoMudarEscola,
     });
   } else {
@@ -264,6 +266,11 @@ async function enviar(e) {
   if (ctx.somenteLeitura) return;   // vendo como a escola: nada é gravado
   const msg = document.getElementById('f-msg'); msg.className = 'auth-msg';
   const { aprovador } = ctx;
+  // Todo erro aponta o CAMPO: marca, foco e rolagem até ele. A mensagem
+  // sozinha no rodapé deixava a pessoa procurando num formulário longo.
+  const form = e.currentTarget;
+  form.querySelectorAll('[aria-invalid]').forEach(c => c.removeAttribute('aria-invalid'));
+  const erro = (campo, txt) => falhaNoCampo(msg, campo, txt);
 
   const escId = escolaId();
   const data = val('f-data');
@@ -274,21 +281,24 @@ async function enviar(e) {
   const surdo = parseInt(val('f-surdo'), 10) || 0;
   const d = lerDestino();
 
-  if (!escId) return falha(msg, 'Escolha a escola.');
-  if (!qtd) return falha(msg, 'Informe o nº de estudantes.');
+  if (!escId) return erro(aprovador ? '#f-esc-busca input' : '#f-esc', 'Escolha a escola.');
+  if (!qtd) return erro('#f-alunos', 'Informe o nº de estudantes.');
   const erroDestino = validarDestino(d);
-  if (erroDestino) return falha(msg, erroDestino);
-  if (!data || !emb || !ret) return falha(msg, 'Informe a data e os horários de embarque e de saída do evento.');
-  if (periodo !== 'noite' && ret <= emb) return falha(msg, 'A saída do evento precisa ser depois do embarque.');
-  if (data < hojeISO()) return falha(msg, 'A data não pode ser no passado.');
-  if (!val('f-prof') || !val('f-tel')) return falha(msg, 'Informe o servidor(a) responsável e o telefone.');
+  if (erroDestino) return erro(erroDestino.campo, erroDestino.texto);
+  if (!data) return erro('#f-dia', 'Informe a data da viagem.');
+  if (!emb) return erro('#f-emb', 'Informe o horário de embarque.');
+  if (!ret) return erro('#f-ret', 'Informe o horário de saída do evento.');
+  if (periodo !== 'noite' && ret <= emb) return erro('#f-ret', 'A saída do evento precisa ser depois do embarque.');
+  if (data < hojeISO()) return erro('#f-dia', 'A data não pode ser no passado.');
+  if (!val('f-prof')) return erro('#f-prof', 'Informe o servidor(a) responsável.');
+  if (!val('f-tel')) return erro('#f-tel', 'Informe o telefone do responsável.');
 
   // Bloqueios do calendário escolar. Quem aprova passa por cima.
   if (!aprovador) {
     try {
       const dia = await getDiaCalendario(data);
-      if (dia?.bloqueia_extraclasse) return falha(msg, `Data bloqueada para extraclasse${dia.evento ? ` (${dia.evento})` : ''}.`);
-      if (dia && dia.letivo === false) return falha(msg, `${fmtData(data)} não é dia letivo${dia.evento ? ` (${dia.evento})` : ''}.`);
+      if (dia?.bloqueia_extraclasse) return erro('#f-dia', `Data bloqueada para extraclasse${dia.evento ? ` (${dia.evento})` : ''}.`);
+      if (dia && dia.letivo === false) return erro('#f-dia', `${fmtData(data)} não é dia letivo${dia.evento ? ` (${dia.evento})` : ''}.`);
     } catch (_) { /* sem calendário carregado, segue */ }
   }
 
@@ -346,16 +356,16 @@ async function enviar(e) {
     // horário pode ter deixado de caber entre a última pintura do saldo e
     // o clique em Enviar - outra escola pode ter acabado de pegar a vaga.
     if (err.code === 'P0001' && String(err.message || '').startsWith('Sem onibus livres')) {
-      falha(msg, 'Não há ônibus livres para este horário. Escolha outro horário ou outra data.');
+      erro('#f-emb', 'Não há ônibus livres para este horário. Escolha outro horário ou outra data.');
       pintarSaldo();
     } else if (err.code === '23502' && String(err.message || '').startsWith('Informe o horario')) {
-      falha(msg, 'Informe o horário de embarque e o de saída do evento.');
+      erro(emb ? '#f-ret' : '#f-emb', 'Informe o horário de embarque e o de saída do evento.');
     } else if (err.code === '23502' && String(err.message || '').startsWith('Informe o professor')) {
-      falha(msg, 'Informe o servidor(a) responsável e o telefone.');
+      erro(val('f-prof') ? '#f-tel' : '#f-prof', 'Informe o servidor(a) responsável e o telefone.');
     } else if (err.code === '23502' && String(err.message || '').startsWith('Informe nome, endereco')) {
-      falha(msg, 'Informe nome, endereço, número e bairro do local.');
+      erro('#f-local input', 'Informe nome, endereço, número e bairro do local.');
     } else if (err.code === '23503' && String(err.message || '').startsWith('Local nao encontrado')) {
-      falha(msg, 'O local escolhido não foi encontrado. Atualize a página e tente de novo.');
+      erro('#f-local input', 'O local escolhido não foi encontrado. Atualize a página e tente de novo.');
     } else if (err.code === '23514' && periodo === 'integral') {
       // CHECK de período sem a migration 044: o banco ainda não aceita 'integral'.
       falha(msg, 'O banco ainda não aceita pedidos de manhã e tarde. Avise a Gerência.');

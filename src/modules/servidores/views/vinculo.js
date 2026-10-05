@@ -12,7 +12,7 @@
 import { criarVinculo, atualizarVinculo, excluirVinculo, rotulaCargo, FUNCOES, temFuncao, mudarFuncao } from '../vinculos.model.js';
 import { quemTemFuncao } from '../equipe.model.js';
 import { eLocalInterno } from '../../escolas/escolas.model.js';
-import { esc, falha } from '../../../shared/dom.js';
+import { esc, falhaNoCampo } from '../../../shared/dom.js';
 import { modalHead, abrirModal } from '../../../shared/ui/modal.js';
 import { criarBuscaSelecao } from '../../../shared/ui/busca-selecao.js';
 import { confirmar } from '../../../shared/ui/confirmar.js';
@@ -143,10 +143,10 @@ async function salvar(e, s, vinculo, ctx, voltar, buscaLocal) {
   const ingresso = document.getElementById('v-ini').value || null;
   const fim = document.getElementById('v-fim').value || null;
 
-  if (!unidade_id) return falha(msg, 'Selecione o local de trabalho.');
-  if (!String(papel).trim()) return falha(msg, 'Informe o cargo/função.');
+  if (!unidade_id) return falhaNoCampo(msg, '#v-local-box input', 'Selecione o local de trabalho.');
+  if (!String(papel).trim()) return falhaNoCampo(msg, escolhido === OUTRO ? '#v-novo' : '#v-cargo', 'Informe o cargo/função.');
   // Fim antes do início é impossível, não indesejável: barra (R15).
-  if (ingresso && fim && fim < ingresso) return falha(msg, 'O término não pode ser anterior ao início.');
+  if (ingresso && fim && fim < ingresso) return falhaNoCampo(msg, '#v-fim', 'O término não pode ser anterior ao início.');
 
   const funcao = temFuncao(papel) ? (Number(document.getElementById('v-funcao').value) || null) : null;
   const desde = document.getElementById('v-desde-wrap').hidden ? '' : document.getElementById('v-desde').value;
@@ -158,7 +158,7 @@ async function salvar(e, s, vinculo, ctx, voltar, buscaLocal) {
     const mexeuNoResto = unidade_id !== vinculo.unidade_id
       || (ingresso || null) !== (vinculo.ingresso || null) || (fim || null) !== (vinculo.fim || null)
       || rotulaCargo(papel) !== rotulaCargo(vinculo.papel);
-    if (mexeuNoResto) return falha(msg, 'Salve a troca de função separada das outras alterações.');
+    if (mexeuNoResto) return falhaNoCampo(msg, '#v-desde', 'Salve a troca de função separada das outras alterações.');
   }
 
   const btn = document.getElementById('v-save'); btn.disabled = true; btn.textContent = 'Salvando…';

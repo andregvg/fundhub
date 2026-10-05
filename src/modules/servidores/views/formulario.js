@@ -7,7 +7,7 @@ import { criarVinculo, FUNCOES, temFuncao } from '../vinculos.model.js';
 import { quemTemFuncao } from '../equipe.model.js';
 import { eLocalInterno } from '../../escolas/escolas.model.js';
 import { sincronizarTelefones } from '../../telefones/telefones.model.js';
-import { esc, falha } from '../../../shared/dom.js';
+import { esc, falhaNoCampo } from '../../../shared/dom.js';
 import { mascaraCPF, mascaraRG, cpfCru, rgCru, noPadraoCPF, noPadraoRG } from '../../../shared/format.js';
 import { modalHead, abrirModal, fecharModal } from '../../../shared/ui/modal.js';
 import { phonesEditorHtml, montarPhonesEditor, lerPhonesEditor } from '../../../shared/ui/phones.js';
@@ -241,7 +241,7 @@ async function salvarServidor(e, s, ctx, voltar) {
     nascimento: document.getElementById('s-nascimento').value || null,
     inicio_rede: document.getElementById('s-ingresso').value || null,
   };
-  if (!payload.nome) return falha(msg, 'Informe o nome completo.');
+  if (!payload.nome) return falhaNoCampo(msg, '#s-nome', 'Informe o nome completo.');
 
   // Local de trabalho da modal (só no cadastro novo). Local sem cargo é
   // erro: não dá para ter designação sem função. Cargo sem local é
@@ -252,7 +252,7 @@ async function salvarServidor(e, s, ctx, voltar) {
     const papel = cargoEscolhido().trim();
     const ingresso = document.getElementById('s-vinc-ini').value || null;
     if (unidade_id && !String(papel).trim()) {
-      return falha(msg, 'Escolha também o cargo do local de trabalho, ou deixe o local em branco.');
+      return falhaNoCampo(msg, '#s-cargo', 'Escolha também o cargo do local de trabalho, ou deixe o local em branco.');
     }
     if (unidade_id) {
       const funcao = temFuncao(papel) ? (Number(document.getElementById('s-funcao').value) || null) : null;

@@ -50,7 +50,7 @@ function preencher(l) {
 // Local do cadastro: endereço só leitura (vem do cadastro). Local novo:
 // os três campos destravam e passam a ser obrigatórios.
 function destravar(novo) {
-  for (const id of ENDERECO) campo(id).readOnly = !novo;
+  for (const id of ENDERECO) { campo(id).readOnly = !novo; campo(id).required = novo; }
 }
 
 function usarCadastrado(l) {
@@ -80,6 +80,7 @@ export function ligarDestino(locais, mudou) {
     rotulo: 'Local',
     opcoes: locaisAtivos.map(l => ({ id: l.id, rotulo: l.nome, detalhe: enderecoCompleto(l), busca: l.bairro || '' })),
     placeholder: 'Digite o nome do local…',
+    obrigatorio: true,
     vazioTexto: 'Digite ao menos 3 letras para cadastrar um local novo',
     criar: {
       etiqueta: 'Novo local',
@@ -124,9 +125,11 @@ export function lerDestino() {
 
 // Local do cadastro: basta tê-lo escolhido. Local novo: as quatro partes
 // são obrigatórias - é o que a empresa de transporte vai ler na ficha.
+// Devolve o erro COM o campo a que ele se refere, para o formulário apontá-lo.
 export function validarDestino(d) {
   if (d.localId) return null;
-  if (!novoNome) return 'Escolha o local na lista ou digite o nome de um local novo.';
-  if (!d.nome || !d.endereco || !d.numero || !d.bairro) return 'Informe endereço, número e bairro do local novo.';
+  if (!novoNome) return { campo: campo('f-local').querySelector('input'), texto: 'Escolha o local na lista ou digite o nome de um local novo.' };
+  const falta = ENDERECO.map(campo).find(c => !c.value.trim());
+  if (falta) return { campo: falta, texto: 'Informe endereço, número e bairro do local novo.' };
   return null;
 }

@@ -5,7 +5,7 @@
 // A folha timbrada é montada aqui e só fica visível ao imprimir.
 // ============================================================
 import { TIPOS, getAtas, criarAta, atualizarAta, excluirAta } from './atas.model.js';
-import { esc, norm, val, falha } from '../../shared/dom.js';
+import { esc, norm, val, falhaNoCampo } from '../../shared/dom.js';
 import { hojeISO, fmtData, fmtExtenso, addDias } from '../../shared/format.js';
 import { loading, emptyState, erroBox, reportarErro } from '../../shared/ui/feedback.js';
 import { modalHtml, modalHead, montarModal, abrirModal, fecharModal } from '../../shared/ui/modal.js';
@@ -211,8 +211,8 @@ async function salvar(e, a) {
     deliberacoes: val('f-delib') || null,
     encaminhamentos: val('f-enc') || null,
   };
-  if (!payload.assunto) return falha(msg, 'Informe o assunto.');
-  if (!payload.data) return falha(msg, 'Informe a data.');
+  if (!payload.assunto) return falhaNoCampo(msg, '#f-assunto', 'Informe o assunto.');
+  if (!payload.data) return falhaNoCampo(msg, '#f-data', 'Informe a data.');
 
   const btn = document.getElementById('f-save'); btn.disabled = true; btn.textContent = 'Salvando…';
   try {

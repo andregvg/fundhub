@@ -8,7 +8,7 @@ import {
   getVisitas, criarVisita, atualizarVisita, excluirVisita,
 } from './visitas.model.js';
 import { getUnidades } from '../escolas/escolas.model.js';
-import { esc, norm, val, falha } from '../../shared/dom.js';
+import { esc, norm, val, falhaNoCampo } from '../../shared/dom.js';
 import { hojeISO, fmtData, addDias } from '../../shared/format.js';
 import { loading, emptyState, erroBox, reportarErro } from '../../shared/ui/feedback.js';
 import { modalHtml, modalHead, montarModal, abrirModal, fecharModal } from '../../shared/ui/modal.js';
@@ -222,7 +222,7 @@ async function salvar(e, v) {
   e.preventDefault();
   const msg = document.getElementById('f-msg'); msg.className = 'auth-msg';
   const unidade_id = document.getElementById('f-uni').value;
-  if (!unidade_id) return falha(msg, 'Selecione a escola.');
+  if (!unidade_id) return falhaNoCampo(msg, '#f-uni', 'Selecione a escola.');
 
   const payload = {
     unidade_id,
@@ -235,7 +235,7 @@ async function salvar(e, v) {
     prazo: document.getElementById('f-prazo').value || null,
     status: document.getElementById('f-status').value,
   };
-  if (!payload.data) return falha(msg, 'Informe a data.');
+  if (!payload.data) return falhaNoCampo(msg, '#f-data', 'Informe a data.');
 
   const escola = unidades.find(u => (u.id || u.numero) === unidade_id)?.nome || '';
 

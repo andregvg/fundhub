@@ -6,7 +6,7 @@
 // ============================================================
 import { TIPOS_AFASTAMENTO, diasAfastamento, criarAfastamento, atualizarAfastamento } from '../afastamentos.model.js';
 import { getDiasBloqueiamAfastamento } from '../../calendario/calendario.model.js';
-import { esc, falha } from '../../../shared/dom.js';
+import { esc, falhaNoCampo } from '../../../shared/dom.js';
 import { fmtData } from '../../../shared/format.js';
 import { modalHead, abrirModal, fecharModal } from '../../../shared/ui/modal.js';
 import { confirmar } from '../../../shared/ui/confirmar.js';
@@ -68,8 +68,9 @@ async function salvar(e, a, ctx) {
     processo: document.getElementById('f-proc').value.trim() || null,
     motivo: document.getElementById('f-motivo').value.trim() || null,
   };
-  if (!payload.servidor_id || !payload.inicio) return falha(msg, 'Informe servidor e data de início.');
-  if (payload.fim && payload.fim < payload.inicio) return falha(msg, 'A data fim não pode ser antes do início.');
+  if (!payload.servidor_id) return falhaNoCampo(msg, '#f-serv', 'Informe o servidor.');
+  if (!payload.inicio) return falhaNoCampo(msg, '#f-ini', 'Informe a data de início.');
+  if (payload.fim && payload.fim < payload.inicio) return falhaNoCampo(msg, '#f-fim', 'A data fim não pode ser antes do início.');
 
   // Integração com o Calendário: avisa (não bloqueia) se o período cai em
   // dia marcado "não conceder afastamentos".

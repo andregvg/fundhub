@@ -20,7 +20,7 @@ import {
   acrescentar, remover, reordenar, pedirSaida, confirmarSaida,
   voltarAtras, cancelarParticipacao, STATUS_PART, ativa,
 } from '../participacoes.model.js';
-import { esc, vazio, val, falha } from '../../../shared/dom.js';
+import { esc, vazio, val, falhaNoCampo } from '../../../shared/dom.js';
 import { modalHead, abrirModal } from '../../../shared/ui/modal.js';
 import { confirmar } from '../../../shared/ui/confirmar.js';
 import { toast } from '../../../shared/ui/toast.js';
@@ -323,7 +323,7 @@ function formularioParada({ ctx, solicitacao, partes, reabrir }) {
     const escolhido = val(escola ? 'dp-esc' : 'dp-local');
     // Validado aqui, e não por `required`: o navegador exigiria também o
     // campo escondido.
-    if (!escolhido) return falha(msg, escola ? 'Escolha a escola.' : 'Escolha o ponto de embarque.');
+    if (!escolhido) return falhaNoCampo(msg, escola ? '#dp-esc' : '#dp-local', escola ? 'Escolha a escola.' : 'Escolha o ponto de embarque.');
     const btn = document.getElementById('dp-add-ok');
     btn.disabled = true;
     try {

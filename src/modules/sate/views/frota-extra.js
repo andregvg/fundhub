@@ -14,7 +14,7 @@
 // ============================================================
 import { decidirComFrota, getRotulos, criarRotulo } from '../frota.model.js';
 import { PERIODOS } from '../sate.model.js';
-import { esc, val, falha } from '../../../shared/dom.js';
+import { esc, val, falhaNoCampo } from '../../../shared/dom.js';
 import { fmtData } from '../../../shared/format.js';
 import { modalHead, abrirModal, fecharModal } from '../../../shared/ui/modal.js';
 import { toast } from '../../../shared/ui/toast.js';
@@ -81,8 +81,8 @@ export async function abrirFrotaExtra({ solicitacao: s, falta, modo = 'confirmar
     const criaLote = onibus + vans > 0;
     // Validação de formulário fica NA LINHA do botão, não num toast: é
     // algo que a pessoa corrige ali mesmo. O banco também recusa (040).
-    if (criaLote && !sel.value) return falha(msg, 'Escolha ou crie o rótulo da frota extra.');
-    if (criaLote && sel.value === NOVO && !val('fx-novo')) return falha(msg, 'Informe o nome do novo rótulo.');
+    if (criaLote && !sel.value) return falhaNoCampo(msg, sel, 'Escolha ou crie o rótulo da frota extra.');
+    if (criaLote && sel.value === NOVO && !val('fx-novo')) return falhaNoCampo(msg, '#fx-novo', 'Informe o nome do novo rótulo.');
     const botoes = form.querySelectorAll('button');
     botoes.forEach(b => { b.disabled = true; });
     try {
