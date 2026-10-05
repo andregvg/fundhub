@@ -304,10 +304,15 @@ async function enviar(e) {
 
   const unidadeId = isUuid(escId) ? escId : null;
 
-  // O cabeçalho é a VIAGEM. `qtd_alunos` e `qtd_cadeirante` NÃO entram
-  // aqui: são cache da soma das participações, mantido por gatilho no
-  // banco (migration 037). Escrevê-los daqui seria disputar com ele.
+  // O cabeçalho é a VIAGEM. `qtd_alunos` NÃO entra aqui: é cache da soma
+  // das participações, mantido por gatilho no banco (migration 037).
+  // `qtd_cadeirante` também é cache, mas PRECISA ir: a coluna do cabeçalho
+  // é NOT NULL (migration 005) e criar_viagem() monta a linha por
+  // jsonb_populate_record, que põe NULO no que não veio - o DEFAULT não
+  // vale, e o banco recusava com "campo obrigatório em branco". O valor é o
+  // mesmo da participação, então o gatilho recalcula para o mesmo número.
   const viagem = {
+    qtd_cadeirante: cadeira,
     unidade_id: unidadeId,          // quem ABRIU o pedido, não quem é dono
     data, periodo,                  // o banco recalcula (044); vai para o caso de a 044 não ter rodado
     qtd_onibus: onibusPara(qtd, capacidadeOnibus()),

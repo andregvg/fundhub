@@ -13,6 +13,8 @@
 // nenhuma outra tela paga por ele. Sem rede ou com o CDN fora, devolve
 // null e a tela segue com os campos de coordenada. Degrada, não quebra.
 // ============================================================
+import { ico } from './icones.js';
+
 const BASE = 'https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/';
 const SRI_JS = 'sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=';
 const SRI_CSS = 'sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=';
@@ -43,25 +45,70 @@ function carregarLeaflet() {
   return carregando;
 }
 
+// O mapa nasce RECOLHIDO, atrás de um botão "Ver no mapa" que o componente
+// mesmo desenha antes do contêiner (04/10/2026). Dois motivos: aberto, ele
+// ocupava um terço do formulário de quem só queria trocar um telefone; e a
+// roda do mouse, ao passar por cima, parava de rolar o formulário e dava
+// zoom no mapa - por isso também `scrollWheelZoom: false` (o zoom fica nos
+// botões + e −, e no gesto de pinça). De brinde, o Leaflet só é baixado
+// por quem abre o mapa, não por quem abre o formulário.
+//
+// Devolve o handle na hora, com o mapa ainda por criar: `mover(lat, lng)`
+// guarda o ponto e o pino nasce nele quando o mapa abrir.
 export async function montarMapaPino(el, { lat = null, lng = null, aoMover = () => {} } = {}) {
-  let L;
-  try { L = await carregarLeaflet(); } catch (_) { return null; }
-  if (!el.isConnected) return null;   // o modal fechou enquanto carregava
-  // Só depois da conferência acima: um pedido que chegou tarde não pode
-  // derrubar o mapa que está em uso.
-  try { mapaAnterior?.remove(); } catch (_) { /* contêiner já fora do documento */ }
-  mapaAnterior = null;
-  const tem = Number.isFinite(lat) && Number.isFinite(lng);
-  const mapa = L.map(el).setView(tem ? [lat, lng] : CENTRO, tem ? 17 : 13);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19, attribution: '© OpenStreetMap',
-  }).addTo(mapa);
-  mapaAnterior = mapa;
-  const pino = L.marker(tem ? [lat, lng] : CENTRO, { draggable: true, opacity: tem ? 1 : 0.5 }).addTo(mapa);
-  const mover = (a, b) => { pino.setLatLng([a, b]).setOpacity(1); mapa.setView([a, b], Math.max(mapa.getZoom(), 16)); };
-  pino.on('dragend', () => { const p = pino.getLatLng(); pino.setOpacity(1); aoMover(p.lat, p.lng); });
-  mapa.on('click', (e) => { mover(e.latlng.lat, e.latlng.lng); aoMover(e.latlng.lat, e.latlng.lng); });
-  // O modal acabou de abrir: o Leaflet mediu o contêiner antes do layout.
-  setTimeout(() => { if (mapaAnterior === mapa) mapa.invalidateSize(); }, 60);
+  let pos = Number.isFinite(lat) && Number.isFinite(lng) ? [lat, lng] : null;
+  let mapa = null, pino = null;
+
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'mini-btn mapa-pino-alternar';
+  const rotular = (aberto) => {
+    btn.innerHTML = `${ico('visita', { tam: 13 })} ${aberto ? 'Ocultar mapa' : 'Ver no mapa'}`;
+    btn.setAttribute('aria-expanded', String(aberto));
+  };
+  rotular(false);
+  el.hidden = true;
+  el.before(btn);
+
+  const mover = (a, b) => {
+    pos = [a, b];
+    if (!pino) return;
+    pino.setLatLng(pos).setOpacity(1);
+    mapa.setView(pos, Math.max(mapa.getZoom(), 16));
+  };
+
+  async function criar() {
+    let L;
+    try { L = await carregarLeaflet(); } catch (_) { L = null; }
+    if (!el.isConnected) return;   // o modal fechou enquanto carregava
+    if (!L) {
+      // Sem rede ou com o CDN fora: o formulário segue com latitude e longitude.
+      el.hidden = true;
+      btn.disabled = true;
+      btn.textContent = 'Mapa indisponível';
+      return;
+    }
+    // Só depois da conferência acima: um pedido que chegou tarde não pode
+    // derrubar o mapa que está em uso.
+    try { mapaAnterior?.remove(); } catch (_) { /* contêiner já fora do documento */ }
+    mapa = L.map(el, { scrollWheelZoom: false }).setView(pos || CENTRO, pos ? 17 : 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19, attribution: '© OpenStreetMap',
+    }).addTo(mapa);
+    mapaAnterior = mapa;
+    pino = L.marker(pos || CENTRO, { draggable: true, opacity: pos ? 1 : 0.5 }).addTo(mapa);
+    pino.on('dragend', () => { const q = pino.getLatLng(); pino.setOpacity(1); pos = [q.lat, q.lng]; aoMover(q.lat, q.lng); });
+    mapa.on('click', (e) => { mover(e.latlng.lat, e.latlng.lng); aoMover(e.latlng.lat, e.latlng.lng); });
+  }
+
+  btn.addEventListener('click', async () => {
+    if (!el.hidden) { el.hidden = true; rotular(false); return; }
+    el.hidden = false;
+    rotular(true);
+    if (!mapa) await criar();
+    // O contêiner acabou de aparecer: o Leaflet precisa medir de novo.
+    setTimeout(() => { if (mapa && mapaAnterior === mapa) mapa.invalidateSize(); }, 60);
+  });
+
   return { mover };
 }

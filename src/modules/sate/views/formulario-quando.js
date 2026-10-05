@@ -19,7 +19,7 @@ import { esc, val } from '../../../shared/dom.js';
 import { ico } from '../../../shared/ui/icones.js';
 import { marcarTocado } from '../../../shared/ui/modal.js';
 
-const DICA = 'Dia e mês. O ano é o atual - ou o próximo, se a data já passou.';
+const DICA = 'Dia e mês. O ano é o atual.';
 
 export const quandoHtml = (minData) => `
   <fieldset class="form-grupo">

@@ -318,6 +318,11 @@ formulário com mapa abre - exceção nomeada no `CLAUDE.md`). Ele **desmonta o 
 montar o próximo**, porque o Leaflet prende um ouvinte de `resize` por mapa: quem usa o componente
 não precisa destruir nada e **não cria `L.map` por fora dele**. O contêiner leva `.mapa-pino`.
 
+O mapa nasce **recolhido**: o componente põe o botão "Ver no mapa" antes do contêiner e só
+baixa o Leaflet no primeiro clique. E a **roda do mouse não dá zoom** (`scrollWheelZoom: false`):
+dentro de um formulário que rola, ela prendia a rolagem. Mapa em modal por cima do formulário
+foi descartado - a pilha de modais reabre o de baixo do zero, e o que a pessoa digitou se perderia.
+
 ## R18 - O padrão de lista
 
 Spec: `docs/superpowers/specs/2026-09-08-listas-e-modais-design.md`.

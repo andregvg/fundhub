@@ -1434,8 +1434,10 @@ body:has(.modal-back.open) .confirmar-back.open { -webkit-backdrop-filter: none;
 
 /* Mapa com pino (shared/ui/mapa-pino.js): o contêiner onde o Leaflet se
    monta. Altura declarada - sem ela o mapa nasce com 0px. */
-.mapa-pino { height: 280px; border: 1px solid var(--border); border-radius: var(--radius-btn); }
-@media (min-width: 720px) { .mapa-pino { height: 340px; } }
+.mapa-pino { height: 240px; border: 1px solid var(--border); border-radius: var(--radius-btn); }
+@media (min-width: 720px) { .mapa-pino { height: 280px; } }
+/* O botão que abre e recolhe o mapa (posto pelo componente, antes dele). */
+.mapa-pino-alternar + .mapa-pino { margin-top: 8px; }
 
 /* Valor derivado, exibido no formulário mas editado em outro lugar
    (cargo e lotação vêm do vínculo). Parece campo, não é - e agora tem
@@ -1526,10 +1528,14 @@ body:has(.modal-back.open) .confirmar-back.open { -webkit-backdrop-filter: none;
    não correr por baixo do botão. */
 .person-acoes { position: absolute; top: 8px; right: 8px; z-index: 1; display: flex; gap: 6px; }
 .person:has(> .person-acoes) { padding-right: 56px; }
-/* Nome e cargo na MESMA linha (equipe na ficha da escola): o cargo é uma
-   badge (.seg) ao lado do nome, e o ✎ de .person-acoes fecha a linha. */
-.person-topo { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin-bottom: 3px; }
+/* Nome e cargo na MESMA linha (equipe na ficha da escola), e o ✎ de
+   .person-acoes fecha a linha. O cargo é TEXTO na cor de destaque, depois
+   de um ponto: como badge (testado em 04/10/2026) pesava demais repetido
+   em cada cartão; numa linha própria, o cartão ficava alto. */
+.person-topo { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 7px; margin-bottom: 3px; }
 .person-topo > .pname { width: auto; margin: 0; }
+.person-cargo { color: var(--brand); font-size: 12.5px; font-weight: 600; }
+.person-cargo::before { content: '·'; margin-right: 7px; color: var(--muted); font-weight: 400; }
 hr.sep { margin: 20px 0; border: 0; border-top: 1px solid var(--border); }
 
 /* ── Editor de telefones (shared/ui/phones.js) ────────────── */

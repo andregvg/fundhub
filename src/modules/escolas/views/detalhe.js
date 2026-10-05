@@ -12,8 +12,11 @@
 // "Mais detalhes" quando difere (spec 2026-10-03, D7).
 // Revista em 04/10/2026: o contato vem sem rótulo (o ícone e a forma do dado
 // já dizem o que é - e-mail, telefones, endereço, nesta ordem); na equipe,
-// nome e cargo dividem a linha; a supervisão vem DEPOIS da equipe, em texto
-// discreto e sem cartão - é dado da escola, não gente da equipe (D13).
+// nome e cargo dividem a linha. O que é DA ESCOLA - contato, supervisão e
+// "Mais detalhes" - mora num cartão só, com o ✎ de editar no canto; a
+// equipe vem depois, com os atalhos dela (horários, gerir). A supervisão é
+// dado da escola, não gente da equipe (D13). Excluir saiu daqui: fica no pé
+// do formulário de edição, longe do clique distraído.
 // ============================================================
 import { getUnidades } from '../escolas.model.js';
 import { linkMaps } from '../../locais/geografia.model.js';
@@ -27,7 +30,7 @@ import { telefonesTexto, exibirTelefone, paraE164 } from '../../../shared/ui/pho
 import { loading, erroBox } from '../../../shared/ui/feedback.js';
 import { toast } from '../../../shared/ui/toast.js';
 import { ico } from '../../../shared/ui/icones.js';
-import { abrirForm, removerEscola } from './formulario.js';
+import { abrirForm } from './formulario.js';
 
 // `opts`:
 //   voltar  - reabre o modal de baixo (a pilha). Repassado a tudo que esta
@@ -68,8 +71,8 @@ function detalhe(u, ctx, opts) {
   const chips = [
     u.segmento ? `<span class="seg">${esc(u.segmento)}</span>` : '',
     u.oferta ? `<span class="tag">${esc(u.oferta)}</span>` : '',
-    u.tem_transporte ? `<span class="tag bus">${ico('onibus', { tam: 12 })} Transporte</span>` : '',
     u.tem_eja ? `<span class="tag eja">${ico('noturno', { tam: 12 })} EJA</span>` : '',
+    u.tem_transporte ? `<span class="tag bus">${ico('onibus', { tam: 12 })} Transporte</span>` : '',
   ].filter(Boolean).join('');
 
   const linha = (icone, html) => html ? `<li>${icone ? ico(icone, { tam: 14 }) + ' ' : ''}${html}</li>` : '';
@@ -78,38 +81,37 @@ function detalhe(u, ctx, opts) {
     ${modalHead(`<span class="nome-oficial">${esc(u.nome)}</span>`,
       chips ? `<span class="tags">${chips}</span>` : '')}
     <div class="modal-body">
-      <div class="modal-acoes">
-        ${ctx.podeEditar ? `<button class="mini-btn" id="edit-esc">${ico('editar')} Editar</button>` : ''}
-        <a class="mini-btn" href="#/horarios?unidade=${esc(u.id)}">${ico('horario')} Horários da equipe</a>
-        ${ctx.podeEditar ? `<button class="mini-btn no" id="del-esc">${ico('excluir')} Excluir</button>` : ''}
-      </div>
-
-      <ul class="esc-contato">
+      <section class="esc-info">
+        ${ctx.podeEditar ? `<button type="button" class="mini-btn esc-info-editar" id="edit-esc"
+            aria-label="Editar escola" title="Editar escola">${ico('editar')}</button>` : ''}
+        <ul class="esc-contato">
         ${linha('email', u.email ? `<a href="mailto:${esc(u.email)}">${esc(u.email)}</a>` : '')}
         ${linha('', tel)}
         ${linha('visita', u.endereco
           ? esc(u.endereco) + (maps ? ` · <a href="${maps}" target="_blank" rel="noopener">ver no mapa</a>` : '')
           : '')}
-      </ul>
+        </ul>
+        <div class="esc-sup" id="esc-supervisao"></div>
+        ${maisDetalhes(u)}
+      </section>
 
       <div class="esc-secao">
         <h3 id="esc-equipe-tit">Equipe</h3>
-        <a class="mini-btn" href="#/servidores?unidade=${esc(u.id)}">Gerir em Servidores →</a>
+        <span class="esc-secao-acoes">
+          <a class="mini-btn" href="#/horarios?unidade=${esc(u.id)}">${ico('horario')} Horários da equipe</a>
+          <a class="mini-btn" href="#/servidores?unidade=${esc(u.id)}">Gerir em Servidores →</a>
+        </span>
       </div>
       <div class="people" id="esc-equipe">${loading()}</div>
-      <div class="esc-sup" id="esc-supervisao"></div>
       <p class="form-hint esc-nota">
         A equipe vem dos locais de trabalho atuais. Para incluir ou encerrar alguém, use Servidores.
       </p>
-
-      ${maisDetalhes(u)}
     </div>`, { tamanho: 'largo', voltar: opts.voltar });
 
   if (ctx.podeEditar) {
     // O formulário empilha sobre a ficha: salvar volta para cá, com o dado novo.
     document.getElementById('edit-esc').addEventListener('click', () =>
       abrirForm(u, ctx, { voltar: reabrir }));
-    document.getElementById('del-esc').addEventListener('click', () => removerEscola(u, ctx));
   }
 
   // A ficha abre na hora e a equipe chega depois: na primeira vez ela
@@ -216,7 +218,7 @@ function cardPessoa(p, { clicavel, editar }) {
           ? `<button type="button" class="pname person-abrir" data-abrir-servidor="${esc(p.id)}"
                aria-label="Abrir ficha de ${nome}">${nome}</button>`
           : `<div class="pname">${nome}</div>`}
-        ${p.cargo ? `<span class="seg">${esc(p.cargo)}</span>` : ''}
+        ${p.cargo ? `<span class="person-cargo">${esc(p.cargo)}</span>` : ''}
       </div>
       <div class="pmeta">
         ${emailDe(p)}

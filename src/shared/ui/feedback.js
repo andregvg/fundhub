@@ -52,7 +52,13 @@ export function reportarErro(err, { msg, titulo = 'Não foi possível salvar' } 
   if (msg && CORRIGIVEL.has(err?.code)) {
     if (err?.amigavel) { falha(msg, cru); return; }
     console.warn('[reportarErro] mensagem crua do banco, sem tradução:', cru);
-    falha(msg, GENERICA[err.code] || 'Não foi possível salvar. Confira os campos.');
+    // No 23502 o Postgres diz QUAL coluna ficou nula. O nome é técnico, mas
+    // "um campo ficou em branco" sem dizer qual não deixa ninguém resolver -
+    // nem a pessoa, nem quem ela chamar para ajudar. Não é tradução por
+    // aparência: só o identificador entre aspas é aproveitado.
+    const coluna = err.code === '23502' ? /column "([a-z0-9_]+)"/i.exec(cru)?.[1] : null;
+    falha(msg, (GENERICA[err.code] || 'Não foi possível salvar. Confira os campos.')
+      + (coluna ? ` (campo do banco: ${coluna})` : ''));
     return;
   }
   toast({ titulo, texto: cru, tipo: 'erro' });

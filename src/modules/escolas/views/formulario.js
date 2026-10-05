@@ -1,7 +1,7 @@
 // ============================================================
 // FundHub - escolas/views/formulario.js  (criar, editar, excluir)
 // ============================================================
-import { criarUnidade, atualizarUnidade, excluirUnidade } from '../escolas.model.js';
+import { criarUnidade, atualizarUnidade, excluirUnidade, getUnidades } from '../escolas.model.js';
 import { sincronizarTelefones } from '../../telefones/telefones.model.js';
 import { geocodificar, linkMaps, temCoordenada } from '../../locais/geografia.model.js';
 import { esc, falhaNoCampo } from '../../../shared/dom.js';
@@ -15,6 +15,15 @@ import { ico } from '../../../shared/ui/icones.js';
 
 // Handle do mapa aberto - o módulo tem um modal por vez.
 let mapaAtual = null;
+
+// Segmento e oferta são LISTAS, não texto livre: "Emef", "EMEF " e "emef"
+// digitados à mão viravam três segmentos nos filtros. O valor que a escola
+// já tem entra na lista mesmo que não seja um dos previstos - editar outro
+// campo não pode apagar o que estava gravado.
+const SEGMENTOS_ESCOLA = ['EMEF', 'EMEI', 'CEI', 'EMEPB', 'CONVENIADA'];
+const OFERTAS_BASE = ['EF1', 'EF2', 'EF1/EF2'];
+const opcoes = (lista, atual) => ['', ...new Set([...lista, ...(atual ? [atual] : [])])]
+  .map(o => `<option value="${esc(o)}" ${o === (atual || '') ? 'selected' : ''}>${o ? esc(o) : 'Selecione…'}</option>`).join('');
 
 // `ctx`: { recarregar } - ver escolas.view.js § ctxAtual() e views/detalhe.js.
 // `voltar`: aberto sobre a ficha, salvar devolve para ela (a pilha do modal).
@@ -46,10 +55,8 @@ export function abrirForm(u, ctx, { voltar = null } = {}) {
         <fieldset class="form-grupo">
           <legend>Segmento e oferta</legend>
           <div class="campos auto">
-            <label>Segmento <input name="segmento" list="segs" value="${v('segmento')}" />
-              <datalist id="segs"><option>EMEF</option><option>EMEI</option><option>CEI</option><option>EMEPB</option><option>CONVENIADA</option></datalist>
-            </label>
-            <label>Oferta <input name="oferta" placeholder="EF1/EF2" value="${v('oferta')}" /></label>
+            <label>Segmento <select name="segmento">${opcoes(SEGMENTOS_ESCOLA, u?.segmento)}</select></label>
+            <label>Oferta <select name="oferta">${opcoes(OFERTAS_BASE, u?.oferta)}</select></label>
             <label class="switch col-full"><input type="checkbox" name="tem_transporte" ${chk('tem_transporte')} />
               <span class="switch-trilho" aria-hidden="true"></span> Transporte de alunos</label>
             <label class="switch col-full"><input type="checkbox" name="tem_eja" ${chk('tem_eja')} />
@@ -92,7 +99,18 @@ export function abrirForm(u, ctx, { voltar = null } = {}) {
           <button type="submit" id="ef-save" class="btn-primary">${novo ? 'Criar' : 'Salvar'}</button>
         </div>
       </form>
+      ${novo ? '' : `<button type="button" class="mini-btn no esc-excluir" id="ef-del">${ico('excluir')} Excluir escola</button>`}
     </div>`, { tamanho: 'largo', voltar });
+
+  document.getElementById('ef-del')?.addEventListener('click', () => removerEscola(u, ctx));
+  // As ofertas que a rede já usa completam a lista (a consulta está em cache).
+  getUnidades().then((todas) => {
+    const sel = document.getElementById('esc-form')?.oferta;
+    if (!sel) return;
+    const atual = sel.value;
+    sel.innerHTML = opcoes([...OFERTAS_BASE, ...todas.map(x => x.oferta).filter(Boolean).sort((a, b) => a.localeCompare(b, 'pt'))], atual || u?.oferta);
+    sel.value = atual;
+  }).catch(() => { /* fica a lista base */ });
 
   montarPhonesEditor(document.getElementById('esc-form'));
   document.getElementById('esc-form').addEventListener('submit', (e) => salvar(e, u, ctx));
@@ -215,7 +233,9 @@ export async function removerEscola(u, ctx) {
   if (!ok) return;
   try {
     await excluirUnidade(u.id);
-    fecharModal();
+    // A pilha inteira: o formulário abre sobre a ficha, e voltar para a
+    // ficha de uma escola que acabou de ser excluída não faz sentido.
+    fecharModal({ tudo: true });
     await ctx.recarregar();
     toast({ titulo: 'Escola removida', texto: u.nome, tipo: 'sucesso' });
   } catch (err) {

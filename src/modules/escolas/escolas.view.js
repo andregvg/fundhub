@@ -173,9 +173,9 @@ function cardHtml(u) {
     : null;
   const sup = mostrarSupervisorNoCard() ? (supervisores[u.id] || []) : [];
   const tags = [
-    u.tem_transporte ? `<span class="tag bus">${ico('onibus', { tam: 12 })} Transporte</span>` : '',
-    u.tem_eja ? `<span class="tag eja">${ico('noturno', { tam: 12 })} EJA</span>` : '',
     u.oferta ? `<span class="tag">${esc(u.oferta)}</span>` : '',
+    u.tem_eja ? `<span class="tag eja">${ico('noturno', { tam: 12 })} EJA</span>` : '',
+    u.tem_transporte ? `<span class="tag bus">${ico('onibus', { tam: 12 })} Transporte</span>` : '',
     mostrarServidoresNoCard()
       ? `<span class="tag">${ico('equipe', { tam: 12 })} ${contagemServidores[u.id] || 0} ${(contagemServidores[u.id] || 0) === 1 ? 'servidor' : 'servidores'}</span>`
       : '',

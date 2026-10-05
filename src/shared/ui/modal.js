@@ -238,6 +238,9 @@ export function fecharModal({ tudo = false } = {}) {
   soltarFoco = null;
   focoAnterior?.focus?.();
   focoAnterior = null;
+  // A pilha inteira fechou. Quem abriu algo que muda a tela de baixo (o
+  // painel de configuração) reage a isto - ver core/router.js.
+  document.dispatchEvent(new CustomEvent('modal:fechou'));
 }
 
 // Cabeçalho padrão (o botão de fechar é ligado por abrirModal).

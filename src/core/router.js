@@ -108,9 +108,26 @@ export async function route({ manterScroll = false } = {}) {
 // escola, pelo "Acertar no mapa") precisa voltar para ele, e uma view não
 // importa a view de outro módulo (R2). `import()` dinâmico: é a exceção
 // nomeada do painel, o mesmo alvo e só ele.
+//
+// Configuração tem efeito IMEDIATO: se algo foi salvo no painel, a tela de
+// baixo é redesenhada assim que o modal fecha - quem desligou "quantidade
+// de servidores" não precisa recarregar a página para as badges sumirem.
+// Vale para todo módulo sem que nenhum precise saber: o painel avisa que
+// salvou (`cfg:salva`), o modal avisa que fechou (`modal:fechou`).
+let configAberta = false;
 export async function abrirConfiguracao(mod) {
   const { abrirPainelConfig } = await import('../modules/configuracoes/painel.js');
   abrirPainelConfig(mod);
+  if (configAberta) return;   // reaberto pela pilha (voltou do formulário da escola)
+  configAberta = true;
+  let mudou = false;
+  const aoSalvar = () => { mudou = true; };
+  document.addEventListener('cfg:salva', aoSalvar);
+  document.addEventListener('modal:fechou', () => {
+    document.removeEventListener('cfg:salva', aoSalvar);
+    configAberta = false;
+    if (mudou) recarregarRota();
+  }, { once: true });
 }
 
 // A barra de ações do módulo: ajuda à esquerda, engrenagem à direita -

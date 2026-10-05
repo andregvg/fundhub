@@ -77,9 +77,11 @@ exato, e não uma busca pelo endereço.
 Quando o endereço não basta para o sistema achar o lugar, dá para acertar o
 ponto olhando o mapa.
 
-1. Abra a escola e clique para **editar**. Em **Localização** há um mapa.
+1. Abra a escola e clique no **lápis** para editar. Em **Localização**, clique
+   em **Ver no mapa**: o mapa abre logo abaixo (e **Ocultar mapa** o recolhe).
    Se a escola ainda não tem ponto, ele abre no centro da cidade, com o pino
-   apagado.
+   apagado. Para aproximar ou afastar, use os botões **+** e **−** do mapa - a
+   roda do mouse continua rolando o formulário.
 2. Clique no lugar certo do mapa, ou arraste o pino até lá. **Latitude** e
    **Longitude** são preenchidas sozinhas.
 3. Se preferir, digite ou cole as coordenadas: o pino acompanha.
@@ -90,7 +92,7 @@ localização**, na janela de configurações do módulo (a engrenagem no alto d
 tela), logo abaixo do botão **Localizar N escolas** (que só aparece enquanto
 houver escola a localizar). Com mais de dez escolas, a lista abre fechada:
 clique no título para abrir. Clique em **Acertar no mapa** ao lado do nome: o
-cadastro da escola abre já com o mapa. Ao salvar, a escola sai da lista; se
+cadastro da escola abre; clique em **Ver no mapa**. Ao salvar, a escola sai da lista; se
 você tinha chegado pela engrenagem, volta à janela de configurações.
 
 Se o mapa não aparecer (sem internet, por exemplo), o formulário continua
@@ -172,7 +174,10 @@ unidade - é lá que se inclui ou encerra o local de trabalho de alguém.
 - **Telefone incompleto** trava o salvamento - o número precisa ter os oito ou
   nove dígitos. Você digita com parênteses e traço ou só os números, tanto faz:
   o sistema arruma e mostra sempre no mesmo formato. Sem DDD, assume 16.
-- Excluir uma escola não pode ser desfeito.
+- Excluir uma escola não pode ser desfeito. O botão **Excluir escola** fica no
+  fim do formulário de edição, depois de **Salvar**.
+- **Segmento** e **Oferta** são escolhidos em lista, para o mesmo segmento não
+  ser escrito de jeitos diferentes. A lista de ofertas traz as que a rede já usa.
 - **Supervisão fica separada da equipe.** O supervisor aparece só em
   **Supervisão**; a equipe lista quem trabalha na escola. Sem ninguém em um dos
   blocos, a ficha avisa "Sem supervisão informada." ou "Sem pessoas

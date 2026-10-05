@@ -56,9 +56,22 @@
 
 /* ── Ficha da escola (views/detalhe.js) ───────────────────────
    Contato SEM rótulo: o ícone e a forma do dado dizem o que é. */
+/* O que é DA ESCOLA num cartão só: contato, supervisão e "Mais detalhes",
+   com o ✎ de editar no canto. O tom leve da cor de destaque o separa dos
+   cartões da equipe, que vêm abaixo em cinza. */
+.esc-info {
+  position: relative;
+  margin-bottom: 20px; padding: 14px 16px;
+  border: 1px solid color-mix(in srgb, var(--brand) 18%, var(--border));
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--brand) 5%, var(--surface));
+}
+.esc-info-editar { position: absolute; top: 10px; right: 10px; }
+.esc-info:has(> .esc-info-editar) > .esc-contato { padding-right: 44px; }
+.esc-excluir { margin-top: 18px; }
 .esc-contato {
   display: flex; flex-direction: column; gap: 7px;
-  margin: 0 0 20px; padding: 0; list-style: none;
+  margin: 0; padding: 0; list-style: none;
   font-size: 14px; line-height: 1.45;
 }
 .esc-contato .ico { color: var(--muted); }
@@ -66,7 +79,8 @@
 .esc-contato .tel-item small { color: var(--muted); }
 
 /* Título de seção com a ação à direita ("Equipe (4)" · Gerir em Servidores). */
-.esc-secao { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+.esc-secao { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 10px; margin-bottom: 8px; }
+.esc-secao-acoes { display: flex; flex-wrap: wrap; gap: 6px; }
 .esc-secao > h3 {
   margin: 0; color: var(--muted);
   font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
@@ -96,7 +110,7 @@
 /* "Mais detalhes" (spec 2026-10-03, D7): recolhido por padrão. Aberto, é
    uma grade rótulo → valor - aqui o rótulo fica, porque "INEP" e
    "Regional" não se reconhecem só pelo valor. */
-.mais-detalhes { margin-top: 18px; border-top: 1px solid var(--border); padding-top: 12px; }
+.mais-detalhes { margin-top: 12px; border-top: 1px solid color-mix(in srgb, var(--brand) 14%, var(--border)); padding-top: 10px; }
 .mais-detalhes > summary {
   cursor: pointer; color: var(--muted);
   font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
