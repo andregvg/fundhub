@@ -56,16 +56,17 @@ export function pintarLista(box, lista, ctx) {
       ctx.perfil?.isAdmin ? 'Clique em “Novo servidor” para começar.' : 'Peça a um administrador para cadastrar a equipe.');
     return;
   }
-  box.innerHTML = vis.map(card).join('')
+  box.innerHTML = vis.map(s => card(s, ctx.podeEditar)).join('')
     || emptyState(ico('buscar', { tam: 32 }), 'Nenhum servidor encontrado', 'Ajuste a busca ou os filtros.');
   box.querySelectorAll('.card').forEach(c =>
     c.addEventListener('click', (e) => {
-      if (e.target.closest('a')) return;   // telefone e e-mail do card são links próprios
+      if (e.target.closest('.card-editar')) { ctx.editarServidor(c.dataset.id); return; }
+      if (e.target.closest('a, button')) return;   // telefone e e-mail do card são links próprios
       ctx.abrirDetalhe(c.dataset.id);
     }));
 }
 
-function card(s) {
+function card(s, podeEditar) {
   const abertos = vinculosAbertos(s);
   // Exibição: com a função ("Gestor(a) 1"). O filtro e a busca acima comparam o cargo puro.
   const cargos = [...new Set(abertos.map(v => rotulaVinculo({ ...v, papel: rotulaCargo(v.papel) })).filter(Boolean))]
@@ -92,6 +93,7 @@ function card(s) {
     <div class="card-top">
       <h3 class="nome-oficial">${esc(s.nome)}</h3>
       ${cargos}
+      ${podeEditar ? `<button type="button" class="mini-btn card-editar" aria-label="Editar ${esc(s.nome)}" title="Editar servidor">${ico('editar')}</button>` : ''}
     </div>
     ${contato ? `<div class="card-contato">${contato}</div>` : ''}
     <div class="tags">${lugares}</div>

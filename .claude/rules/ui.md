@@ -166,8 +166,12 @@ desenho, com as classes `.ficha-*` de `components.css` - **ficha nova não cria 
 | Quadro do registro | `.ficha-info` | contato sem rótulo (`.ficha-contato`: telefones, e-mail, endereço - nesta ordem), linhas discretas (`.ficha-linha`) e `.mais-detalhes` recolhido |
 | Editar | `.ficha-editar` | só o lápis, no canto do quadro |
 | Lista abaixo | `.ficha-secao` + `.people` | título à esquerda, ações da lista à direita (`.ficha-secao-acoes`) |
-| Cartão da lista | `.person` + `.person-topo` | nome e complemento (`.person-cargo`) na mesma linha; ações em `.person-acoes`, no canto |
+| Cartão da lista | `.person` + `.person-topo` | nome e cargo (`.person-cargo`, badge no desenho de `.seg`) na mesma linha; ações em `.person-acoes`, no canto |
 | Excluir | - | **nunca na ficha**: no rodapé do formulário de edição, `.mini-btn.no` dentro do `.form-foot`, na linha do Salvar |
+
+O card da lista de um módulo com ficha leva o atalho `.card-editar` (o mesmo ✎, por último
+na linha do nome, só para quem pode editar): abre o formulário direto. Quem liga o clique do
+card ignora `a, button`.
 
 Telefone vem sempre ANTES do e-mail, em ficha e em card. No card da lista (`.card-contato`) os
 dois são links e ficam um por linha.

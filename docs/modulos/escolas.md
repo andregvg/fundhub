@@ -15,7 +15,8 @@
   INEP, regional e site da APM - ficam recolhidos em **Mais detalhes**.
 - Da equipe, abrir a ficha de uma pessoa - ou já a edição dela - sem sair da
   escola.
-- Cadastrar uma escola nova e editar os dados de uma existente.
+- Cadastrar uma escola nova e editar os dados de uma existente - pelo **lápis** do
+  card, na lista, ou pelo lápis da ficha.
 - Ajustar o que aparece no card (na engrenagem, no topo da tela).
 
 ## Quem pode o quê

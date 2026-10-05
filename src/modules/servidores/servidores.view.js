@@ -135,6 +135,8 @@ function ctxAtual() {
     cargos, locais, filtroUnidade,
     recarregar,
     abrirDetalhe: (id) => abrirFicha(id, { aoMudar: recarregar }),
+    // O ✎ do card: direto ao formulário, sem passar pela ficha.
+    editarServidor: (id) => abrirFicha(id, { aoMudar: recarregar, editar: true }),
   };
 }
 

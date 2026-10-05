@@ -17,7 +17,10 @@
 const TRACOS = {
   // A casa é a MARCA do FundHub (a mesma do topo, em index.html) e o
   // "voltar para o hub" - não é mais a escola, que tem desenho próprio.
-  hub: '<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>',
+  // Telhado a 45 graus EXATOS, com beiral. O traçado anterior subia 7 a cada
+  // 9: fora dos 45 graus a suavização do navegador faz degraus desiguais, e a
+  // 32px (o tamanho da marca no topo) a diagonal parecia serrilhada.
+  hub: '<path d="M3 12l9-9 9 9"/><path d="M5 10v9a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-9"/><path d="M10 21v-6h4v6"/>',
   // Prédio escolar: frontão, relógio, duas alas e a porta. Traçado "school"
   // do Lucide (licença ISC), a mesma família de traço do restante.
   escola: '<path d="M14 22v-4a2 2 0 1 0-4 0v4"/><path d="M18 10l4 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-8l4-2"/><path d="M18 5v17"/><path d="M4 6l8-4 8 4"/><path d="M6 5v17"/><circle cx="12" cy="9" r="2"/>',

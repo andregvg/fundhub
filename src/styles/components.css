@@ -560,6 +560,11 @@ span.gira-90, span.gira-menos90, span.gira-180 { display: inline-flex; }
 }
 .card:hover { transform: translateY(-2px); border-color: color-mix(in srgb, var(--brand) 45%, var(--border)); }
 .card .card-top { display: flex; justify-content: space-between; align-items: start; gap: 8px; }
+/* Atalho de edição no card (Escolas, Servidores): o mesmo ✎ das fichas,
+   por último na linha do nome. Só aparece para quem pode editar. O clique
+   nele não abre a ficha - quem liga o clique do card ignora <a> e <button>. */
+.card-editar { flex: 0 0 auto; width: 28px; min-height: 28px; padding: 0; margin: -3px -3px 0 0; }
+.card .card-top > h3 { flex: 1 1 auto; min-width: 0; }
 .card h3 { margin: 0; font-size: 15.5px; line-height: 1.25; }
 /* .seg é vocabulário compartilhado - card E modal de detalhe usam. */
 .seg {
@@ -1158,7 +1163,7 @@ body:has(.modal-back.open) .confirmar-back.open { -webkit-backdrop-filter: none;
 }
 .modal-head h2 > .ico { flex: 0 0 auto; color: var(--brand); }
 .modal-head h2 .nome-oficial { text-transform: uppercase; font-size: 16.5px; }
-.modal-head small { display: block; margin-top: 1px; color: var(--muted); line-height: 1.3; }
+.modal-head small { display: block; margin-top: 4px; color: var(--muted); line-height: 1.3; }
 /* Tags sob o título (ficha da escola): o <small> vira a linha delas. */
 .modal-head small:has(> .tags) { display: block; margin-top: 6px; }
 /* A rolagem é do CORPO, não do cartão: é isso que mantém o cabeçalho e
@@ -1562,16 +1567,21 @@ body:has(.modal-back.open) .confirmar-back.open { -webkit-backdrop-filter: none;
 /* O cartão que tem ação no canto é quem a ancora - clicável ou não. */
 .person:has(> .person-acoes) { position: relative; padding-right: 56px; }
 .person:has(> .person-acoes > :nth-child(2)) { padding-right: 96px; }   /* ✎ e lixeira */
-/* Nome e cargo na MESMA linha (equipe na ficha da escola), e o ✎ de
-   .person-acoes fecha a linha. O cargo é TEXTO na cor de destaque, depois
-   de um ponto: como badge (testado em 04/10/2026) pesava demais repetido
-   em cada cartão; numa linha própria, o cartão ficava alto. */
-.person-topo { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 7px; margin-bottom: 3px; }
+/* Nome e cargo na MESMA linha (equipe na ficha da escola, locais na do
+   servidor), e o ✎ de .person-acoes fecha a linha. O cargo é uma BADGE, o
+   mesmo desenho de .seg que o card da lista de Servidores usa para o cargo:
+   texto solto (testado em 04/10/2026) quebrava esse padrão. */
+.person-topo { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin-bottom: 4px; }
 .person-topo > .pname { width: auto; margin: 0; }
-/* Mesmo tom do rótulo "Supervisão" da ficha, mas em caixa normal: é um
-   dado da pessoa, não um rótulo. */
-.person-cargo { color: var(--muted); font-size: 12px; font-weight: 600; }
-.person-cargo::before { content: '·'; margin-right: 7px; color: var(--muted); font-weight: 400; }
+.person-cargo {
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--brand);
+  background: color-mix(in srgb, var(--brand) 12%, transparent);
+}
+.person.inativo .person-cargo { color: var(--muted); background: var(--surface-3); }
 hr.sep { margin: 20px 0; border: 0; border-top: 1px solid var(--border); }
 
 /* ── Editor de telefones (shared/ui/phones.js) ────────────── */

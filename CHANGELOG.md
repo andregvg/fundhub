@@ -82,6 +82,8 @@ partir das versões do FundHub que mudaram algo para quem usa o SATE.
   de trabalho com "Horário de trabalho" e "Adicionar local de trabalho". "Excluir servidor"
   e "Excluir local de trabalho" ficam no rodapé do formulário, na linha do Salvar.
 - **Cards: telefone e e-mail em linhas separadas**, em Escolas e em Servidores.
+- **Atalho de edição no card.** Quem pode editar vê um lápis no card da escola e no do
+  servidor: ele abre o formulário direto, sem passar pela ficha.
 - **Atas, Ocorrências, Visitas e Projetos no mesmo desenho.** O detalhe de cada registro fica
   num quadro, com o lápis de editar no canto; "Excluir" passou para o rodapé do formulário
   de edição, na linha do Salvar.

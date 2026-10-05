@@ -7,7 +7,8 @@
 - Buscar e filtrar servidores por nome, cargo, local de trabalho ou segmento.
 - Abrir a ficha de uma pessoa e ver dados de contato, documentos e locais de
   trabalho.
-- Cadastrar uma pessoa nova, editar seus dados e registrar seus telefones.
+- Cadastrar uma pessoa nova, editar seus dados e registrar seus telefones. O **lápis** do card, na
+  lista, abre a edição direto.
 - Registrar um local de trabalho da pessoa - uma escola, a Sede ou uma
   gerência/subsecretaria da SME - com cargo e período.
 - Encerrar um local de trabalho quando a pessoa deixa de atuar ali.

@@ -8,7 +8,7 @@
   <!-- O #1d4ed8 aqui é a única cor literal aceitável do projeto: um data:
        URI de favicon não é src/modules/** e não tem como referenciar um
        token CSS de tokens.css. -->
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231d4ed8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z'/%3E%3Cpolyline points='9 22 9 12 15 12 15 22'/%3E%3C/svg%3E" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231d4ed8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 12l9-9 9 9'/%3E%3Cpath d='M5 10v9a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-9'/%3E%3Cpath d='M10 21v-6h4v6'/%3E%3C/svg%3E" />
   <script>
     // Tema ANTES da primeira pintura, para não piscar (spec 2026-10-03, D10).
     // Espelha resolverTema() em src/core/tema.js: mudou lá, mude aqui.
@@ -37,8 +37,9 @@
       <span class="brand-mark" aria-hidden="true">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
              stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-          <polyline points="9 22 9 12 15 12 15 22"/>
+          <path d="M3 12l9-9 9 9"/>
+          <path d="M5 10v9a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-9"/>
+          <path d="M10 21v-6h4v6"/>
         </svg>
       </span>
       <span class="brand-text">

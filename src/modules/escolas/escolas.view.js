@@ -162,8 +162,11 @@ function pintar() {
   }
   cards.querySelectorAll('.card').forEach(c =>
     c.addEventListener('click', (e) => {
-      if (e.target.closest('a')) return;   // telefone e e-mail do card são links próprios
       const u = porChave(c.dataset.id);
+      if (!u) return;
+      // O ✎ do card vai direto ao formulário, sem passar pela ficha.
+      if (e.target.closest('.card-editar')) { abrirForm(u, ctxAtual()); return; }
+      if (e.target.closest('a, button')) return;   // telefone e e-mail do card são links próprios
       if (u) abrirFicha(u.id || u.numero, { aoMudar: recarregar });
     }));
 }
@@ -194,6 +197,7 @@ function cardHtml(u) {
     <div class="card-top">
       <h3 class="nome-oficial">${esc(u.nome)}</h3>
       ${u.segmento ? `<span class="seg">${esc(u.segmento)}</span>` : ''}
+      ${podeEditar ? `<button type="button" class="mini-btn card-editar" aria-label="Editar ${esc(u.nome)}" title="Editar escola">${ico('editar')}</button>` : ''}
     </div>
     ${contato ? `<div class="card-contato">${contato}</div>` : ''}
     ${mostrarEnderecoNoCard() ? `<div class="addr">${u.endereco ? esc(u.endereco) : vazio('sem endereço cadastrado')}</div>` : ''}
