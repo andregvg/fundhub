@@ -11,7 +11,7 @@ import { modalHtml, montarModal } from '../../shared/ui/modal.js';
 import { criarFiltroSegmento } from '../../shared/ui/filtro-segmento.js';
 import { podeEscrever } from '../../core/permissoes.js';
 import { ico } from '../../shared/ui/icones.js';
-import { exibirTelefone } from '../../shared/ui/phones.js';
+import { exibirTelefone, paraE164 } from '../../shared/ui/phones.js';
 import {
   mostrarEmailNoCard, mostrarTelefonesNoCard, mostrarEnderecoNoCard, mostrarSupervisorNoCard,
   mostrarServidoresNoCard, cardsPorLinha,
@@ -161,7 +161,8 @@ function pintar() {
       || emptyState(ico('buscar', { tam: 32 }), 'Nenhuma escola encontrada', 'Ajuste a busca ou os filtros.');
   }
   cards.querySelectorAll('.card').forEach(c =>
-    c.addEventListener('click', () => {
+    c.addEventListener('click', (e) => {
+      if (e.target.closest('a')) return;   // telefone e e-mail do card são links próprios
       const u = porChave(c.dataset.id);
       if (u) abrirFicha(u.id || u.numero, { aoMudar: recarregar });
     }));
@@ -183,12 +184,11 @@ function cardHtml(u) {
   // O card exibe o NOME da escola, em caixa alta, e logo abaixo como falar
   // com ela (e-mail e telefone principal) e onde fica - cada um ligado ou
   // desligado na engrenagem. O apelido não aparece: é abreviação de uso
-  // interno - mas a busca continua achando por ele. E-mail e telefone são
-  // TEXTO, não link: o card inteiro já é o clique que abre a ficha, e é lá
-  // que eles viram link.
+  // interno - mas a busca continua achando por ele. Telefone e e-mail são
+  // LINKS (ligar, escrever): o clique neles não abre a ficha (ver pintar).
   const contato = [
-    mostrarEmailNoCard() && u.email ? `<span>${ico('email', { tam: 12 })} ${esc(u.email)}</span>` : '',
-    tel ? `<span>${ico('fixo', { tam: 12 })} ${esc(exibirTelefone(tel.numero))}</span>` : '',
+    tel ? `<span>${ico('fixo', { tam: 12 })} <a href="tel:${esc(paraE164(tel.numero) || tel.numero)}">${esc(exibirTelefone(tel.numero))}</a></span>` : '',
+    mostrarEmailNoCard() && u.email ? `<span>${ico('email', { tam: 12 })} <a href="mailto:${esc(u.email)}">${esc(u.email)}</a></span>` : '',
   ].join('');
   return `<article class="card" data-id="${esc(u.id || u.numero)}" tabindex="0">
     <div class="card-top">

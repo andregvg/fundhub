@@ -178,7 +178,6 @@ export const SECOES = [
           <tr><td>${ico('calendario', { tam: 14 })} <b>Calendário Escolar</b></td><td><code>#/calendario</code></td><td><code>dia_calendario</code></td><td class="ok">ativo · admin edita</td></tr>
           <tr><td>${ico('afastamento', { tam: 14 })} <b>Afastamentos</b></td><td><code>#/afastamentos</code></td><td><code>afastamento</code></td><td class="ok">ativo · CRUD admin</td></tr>
           <tr><td>${ico('onibus', { tam: 14 })} <b>SATE · Transporte</b></td><td><code>sate.html</code> (página própria)</td><td><code>solicitacao_transporte</code>, <code>solicitacao_participacao</code>, <code>frota</code>, <code>trecho</code></td><td class="ok">ativo · 5 páginas</td></tr>
-          <tr><td>${ico('documento', { tam: 14 })} <b>Programação de Viagens</b></td><td><code>#/viagens</code></td><td>- (lê do SATE)</td><td class="ok">ativo · imprimível</td></tr>
           <tr><td>${ico('equipe', { tam: 14 })} <b>Servidores</b></td><td><code>#/servidores</code></td><td><code>servidor</code>, <code>vinculo</code></td><td class="ok">ativo · CRUD admin</td></tr>
           <tr><td>${ico('horario', { tam: 14 })} <b>Horários de Trabalho</b></td><td><code>#/horarios</code></td><td><code>horario_bloco</code></td><td class="ok">ativo · CRUD admin</td></tr>
           <tr><td>${ico('sino', { tam: 14 })} <b>Notificações</b></td><td>- (serviço)</td><td><code>solicitacao_transporte</code> (realtime)</td><td class="ok">ativo</td></tr>

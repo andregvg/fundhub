@@ -14,8 +14,11 @@
 - Informar se um gestor é **Gestor 1** ou **Gestor 2** e registrar a troca de
   função, com o histórico guardado.
 - Abrir, a partir da ficha, a ficha da escola onde a pessoa trabalha.
-- Ajustar o card (na engrenagem): exibir o telefone e escolher quantos cards
-  cabem por linha em telas largas.
+- Ligar para a pessoa ou escrever para ela direto da lista: o card mostra o
+  telefone principal e o e-mail, e os dois são clicáveis.
+- Ajustar o card (na engrenagem): **Exibir telefone no card** e **Exibir e-mail
+  no card** (os dois já vêm ligados) e quantos cards cabem por linha em telas
+  largas.
 
 ## Quem pode o quê
 
@@ -188,4 +191,4 @@ Gestor 1.
 Encerre o local antigo (preencha o Término) e registre um novo. Assim o
 histórico fica correto.
 
-> Atualizado na versão 0.39.0.
+> Atualizado na versão 0.39.1.

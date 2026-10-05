@@ -43,12 +43,8 @@
 .geo-lista li .mini-btn { margin-left: auto; }   /* "Acertar no mapa": à direita do nome */
 
 /* ── Card da lista ────────────────────────────────────────────
-   Contato logo abaixo do nome: e-mail e telefone principal, em texto. */
-.card-contato {
-  display: flex; flex-wrap: wrap; gap: 2px 12px;
-  margin-top: 6px; color: var(--muted); font-size: 12.5px;
-}
-.card-contato > span { min-width: 0; overflow-wrap: anywhere; }
+   (.card-contato, a linha de telefone e e-mail, é vocabulário comum -
+   components.css - desde que Servidores passou a usá-la.) */
 .card .card-contato + .addr { margin-top: 4px; }
 .card-sup { margin: -4px 0 10px; color: var(--muted); font-size: 12.5px; }
 /* Sem o endereço, as tags (ou a supervisão) herdam o respiro que era dele. */
@@ -68,7 +64,6 @@
 }
 .esc-info-editar { position: absolute; top: 10px; right: 10px; }
 .esc-info:has(> .esc-info-editar) > .esc-contato { padding-right: 44px; }
-.esc-excluir { margin-top: 18px; }
 .esc-contato {
   display: flex; flex-direction: column; gap: 7px;
   margin: 0; padding: 0; list-style: none;
@@ -95,6 +90,7 @@
 .esc-sup-rot { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
 .esc-sup-item { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 3px 10px; }
 .esc-sup-item b, .esc-sup-nome { color: var(--text); font-weight: 600; }
+.esc-sup a, .person .pmeta a { overflow-wrap: anywhere; }
 .esc-sup-nome, .esc-sup-editar {
   padding: 0; border: 0; background: none; font: inherit; font-weight: 600; cursor: pointer;
 }

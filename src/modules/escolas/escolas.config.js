@@ -15,12 +15,12 @@ import { pintarLocalizacao } from './views/localizar.js';
 
 export const DECLARACAO = {
   itens: [
-    { chave: 'email_no_card', escopo: 'usuario', grupo: 'exibicao',
-      tipo: 'switch', rotulo: 'Exibir e-mail no card',
-      dica: 'Mostra o e-mail da escola na lista.', padrao: true },
     { chave: 'telefones_no_card', escopo: 'usuario', grupo: 'exibicao',
       tipo: 'switch', rotulo: 'Exibir telefone no card',
       dica: 'Mostra o telefone principal da escola na lista.', padrao: true },
+    { chave: 'email_no_card', escopo: 'usuario', grupo: 'exibicao',
+      tipo: 'switch', rotulo: 'Exibir e-mail no card',
+      dica: 'Mostra o e-mail da escola na lista.', padrao: true },
     { chave: 'endereco_no_card', escopo: 'usuario', grupo: 'exibicao',
       tipo: 'switch', rotulo: 'Exibir endereço no card',
       dica: 'Mostra o endereço da escola na lista.', padrao: true },

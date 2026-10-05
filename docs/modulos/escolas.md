@@ -7,7 +7,9 @@
 - Buscar uma escola por nome, apelido, bairro ou pelo nome de quem está na
   equipe.
 - Filtrar por segmento, por oferta, e por "tem transporte" / "atende EJA".
-- Abrir a ficha de uma escola: e-mail, telefones, endereço, equipe e supervisão. Sob o
+- Ligar ou escrever para a escola direto da lista: o telefone e o e-mail do card
+  são clicáveis.
+- Abrir a ficha de uma escola: telefones, e-mail, endereço, supervisão e equipe. Sob o
   nome da escola ficam as tags (segmento, oferta, transporte, EJA). Os
   cadastros menos consultados - **Nome no SAE** (só quando diferente do nome),
   INEP, regional e site da APM - ficam recolhidos em **Mais detalhes**.
@@ -123,9 +125,9 @@ fica salvo.
 ### Ajustar o card
 
 1. Clique na **engrenagem** no topo da tela.
-2. **Exibir e-mail no card**, **Exibir telefone no card** e **Exibir endereço
-   no card** já vêm ligados: o card mostra, abaixo do nome, o e-mail e o
-   telefone principal da escola, e depois o endereço. Desligue o que não
+2. **Exibir telefone no card**, **Exibir e-mail no card** e **Exibir endereço
+   no card** já vêm ligados: o card mostra, abaixo do nome, o telefone
+   principal e o e-mail da escola, e depois o endereço. Desligue o que não
    quiser ver.
 3. Ligue **Exibir supervisor no card** para ver quem supervisiona a escola.
 4. Ligue **Exibir quantidade de servidores** para ver quantas pessoas formam a
@@ -175,7 +177,7 @@ unidade - é lá que se inclui ou encerra o local de trabalho de alguém.
   nove dígitos. Você digita com parênteses e traço ou só os números, tanto faz:
   o sistema arruma e mostra sempre no mesmo formato. Sem DDD, assume 16.
 - Excluir uma escola não pode ser desfeito. O botão **Excluir escola** fica no
-  fim do formulário de edição, depois de **Salvar**.
+  rodapé do formulário de edição, na mesma linha de **Salvar**.
 - **Segmento** e **Oferta** são escolhidos em lista, para o mesmo segmento não
   ser escrito de jeitos diferentes. A lista de ofertas traz as que a rede já usa.
 - **Supervisão fica separada da equipe.** O supervisor aparece só em

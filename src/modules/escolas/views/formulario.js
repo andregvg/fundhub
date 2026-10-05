@@ -95,11 +95,11 @@ export function abrirForm(u, ctx, { voltar = null } = {}) {
         </fieldset>
 
         <div class="form-foot">
+          ${novo ? '' : `<button type="button" class="mini-btn no" id="ef-del">${ico('excluir')} Excluir escola</button>`}
           <span id="ef-msg" class="auth-msg"></span>
           <button type="submit" id="ef-save" class="btn-primary">${novo ? 'Criar' : 'Salvar'}</button>
         </div>
       </form>
-      ${novo ? '' : `<button type="button" class="mini-btn no esc-excluir" id="ef-del">${ico('excluir')} Excluir escola</button>`}
     </div>`, { tamanho: 'largo', voltar });
 
   document.getElementById('ef-del')?.addEventListener('click', () => removerEscola(u, ctx));

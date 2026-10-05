@@ -6,9 +6,9 @@ import { rotulaCargo, FUNCOES } from '../vinculos.model.js';
 import { esc, norm } from '../../../shared/dom.js';
 import { emptyState } from '../../../shared/ui/feedback.js';
 import { ico } from '../../../shared/ui/icones.js';
-import { exibirTelefone } from '../../../shared/ui/phones.js';
+import { exibirTelefone, paraE164 } from '../../../shared/ui/phones.js';
 import { eLocalInterno } from '../../escolas/escolas.model.js';
-import { mostrarTelefonesNoCard } from '../servidores.config.js';
+import { mostrarTelefonesNoCard, mostrarEmailNoCard } from '../servidores.config.js';
 
 export function combina(s, ctx) {
   const { filtro, seg, idxUnidades, filtroUnidade } = ctx;
@@ -59,7 +59,10 @@ export function pintarLista(box, lista, ctx) {
   box.innerHTML = vis.map(card).join('')
     || emptyState(ico('buscar', { tam: 32 }), 'Nenhum servidor encontrado', 'Ajuste a busca ou os filtros.');
   box.querySelectorAll('.card').forEach(c =>
-    c.addEventListener('click', () => ctx.abrirDetalhe(c.dataset.id)));
+    c.addEventListener('click', (e) => {
+      if (e.target.closest('a')) return;   // telefone e e-mail do card são links próprios
+      ctx.abrirDetalhe(c.dataset.id);
+    }));
 }
 
 function card(s) {
@@ -77,14 +80,20 @@ function card(s) {
     ? (s.telefones || []).find(t => t.principal) || (s.telefones || [])[0]
     : null;
 
-  // Nome completo em caixa alta (como nos sistemas oficiais); o
-  // apelido logo abaixo, em caixa normal - não precisa de destaque.
+  // Nome completo em caixa alta (como nos sistemas oficiais) e, logo
+  // abaixo, como falar com a pessoa: telefone principal e e-mail, cada um
+  // ligado ou desligado na engrenagem. O apelido saiu do card (a busca
+  // continua achando por ele), como no card da escola.
+  const contato = [
+    tel ? `<span>${ico('celular', { tam: 12 })} <a href="tel:${esc(paraE164(tel.numero) || tel.numero)}">${esc(exibirTelefone(tel.numero))}</a></span>` : '',
+    mostrarEmailNoCard() && s.email ? `<span>${ico('email', { tam: 12 })} <a href="mailto:${esc(s.email)}">${esc(s.email)}</a></span>` : '',
+  ].join('');
   return `<article class="card" data-id="${esc(s.id)}" tabindex="0">
     <div class="card-top">
       <h3 class="nome-oficial">${esc(s.nome)}</h3>
       ${cargos}
     </div>
-    ${s.apelido ? `<div class="apelido">${esc(s.apelido)}</div>` : ''}
-    <div class="tags">${lugares}${tel ? `<span class="tag">${ico('fixo', { tam: 12 })} ${esc(exibirTelefone(tel.numero))}</span>` : ''}</div>
+    ${contato ? `<div class="card-contato">${contato}</div>` : ''}
+    <div class="tags">${lugares}</div>
   </article>`;
 }

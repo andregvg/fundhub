@@ -504,7 +504,7 @@ continuam com o nome deles.
   contato da unidade.
 - **Calendário Escolar** é consultado para avisar quando a data pedida cai em
   recesso ou em dia sem aula.
-- **Viagens** mostra a programação do dia já confirmada, pronta para conferir.
+- As **Fichas** do próprio SATE trazem a programação do dia já confirmada, pronta para conferir e imprimir.
 - **Dashboard** traz as atividades extraclasse do dia na tela inicial.
 - **OpenStreetMap** fornece as distâncias e a busca de endereço. É gratuito,
   sem conta, e recebe só endereços e coordenadas - nunca dado de pessoa.

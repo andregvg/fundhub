@@ -148,7 +148,12 @@ body.menu-aberto .sidebar { transform: translateX(0); }
   color: var(--brand);
   font-weight: 600;
 }
-.nav-ico { flex: 0 0 auto; width: 20px; text-align: center; }
+/* inline-flex, e não um <span> comum: dentro de um span de texto o ícone
+   senta na LINHA DE BASE (com o `vertical-align` de .ico), e a caixa do
+   span - 21px de entrelinha para um ícone de 18 - sai mais alta e
+   deslocada. O `align-items: center` do link centrava essa caixa torta, e
+   o ícone ficava abaixo do rótulo. Regra geral em .claude/rules/ui.md. */
+.nav-ico { flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; width: 20px; }
 .nav-txt { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 .pill {

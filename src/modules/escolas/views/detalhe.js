@@ -11,7 +11,7 @@
 // O cabeçalho mostra o nome e, embaixo, as tags; o nome no SAE vai para
 // "Mais detalhes" quando difere (spec 2026-10-03, D7).
 // Revista em 04/10/2026: o contato vem sem rótulo (o ícone e a forma do dado
-// já dizem o que é - e-mail, telefones, endereço, nesta ordem); na equipe,
+// já dizem o que é - telefones, e-mail, endereço, nesta ordem); na equipe,
 // nome e cargo dividem a linha. O que é DA ESCOLA - contato, supervisão e
 // "Mais detalhes" - mora num cartão só, com o ✎ de editar no canto; a
 // equipe vem depois, com os atalhos dela (horários, gerir). A supervisão é
@@ -85,8 +85,8 @@ function detalhe(u, ctx, opts) {
         ${ctx.podeEditar ? `<button type="button" class="mini-btn esc-info-editar" id="edit-esc"
             aria-label="Editar escola" title="Editar escola">${ico('editar')}</button>` : ''}
         <ul class="esc-contato">
-        ${linha('email', u.email ? `<a href="mailto:${esc(u.email)}">${esc(u.email)}</a>` : '')}
         ${linha('', tel)}
+        ${linha('email', u.email ? `<a href="mailto:${esc(u.email)}">${esc(u.email)}</a>` : '')}
         ${linha('visita', u.endereco
           ? esc(u.endereco) + (maps ? ` · <a href="${maps}" target="_blank" rel="noopener">ver no mapa</a>` : '')
           : '')}
@@ -193,8 +193,8 @@ const emailDe = (p) => p.email
 const telefoneDe = (p) => p.telefone
   ? `<span>${ico('celular', { tam: 12 })} <a href="tel:${esc(paraE164(p.telefone) || p.telefone)}">${esc(exibirTelefone(p.telefone))}</a></span>` : '';
 
-// A supervisão em UMA linha discreta: nome, ✎ ao lado dele, e-mail e
-// telefone. Sem cartão - quem supervisiona não é da equipe da escola.
+// A supervisão em UMA linha discreta: nome, ✎ ao lado dele, telefone e
+// e-mail. Sem cartão - quem supervisiona não é da equipe da escola.
 function linhaSupervisao(p, { clicavel, editar }) {
   const nome = esc(p.nome);
   return `
@@ -205,7 +205,7 @@ function linhaSupervisao(p, { clicavel, editar }) {
         : `<b>${nome}</b>`}
       ${editar ? `<button type="button" class="esc-sup-editar" data-editar-servidor="${esc(p.id)}"
                     aria-label="Editar servidor ${nome}">${ico('editar', { tam: 13 })}</button>` : ''}
-      ${emailDe(p)}${telefoneDe(p)}
+      ${telefoneDe(p)}${emailDe(p)}
     </span>`;
 }
 
@@ -221,8 +221,8 @@ function cardPessoa(p, { clicavel, editar }) {
         ${p.cargo ? `<span class="person-cargo">${esc(p.cargo)}</span>` : ''}
       </div>
       <div class="pmeta">
-        ${emailDe(p)}
         ${telefoneDe(p)}
+        ${emailDe(p)}
       </div>
       ${editar ? `
         <div class="person-acoes">

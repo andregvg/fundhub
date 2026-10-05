@@ -1,6 +1,6 @@
 // ============================================================
 // FundHub - modules/configuracoes/configuracoes.view.js
-// Agregador puro (como dashboard/viagens): o bloco "Geral" (tema) e um
+// Agregador puro (como o dashboard): o bloco "Geral" (tema) e um
 // bloco expansível por módulo que a pessoa pode ver e que declara `config`,
 // na ordem do registro. Usa o MESMO renderizador que a engrenagem (painel.js).
 // ============================================================

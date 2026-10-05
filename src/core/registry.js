@@ -33,7 +33,6 @@ import calendario   from '../modules/calendario/module.js';
 import horarios     from '../modules/horarios/module.js';
 import afastamentos from '../modules/afastamentos/module.js';
 import sate         from '../modules/sate/module.js';
-import viagens      from '../modules/viagens/module.js';
 import projetos     from '../modules/projetos/module.js';
 import ocorrencias  from '../modules/ocorrencias/module.js';
 import atas         from '../modules/atas/module.js';
@@ -50,7 +49,7 @@ import docs         from '../modules/docs/module.js';
 export const MODULOS = [
   dashboard, modulos,
   escolas, servidores, calendario, horarios, afastamentos,
-  sate, viagens, projetos, ocorrencias, atas, visitas,
+  sate, projetos, ocorrencias, atas, visitas,
   notificacoes, meusDados, configuracoes, usuarios, auditoria, ajuda, docs,
 ];
 

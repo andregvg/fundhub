@@ -7,14 +7,18 @@ export const DECLARACAO = {
   itens: [
     { chave: 'telefones_no_card', escopo: 'usuario', grupo: 'exibicao',
       tipo: 'switch', rotulo: 'Exibir telefone no card',
-      dica: 'Mostra o telefone principal do servidor na lista.', padrao: false },
+      dica: 'Mostra o telefone principal do servidor na lista.', padrao: true },
+    { chave: 'email_no_card', escopo: 'usuario', grupo: 'exibicao',
+      tipo: 'switch', rotulo: 'Exibir e-mail no card',
+      dica: 'Mostra o e-mail do servidor na lista.', padrao: true },
     { chave: 'cards_por_linha', escopo: 'usuario', grupo: 'exibicao',
       tipo: 'numero', rotulo: 'Cards por linha (telas largas)',
       min: 1, max: 6, padrao: 3 },
   ],
 };
 
-export const mostrarTelefonesNoCard = () => pref('servidores', 'telefones_no_card') ?? false;
+export const mostrarTelefonesNoCard = () => pref('servidores', 'telefones_no_card') ?? true;
+export const mostrarEmailNoCard = () => pref('servidores', 'email_no_card') ?? true;
 export const cardsPorLinha = () => {
   const n = Number(pref('servidores', 'cards_por_linha'));
   return Number.isFinite(n) ? Math.max(1, Math.min(6, Math.round(n))) : 3;

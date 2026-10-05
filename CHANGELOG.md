@@ -56,15 +56,17 @@ partir das versões do FundHub que mudaram algo para quem usa o SATE.
 - **Cabeçalho das janelas.** Título centralizado na altura, cabeçalho mais baixo, e os botões
   de voltar e de fechar com o mesmo tamanho, sem borda e com área de clique maior. No tema
   claro o fundo do cabeçalho ganhou uma cor mais cheia.
-- **Escolas: ficha reorganizada.** Os dados da escola ficam num quadro só: e-mail, telefones
+- **Escolas: ficha reorganizada.** Os dados da escola ficam num quadro só: telefones, e-mail
   e endereço (com ícone, sem o nome do campo na frente; o telefone principal em negrito), a
   supervisão numa linha discreta e "Mais detalhes". O lápis no canto do quadro edita a
   escola. Abaixo vem a equipe, com o cargo ao lado do nome e os botões "Horários da equipe"
   e "Gerir em Servidores".
-- **Escolas: card com contato.** O card mostra, abaixo do nome, o e-mail e o telefone
-  principal, e depois o endereço. O apelido saiu do card (a busca continua achando por ele).
-  Na engrenagem dá para desligar cada um (e-mail, telefone, endereço) e ligar a exibição
-  de quem supervisiona a escola.
+- **Escolas e Servidores: card com contato.** O card mostra, abaixo do nome, o telefone
+  principal e o e-mail - clicáveis, para ligar ou escrever direto da lista. No de escolas vem
+  também o endereço. O apelido saiu dos cards (a busca continua achando por ele). Na
+  engrenagem dá para desligar cada item e, em Escolas, ligar a exibição de quem supervisiona.
+- **Menu lateral.** Os ícones ficaram alinhados com os nomes, e o da Dashboard passou a ser
+  um conjunto de painéis, que é o que a tela mostra.
 - **Nome na barra do topo.** O FundHub aparece como "Hub de Ferramentas do Ensino
   Fundamental" e o SATE como "Sistema de Agendamento de Transporte Extraclasse", com o
   ícone maior, da altura das duas linhas.
@@ -79,7 +81,9 @@ partir das versões do FundHub que mudaram algo para quem usa o SATE.
   "Ver no mapa" e a roda do mouse não dá mais zoom nele - antes ela travava a rolagem do
   formulário. Para aproximar, use os botões + e − do mapa.
 - **Escolas: segmento e oferta em lista**, em vez de texto livre. "Excluir escola" passou
-  para o fim do formulário de edição.
+  para o rodapé do formulário de edição, na mesma linha de Salvar.
+- **Horários: buscas do mesmo tamanho.** A busca por escola e a busca por servidor têm agora
+  exatamente a mesma largura.
 - **Formulários mais limpos.** Os blocos das janelas de cadastro perderam o tom colorido e
   ficaram em cinza neutro. No tema claro os campos são brancos, mais claros que o fundo em
   volta; no escuro, mais escuros.
@@ -88,6 +92,10 @@ partir das versões do FundHub que mudaram algo para quem usa o SATE.
 - **SATE: pedido de ônibus.** A janela passou a se chamar "Nova solicitação de ônibus". A dica
   de como digitar a hora aparece logo abaixo dos dois horários, no formato do campo
   (0730 → 07:30), e o campo de observações perdeu o nome repetido.
+
+### Removido
+- **Programação de Viagens.** O módulo saiu do menu: as Fichas do SATE já mostram e imprimem
+  as viagens confirmadas do dia, e a Dashboard traz o resumo.
 
 ### Corrigido
 - **SATE: pedido recusado com "um campo obrigatório ficou em branco".** O banco recusava o

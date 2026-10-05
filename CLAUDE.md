@@ -31,7 +31,7 @@ src/
 ```
 
 Um módulo tem três formas legítimas: **completo** (dados + tela, com manifesto), **agregador**
-(tela sem dados próprios - `dashboard`, `viagens`) e **domínio sem tela** (dados renderizados por
+(tela sem dados próprios - `dashboard`, `configuracoes`) e **domínio sem tela** (dados renderizados por
 outro módulo, sem manifesto - `telefones`, `locais`).
 
 ```

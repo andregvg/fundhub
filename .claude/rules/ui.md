@@ -137,6 +137,25 @@ inteiro no `title`: um campo que cresce para duas linhas deixa de casar com os v
   cinza neutro do grupo); no escuro, o mais escuro. `--grupo-bg` e `--grupo-borda` são
   neutros (`--surface-2`, `--border`) - a cor de destaque fica só no cabeçalho do modal.
 
+## Ícone ao lado de texto: quem alinha é o contêiner
+
+Erro recorrente (menu lateral, botões, títulos): o ícone sai mais baixo ou mais alto que o
+texto. A causa é sempre a mesma - o `<svg>` é um elemento de LINHA, senta na linha de base e
+herda a entrelinha do pai; qualquer mudança de fonte ou de tamanho o desloca. As regras:
+
+1. **Ícone + rótulo num botão, link, aba ou item de menu: o contêiner é `flex`** (ou
+   `inline-flex`) com `align-items: center` e `gap`. Nunca um espaço em branco e a sorte.
+   `.btn-*`, `.mini-btn`, `.tab`, `.sidebar a` e `.modal-head h2` já são assim.
+2. **Ícone embrulhado num `<span>` próprio** (para dar largura fixa, cor ou fundo): o span é
+   `inline-flex; align-items: center; justify-content: center`. Um span comum em volta do
+   ícone cria uma caixa com a entrelinha do texto, mais alta que o ícone e torta - foi o
+   `.nav-ico` do menu até 04/10/2026.
+3. **Não corrigir com `margin-top`, `position: relative; top` ou `vertical-align` sob medida.**
+   Isso acerta uma fonte e um tamanho, e quebra no próximo. O `vertical-align: -0.125em` de
+   `.ico` existe só para o ícone pequeno (12-14px) que corre DENTRO de uma frase.
+4. **Conferir medindo, não olhando:** o centro vertical do ícone e o do texto
+   (`getBoundingClientRect`) têm de bater, com diferença menor que 1px.
+
 ## Grupos, foco e saída de modal (spec 2026-10-02)
 
 - **Grupo em modal é cartão.** `.form-grupo` dentro de `.modal` ganha borda

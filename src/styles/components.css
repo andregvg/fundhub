@@ -156,10 +156,14 @@ span.gira-90, span.gira-menos90, span.gira-180 { display: inline-flex; }
   flex-wrap: wrap;
   margin-bottom: 10px;
 }
-/* O seletor de busca da toolbar (Horários "Por escola"/"Por servidor")
-   estica até o contador. min-width: 0 é obrigatório - sem ele o item
-   flex não encolhe abaixo do conteúdo e empurra o .count para baixo. */
-.toolbar > div:has(> .bs) { flex: 1 1 auto; min-width: 0; }
+/* O seletor de busca da toolbar (Horários "Por escola"/"Por servidor") tem
+   largura PRÓPRIA, e não "o que sobrar": esticando até o contador, a busca
+   por escola (que tem contador ao lado) saía mais curta que a por servidor
+   (que não tem) - 1123px contra 1196px, medido em 04/10/2026. Com a base
+   fixa as duas são iguais em qualquer aba; em tela estreita ela encolhe até
+   a largura da linha e o contador desce. min-width: 0 é obrigatório - sem
+   ele o item flex não encolhe abaixo do conteúdo. */
+.toolbar > div:has(> .bs) { flex: 0 1 520px; min-width: 0; }
 .toolbar > .count { flex: 0 0 auto; }
 /* Linhas extras de filtro abaixo da busca (segmento, flags). */
 .toolbar-linha { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
@@ -574,6 +578,19 @@ span.gira-90, span.gira-menos90, span.gira-180 { display: inline-flex; }
 .card h3.nome-oficial { text-transform: uppercase; font-size: 14.5px; letter-spacing: .01em; }
 .card .apelido { margin-top: 3px; color: var(--muted); font-size: 12.5px; }
 .card .addr { margin: 8px 0 10px; color: var(--muted); font-size: 13px; }
+/* Contato logo abaixo do nome (cards de Escolas e de Servidores): telefone
+   principal e e-mail. São LINKS - ligar e escrever são ações -, mas no tom
+   do texto: a cor de destaque em todo card da lista pesaria. O card é um
+   <article> clicável, não um botão, então link dentro dele é válido; quem
+   liga o clique do card ignora o que veio de um <a>. */
+.card-contato {
+  display: flex; flex-wrap: wrap; gap: 2px 12px;
+  margin-top: 6px; color: var(--muted); font-size: 12.5px;
+}
+.card-contato > span { min-width: 0; overflow-wrap: anywhere; }
+.card-contato a { color: inherit; }
+.card-contato a:hover { color: var(--brand); text-decoration: underline; }
+.card .card-contato + .tags { margin-top: 10px; }
 /* .tags idem - a linha de chips do cabeçalho do modal usa a mesma. */
 .tags { display: flex; gap: 6px; flex-wrap: wrap; }
 
@@ -868,6 +885,21 @@ input.caixa-alta { text-transform: uppercase; }
   cursor: pointer;
 }
 .form-foot button:disabled { opacity: .6; }
+/* Ação secundária na linha do rodapé (Excluir, ao lado de Salvar): volta a
+   ser um .mini-btn - a regra acima pinta TODO botão do rodapé como primário.
+   Fica na ponta oposta à do Salvar, e a mensagem encosta no Salvar. */
+.form-foot > .mini-btn {
+  min-height: var(--controle);
+  padding: 5px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-btn);
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 500;
+}
+.form-foot > .mini-btn.no { color: var(--danger); }
+.form-foot:has(> .mini-btn) > .auth-msg { flex: 1 1 auto; margin: 0; text-align: right; }
 /* Dentro de um <label>, a dica herdava peso 700, caixa alta e
    letter-spacing do rótulo de campo - saía MAIÚSCULA E EM NEGRITO,
    competindo com o rótulo. O reset é global: a herança atinge toda
@@ -1534,7 +1566,9 @@ body:has(.modal-back.open) .confirmar-back.open { -webkit-backdrop-filter: none;
    em cada cartão; numa linha própria, o cartão ficava alto. */
 .person-topo { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 7px; margin-bottom: 3px; }
 .person-topo > .pname { width: auto; margin: 0; }
-.person-cargo { color: var(--brand); font-size: 12.5px; font-weight: 600; }
+/* Mesmo tom do rótulo "Supervisão" da ficha, mas em caixa normal: é um
+   dado da pessoa, não um rótulo. */
+.person-cargo { color: var(--muted); font-size: 12px; font-weight: 600; }
 .person-cargo::before { content: '·'; margin-right: 7px; color: var(--muted); font-weight: 400; }
 hr.sep { margin: 20px 0; border: 0; border-top: 1px solid var(--border); }
 
