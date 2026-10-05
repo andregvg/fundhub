@@ -66,6 +66,14 @@
      porque abaixo disso o iOS dá zoom sozinho ao focar o campo. */
   --campo-fonte: 14px;
 
+  /* Fonte dos BOTÕES: a que o navegador já dava a todo <button> do hub.
+     Declarada para que o link com cara de botão (<a class="mini-btn">) e o
+     botão de verdade saiam iguais - sem ela o link herdava a fonte da
+     página e dois botões vizinhos tinham letras diferentes. Em 04/10/2026
+     os botões foram passados para a fonte da página sem ninguém pedir, e o
+     texto pareceu desalinhado; voltou a esta no dia seguinte. */
+  --fonte-botao: Arial, "Helvetica Neue", Helvetica, sans-serif;
+
   /* Fundo e borda do campo de formulário (spec 2026-10-03, D3). Um token
      só, dentro e fora de grupo: antes o campo era --surface-2 solto e
      --surface dentro do grupo de modal, e nos dois casos ficava a um

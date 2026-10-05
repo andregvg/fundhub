@@ -431,10 +431,8 @@ span.gira-90, span.gira-menos90, span.gira-180 { display: inline-flex; }
   min-height: var(--controle);
   padding: 5px 12px;
   border-radius: var(--radius-btn);
-  /* <button> não herda a fonte da página e <a> herda: sem isto, um
-     "Editar" (botão) e um "Horários" (link) lado a lado saíam em duas
-     fontes diferentes. */
-  font-family: inherit;
+  /* Uma fonte só para tudo que tem cara de botão: <button> e <a>. */
+  font-family: var(--fonte-botao);
   font-size: 13.5px;
   font-weight: 500;
   line-height: 20px;
@@ -563,8 +561,28 @@ span.gira-90, span.gira-menos90, span.gira-180 { display: inline-flex; }
 /* Atalho de edição no card (Escolas, Servidores): o mesmo ✎ das fichas,
    por último na linha do nome. Só aparece para quem pode editar. O clique
    nele não abre a ficha - quem liga o clique do card ignora <a> e <button>. */
-.card-editar { flex: 0 0 auto; width: 28px; min-height: 28px; padding: 0; margin: -3px -3px 0 0; }
+.card-editar { flex: 0 0 auto; }
 .card .card-top > h3 { flex: 1 1 auto; min-width: 0; }
+/* A badge (22px) e o ✎ (28px) dividem o topo do card: a badge desce 3px
+   para os dois centros baterem, e encosta no botão. */
+.card .card-top:has(> .card-editar) { gap: 6px; }
+.card .card-top:has(> .card-editar) > .seg { margin-top: 3px; }
+.card .card-top:has(> .card-editar) > h3 { margin-right: 4px; }
+
+/* Botão só com ícone (o ✎ do card, o da ficha, as ações do cartão): é
+   QUADRADO. Um .mini-btn comum tem respiro lateral para texto e saía
+   38x28. Um botão de ícone novo entra nesta lista. */
+.card-editar,
+.ficha-editar,
+.person-acoes > .mini-btn {
+  width: 28px;
+  height: 28px;
+  min-height: 28px;
+  padding: 0;
+}
+@media (pointer: coarse) {
+  .card-editar, .ficha-editar, .person-acoes > .mini-btn { width: 36px; height: 36px; min-height: 36px; }
+}
 .card h3 { margin: 0; font-size: 15.5px; line-height: 1.25; }
 /* .seg é vocabulário compartilhado - card E modal de detalhe usam. */
 .seg {
@@ -593,8 +611,11 @@ span.gira-90, span.gira-menos90, span.gira-180 { display: inline-flex; }
   margin-top: 6px; color: var(--muted); font-size: 12.5px;
 }
 .card-contato > span { min-width: 0; overflow-wrap: anywhere; }
-.card-contato a { color: inherit; }
-.card-contato a:hover { color: var(--brand); text-decoration: underline; }
+/* Telefone e e-mail como link, em card E em ficha: no tom do texto em
+   volta, e só no hover a cor de destaque e o sublinhado. Os demais links
+   ("ver no mapa") continuam na cor de link. */
+:is(.card-contato, .ficha-contato, .pmeta) a:is([href^="tel:"], [href^="mailto:"]) { color: inherit; }
+:is(.card-contato, .ficha-contato, .pmeta) a:is([href^="tel:"], [href^="mailto:"]):hover { color: var(--brand); text-decoration: underline; }
 .card .card-contato + .tags { margin-top: 10px; }
 /* .tags idem - a linha de chips do cabeçalho do modal usa a mesma. */
 .tags { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -849,6 +870,25 @@ select.campo-solto {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2393a0bd' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
 }
 
+/* Setas do campo numérico desenhadas por nós. As nativas vêm com um fundo
+   próprio do navegador, que no tema escuro destoava do fundo do campo. Com
+   `appearance: none` o controle continua funcionando (metade de cima soma,
+   a de baixo subtrai) e some só o desenho - que volta como imagem, sem
+   fundo. Mesma técnica e mesma ressalva dos ícones de data e hora: data
+   URI não enxerga var(), então são as duas cores de --muted copiadas. */
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 22px;
+  margin-left: 4px;
+  cursor: pointer;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 16' fill='none' stroke='%23656d76' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='2 6 5 3 8 6'/%3E%3Cpolyline points='2 10 5 13 8 10'/%3E%3C/svg%3E") no-repeat center / 10px 16px;
+}
+:root[data-tema="escuro"] input[type="number"]::-webkit-inner-spin-button {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 16' fill='none' stroke='%2393a0bd' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='2 6 5 3 8 6'/%3E%3Cpolyline points='2 10 5 13 8 10'/%3E%3C/svg%3E");
+}
+
 input[type="color"] { height: 44px; padding: 4px; cursor: pointer; }
 input[type="checkbox"] { width: 18px; height: 18px; }
 
@@ -889,6 +929,7 @@ input.caixa-alta { text-transform: uppercase; }
   font-weight: 700;
   cursor: pointer;
 }
+.form-foot button, .auth-form button, .btn-google { font-family: var(--fonte-botao); }
 .form-foot button:disabled { opacity: .6; }
 /* Ação secundária na linha do rodapé (Excluir, ao lado de Salvar): volta a
    ser um .mini-btn - a regra acima pinta TODO botão do rodapé como primário.
@@ -1899,16 +1940,13 @@ hr.sep { margin: 20px 0; border: 0; border-top: 1px solid var(--border); }
 .ficha-linha-item { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 3px 10px; }
 .ficha-linha-item b, .ficha-linha-nome { color: var(--text); font-weight: 600; }
 .ficha-linha a, .person .pmeta a { overflow-wrap: anywhere; }
-.ficha-linha-nome, .ficha-linha-editar {
+.ficha-linha-nome {
+  display: inline-flex; align-items: center; gap: 4px;
   padding: 0; border: 0; background: none; font: inherit; font-weight: 600; cursor: pointer;
 }
-.ficha-linha-nome:hover { color: var(--brand); text-decoration: underline; }
-.ficha-linha-editar {
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 22px; height: 22px; margin-left: -6px; border-radius: 6px; color: var(--muted);
-}
-.ficha-linha-editar:hover { background: var(--surface-3); color: var(--brand); }
-@media (pointer: coarse) { .ficha-linha-editar { width: 32px; height: 32px; } }
+.ficha-linha-nome > .ico { color: var(--muted); }
+.ficha-linha-nome:hover, .ficha-linha-nome:hover > .ico { color: var(--brand); }
+.ficha-linha-nome:hover { text-decoration: underline; }
 .ficha-nota { margin: 12px 0 0; }
 
 /* "Mais detalhes" (spec 2026-10-03, D7): recolhido por padrão. Aberto, é

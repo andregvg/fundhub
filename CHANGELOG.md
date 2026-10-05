@@ -65,7 +65,7 @@ partir das versões do FundHub que mudaram algo para quem usa o SATE.
   claro o fundo do cabeçalho ganhou uma cor mais cheia.
 - **Escolas: ficha reorganizada.** Os dados da escola ficam num quadro só: telefones, e-mail
   e endereço (com ícone, sem o nome do campo na frente; o telefone principal em negrito), a
-  supervisão numa linha discreta e "Mais detalhes". O lápis no canto do quadro edita a
+  supervisão numa linha discreta (o nome abre a ficha de quem supervisiona) e "Mais detalhes". O lápis no canto do quadro edita a
   escola. Abaixo vem a equipe, com o cargo ao lado do nome e os botões "Horários da equipe"
   e "Gerir em Servidores".
 - **Escolas e Servidores: card com contato.** O card mostra, abaixo do nome, o telefone
@@ -94,7 +94,9 @@ partir das versões do FundHub que mudaram algo para quem usa o SATE.
   ícone maior, da altura das duas linhas.
 - **Etiquetas de Transporte e EJA mais legíveis** no tema claro, com texto mais escuro.
 - **Botões com a mesma letra.** Botões lado a lado (como Editar e Horários da equipe) saíam
-  com fontes diferentes; agora todos seguem a fonte do sistema.
+  com fontes diferentes; agora todos usam a mesma, a que os botões sempre tiveram.
+- **Setas dos campos de número** sem o fundo que destoava no tema escuro.
+- **Botões de lápis quadrados**, nos cards e nas fichas.
 - **Rodapé sempre à vista.** A barra de baixo, com a versão e a data, fica presa na base da
   janela, sem cobrir nenhum conteúdo.
 - **Configuração vale na hora.** Mudou algo na engrenagem de um módulo, a tela se redesenha

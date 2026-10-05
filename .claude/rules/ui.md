@@ -128,8 +128,14 @@ inteiro no `title`: um campo que cresce para duas linhas deixa de casar com os v
   alinha pelo centro na vertical. O título fica à ESQUERDA, com ou sem o `←` (o centralizado
   foi testado e descartado em 04/10/2026). Ícone no título vai dentro do `<h2>`, antes do
   texto - o alinhamento já é do `h2`.
-- **Botão herda a fonte da página** (`font-family: inherit` na regra comum de botões): um
-  `<button>` e um `<a class="mini-btn">` lado a lado têm de sair iguais.
+- **Botão tem fonte própria, `--fonte-botao`** (a que o navegador já dava aos `<button>`): um
+  `<button>` e um `<a class="mini-btn">` lado a lado têm de sair iguais. Não trocar a fonte de
+  botão, campo ou texto sem o André pedir - em 04/10/2026 a troca não pedida fez o texto dos
+  botões parecer desalinhado e foi desfeita.
+- **Botão só com ícone é quadrado** (28px; 36px em toque): `.card-editar`, `.ficha-editar`,
+  `.person-acoes > .mini-btn`. Botão de ícone novo entra na mesma regra de `components.css`.
+- **Telefone e e-mail são links no tom do texto**, com cor de destaque e sublinhado só no
+  hover - em card e em ficha, pela mesma regra.
 - **Dado que se reconhece pela forma não leva rótulo** numa ficha: e-mail, telefone e
   endereço vão com ícone, sem "E-mail:" na frente. O telefone principal é o em negrito, sem
   a palavra. Rótulo fica para o que não se reconhece sozinho (INEP, regional).
@@ -163,7 +169,7 @@ desenho, com as classes `.ficha-*` de `components.css` - **ficha nova não cria 
 
 | Parte | Classe | Regra |
 |---|---|---|
-| Quadro do registro | `.ficha-info` | contato sem rótulo (`.ficha-contato`: telefones, e-mail, endereço - nesta ordem), linhas discretas (`.ficha-linha`) e `.mais-detalhes` recolhido |
+| Quadro do registro | `.ficha-info` | contato sem rótulo (`.ficha-contato`: telefones, e-mail, endereço - nesta ordem), linhas discretas (`.ficha-linha`: rótulo + nome que abre a ficha da pessoa, com a seta) e `.mais-detalhes` recolhido |
 | Editar | `.ficha-editar` | só o lápis, no canto do quadro |
 | Lista abaixo | `.ficha-secao` + `.people` | título à esquerda, ações da lista à direita (`.ficha-secao-acoes`) |
 | Cartão da lista | `.person` + `.person-topo` | nome e cargo (`.person-cargo`, badge no desenho de `.seg`) na mesma linha; ações em `.person-acoes`, no canto |

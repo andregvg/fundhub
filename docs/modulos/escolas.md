@@ -153,11 +153,10 @@ mais ninguém.
 
 1. Abra a ficha da escola.
 2. Em **Equipe**, clique no card da pessoa - ou, em **Supervisão**, logo abaixo da equipe,
-   clique no nome. A ficha dela abre por cima da escola.
+   clique no nome (a linha mostra só o nome; telefone e e-mail estão na ficha). A ficha dela abre por cima da escola.
 3. Para voltar à escola, use a seta **←** no topo da ficha (ou a tecla Esc).
 
-Para ir direto à edição, clique no **lápis** (no canto do card ou ao lado do nome do
-supervisor): o formulário da pessoa
+Para ir direto à edição, clique no **lápis** no canto do card: o formulário da pessoa
 abre por cima da escola e, ao **Salvar**, você volta para a escola com a equipe
 já atualizada. O lápis só aparece para quem pode editar servidores.
 

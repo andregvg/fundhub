@@ -193,19 +193,18 @@ const emailDe = (p) => p.email
 const telefoneDe = (p) => p.telefone
   ? `<span>${ico('celular', { tam: 12 })} <a href="tel:${esc(paraE164(p.telefone) || p.telefone)}">${esc(exibirTelefone(p.telefone))}</a></span>` : '';
 
-// A supervisão em UMA linha discreta: nome, ✎ ao lado dele, telefone e
-// e-mail. Sem cartão - quem supervisiona não é da equipe da escola.
-function linhaSupervisao(p, { clicavel, editar }) {
+// A supervisão em UMA linha discreta: só o nome. Sem cartão - quem
+// supervisiona não é da equipe da escola. O nome, com a seta, abre a ficha
+// da pessoa (como o cartão de um membro da equipe); telefone, e-mail e a
+// edição estão lá.
+function linhaSupervisao(p, { clicavel }) {
   const nome = esc(p.nome);
   return `
     <span class="ficha-linha-item">
       ${clicavel
         ? `<button type="button" class="ficha-linha-nome" data-abrir-servidor="${esc(p.id)}"
-             aria-label="Abrir ficha de ${nome}">${nome}</button>`
+             aria-label="Abrir ficha de ${nome}">${nome} ${ico('avancar', { tam: 13 })}</button>`
         : `<b>${nome}</b>`}
-      ${editar ? `<button type="button" class="ficha-linha-editar" data-editar-servidor="${esc(p.id)}"
-                    aria-label="Editar servidor ${nome}">${ico('editar', { tam: 13 })}</button>` : ''}
-      ${telefoneDe(p)}${emailDe(p)}
     </span>`;
 }
 
