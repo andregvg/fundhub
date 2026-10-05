@@ -1,10 +1,10 @@
-# Dashboard do dia
+# Visão geral
 
 > A primeira tela: um resumo do que está acontecendo hoje na rede.
 
 ## O que dá para fazer aqui
 
-O Dashboard é feito de painéis. Cada um mostra uma coisa:
+A Visão geral é feita de painéis. Cada um mostra uma coisa:
 
 - **Números do dia** - quantas escolas e atividades há no sistema, e quanta
   extraclasse acontece hoje.
@@ -18,7 +18,7 @@ O Dashboard é feito de painéis. Cada um mostra uma coisa:
 - **Ocorrências de hoje** - os atendimentos registrados no dia.
 
 Você pode **reordenar** e **ocultar** os painéis. É uma preferência sua: segue
-o seu login em qualquer computador e não muda o Dashboard de mais ninguém.
+o seu login em qualquer computador e não muda a Visão geral de mais ninguém.
 
 ## Quem pode o quê
 
@@ -38,7 +38,7 @@ configuração. Os painéis "Números do dia" e "Nesta data" aparecem para todos
 ### Ocultar e reexibir um painel
 
 1. Para ocultar, clique no **×** no canto do título do painel.
-2. Para trazer de volta, abra as configurações do Dashboard e ligue o
+2. Para trazer de volta, abra as configurações da Visão geral e ligue o
    interruptor do painel. Não dá para reexibir pela própria tela - o botão de
    trazer de volta não pode morar no lugar que acabou de sumir.
 
@@ -54,7 +54,7 @@ configuração. Os painéis "Números do dia" e "Nesta data" aparecem para todos
 
 Todo painel mostra dados de outro módulo: Escolas e SATE (números e
 extraclasse), Horários e Calendário (nesta data), Afastamentos, Calendário
-escolar e Ocorrências. O Dashboard não guarda nada - ele só junta.
+escolar e Ocorrências. A Visão geral não guarda nada - ela só junta.
 
 ## Perguntas frequentes
 
@@ -66,4 +66,4 @@ uma vez; se persistir, avise a Gerência.
 Provavelmente seu acesso ao módulo daquele painel mudou. Fale com quem
 administra os acessos.
 
-> Atualizado na versão 0.38.0.
+> Atualizado na versão 0.40.0.

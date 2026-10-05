@@ -156,6 +156,41 @@ herda a entrelinha do pai; qualquer mudança de fonte ou de tamanho o desloca. A
 4. **Conferir medindo, não olhando:** o centro vertical do ícone e o do texto
    (`getBoundingClientRect`) têm de bater, com diferença menor que 1px.
 
+## Ficha: um desenho para todo módulo (04/10/2026)
+
+Ficha é o modal de detalhe de UM registro (uma escola, um servidor). Todas seguem o mesmo
+desenho, com as classes `.ficha-*` de `components.css` - **ficha nova não cria as suas**:
+
+| Parte | Classe | Regra |
+|---|---|---|
+| Quadro do registro | `.ficha-info` | contato sem rótulo (`.ficha-contato`: telefones, e-mail, endereço - nesta ordem), linhas discretas (`.ficha-linha`) e `.mais-detalhes` recolhido |
+| Editar | `.ficha-editar` | só o lápis, no canto do quadro |
+| Lista abaixo | `.ficha-secao` + `.people` | título à esquerda, ações da lista à direita (`.ficha-secao-acoes`) |
+| Cartão da lista | `.person` + `.person-topo` | nome e complemento (`.person-cargo`) na mesma linha; ações em `.person-acoes`, no canto |
+| Excluir | - | **nunca na ficha**: no rodapé do formulário de edição, `.mini-btn.no` dentro do `.form-foot`, na linha do Salvar |
+
+Telefone vem sempre ANTES do e-mail, em ficha e em card. No card da lista (`.card-contato`) os
+dois são links e ficam um por linha.
+
+Ficha de REGISTRO (ata, ocorrência, visita, projeto) usa o mesmo quadro, com os campos
+rotulados (`.field`) dentro dele - ali o rótulo fica, porque "Pauta" não se reconhece pela forma.
+`.modal-acoes` sobra só para a ação que não é editar nem excluir (Imprimir, na ata; as decisões
+do pedido, no SATE). Não há ficha pendente de conversão.
+
+## Ícones: um por significado
+
+- **O ícone de um módulo é o do manifesto (`ico`)**, e aparece em três lugares sem ninguém
+  repetir: no menu, no título da página (`marcarTitulo`, chamado pelo roteador) e no título dos
+  modais que a página abre (`definirIconeDoModal`). Nenhuma view escreve ícone no próprio `<h1>`.
+- **`modalHead(titulo, sub, { icone })` só quando o modal é de outro assunto que a página:** a
+  ficha da escola é `'escola'`, a do servidor é `'servidor'`, o painel é `'config'`.
+- **`escola` é o prédio escolar; `hub` é a casa**, a marca do FundHub (topo, login, "Ir para o
+  FundHub"). Eram o mesmo desenho até 04/10/2026.
+- **Mesma função, mesmo ícone, em todo módulo:** `editar` (lápis), `excluir` (lixeira),
+  `adicionar` (+), `horario` (relógio), `visita` (pino = lugar/mapa), `email`, `fixo`/`celular`/
+  `whatsapp`, `imprimir`, `config`, `ajuda`. Antes de criar um ícone novo em `icones.js`,
+  procure o que já diz a mesma coisa.
+
 ## Grupos, foco e saída de modal (spec 2026-10-02)
 
 - **Grupo em modal é cartão.** `.form-grupo` dentro de `.modal` ganha borda

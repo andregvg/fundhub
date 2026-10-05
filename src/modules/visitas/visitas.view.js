@@ -158,28 +158,25 @@ function detalhe(id) {
   const v = lista.find(x => x.id === id);
   if (!v) return;
   const campo = (l, val) => val ? `<div class="field"><div class="lbl">${l}</div><div class="val texto-completo">${val}</div></div>` : '';
-  const acoes = perfil?.isAdmin ? `
-    <div class="modal-acoes">
-      <button class="mini-btn" id="vi-edit">${ico('editar')} Editar</button>
-      <button class="mini-btn no" id="vi-del">${ico('excluir')} Excluir</button>
-    </div>` : '';
 
   abrirModal(`
-    ${modalHead(ico('escola', { tam: 16 }) + ' ' + esc(v.unidade?.nome || 'sem escola'), esc(fmtData(v.data)) + ' · ' + esc(TIPOS[v.tipo] || v.tipo))}
+    ${modalHead(esc(v.unidade?.nome || 'sem escola'), esc(fmtData(v.data)) + ' · ' + esc(TIPOS[v.tipo] || v.tipo))}
     <div class="modal-body">
-      ${acoes}
-      <div class="field"><div class="lbl">Situação</div>
-        <div class="val"><span class="tag ${STATUS_TAG[v.status] || ''}">${esc(STATUS[v.status] || v.status)}</span></div></div>
-      ${campo('Responsável', esc(v.responsavel))}
-      ${campo('Pauta', esc(v.pauta))}
-      ${campo('Constatações', esc(v.constatacoes))}
-      ${campo('Encaminhamentos', esc(v.encaminhamentos))}
-      ${v.prazo ? campo('Prazo', esc(fmtData(v.prazo))) : ''}
+      <section class="ficha-info">
+        ${perfil?.isAdmin ? `<button type="button" class="mini-btn ficha-editar" id="vi-edit"
+            aria-label="Editar relatório" title="Editar relatório">${ico('editar')}</button>` : ''}
+        <div class="field"><div class="lbl">Situação</div>
+          <div class="val"><span class="tag ${STATUS_TAG[v.status] || ''}">${esc(STATUS[v.status] || v.status)}</span></div></div>
+        ${campo('Responsável', esc(v.responsavel))}
+        ${campo('Pauta', esc(v.pauta))}
+        ${campo('Constatações', esc(v.constatacoes))}
+        ${campo('Encaminhamentos', esc(v.encaminhamentos))}
+        ${v.prazo ? campo('Prazo', esc(fmtData(v.prazo))) : ''}
+      </section>
     </div>`);
 
   if (!perfil?.isAdmin) return;
   document.getElementById('vi-edit').addEventListener('click', () => abrirForm(v));
-  document.getElementById('vi-del').addEventListener('click', () => remover(v));
 }
 
 function abrirForm(v) {
@@ -209,6 +206,7 @@ function abrirForm(v) {
           <label>Situação <select id="f-status">${optsStatus}</select></label>
         </div>
         <div class="form-foot">
+          ${novo ? '' : `<button type="button" class="mini-btn no" id="f-del">${ico('excluir')} Excluir relatório</button>`}
           <span id="f-msg" class="auth-msg"></span>
           <button type="submit" id="f-save">${novo ? 'Registrar' : 'Salvar'}</button>
         </div>
@@ -216,6 +214,7 @@ function abrirForm(v) {
     </div>`);
 
   document.getElementById('vi-form').addEventListener('submit', (e) => salvar(e, v));
+  document.getElementById('f-del')?.addEventListener('click', () => remover(v));
 }
 
 async function salvar(e, v) {

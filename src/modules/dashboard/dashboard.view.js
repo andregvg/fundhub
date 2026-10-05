@@ -33,7 +33,7 @@ export async function render(app) {
 
   app.innerHTML = `
     <div class="page-head">
-      <h1>Dashboard do dia</h1>
+      <h1>Visão geral</h1>
       <p class="capitalizar">${esc(fmtExtenso(hoje))}</p>
     </div>
     ${visiveis.length ? `<div class="dash-grid" id="dash-grid">${

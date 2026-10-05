@@ -15,7 +15,12 @@
 
 // Só o miolo do SVG. O envelope é montado por ico().
 const TRACOS = {
-  escola: '<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>',
+  // A casa é a MARCA do FundHub (a mesma do topo, em index.html) e o
+  // "voltar para o hub" - não é mais a escola, que tem desenho próprio.
+  hub: '<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>',
+  // Prédio escolar: frontão, relógio, duas alas e a porta. Traçado "school"
+  // do Lucide (licença ISC), a mesma família de traço do restante.
+  escola: '<path d="M14 22v-4a2 2 0 1 0-4 0v4"/><path d="M18 10l4 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-8l4-2"/><path d="M18 5v17"/><path d="M4 6l8-4 8 4"/><path d="M6 5v17"/><circle cx="12" cy="9" r="2"/>',
   sede: '<rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>',
   servidor: '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
   equipe: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
@@ -26,7 +31,9 @@ const TRACOS = {
   // quadros com o resumo de cada módulo). As três barras de antes diziam
   // "gráfico", e a tela não tem gráfico nenhum.
   dashboard: '<rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/>',
-  modulos: '<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>',
+  // Nove pontos (o "lançador de aplicativos"): um índice de tudo. Eram
+  // quatro quadrados, quase o desenho da Visão geral logo acima no menu.
+  modulos: '<circle cx="5" cy="5" r="1.2"/><circle cx="12" cy="5" r="1.2"/><circle cx="19" cy="5" r="1.2"/><circle cx="5" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="19" cy="12" r="1.2"/><circle cx="5" cy="19" r="1.2"/><circle cx="12" cy="19" r="1.2"/><circle cx="19" cy="19" r="1.2"/>',
   ata: '<path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>',
   ocorrencia: '<path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>',
   projeto: '<circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/>',
@@ -120,4 +127,14 @@ export function ico(nome, { tam = 16, classe = '' } = {}) {
   return `<svg class="${cls}" width="${tam}" height="${tam}" viewBox="0 0 24 24"`
     + ` fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"`
     + ` stroke-linejoin="round" aria-hidden="true">${TRACOS[nome]}</svg>`;
+}
+
+// O título da página leva o ícone do módulo - o MESMO do menu, para a
+// pessoa reconhecer onde está. Quem chama é o roteador (e sate.js), depois
+// de a view desenhar: nenhuma view escreve o ícone no próprio <h1>, e por
+// isso menu e título nunca divergem.
+export function marcarTitulo(raiz, nome) {
+  const h1 = raiz?.querySelector('.page-head h1');
+  if (!h1 || h1.querySelector('.ico') || !TEM_ICONE(nome)) return;
+  h1.insertAdjacentHTML('afterbegin', ico(nome, { tam: 22 }));
 }

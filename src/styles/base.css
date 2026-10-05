@@ -330,7 +330,10 @@ body.menu-aberto .sidebar { transform: translateX(0); }
 .bc-link:hover { text-decoration: underline; }
 
 .page-head { margin-bottom: 18px; }
-.page-head h1 { margin: 0 0 4px; font-size: 22px; letter-spacing: -.02em; }
+/* Flex: o título leva o ícone do módulo (o mesmo do menu), posto pelo
+   roteador - ver marcarTitulo em shared/ui/icones.js. */
+.page-head h1 { display: flex; align-items: center; gap: 10px; margin: 0 0 4px; font-size: 22px; letter-spacing: -.02em; }
+.page-head h1 > .ico { flex: 0 0 auto; color: var(--brand); }
 .page-head p { margin: 0; color: var(--muted); }
 .capitalizar { text-transform: capitalize; }
 

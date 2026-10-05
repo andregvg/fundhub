@@ -124,36 +124,32 @@ async function detalhe(id) {
   if (!p) return;
   const campo = (l, v) => v ? `<div class="field"><div class="lbl">${l}</div><div class="val texto-completo">${v}</div></div>` : '';
   const periodo = [p.inicio, p.fim].filter(Boolean).map(fmtData).join(' – ');
-  const acoes = perfil?.isAdmin ? `
-    <div class="modal-acoes">
-      <button class="mini-btn" id="pj-edit">${ico('editar')} Editar</button>
-      <button class="mini-btn no" id="pj-del">${ico('excluir')} Excluir</button>
-    </div>` : '';
 
   abrirModal(`
     ${modalHead(esc(p.titulo), esc(TIPOS[p.tipo] || p.tipo))}
     <div class="modal-body">
-      ${acoes}
-      <div class="field"><div class="lbl">Situação</div>
-        <div class="val"><span class="tag ${STATUS_TAG[p.status] || ''}">${esc(STATUS[p.status] || p.status)}</span></div></div>
-      ${campo('Proponente', esc(p.proponente))}
-      ${campo('Descrição', esc(p.descricao))}
-      ${campo('Público-alvo', esc(p.publico_alvo))}
-      ${periodo ? campo('Período', esc(periodo)) : ''}
-      ${campo('Anuência', p.anuencia ? ('Emitida' + (p.anuencia_data ? ' em ' + fmtData(p.anuencia_data) : '')) : 'Não emitida')}
-      ${campo('Contato', esc(p.contato))}
-      ${campo('Observações', esc(p.observacoes))}
-      <hr class="sep" />
-      <div class="vinc-head">
-        <div class="field" style="margin:0"><div class="lbl">Escolas interessadas</div></div>
-        ${perfil?.isAdmin ? `<button class="mini-btn" id="pj-add-int">${ico('adicionar')} Registrar interesse</button>` : ''}
+      <section class="ficha-info">
+        ${perfil?.isAdmin ? `<button type="button" class="mini-btn ficha-editar" id="pj-edit"
+            aria-label="Editar projeto" title="Editar projeto">${ico('editar')}</button>` : ''}
+        <div class="field"><div class="lbl">Situação</div>
+          <div class="val"><span class="tag ${STATUS_TAG[p.status] || ''}">${esc(STATUS[p.status] || p.status)}</span></div></div>
+        ${campo('Proponente', esc(p.proponente))}
+        ${campo('Descrição', esc(p.descricao))}
+        ${campo('Público-alvo', esc(p.publico_alvo))}
+        ${periodo ? campo('Período', esc(periodo)) : ''}
+        ${campo('Anuência', p.anuencia ? ('Emitida' + (p.anuencia_data ? ' em ' + fmtData(p.anuencia_data) : '')) : 'Não emitida')}
+        ${campo('Contato', esc(p.contato))}
+        ${campo('Observações', esc(p.observacoes))}
+      </section>
+      <div class="ficha-secao">
+        <h3>Escolas interessadas</h3>
+        ${perfil?.isAdmin ? `<span class="ficha-secao-acoes"><button type="button" class="mini-btn" id="pj-add-int">${ico('adicionar')} Registrar interesse</button></span>` : ''}
       </div>
       <div class="people" id="pj-interesses">${loading()}</div>
     </div>`);
 
   if (perfil?.isAdmin) {
     document.getElementById('pj-edit').addEventListener('click', () => abrirForm(p));
-    document.getElementById('pj-del').addEventListener('click', () => remover(p));
     document.getElementById('pj-add-int').addEventListener('click', () => formInteresse(p));
   }
   await pintarInteresses(p);
@@ -172,8 +168,8 @@ async function pintarInteresses(p) {
       <div class="pname">${esc(i.unidade?.apelido || i.unidade?.nome || 'sem escola')}</div>
       <div class="pmeta">
         ${i.observacao ? `<span>${esc(i.observacao)}</span>` : ''}
-        ${perfil?.isAdmin ? `<div class="vinc-acoes"><button class="mini-btn no" data-del-int="${i.id}" aria-label="Remover interesse">${ico('excluir')}</button></div>` : ''}
       </div>
+      ${perfil?.isAdmin ? `<div class="person-acoes"><button type="button" class="mini-btn no" data-del-int="${esc(i.id)}" aria-label="Remover interesse">${ico('excluir')}</button></div>` : ''}
     </div>`).join('');
   box.querySelectorAll('[data-del-int]').forEach(b =>
     b.addEventListener('click', async () => {
@@ -266,6 +262,7 @@ function abrirForm(p) {
         <label>Contato <input id="f-contato" value="${esc(p?.contato || '')}" /></label>
         <label>Observações <textarea id="f-obs" rows="2">${esc(p?.observacoes || '')}</textarea></label>
         <div class="form-foot">
+          ${novo ? '' : `<button type="button" class="mini-btn no" id="f-del">${ico('excluir')} Excluir projeto</button>`}
           <span id="f-msg" class="auth-msg"></span>
           <button type="submit" id="f-save">${novo ? 'Criar' : 'Salvar'}</button>
         </div>
@@ -273,6 +270,7 @@ function abrirForm(p) {
     </div>`);
 
   document.getElementById('pj-form').addEventListener('submit', (e) => salvar(e, p));
+  document.getElementById('f-del')?.addEventListener('click', () => remover(p));
 }
 
 async function salvar(e, p) {

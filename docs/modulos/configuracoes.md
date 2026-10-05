@@ -54,7 +54,7 @@ como se comporta.
 
 Algumas configurações são listas ou tabelas que você edita ali mesmo - por
 exemplo, em Escolas, os locais de trabalho internos da SME (gerências e
-subsecretarias); no Dashboard, a ordem e a visibilidade dos painéis; em
+subsecretarias); na Visão geral, a ordem e a visibilidade dos painéis; em
 Horários, quais cargos são equipe gestora, a janela de cobertura por tipo de
 escola e o dia da semana de cada escala de TDC.
 
@@ -81,4 +81,4 @@ novo) ou é uma configuração da rede que você não tem permissão para mudar.
 **Minhas preferências somem quando eu saio?**
 Não. Elas são do seu e-mail, não do navegador.
 
-> Atualizado na versão 0.39.1.
+> Atualizado na versão 0.40.0.

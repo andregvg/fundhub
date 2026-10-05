@@ -584,7 +584,7 @@ span.gira-90, span.gira-menos90, span.gira-180 { display: inline-flex; }
    <article> clicável, não um botão, então link dentro dele é válido; quem
    liga o clique do card ignora o que veio de um <a>. */
 .card-contato {
-  display: flex; flex-wrap: wrap; gap: 2px 12px;
+  display: flex; flex-direction: column; gap: 2px;   /* um por linha */
   margin-top: 6px; color: var(--muted); font-size: 12.5px;
 }
 .card-contato > span { min-width: 0; overflow-wrap: anywhere; }
@@ -1559,7 +1559,9 @@ body:has(.modal-back.open) .confirmar-back.open { -webkit-backdrop-filter: none;
 /* Ação do card (✎ editar) no canto; o card reserva a faixa para o texto
    não correr por baixo do botão. */
 .person-acoes { position: absolute; top: 8px; right: 8px; z-index: 1; display: flex; gap: 6px; }
-.person:has(> .person-acoes) { padding-right: 56px; }
+/* O cartão que tem ação no canto é quem a ancora - clicável ou não. */
+.person:has(> .person-acoes) { position: relative; padding-right: 56px; }
+.person:has(> .person-acoes > :nth-child(2)) { padding-right: 96px; }   /* ✎ e lixeira */
 /* Nome e cargo na MESMA linha (equipe na ficha da escola), e o ✎ de
    .person-acoes fecha a linha. O cargo é TEXTO na cor de destaque, depois
    de um ponto: como badge (testado em 04/10/2026) pesava demais repetido
@@ -1826,3 +1828,92 @@ hr.sep { margin: 20px 0; border: 0; border-top: 1px solid var(--border); }
 .bs-criar:first-child { margin-top: 0; border-top: 0; border-radius: 8px; }
 .bs-criar.apagado { color: var(--muted); }
 @media (pointer: coarse) { .bs-item { min-height: var(--toque); align-items: center; } }
+
+/* ── Ficha (o modal de detalhe de uma escola, de um servidor) ──
+   UM desenho para toda ficha do hub - nasceu na da escola e virou
+   vocabulário comum quando a do servidor passou a usá-lo (04/10/2026):
+     .ficha-info     quadro com o que é DO registro: contato sem rótulo
+                     (.ficha-contato - o ícone e a forma do dado dizem o
+                     que é), linhas discretas (.ficha-linha) e "Mais
+                     detalhes" (.mais-detalhes, recolhido);
+     .ficha-editar   o ✎ no canto do quadro - só o ícone;
+     .ficha-secao    título da lista que vem abaixo, com as ações dela à
+                     direita (.ficha-secao-acoes).
+   Excluir NÃO mora na ficha: fica no rodapé do formulário de edição, na
+   linha do Salvar. Ficha nova usa estas classes; não cria as suas. */
+/* O que é DA ESCOLA num cartão só: contato, supervisão e "Mais detalhes",
+   com o ✎ de editar no canto. O tom leve da cor de destaque o separa dos
+   cartões da equipe, que vêm abaixo em cinza. */
+.ficha-info {
+  position: relative;
+  margin-bottom: 20px; padding: 14px 16px;
+  border: 1px solid color-mix(in srgb, var(--brand) 18%, var(--border));
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--brand) 5%, var(--surface));
+}
+.ficha-editar { position: absolute; top: 10px; right: 10px; }
+.ficha-info:has(> .ficha-editar) > .ficha-contato { padding-right: 44px; }
+/* Ficha de REGISTRO (ata, ocorrência, visita, projeto): o quadro traz os
+   campos com rótulo (.field) - aqui o rótulo fica, porque "Pauta" e
+   "Deliberações" não se reconhecem pela forma do texto. O primeiro campo
+   abre espaço para o ✎; o último não deixa sobra embaixo. */
+.ficha-info > .ficha-editar + .field { padding-right: 44px; }
+.ficha-info > .field:last-child { margin-bottom: 0; }
+/* Quadro que começa pelo "Mais detalhes" (registro sem contato): sem o traço. */
+.ficha-info > .mais-detalhes:first-child,
+.ficha-info > .ficha-editar + .mais-detalhes { margin-top: 0; border-top: 0; padding-top: 0; padding-right: 44px; }
+.ficha-contato {
+  display: flex; flex-direction: column; gap: 7px;
+  margin: 0; padding: 0; list-style: none;
+  font-size: 14px; line-height: 1.45;
+}
+.ficha-contato .ico { color: var(--muted); }
+.ficha-contato a { overflow-wrap: anywhere; }
+.ficha-contato .tel-item small { color: var(--muted); }
+
+/* Título de seção com a ação à direita ("Equipe (4)" · Gerir em Servidores). */
+.ficha-secao { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 10px; margin-bottom: 8px; }
+.ficha-secao-acoes { display: flex; flex-wrap: wrap; gap: 6px; }
+.ficha-secao > h3 {
+  margin: 0; color: var(--muted);
+  font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
+}
+
+/* Supervisão: uma linha discreta abaixo da equipe, sem cartão. */
+.ficha-linha {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 3px 12px;
+  margin-top: 12px; color: var(--muted); font-size: 12.5px;
+}
+.ficha-linha:empty { display: none; }
+.ficha-linha-rot { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+.ficha-linha-item { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 3px 10px; }
+.ficha-linha-item b, .ficha-linha-nome { color: var(--text); font-weight: 600; }
+.ficha-linha a, .person .pmeta a { overflow-wrap: anywhere; }
+.ficha-linha-nome, .ficha-linha-editar {
+  padding: 0; border: 0; background: none; font: inherit; font-weight: 600; cursor: pointer;
+}
+.ficha-linha-nome:hover { color: var(--brand); text-decoration: underline; }
+.ficha-linha-editar {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px; margin-left: -6px; border-radius: 6px; color: var(--muted);
+}
+.ficha-linha-editar:hover { background: var(--surface-3); color: var(--brand); }
+@media (pointer: coarse) { .ficha-linha-editar { width: 32px; height: 32px; } }
+.ficha-nota { margin: 12px 0 0; }
+
+/* "Mais detalhes" (spec 2026-10-03, D7): recolhido por padrão. Aberto, é
+   uma grade rótulo → valor - aqui o rótulo fica, porque "INEP" e
+   "Regional" não se reconhecem só pelo valor. */
+.mais-detalhes { margin-top: 12px; border-top: 1px solid color-mix(in srgb, var(--brand) 14%, var(--border)); padding-top: 10px; }
+.mais-detalhes > summary {
+  cursor: pointer; color: var(--muted);
+  font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
+}
+.mais-detalhes > summary:hover { color: var(--text); }
+.mais-detalhes[open] > summary { margin-bottom: 10px; }
+.mais-detalhes > dl {
+  display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 6px 16px;
+  margin: 0; font-size: 13.5px;
+}
+.mais-detalhes dt { color: var(--muted); }
+.mais-detalhes dd { margin: 0; overflow-wrap: anywhere; }

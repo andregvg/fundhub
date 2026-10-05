@@ -24,7 +24,7 @@ import { loading, erroBox } from '../../shared/ui/feedback.js';
 // Abre o modal com o painel de UM módulo (clique na engrenagem).
 export async function abrirPainelConfig(mod) {
   abrirModal(`
-    ${modalHead('Configurações', esc(mod.nome))}
+    ${modalHead('Configurações', esc(mod.nome), { icone: 'config' })}
     <div class="modal-body" id="cfg-modal-body">${loading()}</div>`);
   await pintarConfigDoModulo(document.getElementById('cfg-modal-body'), mod, {});
 }

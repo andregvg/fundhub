@@ -107,29 +107,26 @@ function detalhe(a) {
   const ata = typeof a === 'string' ? lista.find(x => x.id === a) : a;
   if (!ata) return;
   const campo = (l, v) => v ? `<div class="field"><div class="lbl">${l}</div><div class="val texto-completo">${v}</div></div>` : '';
-  const acoes = perfil?.isAdmin ? `
-    <div class="modal-acoes">
-      <button class="mini-btn" id="at-edit">${ico('editar')} Editar</button>
-      <button class="mini-btn no" id="at-del">${ico('excluir')} Excluir</button>
-    </div>` : '';
 
   abrirModal(`
     ${modalHead(`Ata nº ${esc(ata.numero ?? 's/nº')}/${esc(ata.ano)}`, esc(fmtData(ata.data)) + ' · ' + esc(TIPOS[ata.tipo] || ata.tipo))}
     <div class="modal-body">
+      <section class="ficha-info">
+        ${perfil?.isAdmin ? `<button type="button" class="mini-btn ficha-editar" id="at-edit"
+            aria-label="Editar ata" title="Editar ata">${ico('editar')}</button>` : ''}
+        ${campo('Local', esc(ata.local))}
+        ${campo('Participantes', esc(ata.participantes))}
+        ${campo('Assunto', esc(ata.assunto))}
+        ${campo('Deliberações', esc(ata.deliberacoes))}
+        ${campo('Encaminhamentos', esc(ata.encaminhamentos))}
+        ${campo('Redigida por', esc(ata.redator))}
+      </section>
       <div class="modal-acoes"><button class="btn-primary" id="at-print">${ico('imprimir')} Imprimir (papel timbrado)</button></div>
-      ${acoes}
-      ${campo('Local', esc(ata.local))}
-      ${campo('Participantes', esc(ata.participantes))}
-      ${campo('Assunto', esc(ata.assunto))}
-      ${campo('Deliberações', esc(ata.deliberacoes))}
-      ${campo('Encaminhamentos', esc(ata.encaminhamentos))}
-      ${campo('Redigida por', esc(ata.redator))}
     </div>`);
 
   document.getElementById('at-print').addEventListener('click', () => imprimir(ata));
   if (!perfil?.isAdmin) return;
   document.getElementById('at-edit').addEventListener('click', () => abrirForm(ata));
-  document.getElementById('at-del').addEventListener('click', () => remover(ata));
 }
 
 // ── Impressão em papel timbrado ──────────────────────────────
@@ -189,6 +186,7 @@ function abrirForm(a) {
         <label>Deliberações <textarea id="f-delib" rows="5">${esc(a?.deliberacoes || '')}</textarea></label>
         <label>Encaminhamentos <textarea id="f-enc" rows="3">${esc(a?.encaminhamentos || '')}</textarea></label>
         <div class="form-foot">
+          ${novo ? '' : `<button type="button" class="mini-btn no" id="f-del">${ico('excluir')} Excluir ata</button>`}
           <span id="f-msg" class="auth-msg"></span>
           <button type="submit" id="f-save">${novo ? 'Registrar' : 'Salvar'}</button>
         </div>
@@ -196,6 +194,7 @@ function abrirForm(a) {
     </div>`);
 
   document.getElementById('at-form').addEventListener('submit', (e) => salvar(e, a));
+  document.getElementById('f-del')?.addEventListener('click', () => remover(a));
 }
 
 async function salvar(e, a) {

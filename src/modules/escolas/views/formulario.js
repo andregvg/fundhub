@@ -36,7 +36,7 @@ export function abrirForm(u, ctx, { voltar = null } = {}) {
   // visual - o payload continua o mesmo - mas transforma uma parede
   // de inputs numa ficha que se lê de relance.
   abrirModal(`
-    ${modalHead(novo ? 'Nova escola' : 'Editar escola', novo ? '' : esc(u.nome))}
+    ${modalHead(novo ? 'Nova escola' : 'Editar escola', novo ? '' : esc(u.nome), { icone: 'escola' })}
     <div class="modal-body">
       <form id="esc-form" class="esc-form">
 

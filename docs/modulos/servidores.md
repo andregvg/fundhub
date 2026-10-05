@@ -31,6 +31,12 @@ O cargo e o local de trabalho que aparecem na ficha **vêm do registro de
 designação**, não são campos do cadastro da pessoa. Para mudá-los, edite o
 local de trabalho.
 
+A ficha tem o mesmo desenho da ficha da escola: um quadro com os telefones (o
+principal em negrito), o e-mail e **Mais detalhes** (nascimento, código
+funcional, CPF, RG e ingresso na rede), com o **lápis** de editar no canto; e,
+abaixo, os **Locais de trabalho**, com os botões **Horário de trabalho** e
+**Adicionar local de trabalho**.
+
 ## Passo a passo
 
 ### Cadastrar um servidor
@@ -125,6 +131,9 @@ trabalho.
 
 ## Regras que o sistema aplica
 
+- **Excluir fica no formulário.** **Excluir servidor** e **Excluir local de
+  trabalho** estão no rodapé do formulário de edição, na mesma linha de
+  **Salvar** - não na ficha.
 - **Encerrar não é excluir.** Encerrar preenche o Término e preserva o
   registro. Excluir apaga o local de trabalho de vez - e junto some do
   histórico. Prefira encerrar.
@@ -191,4 +200,4 @@ Gestor 1.
 Encerre o local antigo (preencha o Término) e registre um novo. Assim o
 histórico fica correto.
 
-> Atualizado na versão 0.39.1.
+> Atualizado na versão 0.40.0.

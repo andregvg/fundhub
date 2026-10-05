@@ -67,7 +67,7 @@ const GOOGLE_SVG = `<svg width="17" height="17" viewBox="0 0 48 48" aria-hidden=
 // passa a dele - mesmo portão, mesma conta, outro nome na porta.
 // `titulo` é HTML de marca fixa, nunca dado do banco.
 const MARCA_FUNDHUB = {
-  ico: 'escola',
+  ico: 'hub',
   titulo: 'Fund<span class="hub">Hub</span>',
   sub: 'Acesso restrito à equipe da Gerência de Ensino Fundamental.',
 };

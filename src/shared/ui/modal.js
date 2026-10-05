@@ -243,9 +243,19 @@ export function fecharModal({ tudo = false } = {}) {
   document.dispatchEvent(new CustomEvent('modal:fechou'));
 }
 
+// O ícone que o título de um modal leva quando quem abre não diz outro: o
+// da PÁGINA em que a pessoa está (o roteador e sate.js o definem a cada
+// rota). Assim todo modal de um módulo sai com o ícone do módulo, sem que
+// cada tela escolha o seu - que é como nascem três ícones para a mesma coisa.
+let iconePadrao = '';
+export function definirIconeDoModal(nome) { iconePadrao = nome || ''; }
+
 // Cabeçalho padrão (o botão de fechar é ligado por abrirModal).
-export const modalHead = (titulo, sub = '') => `
+// `icone`: só para o modal que é de OUTRO assunto que a página - a ficha da
+// escola aberta de dentro de Servidores é 'escola', o painel é 'config'.
+// Título que já traz um <svg> fica como veio.
+export const modalHead = (titulo, sub = '', { icone = iconePadrao } = {}) => `
   <div class="modal-head" id="modal-titulo">
-    <div><h2>${titulo}</h2>${sub ? `<small>${sub}</small>` : ''}</div>
+    <div><h2>${icone && !String(titulo).includes('<svg') ? ico(icone, { tam: 18 }) : ''}${titulo}</h2>${sub ? `<small>${sub}</small>` : ''}</div>
     <button class="modal-close" type="button" aria-label="Fechar">${ico('fechar')}</button>
   </div>`;

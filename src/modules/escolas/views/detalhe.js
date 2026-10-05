@@ -79,31 +79,31 @@ function detalhe(u, ctx, opts) {
 
   abrirModal(`
     ${modalHead(`<span class="nome-oficial">${esc(u.nome)}</span>`,
-      chips ? `<span class="tags">${chips}</span>` : '')}
+      chips ? `<span class="tags">${chips}</span>` : '', { icone: 'escola' })}
     <div class="modal-body">
-      <section class="esc-info">
-        ${ctx.podeEditar ? `<button type="button" class="mini-btn esc-info-editar" id="edit-esc"
+      <section class="ficha-info">
+        ${ctx.podeEditar ? `<button type="button" class="mini-btn ficha-editar" id="edit-esc"
             aria-label="Editar escola" title="Editar escola">${ico('editar')}</button>` : ''}
-        <ul class="esc-contato">
+        <ul class="ficha-contato">
         ${linha('', tel)}
         ${linha('email', u.email ? `<a href="mailto:${esc(u.email)}">${esc(u.email)}</a>` : '')}
         ${linha('visita', u.endereco
           ? esc(u.endereco) + (maps ? ` · <a href="${maps}" target="_blank" rel="noopener">ver no mapa</a>` : '')
           : '')}
         </ul>
-        <div class="esc-sup" id="esc-supervisao"></div>
+        <div class="ficha-linha" id="esc-supervisao"></div>
         ${maisDetalhes(u)}
       </section>
 
-      <div class="esc-secao">
+      <div class="ficha-secao">
         <h3 id="esc-equipe-tit">Equipe</h3>
-        <span class="esc-secao-acoes">
+        <span class="ficha-secao-acoes">
           <a class="mini-btn" href="#/horarios?unidade=${esc(u.id)}">${ico('horario')} Horários da equipe</a>
           <a class="mini-btn" href="#/servidores?unidade=${esc(u.id)}">Gerir em Servidores →</a>
         </span>
       </div>
       <div class="people" id="esc-equipe">${loading()}</div>
-      <p class="form-hint esc-nota">
+      <p class="form-hint ficha-nota">
         A equipe vem dos locais de trabalho atuais. Para incluir ou encerrar alguém, use Servidores.
       </p>
     </div>`, { tamanho: 'largo', voltar: opts.voltar });
@@ -171,7 +171,7 @@ async function pintarEquipe(box, boxSup, u, abrirOpts) {
   box.innerHTML = equipe.length
     ? equipe.map(p => cardPessoa(p, opcoes)).join('') : '<p class="count">Sem pessoas vinculadas.</p>';
   if (boxSup) {
-    boxSup.innerHTML = `<span class="esc-sup-rot">Supervisão</span>`
+    boxSup.innerHTML = `<span class="ficha-linha-rot">Supervisão</span>`
       + (supervisao.length ? supervisao.map(p => linhaSupervisao(p, opcoes)).join('') : '<span>Sem supervisão informada.</span>');
   }
 
@@ -198,12 +198,12 @@ const telefoneDe = (p) => p.telefone
 function linhaSupervisao(p, { clicavel, editar }) {
   const nome = esc(p.nome);
   return `
-    <span class="esc-sup-item">
+    <span class="ficha-linha-item">
       ${clicavel
-        ? `<button type="button" class="esc-sup-nome" data-abrir-servidor="${esc(p.id)}"
+        ? `<button type="button" class="ficha-linha-nome" data-abrir-servidor="${esc(p.id)}"
              aria-label="Abrir ficha de ${nome}">${nome}</button>`
         : `<b>${nome}</b>`}
-      ${editar ? `<button type="button" class="esc-sup-editar" data-editar-servidor="${esc(p.id)}"
+      ${editar ? `<button type="button" class="ficha-linha-editar" data-editar-servidor="${esc(p.id)}"
                     aria-label="Editar servidor ${nome}">${ico('editar', { tam: 13 })}</button>` : ''}
       ${telefoneDe(p)}${emailDe(p)}
     </span>`;

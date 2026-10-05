@@ -23,6 +23,7 @@ import { OCULTO, PROPRIOS, LEITURA, ESCRITA } from './core/permissoes.js';
 import { abrirPortao } from './shell/portao.js';
 import { montarNav, marcarNav, marcarAtualizacao, atualizarMeusDados } from './shell/chrome.js';
 import { render, faixaSimulacaoHtml, PAGINAS, PAGINA_INICIAL } from './modules/sate/sate.view.js';
+import { definirIconeDoModal } from './shared/ui/modal.js';
 import { corSate } from './modules/sate/sate.config.js';
 import * as notificacoes from './modules/notificacoes/notificacoes.service.js';
 import { pintarConfigDoModulo, pintarTema } from './modules/configuracoes/painel.js';
@@ -32,7 +33,7 @@ import { criarBuscaSelecao } from './shared/ui/busca-selecao.js';
 import { emptyState, loading } from './shared/ui/feedback.js';
 import { limparToasts } from './shared/ui/toast.js';
 import { iniciarTema } from './core/tema.js';
-import { ico } from './shared/ui/icones.js';
+import { ico, marcarTitulo } from './shared/ui/icones.js';
 
 // Usa o FundHub = enxerga ao menos um módulo de navegação que não seja o
 // SATE nem um dos de serviço (`publico`). Não é controle de acesso (R6):
@@ -144,24 +145,31 @@ function gruposDoMenu() {
   ];
 }
 
-const linkFundHub = () => ({ externo: './', ico: 'escola', nome: 'Ir para o FundHub' });
+const linkFundHub = () => ({ externo: './', ico: 'hub', nome: 'Ir para o FundHub' });
 
 // ── Rotas ────────────────────────────────────────────────────
 async function rotear() {
   if (!estado) return;
   const id = String(location.hash || '').replace(/^#\/?/, '').split('?')[0];
 
+  // O ícone do item de menu vai para o título da página e para os modais
+  // que ela abrir - o mesmo desenho do roteador do FundHub.
+  const comIcone = async (icone, pagina) => {
+    definirIconeDoModal(icone);
+    await pagina();
+    marcarTitulo(app, icone);
+  };
   if (id === 'ajuda') {
     marcarNav('#/ajuda');
-    return paginaAjuda();
+    return comIcone('ajuda', paginaAjuda);
   }
   if (id === 'configuracoes') {
     marcarNav('#/configuracoes');
-    return paginaConfiguracoes();
+    return comIcone('config', paginaConfiguracoes);
   }
   if (id === 'ver-como' && estado.podeAprovar) {
     marcarNav('#/ver-como');
-    return paginaVerComo();
+    return comIcone('escola', paginaVerComo);
   }
   // Página inexistente ou de aprovador para quem não aprova: a inicial.
   // Sem "acesso restrito" aqui - o menu nem oferece o link, e o RLS barra
@@ -173,12 +181,13 @@ async function rotear() {
 
   aplicarCor();   // quem voltou das Configurações pode ter trocado a cor
   marcarNav(`#/${PAGINAS[id] ? id : PAGINA_INICIAL}`);
-  await render(app, {
-    perfil: perfilEfetivo(), aprovador: aprovadorEfetivo(), id: PAGINAS[id] ? id : PAGINA_INICIAL,
+  const idPagina = PAGINAS[id] ? id : PAGINA_INICIAL;
+  await comIcone(PAGINAS[idPagina].ico, () => render(app, {
+    perfil: perfilEfetivo(), aprovador: aprovadorEfetivo(), id: idPagina,
     irPara: (nova) => { location.hash = `#/${nova}`; },
     simulando, aoSairSimulacao: () => mudarSimulacao(null),
     somenteLeitura: estado.somenteLeitura,
-  });
+  }));
   window.scrollTo(0, 0);
 }
 

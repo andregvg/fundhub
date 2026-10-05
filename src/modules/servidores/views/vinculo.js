@@ -44,7 +44,7 @@ export function formVinculo(s, vinculo, ctx, { voltar = null } = {}) {
     `<option value="${esc(c)}" ${c === cargoAtual ? 'selected' : ''}>${esc(c)}</option>`).join('');
 
   abrirModal(`
-    ${modalHead(novo ? 'Adicionar local de trabalho' : 'Editar local de trabalho', esc(s.nome))}
+    ${modalHead(novo ? 'Adicionar local de trabalho' : 'Editar local de trabalho', esc(s.nome), { icone: 'servidor' })}
     <div class="modal-body">
       <form id="vc-form" class="esc-form">
         <fieldset class="form-grupo">
@@ -88,12 +88,12 @@ export function formVinculo(s, vinculo, ctx, { voltar = null } = {}) {
         </fieldset>
 
         <div class="form-foot">
+          ${novo ? '' : `<button type="button" class="mini-btn no" id="v-del">${ico('excluir')} Excluir local de trabalho</button>`}
           <span id="v-msg" class="auth-msg"></span>
           <button type="submit" id="v-save" class="btn-primary">${novo ? 'Adicionar' : 'Salvar'}</button>
         </div>
       </form>
-      ${novo ? '' : `<button type="button" class="mini-btn no" id="v-del" style="margin-top:16px">${ico('excluir')} Excluir local de trabalho</button>
-      <p class="form-hint" style="margin-top:10px">Para preservar o histórico, prefira preencher o Término em vez de excluir.</p>`}
+      ${novo ? '' : `<p class="form-hint ficha-nota">Para preservar o histórico, prefira preencher o Término em vez de excluir.</p>`}
     </div>`, { voltar });
 
   // Busca por nome no lugar do <select> com as 144 escolas + gerências.

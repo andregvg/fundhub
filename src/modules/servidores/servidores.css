@@ -4,30 +4,8 @@
    que os componentes já dão.
    ============================================================ */
 
-.vinc-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-bottom: 10px;
-}
-
-.vinc-acoes { display: flex; gap: 6px; margin-top: 6px; }
-
 /* Vínculo encerrado ou de ano anterior: fica, mas apagado. */
 .person.inativo { opacity: .6; }
-.person.inativo .role { color: var(--muted); }
 
 /* Vários papéis no mesmo card não podem empurrar o nome. */
 .card .card-top .seg + .seg { margin-left: 4px; }
-
-/* Código funcional, CPF e RG na mesma linha no desktop: três campos
-   curtos que ocupavam três linhas inteiras da ficha e empurravam os
-   vínculos para fora da primeira tela. O prefixo do módulo é de
-   propósito - CSS de módulo só ACRESCENTA ao vocabulário comum, e um
-   nome genérico aqui arriscaria colidir com o global depois. */
-.sv-docs { display: grid; grid-template-columns: 1fr; gap: 0 14px; }
-@media (min-width: 560px) {
-  .sv-docs { grid-template-columns: repeat(3, 1fr); }
-}

@@ -170,30 +170,27 @@ function detalhe(id) {
   const contato = o.solicitante_contato
     ? `<a href="tel:${esc(String(o.solicitante_contato).replace(/\D/g, ''))}">${esc(o.solicitante_contato)}</a>`
     : '';
-  const acoes = perfil?.isAdmin ? `
-    <div class="modal-acoes">
-      <button class="mini-btn" id="oc-edit">${ico('editar')} Editar</button>
-      <button class="mini-btn no" id="oc-del">${ico('excluir')} Excluir</button>
-    </div>` : '';
 
   abrirModal(`
     ${modalHead(esc(o.assunto), `${esc(fmtData(o.data))}${o.hora ? ' · ' + esc(o.hora.slice(0, 5)) : ''}`)}
     <div class="modal-body">
-      ${acoes}
-      <div class="field"><div class="lbl">Situação</div>
-        <div class="val"><span class="tag ${STATUS_TAG[o.status] || ''}">${esc(STATUS[o.status] || o.status)}</span></div></div>
-      ${campo('Canal', esc(CANAIS[o.canal] || o.canal))}
-      ${campo('Escola', escola)}
-      ${campo('Solicitante', esc(o.solicitante))}
-      ${campo('Contato de retorno', contato)}
-      ${campo('Encaminhado para', esc(o.encaminhado_para))}
-      ${o.relato ? `<hr class="sep" /><div class="field"><div class="lbl">Relato</div><div class="val texto-completo">${esc(o.relato)}</div></div>` : ''}
-      ${campo('Registrado por', esc(o.criado_por))}
+      <section class="ficha-info">
+        ${perfil?.isAdmin ? `<button type="button" class="mini-btn ficha-editar" id="oc-edit"
+            aria-label="Editar ocorrência" title="Editar ocorrência">${ico('editar')}</button>` : ''}
+        <div class="field"><div class="lbl">Situação</div>
+          <div class="val"><span class="tag ${STATUS_TAG[o.status] || ''}">${esc(STATUS[o.status] || o.status)}</span></div></div>
+        ${campo('Canal', esc(CANAIS[o.canal] || o.canal))}
+        ${campo('Escola', escola)}
+        ${campo('Solicitante', esc(o.solicitante))}
+        ${campo('Contato de retorno', contato)}
+        ${campo('Encaminhado para', esc(o.encaminhado_para))}
+        ${o.relato ? `<div class="field"><div class="lbl">Relato</div><div class="val texto-completo">${esc(o.relato)}</div></div>` : ''}
+        ${campo('Registrado por', esc(o.criado_por))}
+      </section>
     </div>`);
 
   if (!perfil?.isAdmin) return;
   document.getElementById('oc-edit').addEventListener('click', () => abrirForm(o));
-  document.getElementById('oc-del').addEventListener('click', () => remover(o));
 }
 
 // ── Formulário ───────────────────────────────────────────────
@@ -224,6 +221,7 @@ function abrirForm(o) {
         <label class="oc-enc" ${(o?.status || 'aberta') === 'encaminhada' ? '' : 'hidden'}>Encaminhado para
           <input id="f-enc" value="${esc(o?.encaminhado_para || '')}" placeholder="Setor ou pessoa" /></label>
         <div class="form-foot">
+          ${novo ? '' : `<button type="button" class="mini-btn no" id="f-del">${ico('excluir')} Excluir ocorrência</button>`}
           <span id="f-msg" class="auth-msg"></span>
           <button type="submit" id="f-save">${novo ? 'Registrar' : 'Salvar'}</button>
         </div>
@@ -236,6 +234,7 @@ function abrirForm(o) {
   stSel.addEventListener('change', () => { encWrap.hidden = stSel.value !== 'encaminhada'; });
 
   document.getElementById('oc-form').addEventListener('submit', (e) => salvar(e, o));
+  document.getElementById('f-del')?.addEventListener('click', () => remover(o));
 }
 
 async function salvar(e, o) {

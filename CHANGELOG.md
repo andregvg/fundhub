@@ -19,7 +19,7 @@ partir das versões do FundHub que mudaram algo para quem usa o SATE.
 
 | SATE | FundHub | Em resumo |
 |---|---|---|
-| 0.18.1 | 0.39.1 | erro do pedido aponta o campo, asterisco nos obrigatórios, dica de hora nos dois horários |
+| 0.18.2 | 0.40.0 | erro do pedido aponta o campo, asterisco nos obrigatórios, dica de hora nos dois horários, mapa recolhido, rodapé fixo |
 | 0.18.0 | 0.39.0 | data só com dia e mês, servidor responsável com telefone automático, tema e cor por pessoa |
 | 0.17.1 | 0.38.1 | pedido com local novo pela busca, disponibilidade de segunda a sexta com o dia destacado |
 | 0.17.0 | 0.38.0 | pedido simplificado, locais com mapa, conferência de local |
@@ -46,9 +46,16 @@ partir das versões do FundHub que mudaram algo para quem usa o SATE.
 
 ---
 
-## [0.39.1] - 2026-10-04
+## [0.40.0] - 2026-10-04
 
-> SATE 0.18.1.
+> SATE 0.18.2.
+>
+> **Rodar a migration 046 no Supabase.** Ela faz o banco aceitar um pedido de transporte
+> mesmo que venha sem o número de cadeirantes (passa a valer zero). Sem ela, o pedido
+> continua funcionando pela tela.
+>
+> A numeração pulou a 0.39.1, que só existiu no endereço de testes: a saída de um módulo do
+> menu pede um número novo.
 
 ### Alterado
 - **Campo obrigatório tem asterisco.** Em toda janela de cadastro, o campo que não pode ficar
@@ -65,8 +72,21 @@ partir das versões do FundHub que mudaram algo para quem usa o SATE.
   principal e o e-mail - clicáveis, para ligar ou escrever direto da lista. No de escolas vem
   também o endereço. O apelido saiu dos cards (a busca continua achando por ele). Na
   engrenagem dá para desligar cada item e, em Escolas, ligar a exibição de quem supervisiona.
-- **Menu lateral.** Os ícones ficaram alinhados com os nomes, e o da Dashboard passou a ser
-  um conjunto de painéis, que é o que a tela mostra.
+- **"Dashboard" agora se chama "Visão geral".** É a mesma tela inicial, com o mesmo endereço.
+- **Menu lateral.** Os ícones ficaram alinhados com os nomes. O da Visão geral passou a ser
+  um conjunto de painéis, e o de Todos os Módulos, uma grade de pontos.
+- **Ícone no título.** O título de cada tela e de cada janela traz o ícone do módulo, o mesmo
+  do menu.
+- **Servidores: ficha no mesmo desenho da de Escolas.** Quadro com telefones, e-mail e "Mais
+  detalhes" (nascimento, documentos, ingresso), lápis de editar no canto, e abaixo os locais
+  de trabalho com "Horário de trabalho" e "Adicionar local de trabalho". "Excluir servidor"
+  e "Excluir local de trabalho" ficam no rodapé do formulário, na linha do Salvar.
+- **Cards: telefone e e-mail em linhas separadas**, em Escolas e em Servidores.
+- **Atas, Ocorrências, Visitas e Projetos no mesmo desenho.** O detalhe de cada registro fica
+  num quadro, com o lápis de editar no canto; "Excluir" passou para o rodapé do formulário
+  de edição, na linha do Salvar.
+- **Escola com ícone próprio.** As escolas ganharam o desenho de um prédio escolar; a casa
+  fica só como marca do FundHub.
 - **Nome na barra do topo.** O FundHub aparece como "Hub de Ferramentas do Ensino
   Fundamental" e o SATE como "Sistema de Agendamento de Transporte Extraclasse", com o
   ícone maior, da altura das duas linhas.

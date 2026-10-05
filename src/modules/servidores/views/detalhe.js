@@ -72,7 +72,19 @@ function detalhe(id, ctx, opts) {
   // sempre com o MESMO `opts`: é o que mantém o ← até a origem.
   const reabrir = () => abrir(s.id, { ...opts, editar: false });
 
-  const campo = (l, v) => v ? `<div class="field"><div class="lbl">${l}</div><div class="val">${v}</div></div>` : '';
+  // Mesmo desenho da ficha da escola (.ficha-*, components.css): o quadro
+  // com o contato sem rótulo e "Mais detalhes", o ✎ no canto, e abaixo a
+  // lista - aqui, os locais de trabalho - com as ações dela no título.
+  const linha = (icone, html) => html ? `<li>${icone ? ico(icone, { tam: 14 }) + ' ' : ''}${html}</li>` : '';
+  const dado = (l, v) => v ? `<dt>${l}</dt><dd>${v}</dd>` : '';
+  const detalhes = [
+    dado('Nascimento', s.nascimento
+      ? `${esc(fmtData(s.nascimento))}${fmtIdade(s.nascimento) ? ` · ${esc(fmtIdade(s.nascimento))}` : ''}` : ''),
+    dado('Código funcional', esc(s.codigo_funcional || '')),
+    dado('CPF', esc(fmtCPF(s.cpf))),
+    dado('RG', esc(fmtRG(s.rg))),
+    dado('Ingresso na rede', s.inicio_rede ? esc(fmtData(s.inicio_rede)) : ''),
+  ].join('');
 
   // Cargo e escola do vínculo aberto sobem para o cabeçalho: é o que
   // identifica a pessoa funcionalmente. No corpo eles seriam a terceira
@@ -82,35 +94,25 @@ function detalhe(id, ctx, opts) {
   const sub = [cargoExibidoDe(s), localDeTrabalhoDe(s, { completo: true })]
     .filter(Boolean).map(esc).join(' · ');
 
-  const acoes = ctx.podeEditar ? `
-    <div class="modal-acoes">
-      <button class="mini-btn" id="sv-edit">${ico('editar')} Editar</button>
-      <a class="mini-btn" href="#/horarios?servidor=${esc(s.id)}">${ico('horario')} Horário de trabalho</a>
-      <button class="mini-btn no" id="sv-del">${ico('excluir')} Excluir</button>
-    </div>` : `
-    <div class="modal-acoes">
-      <a class="mini-btn" href="#/horarios?servidor=${esc(s.id)}">${ico('horario')} Horário de trabalho</a>
-    </div>`;
-
   abrirModal(`
-    ${modalHead(`<span class="nome-oficial">${esc(s.nome)}</span>`, sub)}
+    ${modalHead(`<span class="nome-oficial">${esc(s.nome)}</span>`, sub, { icone: 'servidor' })}
     <div class="modal-body">
-      ${acoes}
-      ${campo('E-mail', s.email ? `<a href="mailto:${esc(s.email)}">${esc(s.email)}</a>` : '')}
-      ${campo('Telefones', telefonesTexto(s.telefones))}
-      ${campo('Nascimento', s.nascimento
-        ? `${esc(fmtData(s.nascimento))}${fmtIdade(s.nascimento) ? ` · ${esc(fmtIdade(s.nascimento))}` : ''}`
-        : '')}
-      <div class="sv-docs">
-        ${campo('Código funcional', esc(s.codigo_funcional || ''))}
-        ${campo('CPF', esc(fmtCPF(s.cpf)))}
-        ${campo('RG', esc(fmtRG(s.rg)))}
-      </div>
-      ${campo('Ingresso na rede', s.inicio_rede ? esc(fmtData(s.inicio_rede)) : '')}
-      <hr class="sep" />
-      <div class="vinc-head">
-        <div class="field" style="margin:0"><div class="lbl">Locais de trabalho</div></div>
-        ${ctx.podeEditar ? `<button class="mini-btn" id="sv-vinc">${ico('adicionar')} Adicionar local de trabalho</button>` : ''}
+      <section class="ficha-info">
+        ${ctx.podeEditar ? `<button type="button" class="mini-btn ficha-editar" id="sv-edit"
+            aria-label="Editar servidor" title="Editar servidor">${ico('editar')}</button>` : ''}
+        <ul class="ficha-contato">
+          ${linha('', telefonesTexto(s.telefones))}
+          ${linha('email', s.email ? `<a href="mailto:${esc(s.email)}">${esc(s.email)}</a>` : '')}
+        </ul>
+        ${detalhes ? `<details class="mais-detalhes"><summary>Mais detalhes</summary><dl>${detalhes}</dl></details>` : ''}
+      </section>
+
+      <div class="ficha-secao">
+        <h3>Locais de trabalho</h3>
+        <span class="ficha-secao-acoes">
+          <a class="mini-btn" href="#/horarios?servidor=${esc(s.id)}">${ico('horario')} Horário de trabalho</a>
+          ${ctx.podeEditar ? `<button type="button" class="mini-btn" id="sv-vinc">${ico('adicionar')} Adicionar local de trabalho</button>` : ''}
+        </span>
       </div>
       <div class="people" id="sv-vinculos">${listaVinculos(s, ctx.podeEditar)}</div>
     </div>`, { tamanho: 'largo', voltar: opts.voltar });
@@ -127,7 +129,6 @@ function detalhe(id, ctx, opts) {
     // pessoa de volta na lista, perdendo o contexto que ela mesma abriu.
     document.getElementById('sv-edit').addEventListener('click', () =>
       ctx.abrirFormServidor(s, { voltar: reabrir }));
-    document.getElementById('sv-del').addEventListener('click', () => ctx.removerServidor(s));
     document.getElementById('sv-vinc').addEventListener('click', () =>
       formVinculo(s, null, ctx, { voltar: reabrir }));
     box.querySelectorAll('[data-edit-vinc]').forEach(b => b.addEventListener('click', () => {
@@ -155,9 +156,9 @@ function listaVinculos(s, podeEditar) {
       v.fim ? `até ${fmtData(v.fim)}` : '',
     ].filter(Boolean).join(' · ');
     const acoes = podeEditar ? `
-      <div class="vinc-acoes">
-        <button class="mini-btn" data-edit-vinc="${esc(v.id)}" aria-label="Editar local de trabalho">${ico('editar')}</button>
-        <button class="mini-btn no" data-del-vinc="${esc(v.id)}" aria-label="Excluir local de trabalho">${ico('excluir')}</button>
+      <div class="person-acoes">
+        <button type="button" class="mini-btn" data-edit-vinc="${esc(v.id)}" aria-label="Editar local de trabalho">${ico('editar')}</button>
+        <button type="button" class="mini-btn no" data-del-vinc="${esc(v.id)}" aria-label="Excluir local de trabalho">${ico('excluir')}</button>
       </div>` : '';
     // Local interno (Sede, gerências) não tem ficha: o card fica só texto.
     const interno = v.unidade && eLocalInterno(v.unidade);
@@ -167,13 +168,17 @@ function listaVinculos(s, podeEditar) {
       ? `<button type="button" class="pname person-abrir" data-abrir-escola="${esc(v.unidade_id)}"
            aria-label="Abrir ficha da escola ${nome}">${nome}</button>`
       : `<div class="pname">${interno ? ico('sede', { tam: 12 }) + ' ' : ''}${nome}</div>`;
+    // Mesmo cartão da equipe na ficha da escola: nome e cargo na linha,
+    // ações no canto.
     return `<div class="person ${encerrado ? 'inativo' : ''} ${clicavel ? 'clicavel' : ''}">
-      <div class="role">${esc(rotulaVinculo({ ...v, papel: rotulaCargo(v.papel) }))}${encerrado ? ' · encerrado' : ''}</div>
-      ${pname}
+      <div class="person-topo">
+        ${pname}
+        <span class="person-cargo">${esc(rotulaVinculo({ ...v, papel: rotulaCargo(v.papel) }))}${encerrado ? ' · encerrado' : ''}</span>
+      </div>
       <div class="pmeta">
         ${periodo ? `<span>${esc(periodo)}</span>` : ''}
-        ${acoes}
       </div>
+      ${acoes}
     </div>`;
   }).join('');
 }

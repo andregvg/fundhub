@@ -61,7 +61,7 @@ export function formServidor(s, ctx, { voltar = null } = {}) {
     .map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('');
 
   abrirModal(`
-    ${modalHead(novo ? 'Novo servidor' : 'Editar servidor', novo ? '' : esc(s.nome))}
+    ${modalHead(novo ? 'Novo servidor' : 'Editar servidor', novo ? '' : esc(s.nome), { icone: 'servidor' })}
     <div class="modal-body">
       <form id="sv-form" class="esc-form">
 
@@ -131,6 +131,7 @@ export function formServidor(s, ctx, { voltar = null } = {}) {
         </fieldset>
 
         <div class="form-foot">
+          ${novo ? '' : `<button type="button" class="mini-btn no" id="s-del">${ico('excluir')} Excluir servidor</button>`}
           <span id="s-msg" class="auth-msg"></span>
           <button type="submit" id="s-save" class="btn-primary">${novo ? 'Criar' : 'Salvar'}</button>
         </div>
@@ -138,6 +139,7 @@ export function formServidor(s, ctx, { voltar = null } = {}) {
     </div>`, { voltar, tamanho: 'largo' });
 
   const form = document.getElementById('sv-form');
+  document.getElementById('s-del')?.addEventListener('click', () => removerServidor(s, ctx));
   montarPhonesEditor(form);
   ligarDominio(document.getElementById('s-email'));
 
@@ -319,7 +321,8 @@ export async function removerServidor(s, ctx) {
   if (!ok) return;
   try {
     await excluirServidor(s.id);
-    fecharModal();
+    // A pilha inteira: o formulário abre sobre a ficha de quem acabou de sair.
+    fecharModal({ tudo: true });
     await ctx.recarregar();
     toast({ titulo: 'Servidor removido', texto: s.nome, tipo: 'sucesso' });
   } catch (err) {

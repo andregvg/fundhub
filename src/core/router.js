@@ -16,7 +16,8 @@ import { OCULTO } from './permissoes.js';
 import { registrarEventoUnico, EVENTO } from './eventos.js';
 import { loading, emptyState, reportarErro } from '../shared/ui/feedback.js';
 import { toast } from '../shared/ui/toast.js';
-import { ico } from '../shared/ui/icones.js';
+import { ico, marcarTitulo } from '../shared/ui/icones.js';
+import { definirIconeDoModal } from '../shared/ui/modal.js';
 import { esc } from '../shared/dom.js';
 
 const ROTA_INICIAL = '#/dashboard';
@@ -93,7 +94,11 @@ export async function route({ manterScroll = false } = {}) {
       outlet.innerHTML = `<div class="mod-wrap"><div class="mod-acoes" id="mod-acoes"></div><div id="mod-view"></div></div>`;
       await montarAcoesModulo(mod, nv);
       const view = await mod.load();   // import() dinâmico: só agora a view é baixada
+      // O ícone do módulo vale para os modais que ele abrir e para o título
+      // da página - o mesmo do menu, num lugar só.
+      definirIconeDoModal(mod.ico);
       await view.render(document.getElementById('mod-view'), { perfil, nivel: nv, params });
+      marcarTitulo(outlet, mod.ico);
     }
   } catch (err) {
     outlet.innerHTML = emptyState(ico('atencao', { tam: 32 }), 'Não foi possível abrir este módulo', esc(String(err?.message || err)));

@@ -152,7 +152,7 @@ export const SECOES = [
         <li><b>O kernel não importa módulo</b> - exceto os <code>module.js</code> (manifestos), no registry.</li>
         <li><b>Módulo importa de <code>shared/</code> e <code>core/</code></b> à vontade.</li>
         <li><b>Módulo pode importar o <i>model</i> de outro módulo</b>, <b>nunca a view</b>.
-            É a API pública de um módulo. Exemplo legítimo: Viagens lê <code>sate.model.js</code>,
+            É a API pública de um módulo. Exemplo legítimo: a Visão geral lê <code>sate.model.js</code>,
             porque quem é dono das solicitações é o SATE.</li>
         <li><b>Model nunca toca no DOM. View nunca fala com o Supabase.</b></li>
       </ol>
@@ -172,7 +172,7 @@ export const SECOES = [
       <table class="doc-tabela">
         <thead><tr><th>Módulo</th><th>Rota</th><th>Tabelas</th><th>Situação</th></tr></thead>
         <tbody>
-          <tr><td>${ico('dashboard', { tam: 14 })} <b>Dashboard do dia</b></td><td><code>#/dashboard</code></td><td>- (compõe os outros)</td><td class="ok">ativo</td></tr>
+          <tr><td>${ico('dashboard', { tam: 14 })} <b>Visão geral</b></td><td><code>#/dashboard</code></td><td>- (compõe os outros)</td><td class="ok">ativo</td></tr>
           <tr><td>${ico('modulos', { tam: 14 })} <b>Módulos</b></td><td><code>#/modulos</code></td><td>- (lê o registry)</td><td class="ok">ativo · os tiles do hub</td></tr>
           <tr><td>${ico('escola', { tam: 14 })} <b>Escolas</b></td><td><code>#/escolas</code></td><td><code>unidade_escolar</code>, <code>vw_escola_pessoas</code></td><td class="ok">ativo · CRUD admin</td></tr>
           <tr><td>${ico('calendario', { tam: 14 })} <b>Calendário Escolar</b></td><td><code>#/calendario</code></td><td><code>dia_calendario</code></td><td class="ok">ativo · admin edita</td></tr>
@@ -198,8 +198,8 @@ export const SECOES = [
         <li><b>Calendário → SATE.</b> Antes de aceitar uma solicitação, o SATE consulta o dia:
             se ele estiver marcado como <i>bloqueia extraclasse</i> ou como não letivo, a escola é barrada.
             <b>O admin passa por cima</b> - é proposital, exceções existem.</li>
-        <li><b>SATE → Viagens.</b> A Programação de Viagens não tem dados próprios: é a leitura das
-            solicitações <i>confirmadas</i> de um dia, no formato que a empresa de transporte recebe.</li>
+        <li><b>SATE → Visão geral.</b> A tela inicial não tem dados próprios: lê as solicitações
+            <i>confirmadas</i> do dia. O documento para a empresa de transporte são as Fichas de ônibus, do próprio SATE.</li>
         <li><b>Escolas → todo mundo.</b> É o cadastro de base. Quase todo módulo importa
             <code>escolas.model.js</code>.</li>
         <li><b>Gestores → Horários e Afastamentos.</b> Quem é dono das pessoas (<code>servidor</code>) e
@@ -636,7 +636,7 @@ export async function render(app, { perfil } = {}) {
         <thead><tr><th>Termo</th><th>Significa</th></tr></thead>
         <tbody>
           <tr><td><b>SATE</b></td><td>Sistema de Agendamento de Transporte Extraclasse. O módulo do ônibus.</td></tr>
-          <tr><td><b>Programação de Viagens</b></td><td>O documento enviado à empresa de transporte. <b>Não</b> se chama "romaneio".</td></tr>
+          <tr><td><b>Fichas de ônibus</b></td><td>O documento enviado à empresa de transporte (página do SATE). <b>Não</b> se chama "romaneio".</td></tr>
           <tr><td><b>Extraclasse</b></td><td>Atividade fora da escola (visita, feira, teatro) que costuma exigir ônibus.</td></tr>
           <tr><td><b>Atividade livre</b></td><td>Atividade organizada pela própria escola, fora do catálogo da SME.</td></tr>
           <tr><td><b>Allowlist</b></td><td>A tabela <code>perfil</code>: quem tem permissão de entrar.</td></tr>

@@ -505,7 +505,7 @@ continuam com o nome deles.
 - **Calendário Escolar** é consultado para avisar quando a data pedida cai em
   recesso ou em dia sem aula.
 - As **Fichas** do próprio SATE trazem a programação do dia já confirmada, pronta para conferir e imprimir.
-- **Dashboard** traz as atividades extraclasse do dia na tela inicial.
+- **Visão geral** traz as atividades extraclasse do dia na tela inicial.
 - **OpenStreetMap** fornece as distâncias e a busca de endereço. É gratuito,
   sem conta, e recebe só endereços e coordenadas - nunca dado de pessoa.
 - **Auditoria** guarda quem aprovou, quem negou e quem cancelou cada pedido,
@@ -555,4 +555,4 @@ Negado é um pedido que **nunca** chegou a valer - foi recusado na análise.
 Cancelado é um pedido que **estava de pé** e foi desfeito. Os dois exigem
 justificativa.
 
-> Atualizado na versão 0.39.1.
+> Atualizado na versão 0.40.0.
