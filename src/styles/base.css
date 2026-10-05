@@ -72,11 +72,18 @@ body.sem-menu .sidebar,
 body.sem-menu .sidebar-back { display: none; }
 
 .brand { display: flex; align-items: center; gap: 10px; color: var(--text); min-width: 0; }
-.brand-mark { display: inline-flex; color: var(--brand); }
+/* O tamanho da marca é do CSS, não do atributo do <svg>: ela acompanha a
+   altura do texto ao lado - uma linha no celular, duas (nome + descrição)
+   a partir de 560px - sem a barra crescer. */
+.brand-mark { display: inline-flex; flex: 0 0 auto; color: var(--brand); }
+.brand-mark svg { width: 24px; height: 24px; }
 .brand-text { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; }
 .brand-text strong { font-size: 17px; letter-spacing: -.02em; }
 .brand-text .hub { color: var(--brand); }
-.brand-text small { display: none; color: var(--muted); font-size: 11.5px; }
+.brand-text small {
+  display: none; color: var(--muted); font-size: 11.5px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
 
 .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
 
@@ -329,6 +336,7 @@ body.menu-aberto .sidebar { transform: translateX(0); }
 /* ── Telas maiores ────────────────────────────────────────── */
 @media (min-width: 560px) {
   .brand-text small { display: block; }
+  .brand-mark svg { width: 32px; height: 32px; }
   .page-head h1 { font-size: 24px; }
 }
 

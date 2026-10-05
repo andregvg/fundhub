@@ -42,10 +42,70 @@
 .geo-lista li .di-meta { display: block; }
 .geo-lista li .mini-btn { margin-left: auto; }   /* "Acertar no mapa": à direita do nome */
 
-/* "Mais detalhes" da ficha (spec 2026-10-03, D7): recolhido por padrão. */
+/* ── Card da lista ────────────────────────────────────────────
+   Contato logo abaixo do nome: e-mail e telefone principal, em texto. */
+.card-contato {
+  display: flex; flex-wrap: wrap; gap: 2px 12px;
+  margin-top: 6px; color: var(--muted); font-size: 12.5px;
+}
+.card-contato > span { min-width: 0; overflow-wrap: anywhere; }
+.card .card-contato + .addr { margin-top: 4px; }
+.card-sup { margin: -4px 0 10px; color: var(--muted); font-size: 12.5px; }
+/* Sem o endereço, as tags (ou a supervisão) herdam o respiro que era dele. */
+.card :is(.card-top, .card-contato) + :is(.tags, .card-sup) { margin-top: 10px; }
+
+/* ── Ficha da escola (views/detalhe.js) ───────────────────────
+   Contato SEM rótulo: o ícone e a forma do dado dizem o que é. */
+.esc-contato {
+  display: flex; flex-direction: column; gap: 7px;
+  margin: 0 0 20px; padding: 0; list-style: none;
+  font-size: 14px; line-height: 1.45;
+}
+.esc-contato .ico { color: var(--muted); }
+.esc-contato a { overflow-wrap: anywhere; }
+.esc-contato .tel-item small { color: var(--muted); }
+
+/* Título de seção com a ação à direita ("Equipe (4)" · Gerir em Servidores). */
+.esc-secao { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+.esc-secao > h3 {
+  margin: 0; color: var(--muted);
+  font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
+}
+
+/* Supervisão: uma linha discreta abaixo da equipe, sem cartão. */
+.esc-sup {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 3px 12px;
+  margin-top: 12px; color: var(--muted); font-size: 12.5px;
+}
+.esc-sup:empty { display: none; }
+.esc-sup-rot { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+.esc-sup-item { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 3px 10px; }
+.esc-sup-item b, .esc-sup-nome { color: var(--text); font-weight: 600; }
+.esc-sup-nome, .esc-sup-editar {
+  padding: 0; border: 0; background: none; font: inherit; font-weight: 600; cursor: pointer;
+}
+.esc-sup-nome:hover { color: var(--brand); text-decoration: underline; }
+.esc-sup-editar {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px; margin-left: -6px; border-radius: 6px; color: var(--muted);
+}
+.esc-sup-editar:hover { background: var(--surface-3); color: var(--brand); }
+@media (pointer: coarse) { .esc-sup-editar { width: 32px; height: 32px; } }
+.esc-nota { margin: 12px 0 0; }
+
+/* "Mais detalhes" (spec 2026-10-03, D7): recolhido por padrão. Aberto, é
+   uma grade rótulo → valor - aqui o rótulo fica, porque "INEP" e
+   "Regional" não se reconhecem só pelo valor. */
 .mais-detalhes { margin-top: 18px; border-top: 1px solid var(--border); padding-top: 12px; }
 .mais-detalhes > summary {
   cursor: pointer; color: var(--muted);
   font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
 }
+.mais-detalhes > summary:hover { color: var(--text); }
 .mais-detalhes[open] > summary { margin-bottom: 10px; }
+.mais-detalhes > dl {
+  display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 6px 16px;
+  margin: 0; font-size: 13.5px;
+}
+.mais-detalhes dt { color: var(--muted); }
+.mais-detalhes dd { margin: 0; overflow-wrap: anywhere; }

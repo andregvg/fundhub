@@ -253,8 +253,8 @@ export function telefonesTexto(lista = []) {
       // do celular entende sem adivinhar região.
       const num = `<a href="tel:${esc(paraE164(t.numero) || t.numero)}">${esc(exibirTelefone(t.numero))}</a>`;
       const rot = t.rotulo ? ` <small>(${esc(t.rotulo)})</small>` : '';
-      const pri = t.principal ? ' <small class="pri">principal</small>' : '';
-      return `<span class="tel-item">${ico(ICO_TEL[t.tipo] || 'fixo', { tam: 14 })} ${num}${rot}${pri}</span>`;
+      // O principal vai em negrito, sem a palavra; o `title` a guarda.
+      return `<span class="tel-item ${t.principal ? 'pri' : ''}"${t.principal ? ' title="Telefone principal"' : ''}>${ico(ICO_TEL[t.tipo] || 'fixo', { tam: 14 })} ${num}${rot}</span>`;
     })
     .join(' · ') || vazio('sem telefone cadastrado');
 }

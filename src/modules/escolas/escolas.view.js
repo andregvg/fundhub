@@ -12,7 +12,10 @@ import { criarFiltroSegmento } from '../../shared/ui/filtro-segmento.js';
 import { podeEscrever } from '../../core/permissoes.js';
 import { ico } from '../../shared/ui/icones.js';
 import { exibirTelefone } from '../../shared/ui/phones.js';
-import { mostrarTelefonesNoCard, mostrarServidoresNoCard, cardsPorLinha } from './escolas.config.js';
+import {
+  mostrarEmailNoCard, mostrarTelefonesNoCard, mostrarEnderecoNoCard, mostrarSupervisorNoCard,
+  mostrarServidoresNoCard, cardsPorLinha,
+} from './escolas.config.js';
 import { abrir as abrirFicha } from './views/detalhe.js';
 import { abrirForm } from './views/formulario.js';
 
@@ -22,25 +25,32 @@ let seg = null;                 // filtro de segmento (pré-preenchido pelo perf
 let podeEditar = false;
 let filtro = { q: '', oferta: '', transporte: false, eja: false };
 let contagemServidores = {};    // unidadeId → nº de locais de trabalho abertos (só quando a opção liga)
+let supervisores = {};          // unidadeId → [nomes de quem supervisiona] (idem)
 
-// A contagem só é carregada quando a preferência "Exibir quantidade de
-// servidores" está ligada - a maioria não pediu, e a lista de servidores
-// não deve ser baixada por causa dela. O model de servidores tem cache
-// próprio, então quem navega para lá em seguida não paga duas vezes.
+// A lista de servidores só é carregada quando uma das preferências que
+// dependem dela está ligada ("Exibir quantidade de servidores", "Exibir
+// supervisor") - a maioria não pediu, e ela não deve ser baixada à toa. O
+// model de servidores tem cache próprio, então quem navega para lá em
+// seguida não paga duas vezes.
 async function carregarContagem() {
   contagemServidores = {};
-  if (!mostrarServidoresNoCard()) return;
+  supervisores = {};
+  if (!mostrarServidoresNoCard() && !mostrarSupervisorNoCard()) return;
   try {
-    // Mesma conta da ficha ("Equipe (N)"): quem é EQUIPE do local, sem a
-    // supervisão, e cada pessoa uma vez por unidade.
-    const [{ getServidores }, { vinculosDeEquipe }] = await Promise.all([
+    // Mesmas regras da ficha: "Equipe (N)" é quem é EQUIPE do local, sem a
+    // supervisão, cada pessoa uma vez por unidade; supervisor é quem SÓ
+    // supervisiona a unidade (quem é e quem não é mora em equipe.model.js).
+    const [{ getServidores, vinculosAbertos }, { vinculosDeEquipe, soSupervisiona }] = await Promise.all([
       import('../servidores/servidores.model.js'), import('../servidores/equipe.model.js')]);
     for (const s of await getServidores()) {
       for (const u of new Set(vinculosDeEquipe(s).map(v => v.unidade_id))) {
         if (u) contagemServidores[u] = (contagemServidores[u] || 0) + 1;
       }
+      for (const u of new Set(vinculosAbertos(s).map(v => v.unidade_id))) {
+        if (u && soSupervisiona(s, u)) (supervisores[u] ||= []).push(s.nome);
+      }
     }
-  } catch (_) { contagemServidores = {}; }   // degrada: card fica sem o número
+  } catch (_) { contagemServidores = {}; supervisores = {}; }   // degrada: card fica sem o dado
 }
 
 export async function render(app, ctx = {}) {
@@ -161,25 +171,33 @@ function cardHtml(u) {
   const tel = mostrarTelefonesNoCard()
     ? (u.telefones || []).find(t => t.principal) || (u.telefones || [])[0]
     : null;
+  const sup = mostrarSupervisorNoCard() ? (supervisores[u.id] || []) : [];
   const tags = [
     u.tem_transporte ? `<span class="tag bus">${ico('onibus', { tam: 12 })} Transporte</span>` : '',
     u.tem_eja ? `<span class="tag eja">${ico('noturno', { tam: 12 })} EJA</span>` : '',
     u.oferta ? `<span class="tag">${esc(u.oferta)}</span>` : '',
-    tel ? `<span class="tag">${ico('fixo', { tam: 12 })} ${esc(exibirTelefone(tel.numero))}</span>` : '',
     mostrarServidoresNoCard()
       ? `<span class="tag">${ico('equipe', { tam: 12 })} ${contagemServidores[u.id] || 0} ${(contagemServidores[u.id] || 0) === 1 ? 'servidor' : 'servidores'}</span>`
       : '',
   ].join('');
-  // O card exibe o NOME da escola, em caixa alta - não o apelido. O
-  // apelido ("Alcina") é uma abreviação de uso interno; quem procura
-  // uma escola numa lista de 144 precisa do nome como ele é oficial.
+  // O card exibe o NOME da escola, em caixa alta, e logo abaixo como falar
+  // com ela (e-mail e telefone principal) e onde fica - cada um ligado ou
+  // desligado na engrenagem. O apelido não aparece: é abreviação de uso
+  // interno - mas a busca continua achando por ele. E-mail e telefone são
+  // TEXTO, não link: o card inteiro já é o clique que abre a ficha, e é lá
+  // que eles viram link.
+  const contato = [
+    mostrarEmailNoCard() && u.email ? `<span>${ico('email', { tam: 12 })} ${esc(u.email)}</span>` : '',
+    tel ? `<span>${ico('fixo', { tam: 12 })} ${esc(exibirTelefone(tel.numero))}</span>` : '',
+  ].join('');
   return `<article class="card" data-id="${esc(u.id || u.numero)}" tabindex="0">
     <div class="card-top">
       <h3 class="nome-oficial">${esc(u.nome)}</h3>
       ${u.segmento ? `<span class="seg">${esc(u.segmento)}</span>` : ''}
     </div>
-    ${u.apelido ? `<div class="apelido">${esc(u.apelido)}</div>` : ''}
-    <div class="addr">${u.endereco ? esc(u.endereco) : vazio('sem endereço cadastrado')}</div>
+    ${contato ? `<div class="card-contato">${contato}</div>` : ''}
+    ${mostrarEnderecoNoCard() ? `<div class="addr">${u.endereco ? esc(u.endereco) : vazio('sem endereço cadastrado')}</div>` : ''}
+    ${sup.length ? `<div class="card-sup">${ico('equipe', { tam: 12 })} Supervisão: ${esc(sup.join(', '))}</div>` : ''}
     <div class="tags">${tags}</div>
   </article>`;
 }

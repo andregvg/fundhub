@@ -15,9 +15,18 @@ import { pintarLocalizacao } from './views/localizar.js';
 
 export const DECLARACAO = {
   itens: [
+    { chave: 'email_no_card', escopo: 'usuario', grupo: 'exibicao',
+      tipo: 'switch', rotulo: 'Exibir e-mail no card',
+      dica: 'Mostra o e-mail da escola na lista.', padrao: true },
     { chave: 'telefones_no_card', escopo: 'usuario', grupo: 'exibicao',
       tipo: 'switch', rotulo: 'Exibir telefone no card',
-      dica: 'Mostra o telefone principal da escola na lista.', padrao: false },
+      dica: 'Mostra o telefone principal da escola na lista.', padrao: true },
+    { chave: 'endereco_no_card', escopo: 'usuario', grupo: 'exibicao',
+      tipo: 'switch', rotulo: 'Exibir endereço no card',
+      dica: 'Mostra o endereço da escola na lista.', padrao: true },
+    { chave: 'supervisor_no_card', escopo: 'usuario', grupo: 'exibicao',
+      tipo: 'switch', rotulo: 'Exibir supervisor no card',
+      dica: 'Mostra quem supervisiona a escola.', padrao: false },
     { chave: 'servidores_no_card', escopo: 'usuario', grupo: 'exibicao',
       tipo: 'switch', rotulo: 'Exibir quantidade de servidores',
       dica: 'Conta a equipe da unidade (quem tem local de trabalho aberto nela), sem a supervisão.', padrao: false },
@@ -35,7 +44,10 @@ export const DECLARACAO = {
   ],
 };
 
-export const mostrarTelefonesNoCard = () => pref('escolas', 'telefones_no_card') ?? false;
+export const mostrarEmailNoCard = () => pref('escolas', 'email_no_card') ?? true;
+export const mostrarTelefonesNoCard = () => pref('escolas', 'telefones_no_card') ?? true;
+export const mostrarEnderecoNoCard = () => pref('escolas', 'endereco_no_card') ?? true;
+export const mostrarSupervisorNoCard = () => pref('escolas', 'supervisor_no_card') ?? false;
 export const mostrarServidoresNoCard = () => pref('escolas', 'servidores_no_card') ?? false;
 export const cardsPorLinha = () => {
   const n = Number(pref('escolas', 'cards_por_linha'));

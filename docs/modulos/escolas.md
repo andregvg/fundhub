@@ -7,7 +7,7 @@
 - Buscar uma escola por nome, apelido, bairro ou pelo nome de quem está na
   equipe.
 - Filtrar por segmento, por oferta, e por "tem transporte" / "atende EJA".
-- Abrir a ficha de uma escola: contatos, endereço, supervisão e equipe. Sob o
+- Abrir a ficha de uma escola: e-mail, telefones, endereço, equipe e supervisão. Sob o
   nome da escola ficam as tags (segmento, oferta, transporte, EJA). Os
   cadastros menos consultados - **Nome no SAE** (só quando diferente do nome),
   INEP, regional e site da APM - ficam recolhidos em **Mais detalhes**.
@@ -121,14 +121,18 @@ fica salvo.
 ### Ajustar o card
 
 1. Clique na **engrenagem** no topo da tela.
-2. Ligue **Exibir telefone no card** para ver o telefone principal na lista.
-3. Ligue **Exibir quantidade de servidores** para ver quantas pessoas formam a
+2. **Exibir e-mail no card**, **Exibir telefone no card** e **Exibir endereço
+   no card** já vêm ligados: o card mostra, abaixo do nome, o e-mail e o
+   telefone principal da escola, e depois o endereço. Desligue o que não
+   quiser ver.
+3. Ligue **Exibir supervisor no card** para ver quem supervisiona a escola.
+4. Ligue **Exibir quantidade de servidores** para ver quantas pessoas formam a
    equipe da unidade, a mesma conta de "Equipe" na ficha. A supervisão não
    entra.
-4. Em **Cards por linha**, escolha de 1 a 6 (vale para telas largas; no celular
+5. Em **Cards por linha**, escolha de 1 a 6 (vale para telas largas; no celular
    os cards sempre empilham).
 
-Essas três são preferências suas - seguem o seu login e não mudam a tela de
+Essas são preferências suas - seguem o seu login e não mudam a tela de
 mais ninguém.
 
 ### Ver os detalhes de cadastro de uma escola
@@ -143,19 +147,20 @@ mais ninguém.
 ### Ver ou editar alguém da equipe
 
 1. Abra a ficha da escola.
-2. Em **Equipe** (ou em **Supervisão**), clique no card da pessoa. A ficha dela abre por cima da
-   escola.
+2. Em **Equipe**, clique no card da pessoa - ou, em **Supervisão**, logo abaixo da equipe,
+   clique no nome. A ficha dela abre por cima da escola.
 3. Para voltar à escola, use a seta **←** no topo da ficha (ou a tecla Esc).
 
-Para ir direto à edição, clique no **lápis** do card: o formulário da pessoa
+Para ir direto à edição, clique no **lápis** (no canto do card ou ao lado do nome do
+supervisor): o formulário da pessoa
 abre por cima da escola e, ao **Salvar**, você volta para a escola com a equipe
 já atualizada. O lápis só aparece para quem pode editar servidores.
 
 ### Incluir ou encerrar alguém na equipe
 
 A equipe vem dos locais de trabalho de cada pessoa, na ordem Gestor(a) 1,
-Gestor(a) 2, coordenação e demais. Quem apenas supervisiona a escola aparece em
-**Supervisão**, um bloco à parte: o supervisor acompanha a escola, mas não faz
+Gestor(a) 2, coordenação e demais, com o cargo numa etiqueta ao lado do nome. Quem
+apenas supervisiona a escola aparece em **Supervisão**, uma linha à parte abaixo da equipe: o supervisor acompanha a escola, mas não faz
 parte da equipe dela, e por isso não entra na contagem da equipe. Na ficha da escola, o botão
 **Gerir em Servidores** abre a lista de Servidores já filtrada por aquela
 unidade - é lá que se inclui ou encerra o local de trabalho de alguém.
@@ -172,6 +177,7 @@ unidade - é lá que se inclui ou encerra o local de trabalho de alguém.
   **Supervisão**; a equipe lista quem trabalha na escola. Sem ninguém em um dos
   blocos, a ficha avisa "Sem supervisão informada." ou "Sem pessoas
   vinculadas.".
+- **O telefone principal aparece em negrito** na ficha; é ele que vai para o card.
 - **Latitude e longitude andam juntas.** Se só uma for preenchida, o sistema
   guarda a escola sem localização - meia coordenada não aponta lugar nenhum.
 - **Localizar pelo endereço não salva sozinho.** Ele só preenche os campos;
@@ -219,4 +225,4 @@ sistema envia só o endereço da escola, nunca dado de pessoa.
 A ficha de uma pessoa só abre para quem tem acesso ao módulo Servidores. Sem
 esse acesso, a equipe continua visível para leitura.
 
-> Atualizado na versão 0.39.0.
+> Atualizado na versão 0.39.1.

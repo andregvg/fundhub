@@ -9,8 +9,11 @@
 // de Escolas ou da ficha de um servidor. Spec
 // 2026-09-13-fichas-entre-modulos-design.md.
 // O cabeçalho mostra o nome e, embaixo, as tags; o nome no SAE vai para
-// "Mais detalhes" quando difere (spec 2026-10-03, D7). A supervisão tem
-// bloco próprio, separado da equipe (D13).
+// "Mais detalhes" quando difere (spec 2026-10-03, D7).
+// Revista em 04/10/2026: o contato vem sem rótulo (o ícone e a forma do dado
+// já dizem o que é - e-mail, telefones, endereço, nesta ordem); na equipe,
+// nome e cargo dividem a linha; a supervisão vem DEPOIS da equipe, em texto
+// discreto e sem cartão - é dado da escola, não gente da equipe (D13).
 // ============================================================
 import { getUnidades } from '../escolas.model.js';
 import { linkMaps } from '../../locais/geografia.model.js';
@@ -69,7 +72,7 @@ function detalhe(u, ctx, opts) {
     u.tem_eja ? `<span class="tag eja">${ico('noturno', { tam: 12 })} EJA</span>` : '',
   ].filter(Boolean).join('');
 
-  const campo = (l, v) => v ? `<div class="field"><div class="lbl">${l}</div><div class="val">${v}</div></div>` : '';
+  const linha = (icone, html) => html ? `<li>${icone ? ico(icone, { tam: 14 }) + ' ' : ''}${html}</li>` : '';
 
   abrirModal(`
     ${modalHead(`<span class="nome-oficial">${esc(u.nome)}</span>`,
@@ -81,27 +84,25 @@ function detalhe(u, ctx, opts) {
         ${ctx.podeEditar ? `<button class="mini-btn no" id="del-esc">${ico('excluir')} Excluir</button>` : ''}
       </div>
 
-      <h3 class="bloco-tit">Contato e localização</h3>
-      ${campo('Endereço', u.endereco
-        ? esc(u.endereco) + (maps ? ` · <a href="${maps}" target="_blank" rel="noopener">ver no mapa</a>` : '')
-        : '')}
-      ${campo('Telefones', tel)}
-      ${campo('E-mail institucional', u.email ? `<a href="mailto:${esc(u.email)}">${esc(u.email)}</a>` : '')}
+      <ul class="esc-contato">
+        ${linha('email', u.email ? `<a href="mailto:${esc(u.email)}">${esc(u.email)}</a>` : '')}
+        ${linha('', tel)}
+        ${linha('visita', u.endereco
+          ? esc(u.endereco) + (maps ? ` · <a href="${maps}" target="_blank" rel="noopener">ver no mapa</a>` : '')
+          : '')}
+      </ul>
 
-      <h3 class="bloco-tit">Supervisão</h3>
-      <div class="people" id="esc-supervisao">${loading()}</div>
-
-      <hr class="sep" />
-      <div class="vinc-head">
-        <div class="field" style="margin:0"><div class="lbl" id="esc-equipe-tit">Equipe</div></div>
+      <div class="esc-secao">
+        <h3 id="esc-equipe-tit">Equipe</h3>
         <a class="mini-btn" href="#/servidores?unidade=${esc(u.id)}">Gerir em Servidores →</a>
       </div>
       <div class="people" id="esc-equipe">${loading()}</div>
-      <p class="form-hint" style="margin-top:10px">
+      <div class="esc-sup" id="esc-supervisao"></div>
+      <p class="form-hint esc-nota">
         A equipe vem dos locais de trabalho atuais. Para incluir ou encerrar alguém, use Servidores.
       </p>
 
-      ${maisDetalhes(u, campo)}
+      ${maisDetalhes(u)}
     </div>`, { tamanho: 'largo', voltar: opts.voltar });
 
   if (ctx.podeEditar) {
@@ -119,7 +120,8 @@ function detalhe(u, ctx, opts) {
 
 // O que não precisa aparecer de cara (spec 2026-10-03, D7): identificadores
 // que se consultam de vez em quando. Sem nenhum preenchido, o bloco nem nasce.
-function maisDetalhes(u, campo) {
+function maisDetalhes(u) {
+  const campo = (l, v) => v ? `<dt>${l}</dt><dd>${v}</dd>` : '';
   const itens = [
     u.nome_oficial && norm(u.nome_oficial).trim() !== norm(u.nome).trim() ? campo('Nome no SAE', esc(u.nome_oficial)) : '',
     campo('INEP', esc(u.inep)),
@@ -128,7 +130,7 @@ function maisDetalhes(u, campo) {
     u.site_apm ? campo('Site APM', urlSegura(u.site_apm)
       ? `<a href="${esc(u.site_apm)}" target="_blank" rel="noopener">abrir</a>` : esc(u.site_apm)) : '',
   ].join('');
-  return itens ? `<details class="mais-detalhes"><summary>Mais detalhes</summary>${itens}</details>` : '';
+  return itens ? `<details class="mais-detalhes"><summary>Mais detalhes</summary><dl>${itens}</dl></details>` : '';
 }
 
 // A equipe vem do model da EQUIPE (getEquipeDaUnidade), e não de
@@ -144,7 +146,7 @@ async function pintarEquipe(box, boxSup, u, abrirOpts) {
   } catch (err) {
     if (box.isConnected) box.innerHTML = erroBox(err);
     // O erro completo fica sob "Equipe"; a supervisão só avisa, sem repetir.
-    if (boxSup?.isConnected) boxSup.innerHTML = '<p class="count">Não foi possível carregar.</p>';
+    if (boxSup?.isConnected) boxSup.innerHTML = '';
     return;
   }
   // O modal pode ter sido trocado enquanto a lista chegava (← rápido, outra
@@ -162,10 +164,14 @@ async function pintarEquipe(box, boxSup, u, abrirOpts) {
 
   const verServidor = podeAbrirFicha('servidores');
   const editarServidor = verServidor && podeEscrever('servidores');
-  const cards = (lista) => lista.map(p => cardPessoa(p, { clicavel: verServidor, editar: editarServidor })).join('');
+  const opcoes = { clicavel: verServidor, editar: editarServidor };
 
-  box.innerHTML = equipe.length ? cards(equipe) : '<p class="count">Sem pessoas vinculadas.</p>';
-  if (boxSup) boxSup.innerHTML = supervisao.length ? cards(supervisao) : '<p class="count">Sem supervisão informada.</p>';
+  box.innerHTML = equipe.length
+    ? equipe.map(p => cardPessoa(p, opcoes)).join('') : '<p class="count">Sem pessoas vinculadas.</p>';
+  if (boxSup) {
+    boxSup.innerHTML = `<span class="esc-sup-rot">Supervisão</span>`
+      + (supervisao.length ? supervisao.map(p => linhaSupervisao(p, opcoes)).join('') : '<span>Sem supervisão informada.</span>');
+  }
 
   // Os dois blocos são nós novos desta abertura: ligar uma vez, aqui.
   for (const raiz of [box, boxSup].filter(Boolean)) {
@@ -180,21 +186,41 @@ async function pintarEquipe(box, boxSup, u, abrirOpts) {
 // servidor já o tirou pelo mesmo motivo. O card clicável segue o padrão do
 // "link esticado" (.person-abrir, components.css): o nome é o botão de
 // verdade, e o e-mail e o telefone continuam links por cima dele.
+const emailDe = (p) => p.email
+  ? `<span>${ico('email', { tam: 12 })} <a href="mailto:${esc(p.email)}">${esc(p.email)}</a></span>` : '';
+const telefoneDe = (p) => p.telefone
+  ? `<span>${ico('celular', { tam: 12 })} <a href="tel:${esc(paraE164(p.telefone) || p.telefone)}">${esc(exibirTelefone(p.telefone))}</a></span>` : '';
+
+// A supervisão em UMA linha discreta: nome, ✎ ao lado dele, e-mail e
+// telefone. Sem cartão - quem supervisiona não é da equipe da escola.
+function linhaSupervisao(p, { clicavel, editar }) {
+  const nome = esc(p.nome);
+  return `
+    <span class="esc-sup-item">
+      ${clicavel
+        ? `<button type="button" class="esc-sup-nome" data-abrir-servidor="${esc(p.id)}"
+             aria-label="Abrir ficha de ${nome}">${nome}</button>`
+        : `<b>${nome}</b>`}
+      ${editar ? `<button type="button" class="esc-sup-editar" data-editar-servidor="${esc(p.id)}"
+                    aria-label="Editar servidor ${nome}">${ico('editar', { tam: 13 })}</button>` : ''}
+      ${emailDe(p)}${telefoneDe(p)}
+    </span>`;
+}
+
 function cardPessoa(p, { clicavel, editar }) {
   const nome = esc(p.nome);
-  const telefone = p.telefone
-    ? `<span>${ico('celular', { tam: 12 })} <a href="tel:${esc(paraE164(p.telefone) || p.telefone)}">${esc(exibirTelefone(p.telefone))}</a></span>`
-    : '';
   return `
     <div class="person ${clicavel ? 'clicavel' : ''}">
-      ${p.cargo ? `<div class="role">${esc(p.cargo)}</div>` : ''}
-      ${clicavel
-        ? `<button type="button" class="pname person-abrir" data-abrir-servidor="${esc(p.id)}"
-             aria-label="Abrir ficha de ${nome}">${nome}</button>`
-        : `<div class="pname">${nome}</div>`}
+      <div class="person-topo">
+        ${clicavel
+          ? `<button type="button" class="pname person-abrir" data-abrir-servidor="${esc(p.id)}"
+               aria-label="Abrir ficha de ${nome}">${nome}</button>`
+          : `<div class="pname">${nome}</div>`}
+        ${p.cargo ? `<span class="seg">${esc(p.cargo)}</span>` : ''}
+      </div>
       <div class="pmeta">
-        ${p.email ? `<span>${ico('email', { tam: 12 })} <a href="mailto:${esc(p.email)}">${esc(p.email)}</a></span>` : ''}
-        ${telefone}
+        ${emailDe(p)}
+        ${telefoneDe(p)}
       </div>
       ${editar ? `
         <div class="person-acoes">

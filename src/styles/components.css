@@ -427,6 +427,10 @@ span.gira-90, span.gira-menos90, span.gira-180 { display: inline-flex; }
   min-height: var(--controle);
   padding: 5px 12px;
   border-radius: var(--radius-btn);
+  /* <button> não herda a fonte da página e <a> herda: sem isto, um
+     "Editar" (botão) e um "Horários" (link) lado a lado saíam em duas
+     fontes diferentes. */
+  font-family: inherit;
   font-size: 13.5px;
   font-weight: 500;
   line-height: 20px;
@@ -581,8 +585,11 @@ span.gira-90, span.gira-menos90, span.gira-180 { display: inline-flex; }
   font-size: 11px;
   font-weight: 600;
 }
-.tag.bus { color: var(--brand-2); background: color-mix(in srgb, var(--brand-2) 14%, transparent); }
-.tag.eja { color: var(--accent); background: color-mix(in srgb, var(--accent) 16%, transparent); }
+/* A cor pura como TEXTO não tem contraste sobre o próprio fundo claro
+   (o âmbar dá 2,2:1). Misturada com --text ela escurece no tema claro e
+   clareia no escuro - legível nos dois sem um token a mais. */
+.tag.bus { color: color-mix(in srgb, var(--brand-2) 55%, var(--text)); background: color-mix(in srgb, var(--brand-2) 16%, transparent); }
+.tag.eja { color: color-mix(in srgb, var(--accent) 50%, var(--text)); background: color-mix(in srgb, var(--accent) 20%, transparent); }
 .tag.st-confirmado { color: var(--ok); background: color-mix(in srgb, var(--ok) 16%, transparent); }
 .tag.st-em_analise, .tag.st-aguardando_transporte_adaptado { color: var(--accent); background: color-mix(in srgb, var(--accent) 16%, transparent); }
 .tag.st-negado, .tag.st-cancelado { color: var(--danger); background: color-mix(in srgb, var(--danger) 14%, transparent); }
@@ -879,7 +886,8 @@ input.caixa-alta { text-transform: uppercase; }
 label > :is(input, select, textarea) + .form-hint { margin-top: -2px; }
 
 /* Campo obrigatório: o * é posto por shared/ui/modal.js em todo modal. */
-.lbl-txt > .obrig { margin-left: 2px; color: var(--danger); font-weight: 700; }
+/* Vermelho ATENUADO: é uma marca de apoio, não um alerta. */
+.lbl-txt > .obrig { margin-left: 2px; color: color-mix(in srgb, var(--danger) 60%, transparent); font-weight: 600; }
 
 /* Campo com erro. `aria-invalid` é posto por falhaNoCampo() (shared/dom.js)
    quando a validação do formulário aponta UM campo; `:user-invalid` é o
@@ -1098,21 +1106,18 @@ body:has(.modal-back.open) .confirmar-back.open { -webkit-backdrop-filter: none;
   justify-content: space-between;
   align-items: center;
   gap: 10px;
-  padding: 12px 18px;
+  padding: 10px 18px;
   background: var(--cabecalho-bg);
   border-bottom: 1px solid var(--cabecalho-borda);
 }
-/* Título SEMPRE no meio (decisão do André, 04/10/2026). Sem o ←, o recuo
-   à esquerda vale o × da direita - senão o centro sairia torto. */
-.modal-head { --botao-cab: var(--controle); }
-.modal-head > div { flex: 1 1 auto; min-width: 0; text-align: center; }
-.modal-head:not(:has(> .modal-voltar)) > div { padding-left: calc(var(--botao-cab) + 10px); }
-.modal-head .tags { justify-content: center; }
+/* Título à ESQUERDA, com ou sem o ← (o centralizado foi testado e
+   descartado em 04/10/2026). */
+.modal-head { --botao-cab: 36px; }
+.modal-head > div { flex: 1 1 auto; min-width: 0; }
 /* Flex para o ícone do título (quando há) centralizar com o texto. */
 .modal-head h2 {
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 8px;
   margin: 0;
   font-size: 18px;
@@ -1142,8 +1147,10 @@ body:has(.modal-back.open) .confirmar-back.open { -webkit-backdrop-filter: none;
   background: var(--surface);
 }
 /* Os dois botões do cabeçalho são UM desenho: × fecha, ← desempilha o
-   modal aberto sobre outro (ver shared/ui/modal.js). Mesmo tamanho, mesma
-   borda e mesmo fundo leve - é o que os faz ler como botão antes do hover. */
+   modal aberto sobre outro (ver shared/ui/modal.js). Mesmo tamanho, SEM
+   borda, com um fundo leve - é o que os faz ler como botão antes do hover.
+   36px num cabeçalho de 10px de respiro: área de clique folgada sem o
+   cabeçalho crescer. */
 .modal-close,
 .modal-voltar {
   flex: 0 0 auto;
@@ -1152,16 +1159,15 @@ body:has(.modal-back.open) .confirmar-back.open { -webkit-backdrop-filter: none;
   justify-content: center;
   width: var(--botao-cab);
   height: var(--botao-cab);
-  border: 1px solid var(--cabecalho-borda);
-  border-radius: var(--radius-btn);
-  background: color-mix(in srgb, var(--text) 5%, transparent);
+  border: 0;
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--text) 6%, transparent);
   color: var(--text);
   cursor: pointer;
-  transition: background-color .12s, border-color .12s, color .12s;
+  transition: background-color .12s, color .12s;
 }
 :is(.modal-close, .modal-voltar):hover {
-  border-color: color-mix(in srgb, var(--brand) 40%, var(--cabecalho-borda));
-  background: color-mix(in srgb, var(--brand) 14%, transparent);
+  background: color-mix(in srgb, var(--brand) 16%, transparent);
   color: var(--brand);
 }
 @media (pointer: coarse) {
@@ -1520,6 +1526,10 @@ body:has(.modal-back.open) .confirmar-back.open { -webkit-backdrop-filter: none;
    não correr por baixo do botão. */
 .person-acoes { position: absolute; top: 8px; right: 8px; z-index: 1; display: flex; gap: 6px; }
 .person:has(> .person-acoes) { padding-right: 56px; }
+/* Nome e cargo na MESMA linha (equipe na ficha da escola): o cargo é uma
+   badge (.seg) ao lado do nome, e o ✎ de .person-acoes fecha a linha. */
+.person-topo { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin-bottom: 3px; }
+.person-topo > .pname { width: auto; margin: 0; }
 hr.sep { margin: 20px 0; border: 0; border-top: 1px solid var(--border); }
 
 /* ── Editor de telefones (shared/ui/phones.js) ────────────── */
@@ -1556,7 +1566,8 @@ hr.sep { margin: 20px 0; border: 0; border-top: 1px solid var(--border); }
    min-height de campo). */
 .phone-row > .phone-del { justify-self: end; }
 .tel-item { white-space: nowrap; }
-.tel-item .pri { color: var(--brand); font-weight: 700; }
+/* O principal não leva a palavra "principal": só o peso. */
+.tel-item.pri > a { font-weight: 700; }
 
 /* ── Telas maiores ────────────────────────────────────────── */
 @media (min-width: 560px) {

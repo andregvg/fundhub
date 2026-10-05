@@ -124,10 +124,15 @@ inteiro no `title`: um campo que cresce para duas linhas deixa de casar com os v
   fica para o erro que não é de campo nenhum.
 - **Grupo de um campo só não repete a legenda no rótulo:** o campo vai sem `<label>` visível,
   com `aria-label`.
-- **Cabeçalho de modal:** `×` e `←` são um desenho só (`--controle`, borda e fundo leves) e
-  tudo se alinha pelo centro. O título fica SEMPRE centralizado na largura (sem o `←`, um
-  recuo do tamanho do `×` compensa o lado esquerdo). Ícone no título vai dentro do `<h2>`,
-  antes do texto - o alinhamento já é do `h2`.
+- **Cabeçalho de modal:** `×` e `←` são um desenho só (36px, sem borda, fundo leve) e tudo se
+  alinha pelo centro na vertical. O título fica à ESQUERDA, com ou sem o `←` (o centralizado
+  foi testado e descartado em 04/10/2026). Ícone no título vai dentro do `<h2>`, antes do
+  texto - o alinhamento já é do `h2`.
+- **Botão herda a fonte da página** (`font-family: inherit` na regra comum de botões): um
+  `<button>` e um `<a class="mini-btn">` lado a lado têm de sair iguais.
+- **Dado que se reconhece pela forma não leva rótulo** numa ficha: e-mail, telefone e
+  endereço vão com ícone, sem "E-mail:" na frente. O telefone principal é o em negrito, sem
+  a palavra. Rótulo fica para o que não se reconhece sozinho (INEP, regional).
 - **O campo contrasta na direção do tema:** no claro é o ponto mais claro (branco sobre o
   cinza neutro do grupo); no escuro, o mais escuro. `--grupo-bg` e `--grupo-borda` são
   neutros (`--surface-2`, `--border`) - a cor de destaque fica só no cabeçalho do modal.

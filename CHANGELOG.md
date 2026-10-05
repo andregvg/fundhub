@@ -52,10 +52,24 @@ partir das versões do FundHub que mudaram algo para quem usa o SATE.
 
 ### Alterado
 - **Campo obrigatório tem asterisco.** Em toda janela de cadastro, o campo que não pode ficar
-  em branco traz um asterisco ao lado do nome.
+  em branco traz um asterisco discreto ao lado do nome.
 - **Cabeçalho das janelas.** Título centralizado na altura, cabeçalho mais baixo, e os botões
-  de voltar e de fechar com o mesmo tamanho e a mesma aparência. O título fica no meio da
-  janela, e no tema claro o fundo do cabeçalho ganhou uma cor mais cheia.
+  de voltar e de fechar com o mesmo tamanho, sem borda e com área de clique maior. No tema
+  claro o fundo do cabeçalho ganhou uma cor mais cheia.
+- **Escolas: ficha mais enxuta.** E-mail, telefones e endereço aparecem direto, com ícone e
+  sem o nome do campo na frente; o telefone principal é o que está em negrito. Na equipe, o
+  cargo é uma etiqueta azul ao lado do nome. A supervisão passou para baixo da equipe, numa
+  linha discreta com nome, e-mail e telefone. "Mais detalhes" virou uma lista alinhada.
+- **Escolas: card com contato.** O card mostra, abaixo do nome, o e-mail e o telefone
+  principal, e depois o endereço. O apelido saiu do card (a busca continua achando por ele).
+  Na engrenagem dá para desligar cada um (e-mail, telefone, endereço) e ligar a exibição
+  de quem supervisiona a escola.
+- **Nome na barra do topo.** O FundHub aparece como "Hub de Ferramentas do Ensino
+  Fundamental" e o SATE como "Sistema de Agendamento de Transporte Extraclasse", com o
+  ícone maior, da altura das duas linhas.
+- **Etiquetas de Transporte e EJA mais legíveis** no tema claro, com texto mais escuro.
+- **Botões com a mesma letra.** Botões lado a lado (como Editar e Horários da equipe) saíam
+  com fontes diferentes; agora todos seguem a fonte do sistema.
 - **Formulários mais limpos.** Os blocos das janelas de cadastro perderam o tom colorido e
   ficaram em cinza neutro. No tema claro os campos são brancos, mais claros que o fundo em
   volta; no escuro, mais escuros.
