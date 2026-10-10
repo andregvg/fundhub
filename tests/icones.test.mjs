@@ -60,7 +60,7 @@ test('um desenho só para ônibus: o caminhão antigo saiu', () => {
 });
 
 test('todos os icones do conjunto produzem svg', () => {
-  const nomes = ['escola', 'sede', 'servidor', 'equipe', 'horario', 'calendario',
+  const nomes = ['hub', 'escola', 'sede', 'servidor', 'equipe', 'horario', 'calendario',
     'afastamento', 'dashboard', 'modulos', 'ata', 'ocorrencia',
     'projeto', 'visita', 'acesso', 'auditoria', 'docs', 'sino', 'editar',
     'excluir', 'buscar', 'adicionar', 'fechar', 'ok', 'atencao', 'erro',
