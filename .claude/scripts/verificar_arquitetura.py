@@ -588,6 +588,8 @@ ISENTAS_AUDITORIA = {
     'evento_log',           # idem
     'preferencia_usuario',  # preferencia pessoal de tela; ruido puro
     'schema_migrations',    # metadado de infraestrutura, nao cadastro
+    'solicitacao_aviso',    # log de um fato ja auditado na origem (a solicitacao)
+    'solicitacao_visto',    # estado pessoal de leitura; ruido puro
 }
 
 # A partir daqui a migration que cria tabela precisa religar a auditoria.
