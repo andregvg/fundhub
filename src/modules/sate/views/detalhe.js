@@ -21,7 +21,7 @@ import {
 import { tituloDoPedido, responsavelDoPedido } from '../regras.model.js';
 import { abrirFrotaExtra } from './frota-extra.js';
 import { abrirRemanejar } from './remanejar.js';
-import { abrirConferirLocal } from './conferir-local.js';
+import { abrirConferirDoPedido } from './conferir-local.js';
 import { getParticipacoes } from '../participacoes.model.js';
 import { blocoHtml, ligarParticipantes } from './participantes.js';
 import { lerOcupacao, faltaParaConfirmar, intervaloDaViagem, livresPara, embarqueEfetivo, trajetoParaVaga } from '../disponibilidade.model.js';
@@ -97,7 +97,7 @@ export async function abrirDetalhe(solicitacao, contexto) {
 
   corpo.addEventListener('click', aoClicarAcao);
   corpo.querySelector('#det-recalc')?.addEventListener('click', (e) => recalcular(e.currentTarget, s));
-  corpo.querySelector('#det-conferir')?.addEventListener('click', () => abrirConferirLocal(s, ctx, () => abrirDetalhe(s, ctx)));
+  corpo.querySelector('#det-conferir')?.addEventListener('click', () => abrirConferirDoPedido(s, ctx, () => abrirDetalhe(s, ctx)));
   // `reabrir` e esta propria funcao: depois de mexer numa escola a
   // viagem volta a abrir com o dado novo, em vez de fechar a pilha.
   ligarParticipantes(corpo, {

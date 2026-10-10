@@ -5,6 +5,8 @@
 // Todos veem; quem aprova o SATE (não é o mesmo que admin do hub, D7)
 // edita. Usa modules/locais/locais.model.js.
 // ============================================================
+import { destinosAConferir } from '../sate.model.js';
+import { agruparDestinos } from '../regras.model.js';
 import { criarLocal, atualizarLocal, excluirLocal, enderecoCompleto } from '../../locais/locais.model.js';
 import { localizarEndereco, buscarCep, cepNaCidade, linkMaps, temCoordenada } from '../../locais/geografia.model.js';
 import { esc, val, checked, falha, falhaNoCampo } from '../../../shared/dom.js';
@@ -30,18 +32,49 @@ export function render(contexto) {
       <button id="novo-local" class="btn-primary">${ico('adicionar')} Novo local</button>
     </div>` : '';
 
-  box.innerHTML = barra + (locais.length
+  box.innerHTML = barra + (podeEditar ? '<div id="loc-conferir"></div>' : '') + (locais.length
     ? `<div class="cards">${locais.map(card).join('')}</div>`
     : emptyState(ico('visita', { tam: 32 }), 'Nenhum local cadastrado', podeEditar
         ? 'Clique em “Novo local” para começar. Os destinos das atividades já viram locais no backfill da migration 017.'
         : 'Peça a um administrador para cadastrar os destinos.'));
 
   if (!podeEditar) return;
+  pintarAConferir();
   document.getElementById('novo-local')?.addEventListener('click', () => abrirLocal(null));
   box.querySelectorAll('[data-edit]').forEach(b =>
     b.addEventListener('click', () => abrirLocal(locais.find(l => l.id === b.dataset.edit))));
   box.querySelectorAll('[data-del]').forEach(b =>
     b.addEventListener('click', () => remover(locais.find(l => l.id === b.dataset.del))));
+}
+
+// Destinos que as escolas digitaram e ainda não são local do cadastro
+// (spec 2026-10-10-sate-endereco-e-cep, D8). Uma linha por LUGAR. Sem
+// pendência, o bloco não aparece. Falha de leitura também não: a aba
+// Locais não pode quebrar por causa de um bloco de apoio.
+async function pintarAConferir() {
+  const box = document.getElementById('loc-conferir');
+  if (!box) return;
+  const grupos = agruparDestinos(await destinosAConferir().catch(() => []));
+  if (document.getElementById('loc-conferir') !== box || !grupos.length) return;
+  box.innerHTML = `
+    <section class="panel loc-conferir">
+      <h2>A conferir</h2>
+      <p class="form-hint">Destinos que as escolas digitaram e ainda não são um local do cadastro.</p>
+      ${grupos.map((g, i) => `
+        <div class="solic">
+          <div class="solic-main"><b>${esc(g.nome)}</b>
+            <div class="di-meta">${esc(enderecoCompleto(g)) || 'sem endereço'} · em ${g.pedidos.length === 1 ? '1 pedido' : `${g.pedidos.length} pedidos`}</div></div>
+          <div class="solic-acoes"><button type="button" class="mini-btn" data-conferir="${i}">Conferir</button></div>
+        </div>`).join('')}
+    </section>`;
+  box.querySelectorAll('[data-conferir]').forEach(b => b.addEventListener('click', async () => {
+    // Dinâmico: conferir-local.js importa este arquivo (abrirLocal).
+    const { abrirConferirLocal } = await import('./conferir-local.js');
+    abrirConferirLocal(grupos[Number(b.dataset.conferir)], ctx, async () => {
+      await ctx.recarregarLocais();
+      render(ctx);
+    });
+  }));
 }
 
 function card(l) {

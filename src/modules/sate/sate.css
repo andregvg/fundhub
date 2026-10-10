@@ -349,6 +349,8 @@ body.app-sate { --info-bg: color-mix(in srgb, var(--brand) 12%, var(--surface));
 /* ── Conferir local (spec 2026-09-27, D6) ────────────────────── */
 .conf-digitado { padding: 10px 12px; border: 1px dashed var(--border); border-radius: var(--radius-btn); }
 .conf-titulo { margin: 16px 0 8px; font-size: 14px; }
+.loc-conferir { margin-bottom: 16px; }
+.loc-conferir h2 { margin: 0 0 4px; font-size: 15px; }
 
 /* ── Quando (spec 2026-10-03, D2) ────────────────────────────── */
 /* Data sem ano: campo de texto dd/mm com o botão do calendário por dentro,

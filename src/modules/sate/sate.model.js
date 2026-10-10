@@ -111,18 +111,36 @@ export async function editarSolicitacao(id, payload) {
 // 2026-09-27, D6). Derivado, não guardado: não tem como dessincronizar.
 export const localAConferir = (s) => !s?.local_id && !!s?.destino_nome;
 
-// A SME apontou o pedido para um local do cadastro ("É este" ou
-// "Cadastrar novo"). Troca SÓ o destino - data, horários, escolas e
-// veículos ficam. O texto da escola fica no audit_log.
-export async function vincularLocal(solicitacaoId, local) {
+// Os pedidos com destino digitado que ainda não são local do cadastro
+// (spec 2026-10-10-sate-endereco-e-cep, D8). Negado e cancelado ficam de
+// fora: não há mais viagem para a qual conferir o endereço.
+export async function destinosAConferir() {
+  if (!hasSupabase()) return [];
+  const { data, error } = await sb().from('solicitacao_transporte')
+    .select(SELECT_BASE).is('local_id', null).not('destino_nome', 'is', null)
+    .not('status', 'in', '(negado,cancelado)').order('data');
+  if (error) { if (ausente(error)) return []; throw error; }
+  return data || [];
+}
+
+// A SME apontou o destino digitado para um local do cadastro ("É este" ou
+// "Cadastrar novo"). Vale para o LUGAR: `ids` são todos os pedidos que
+// digitaram aquele destino, e mudam juntos. Troca SÓ o destino - data,
+// horários, escolas e veículos ficam. O texto da escola fica no audit_log.
+export async function vincularLocal(ids, local) {
+  if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
   const patch = {
     local_id: local.id,
     destino_nome: local.nome,
     destino_endereco: local.endereco || null,
     destino_numero: local.numero || null,
     destino_bairro: local.bairro || null,
+    // Só quando o local tem CEP: sem a migration 047 a coluna não existe.
+    ...(local.cep ? { destino_cep: local.cep } : {}),
   };
-  await editarSolicitacao(solicitacaoId, patch);
+  const { error } = await sb().from('solicitacao_transporte')
+    .update({ ...patch, atualizado_em: agoraISO() }).in('id', [].concat(ids));
+  if (error) throw error;
   return patch;
 }
 

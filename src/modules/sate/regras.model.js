@@ -16,6 +16,7 @@
 //
 // Elas também estão em docs/modulos/sate.md, escritas para quem usa.
 // ============================================================
+import { norm } from '../../shared/dom.js';
 import { exibirTelefone } from '../../shared/ui/phones.js';
 
 export const PERIODOS = Object.freeze({
@@ -201,3 +202,31 @@ export function alocarFichas(confirmadas, { capacidade }) {
 // some da pilha de papel é o defeito mais caro possível aqui.
 export const pendenciasDeFicha = (confirmadas) =>
   (confirmadas || []).filter(s => (Number(s.qtd_alunos) || 0) > 0 && !(Number(s.qtd_onibus) || 0));
+
+// ── Conferir local por LUGAR ─────────────────────────────────
+// Dois pedidos apontam para o MESMO destino digitado quando nome, rua e
+// número coincidem sem acento, caixa e pontuação. Bairro e CEP ficam fora
+// da chave: são os que a escola mais erra (spec 2026-10-10-sate-endereco-e-cep, D8).
+const limpo = (v) => norm(v).replace(/[^a-z0-9]+/g, ' ').trim();
+
+export const chaveDestino = (s) =>
+  [s?.destino_nome, s?.destino_endereco, s?.destino_numero].map(limpo).join('|');
+
+// Os pedidos com destino digitado, um grupo por lugar. O texto exibido é
+// o do primeiro pedido; o CEP, o primeiro que alguém informou.
+export function agruparDestinos(pedidos) {
+  const grupos = new Map();
+  for (const s of pedidos || []) {
+    if (!String(s?.destino_nome || '').trim()) continue;
+    const chave = chaveDestino(s);
+    let g = grupos.get(chave);
+    if (!g) {
+      g = { chave, nome: s.destino_nome.trim(), endereco: s.destino_endereco || '', numero: s.destino_numero || '',
+        bairro: s.destino_bairro || '', cep: null, pedidos: [] };
+      grupos.set(chave, g);
+    }
+    g.cep = g.cep || s.destino_cep || null;
+    g.pedidos.push(s);
+  }
+  return [...grupos.values()].sort((a, b) => a.nome.localeCompare(b.nome, 'pt'));
+}
