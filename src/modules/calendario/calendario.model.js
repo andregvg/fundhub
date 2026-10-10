@@ -45,6 +45,18 @@ export async function getDiaCalendario(dataISO) {
   return data;
 }
 
+// Os dias REGISTRADOS num intervalo (inclusive), indexados pela data
+// civil. Dia sem registro não aparece: é dia letivo comum. Usado pela
+// Disponibilidade do SATE para mostrar feriado, bloqueio e evento.
+export async function getDiasCalendario(de, ate) {
+  if (!hasSupabase()) return {};
+  const { data, error } = await sb().from('dia_calendario')
+    .select('data, letivo, tipo, evento, bloqueia_extraclasse')
+    .gte('data', de).lte('data', ate);
+  if (error) throw error;
+  return Object.fromEntries((data || []).map(d => [d.data, d]));
+}
+
 export async function upsertDiaCalendario(dia) {
   if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
   const patch = { ...dia, atualizado_em: agoraISO() };
@@ -183,4 +195,38 @@ export async function limparEscalaUnidade(unidadeId, dataISO) {
   const { error } = await sb().from('escala_unidade')
     .delete().eq('unidade_id', unidadeId).eq('data', dataISO);
   if (error) throw error;
+}
+
+// ── O que um dia significa para o extraclasse ────────────────
+// A leitura de um registro de `dia_calendario` para quem agenda uma saída
+// (spec 2026-10-10-sate-disponibilidade, D1). Mora aqui, e não no SATE,
+// porque é o vocabulário do próprio calendário: a Disponibilidade, o
+// modal do dia e o formulário do SATE fazem todos a mesma leitura.
+//
+//   'bloqueado'   extraclasse bloqueado - vence o resto, é a regra mais específica
+//   'nao_letivo'  feriado, recesso
+//   'evento'      dia letivo com evento (prova, evento pedagógico, cultural)
+//   null          dia comum, ou sem registro: o silêncio é o dia letivo
+export function situacaoDoDia(dia) {
+  if (!dia) return null;
+  if (dia.bloqueia_extraclasse) return 'bloqueado';
+  if (dia.letivo === false) return 'nao_letivo';
+  return String(dia.evento || '').trim() ? 'evento' : null;
+}
+
+export const ROTULO_DIA = Object.freeze({ bloqueado: 'Extraclasse bloqueado', nao_letivo: 'Não letivo' });
+
+// A escola não pede transporte nestes dias; quem aprova pode (aviso, não erro).
+export const diaImpedeExtraclasse = (dia) => ['bloqueado', 'nao_letivo'].includes(situacaoDoDia(dia));
+
+// A frase que a pessoa lê sob o campo de data e na recusa do envio.
+export function motivoDoDia(dia) {
+  const evento = String(dia?.evento || '').trim();
+  const com = (texto) => `${texto}${evento ? ` (${evento})` : ''}.`;
+  switch (situacaoDoDia(dia)) {
+    case 'bloqueado': return com('Data bloqueada para extraclasse');
+    case 'nao_letivo': return com('Não é dia letivo');
+    case 'evento': return `Neste dia: ${evento}.`;
+    default: return '';
+  }
 }

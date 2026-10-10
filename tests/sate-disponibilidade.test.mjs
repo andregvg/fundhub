@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   intervaloDaViagem, montarLinha, livresPara, escadaDaTarde, proximoHorario,
-  faltaParaConfirmar, livresNoPeriodo, totalDoDia, semanaUtil,
+  faltaParaConfirmar, livresNoPeriodo, totalDoDia, semanaUtil, ocupacaoDoPedido,
 } from '../src/modules/sate/disponibilidade.model.js';
 
 const frota = (...porDia) => porDia.map((onibus, dia) => ({ dia, onibus, vans: 0 }));
@@ -106,4 +106,27 @@ test('semanaUtil: dia útil fica em foco na própria semana', () => {
 test('semanaUtil: sábado e domingo levam à segunda seguinte', () => {
   assert.deepEqual(semanaUtil('2026-10-10'), { segunda: '2026-10-12', sexta: '2026-10-16', foco: '2026-10-12' });
   assert.deepEqual(semanaUtil('2026-10-11'), { segunda: '2026-10-12', sexta: '2026-10-16', foco: '2026-10-12' });
+});
+
+// ── O intervalo de UM pedido (spec 2026-10-10-sate-disponibilidade, D3) ──
+test('ocupacaoDoPedido: embarque até saída + trajeto + intervalo', () => {
+  const s = { periodo: 'manha', horario_embarque: '07:30', horario_retorno: '11:00', trajeto_min: 30 };
+  assert.deepEqual(ocupacaoDoPedido(s, [], 120), { ini: 450, fim: 810 });
+});
+
+test('ocupacaoDoPedido: o embarque é o da parada mais cedo', () => {
+  const s = { periodo: 'manha', horario_embarque: '07:30', horario_retorno: '11:00', trajeto_min: 30 };
+  const paradas = [{ status: 'ativa', horario: '07:10' }, { status: 'cancelada', horario: '06:00' }];
+  assert.equal(ocupacaoDoPedido(s, paradas, 120).ini, 430);
+});
+
+test('ocupacaoDoPedido: a noite ocupa até o meio-dia seguinte', () => {
+  const s = { periodo: 'noite', horario_embarque: '18:30', horario_retorno: '22:00', trajeto_min: 20 };
+  assert.deepEqual(ocupacaoDoPedido(s, [], 120), { ini: 1110, fim: 2160 });
+});
+
+test('faltaParaConfirmar continua igual depois de usar ocupacaoDoPedido', () => {
+  const s = { periodo: 'manha', horario_embarque: '07:30', horario_retorno: '11:00', trajeto_min: 30, qtd_onibus: 3, qtd_vans: 0 };
+  const l = linha(frota(4), [oc(420, 900, 2)]);
+  assert.deepEqual(faltaParaConfirmar(s, l), { onibus: 1, vans: 0 });
 });

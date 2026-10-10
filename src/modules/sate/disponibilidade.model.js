@@ -145,15 +145,23 @@ export function embarqueEfetivo(s, paradas = []) {
   return candidatos.length ? Math.min(...candidatos) : null;
 }
 
+// O intervalo que UM pedido ocupa, pelo mesmo critério do banco: embarque
+// efetivo (o da parada mais cedo), saída, tempo de viagem gravado ou o
+// provisório, e o intervalo mínimo. Um lugar só para quem precisa mostrar
+// ou comparar esse intervalo (faltaParaConfirmar, o modal do dia).
+export function ocupacaoDoPedido(s, paradas = [], intervaloMin = 0) {
+  return intervaloDaViagem({
+    periodo: s.periodo, embarque: embarqueEfetivo(s, paradas), retorno: s.horario_retorno,
+    trajetoMin: trajetoParaVaga(s, trajetoProvisorioMin()), intervaloMin,
+  });
+}
+
 // Quantos veículos FALTAM para o pedido `s` caber. `linha` precisa vir de
 // lerOcupacao(s.data, s.data, { excluir: s.id }): o próprio pedido já
 // ocupa (D6), e contá-lo de novo criaria frota extra a mais. `paradas`
 // (opcional) são as participações já carregadas - ver embarqueEfetivo.
 export function faltaParaConfirmar(s, linha, paradas = []) {
-  const { ini, fim } = intervaloDaViagem({
-    periodo: s.periodo, embarque: embarqueEfetivo(s, paradas), retorno: s.horario_retorno,
-    trajetoMin: trajetoParaVaga(s, trajetoProvisorioMin()), intervaloMin: linha.intervaloMin,
-  });
+  const { ini, fim } = ocupacaoDoPedido(s, paradas, linha.intervaloMin);
   const falta = (tipo, pedido) => (pedido ? Math.max(0, pedido - livresPara(linha, ini, fim, tipo)) : 0);
   return { onibus: falta('onibus', Number(s.qtd_onibus) || 0), vans: falta('vans', Number(s.qtd_vans) || 0) };
 }
