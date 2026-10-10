@@ -51,6 +51,10 @@ export async function abrirDetalhe(solicitacao, contexto) {
   abrirModal(`
     ${modalHead('Detalhes da solicitação', esc(rotuloDoPedido(s)))}
     <div class="modal-body" id="det-corpo">${loading()}</div>`, { tamanho: 'medio' });
+  // O nó deste modal. Duas aberturas quase juntas (outra solicitação, ou o
+  // clique duplo) trocam o nó: quem chega depois do await e não o encontra
+  // mais no lugar desiste, em vez de pintar dentro do modal alheio.
+  const meu = document.getElementById('det-corpo');
 
   // Abrir a solicitação é o que tira os avisos dela do sino (spec
   // 2026-10-10-sate-notificacoes, D4). Não espera: a ficha não depende disso.
@@ -59,12 +63,8 @@ export async function abrirDetalhe(solicitacao, contexto) {
 
   // As paradas vêm do banco; o resto já está na linha da tabela.
   const paradas = await getParticipacoes(s.id).catch(() => []);
-  const corpo = document.getElementById('det-corpo');
-  if (!corpo) return;   // fechou enquanto carregava
-  // Duas aberturas quase juntas (clique duplo na linha) chegam aqui com o
-  // MESMO nó: só a primeira desenha e liga os ouvintes.
-  if (corpo.dataset.ligado) return;
-  corpo.dataset.ligado = '1';
+  if (!meu || document.getElementById('det-corpo') !== meu) return;   // fechou, ou abriu outra
+  const corpo = meu;
 
   const pode = acoesDoPedido(s, { aprovador: !!ctx.aprovador, somenteLeitura: !!ctx.somenteLeitura });
 

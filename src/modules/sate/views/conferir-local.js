@@ -70,18 +70,31 @@ export async function abrirConferirDoPedido(s, ctx, reabrir) {
 
 async function vincular(lugar, ctx, local, aoConcluir) {
   if (!local) return;
+  // Clique duplo: vincular e recalcular leva um tempo, e uma segunda chamada
+  // refaria tudo. Os botões do modal ficam parados até terminar.
+  const botoes = [...document.querySelectorAll('#conf-corpo [data-local], #conf-novo')];
+  const travar = (v) => botoes.forEach(b => { b.disabled = v; });
+  travar(true);
   try {
     const patch = await vincularLocal(lugar.pedidos.map(p => p.id), local);
     // Um por vez: cada trajeto é uma consulta ao serviço de rotas.
+    let semTrajeto = 0;
     for (const p of lugar.pedidos) {
       Object.assign(p, patch);
       const r = await atualizarTrajeto(p, { velocidadeKmh: velocidadeOnibusKmh(), margemMin: margemParadaMin() }).catch(() => null);
       if (r) Object.assign(p, retratoTrajeto(r));
+      if (!r || r.status === 'erro') semTrajeto++;
     }
     ctx.recarregar?.();
-    toast({ titulo: 'Local conferido', texto: `${local.nome} · ${quantos(lugar.pedidos.length)}`, tipo: 'sucesso' });
+    toast({
+      titulo: 'Local conferido',
+      texto: `${local.nome} · ${quantos(lugar.pedidos.length)}`
+        + (semTrajeto ? ` · ${semTrajeto} trajeto(s) não recalculado(s): use Recalcular na solicitação` : ''),
+      tipo: semTrajeto ? 'atencao' : 'sucesso',
+    });
     await aoConcluir();
   } catch (err) {
+    travar(false);
     reportarErro(err, { titulo: 'Não foi possível vincular o local' });
   }
 }

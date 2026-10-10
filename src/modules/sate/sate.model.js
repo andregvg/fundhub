@@ -23,7 +23,6 @@
 // por período (§ D4).
 // ============================================================
 import { sb, hasSupabase, emailAtual } from '../../core/supabase.js';
-import { subscribeTabela } from '../../shared/realtime.js';
 import { agoraISO } from '../../shared/format.js';
 
 // Um lugar só para os rótulos (regras.model.js); reexportado porque as
@@ -99,7 +98,7 @@ export async function criarSolicitacao(viagem, participacao) {
   return data;
 }
 
-// Remanejar (quem aprova): data, período, horários, destino, veículos.
+// Editar (quem aprova): data, período, horários, destino, veículos.
 // Os totais de estudantes NÃO entram - são cache das participações.
 export async function editarSolicitacao(id, payload) {
   if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
@@ -242,9 +241,4 @@ export async function reabrirSolicitacao(id) {
     const e = new Error('Esta solicitação já não está confirmada, negada nem cancelada. Atualize a lista.');
     e.amigavel = true; throw e;
   }
-}
-
-// ── Realtime ─────────────────────────────────────────────────
-export function subscribeSolicitacoes(handler) {
-  return subscribeTabela('solicitacao_transporte', handler, 'solic-rt');
 }

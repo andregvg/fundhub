@@ -115,7 +115,10 @@ async function salvar(e, s, ctx, reabrir, inicial) {
     } : {}),
     // Destino do cadastro troca nome e endereço junto; "manter" não mexe.
     ...(local ? { local_id: local.id, destino_nome: local.nome, destino_endereco: local.endereco || null,
-      destino_numero: local.numero || null, destino_bairro: local.bairro || null } : {}),
+      destino_numero: local.numero || null, destino_bairro: local.bairro || null,
+      // O CEP acompanha o endereço (só entra quando há o que gravar: sem a
+      // migration 047 a coluna não existe).
+      ...(local.cep || s.destino_cep ? { destino_cep: local.cep || null } : {}) } : {}),
   };
   const destinoMudou = !!local && local.id !== s.local_id;
 

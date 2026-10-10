@@ -74,6 +74,11 @@ partir das versões do FundHub que mudaram algo para quem usa o SATE.
 - Na lista de solicitações, um **ponto** ao lado da escola marca as que têm novidade por ver.
 - Clicar num aviso abre a solicitação correspondente.
 
+### Corrigido
+
+- As listas dos tutoriais não recomeçam mais a numeração no meio de um passo a passo.
+- Uma solicitação em que nenhuma escola está mais ativa volta a abrir.
+
 ## [0.43.0] - 2026-10-10
 
 > SATE 0.21.0. Não exige atualização do banco.

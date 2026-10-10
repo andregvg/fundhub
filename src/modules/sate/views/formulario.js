@@ -123,6 +123,7 @@ function opcoesEscola(unidades, perfil) {
 
 function ligar() {
   const form = document.getElementById('sol-form');
+  pedidoTrajeto++;   // resposta de trajeto ainda em voo da abertura anterior não pinta neste modal
   destruirParadas();
   ligarResumo({ ctx, ler: lerParaResumo });
 
@@ -179,8 +180,12 @@ function ligar() {
 // estudantes e dos cadeirantes inclui as outras paradas (spec D6).
 function lerParaResumo() {
   const extras = ctx.aprovador ? lerParadas() : [];
+  // O ônibus sai para a PRIMEIRA parada: o embarque é o mais cedo entre o da
+  // escola principal e os das outras paradas que têm horário (o critério do
+  // banco e da ficha). "HH:MM" compara como texto.
+  const emb = [val('f-emb'), ...extras.map(p => p.horario)].filter(Boolean).sort()[0] || null;
   return {
-    data: val('f-data'), emb: val('f-emb') || null, ret: val('f-ret') || null,
+    data: val('f-data'), emb, ret: val('f-ret') || null,
     alunos: (parseInt(val('f-alunos'), 10) || 0) + extras.reduce((n, p) => n + p.qtdAlunos, 0),
     cadeirantes: (parseInt(val('f-cadeira'), 10) || 0) + extras.reduce((n, p) => n + p.qtdCadeirante, 0),
     trajeto, localId: lerDestino().localId,
@@ -220,7 +225,7 @@ async function pintarTrajeto() {
       velocidadeKmh: velocidadeOnibusKmh(), margemMin: margemParadaMin(),
     });
   } catch (_) {
-    if (meu === pedidoTrajeto) assinaturaTrajeto = '';   // falhou: a próxima mudança tenta de novo
+    if (meu === pedidoTrajeto) { assinaturaTrajeto = ''; revisar(); }   // falhou: o resumo repinta sem o trajeto; a próxima mudança tenta de novo
     return;
   }
   if (meu !== pedidoTrajeto || !document.getElementById('f-resumo')) return;

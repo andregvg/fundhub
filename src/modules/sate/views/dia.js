@@ -46,10 +46,12 @@ export function faixaCalendarioHtml(dia, { completo = false } = {}) {
 const horaLivre = (fim) => (fim >= DIA ? `${paraHora(fim - DIA)} do dia seguinte` : paraHora(fim));
 
 export async function abrirDia(data, ctx, { voltar = null, destaque = null } = {}) {
+  if (!ctx?.aprovador) return;   // a tela nunca oferece o modal a quem não aprova; quem barra o dado é o RLS
   abrirModal(`
     ${modalHead('Disponibilidade do dia', esc(fmtExtenso(data)))}
     <div class="modal-body" id="dia-corpo">${loading()}</div>`, { tamanho: 'medio', voltar });
   const meu = document.getElementById('dia-corpo');
+  if (!meu) return;
 
   let linha, pedidos, frotas, cal;
   try {

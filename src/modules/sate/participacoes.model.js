@@ -15,7 +15,6 @@
 // ============================================================
 import { sb, hasSupabase, emailAtual } from '../../core/supabase.js';
 import { agoraISO } from '../../shared/format.js';
-import { subscribeTabela } from '../../shared/realtime.js';
 
 export const STATUS_PART = Object.freeze({
   ativa: 'Ativa',
@@ -173,12 +172,4 @@ export function resumoEscolas(participacoes = [], { curto = false } = {}) {
   if (!nomes.length) return '';
   if (nomes.length === 1) return nomes[0];
   return `${nomes[0]} +${nomes.length - 1}`;
-}
-
-// ── Realtime ─────────────────────────────────────────────────
-// Para o sino: "a escola pediu para sair" é evento da participação, não
-// do pedido. Exige a tabela na publicação (migration 041); sem ela o canal
-// abre e simplesmente não recebe nada.
-export function subscribeParticipacoes(handler) {
-  return subscribeTabela('solicitacao_participacao', handler, 'part-rt');
 }

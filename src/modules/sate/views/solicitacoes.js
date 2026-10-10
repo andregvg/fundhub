@@ -14,7 +14,7 @@
 // ============================================================
 import { listSolicitacoes, STATUS, PERIODOS, localAConferir } from '../sate.model.js';
 import { tituloDoPedido } from '../regras.model.js';
-import { idsComNovidade } from '../avisos.model.js';
+import { idsComNovidade, aoMudarAvisos } from '../avisos.model.js';
 import { getParticipacoesDe, resumoEscolas, envolveUnidade } from '../participacoes.model.js';
 import { existeFrota } from '../frota.model.js';
 import { abrirFormulario } from './formulario.js';
@@ -30,6 +30,9 @@ import { ico } from '../../../shared/ui/icones.js';
 
 let ctx = null;
 let tabela = null;
+// A assinatura dos avisos desta página: a rota redesenha a tela a cada
+// visita, então a anterior sai antes de a nova entrar (sem acumular).
+let soltarAvisos = null;
 // O filtro do BANCO. A busca da tabela é outra coisa: estreita o que já
 // está na tela, sem ida ao servidor (spec de listas, D6).
 let filtro = { status: '', periodo: '', de: addDias(hojeISO(), -30), ate: addDias(hojeISO(), 120) };
@@ -37,6 +40,7 @@ let filtro = { status: '', periodo: '', de: addDias(hojeISO(), -30), ate: addDia
 export function render(contexto) {
   ctx = contexto;
   tabela = null;
+  soltarAvisos?.();
   // A guia expõe o recarregamento para o modal de detalhe e o de nova
   // solicitação chamarem depois de gravar.
   ctx.recarregar = carregar;
@@ -87,7 +91,27 @@ export function render(contexto) {
   document.getElementById('sol-st').addEventListener('change', e => { filtro.status = e.target.value; rec(); });
   document.getElementById('sol-per').addEventListener('change', e => { filtro.periodo = e.target.value; rec(); });
 
+  // A lista e a carga dos avisos são independentes e nenhuma espera a outra:
+  // quando os avisos mudam, o ponto das linhas já desenhadas acompanha.
+  soltarAvisos = aoMudarAvisos(repintarNovidades);
   carregar();
+}
+
+// O ponto de novidade de uma linha: o mesmo markup na célula e na repintura.
+const pontoHtml = (id) => `<span class="sol-novidade" data-novidade="${esc(id)}" role="img" aria-label="Há novidade nesta solicitação" title="Há novidade nesta solicitação"></span>`;
+
+// Acende ou apaga o ponto das linhas que já estão na tela. Acha cada uma
+// pelo gancho da própria célula, sem depender do interior da tabela.
+function repintarNovidades() {
+  const box = document.getElementById('sol-lista');
+  if (!box) return;
+  const ids = idsComNovidade();
+  for (const alvo of box.querySelectorAll('[data-escolas-de]')) {
+    const tem = alvo.querySelector('.sol-novidade');
+    const quer = ids.has(alvo.dataset.escolasDe);
+    if (quer && !tem) alvo.insertAdjacentHTML('afterbegin', pontoHtml(alvo.dataset.escolasDe));
+    else if (!quer && tem) tem.remove();
+  }
 }
 
 async function carregar() {
@@ -171,8 +195,8 @@ const COLUNAS = [
   // para a busca achar por qualquer um; a ordem é pelo nome completo.
   { id: 'escola', rotulo: 'Escolas',
     valor: s => [nomeEscolas(s), apelidoEscolas(s)].filter(Boolean).join(' · '),
-    celula: s => `${idsComNovidade().has(s.id) ? `<span class="sol-novidade" data-novidade="${esc(s.id)}" role="img" aria-label="Há novidade nesta solicitação" title="Há novidade nesta solicitação"></span>` : ''}`
-      + `<span class="sol-esc-nome">${esc(nomeEscolas(s))}</span><span class="sol-esc-apelido">${esc(apelidoEscolas(s))}</span>` },
+    celula: s => `<span data-escolas-de="${esc(s.id)}">${idsComNovidade().has(s.id) ? pontoHtml(s.id) : ''}`
+      + `<span class="sol-esc-nome">${esc(nomeEscolas(s))}</span><span class="sol-esc-apelido">${esc(apelidoEscolas(s))}</span></span>` },
   { id: 'data', rotulo: 'Data', tipo: 'data',
     valor: s => s.data || '',
     celula: s => esc(fmtData(s.data)) },

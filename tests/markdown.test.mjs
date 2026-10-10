@@ -69,3 +69,50 @@ test('cerca vivo com id inválido continua sendo código', () => {
   assert.ok(!h.includes('md-vivo'));
   assert.ok(h.includes('&lt;script&gt;'));
 });
+
+// ── Item de lista que continua na linha de baixo ─────────────
+test('item numerado com continuação recuada não encerra a lista', () => {
+  assert.equal(
+    markdownParaHtml('1. Primeiro item que\n   continua na linha de baixo.\n2. Segundo item.\n3. Terceiro.'),
+    '<ol><li>Primeiro item que continua na linha de baixo.</li><li>Segundo item.</li><li>Terceiro.</li></ol>');
+});
+
+test('item com marcador - também junta a continuação', () => {
+  assert.equal(
+    markdownParaHtml('- Primeiro item que\n  continua aqui.\n- Segundo.'),
+    '<ul><li>Primeiro item que continua aqui.</li><li>Segundo.</li></ul>');
+});
+
+test('duas linhas de continuação seguidas entram no mesmo item', () => {
+  assert.equal(
+    markdownParaHtml('1. Um item\n   que segue\n   e ainda segue.\n2. Outro.'),
+    '<ol><li>Um item que segue e ainda segue.</li><li>Outro.</li></ol>');
+});
+
+test('a continuação é formatada e escapada como o resto do item', () => {
+  const h = markdownParaHtml('1. Clique em\n   **Salvar** e <b>x</b>.');
+  assert.equal(h, '<ol><li>Clique em <strong>Salvar</strong> e &lt;b&gt;x&lt;/b&gt;.</li></ol>');
+});
+
+test('linha em branco encerra o item: o que vem depois é parágrafo', () => {
+  assert.match(
+    markdownParaHtml('1. Item.\n\n   texto solto depois.'),
+    /^<ol><li>Item\.<\/li><\/ol><p>\s*texto solto depois\.<\/p>$/);
+});
+
+test('linha recuada que inicia outro bloco não é continuação', () => {
+  // Novo item.
+  assert.equal(markdownParaHtml('- a\n  - b'), '<ul><li>a</li><li>b</li></ul>');
+  assert.equal(markdownParaHtml('1. a\n   2. b'), '<ol><li>a</li><li>b</li></ol>');
+  // Título, citação, cerca, tabela e régua: o item fica como estava.
+  for (const bloco of ['  # Título', '  > citação', '  ```', '  | a | b |', '  ---']) {
+    const h = markdownParaHtml(`- item\n${bloco}`);
+    assert.ok(h.startsWith('<ul><li>item</li></ul>'), `${JSON.stringify(bloco)} → ${h}`);
+  }
+});
+
+test('linha NÃO recuada depois de um item continua encerrando a lista', () => {
+  assert.equal(
+    markdownParaHtml('1. Item.\ntexto colado'),
+    '<ol><li>Item.</li></ol><p>texto colado</p>');
+});

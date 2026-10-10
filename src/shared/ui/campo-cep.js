@@ -11,7 +11,7 @@
 // este arquivo não precisa saber de onde a resposta vem. O que fazer com
 // ela (`aoAchar`) é de cada formulário.
 //
-//   ligarCep(input, { buscar, dica, aoAchar, aoMudar }) → { reiniciar }
+//   ligarCep(input, { buscar, dica, aoAchar, aoMudar }) → { reiniciar, consultar }
 //     buscar(cep8)        → Promise<objeto | null>   (null = não existe)
 //     dica                → elemento que recebe o texto de estado (aria-live);
 //                           o texto que ele tem ao ligar é a "dica inicial",
@@ -24,6 +24,10 @@
 //                           descarta consulta pendente, refaz a memória do
 //                           último CEP a partir do valor atual e restaura a
 //                           dica inicial
+//     consultar()         → para o CEP que JÁ VEM no campo (o formulário abre
+//                           preenchido e o `input` nunca dispara): faz a mesma
+//                           consulta, para o valor atual, mesmo que seja igual
+//                           à última. Sem CEP completo, não faz nada
 // ============================================================
 import { mascaraCep, cepDe } from '../format.js';
 
@@ -39,12 +43,10 @@ export function ligarCep(input, { buscar, dica = null, aoAchar, aoMudar = null }
     dica.classList.toggle('err', !!erro);
   };
 
-  input.addEventListener('input', async () => {
-    aoMudar?.();
-    input.value = mascaraCep(input.value);
+  // A consulta em si, para o valor que o campo tem agora.
+  async function consultar() {
     const cep = cepDe(input.value);
-    if (!cep) { ultimo = null; pedido++; dizer(dicaInicial); return; }
-    if (cep === ultimo) return;
+    if (!cep) return;
     ultimo = cep;
     const meu = ++pedido;
     dizer('Procurando…');
@@ -57,9 +59,19 @@ export function ligarCep(input, { buscar, dica = null, aoAchar, aoMudar = null }
     } catch (_) {
       if (meu === pedido) dizer('O serviço de CEP não respondeu. Preencha o endereço à mão.', true);
     }
+  }
+
+  input.addEventListener('input', () => {
+    aoMudar?.();
+    input.value = mascaraCep(input.value);
+    const cep = cepDe(input.value);
+    if (!cep) { ultimo = null; pedido++; dizer(dicaInicial); return; }
+    if (cep === ultimo) return;
+    consultar();
   });
 
   return {
     reiniciar() { pedido++; ultimo = cepDe(input.value); dizer(dicaInicial); },
+    consultar,
   };
 }

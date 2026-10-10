@@ -9,7 +9,7 @@ import { destinosAConferir } from '../sate.model.js';
 import { agruparDestinos } from '../regras.model.js';
 import { criarLocal, atualizarLocal, excluirLocal, enderecoCompleto } from '../../locais/locais.model.js';
 import { localizarEndereco, buscarCep, cepNaCidade, linkMaps, temCoordenada } from '../../locais/geografia.model.js';
-import { esc, val, checked, falha, falhaNoCampo } from '../../../shared/dom.js';
+import { esc, val, checked, falha, falhaNoCampo, urlSegura } from '../../../shared/dom.js';
 import { fmtCep, cepDe } from '../../../shared/format.js';
 import { emptyState } from '../../../shared/ui/feedback.js';
 import { abrirModal, modalHead, fecharModal, marcarTocado } from '../../../shared/ui/modal.js';
@@ -93,7 +93,7 @@ function card(l) {
     <div class="tags">
       ${l.ativo ? '' : '<span class="tag eja">Inativo</span>'}
       ${(l.latitude != null && l.longitude != null) ? `<span class="tag">${ico('meta', { tam: 12 })} Geocodado</span>` : ''}
-      ${maps ? `<a class="tag" href="${esc(maps)}" target="_blank" rel="noopener">ver no mapa</a>` : ''}
+      ${urlSegura(maps) ? `<a class="tag" href="${esc(maps)}" target="_blank" rel="noopener">ver no mapa</a>` : ''}
     </div>
   </article>`;
 }
@@ -173,10 +173,14 @@ export function abrirLocal(l, { preenchido = {}, aoSalvar = null } = {}, ctxExte
   document.getElementById('l-geo').addEventListener('click', localizar);
   document.getElementById('l-lat').addEventListener('change', aoMudarCoordenadaAMao);
   document.getElementById('l-lng').addEventListener('change', aoMudarCoordenadaAMao);
-  ligarCep(document.getElementById('l-cep'), {
+  const cepCampo = ligarCep(document.getElementById('l-cep'), {
     buscar: buscarCep, dica: document.getElementById('l-cep-dica'), aoAchar: aoAcharCep,
     aoMudar: () => { document.getElementById('l-cep-pino').hidden = true; },
   });
+  // Local novo que já abre com o CEP que a escola digitou ("Cadastrar novo",
+  // em Conferir local): o `input` nunca dispara, então a consulta é pedida
+  // aqui - é ela que posiciona o pino.
+  if (novo && cepDe(preenchido.cep) && !temCoordenada(val('l-lat'), val('l-lng'))) cepCampo.consultar();
 
   const mapaEl = document.getElementById('l-mapa');
   montarMapaPino(mapaEl, {

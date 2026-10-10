@@ -44,6 +44,13 @@ function inline(txt) {
     .join('');
 }
 
+const ITEM = /^\s*([-*]|\d+\.)\s+(.*)$/;
+
+// Uma linha recuada que NÃO abre outro bloco (item, título, citação, cerca,
+// tabela, régua) continua o item de lista anterior. Um nível só.
+const continuaItem = (l) => /^\s+\S/.test(l) && !ITEM.test(l)
+  && !/^\s*(#{1,3}\s|&gt;|```|---\s*$)/.test(l) && !l.includes('|');
+
 export function markdownParaHtml(texto) {
   const linhas = esc(String(texto || '')).split('\n');
   const out = [];
@@ -105,15 +112,20 @@ export function markdownParaHtml(texto) {
     }
 
     // Listas (um nível).
-    const li = l.match(/^\s*([-*]|\d+\.)\s+(.*)$/);
+    const li = l.match(ITEM);
     if (li) {
       const tag = /\d/.test(li[1]) ? 'ol' : 'ul';
       out.push(`<${tag}>`);
       while (i < linhas.length) {
-        const m = linhas[i].match(/^\s*([-*]|\d+\.)\s+(.*)$/);
+        const m = linhas[i].match(ITEM);
         if (!m) break;
-        out.push(`<li>${inline(m[2].trim())}</li>`);
         i++;
+        // Linhas recuadas logo abaixo CONTINUAM o item (juntas por um espaço,
+        // ainda como texto escapado: a formatação vem depois). Linha em
+        // branco, ou sem recuo, encerra o item.
+        let txt = m[2].trim();
+        while (i < linhas.length && continuaItem(linhas[i])) { txt += ` ${linhas[i].trim()}`; i++; }
+        out.push(`<li>${inline(txt)}</li>`);
       }
       out.push(`</${tag}>`);
       continue;

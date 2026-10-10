@@ -391,6 +391,7 @@ O que fazer depende de o pedido já ter sido aprovado ou não:
 | Situação do pedido | Quem | Botão |
 |---|---|---|
 | Solicitado | a escola | **Cancelar solicitação**: cancela na hora, com justificativa |
+| Em análise ou Aguardando adaptado | a escola | Sem botão de cancelar: com o pedido já em análise, fale com a Gerência de Logística e Transporte |
 | Solicitado, Em análise ou Aguardando adaptado | quem aprova | **Negar**: recusa o pedido, com justificativa (fica *negado*, não *cancelado*) |
 | Confirmado | a escola | **Pedir cancelamento**: fica *pendente de cancelamento* até quem aprova dar ciência |
 | Pendente de cancelamento | quem aprova | **Confirmar cancelamento**: dá ciência do pedido da escola |

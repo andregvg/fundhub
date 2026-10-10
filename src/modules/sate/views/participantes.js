@@ -27,6 +27,7 @@ import { toast } from '../../../shared/ui/toast.js';
 import { reportarErro } from '../../../shared/ui/feedback.js';
 import { ico } from '../../../shared/ui/icones.js';
 import { ligarArrasto } from '../../../shared/ui/arrastar.js';
+import { rotuloDoPedido } from '../regras.model.js';
 import { atualizarTrajeto, retratoTrajeto } from '../rota.model.js';
 import { velocidadeOnibusKmh, margemParadaMin } from '../sate.config.js';
 
@@ -278,9 +279,10 @@ function formularioParada({ ctx, solicitacao, partes, reabrir }) {
     .sort((a, b) => a.nome.localeCompare(b.nome, 'pt'));
 
   abrirModal(`
-    ${modalHead('Acrescentar parada', 'Entra no fim da fila de paradas; a ordem se ajusta depois.')}
+    ${modalHead('Acrescentar parada', esc(rotuloDoPedido(solicitacao)))}
     <div class="modal-body">
       <form id="dp-add-form" class="esc-form">
+        <p class="form-hint">Entra no fim da fila de paradas; a ordem se ajusta depois.</p>
         <div class="form-grid">
           <div class="col-full modo-toggle" role="radiogroup" aria-label="Tipo de parada">
             <label class="inline"><input type="radio" name="dp-tipo" value="escola" checked /> Escola</label>
