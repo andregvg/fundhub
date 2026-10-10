@@ -11,22 +11,23 @@
 // partir das 15h30".
 //
 // A escola vê só números - nunca de quem é a reserva (mesma promessa da
-// 036). Quem aprova vê também, ao abrir o dia, a composição por rótulo.
+// 036). Quem aprova abre o dia em detalhe (views/dia.js). Cada card mostra
+// também o que o calendário escolar diz do dia (spec 2026-10-10-sate-disponibilidade, D1).
 // ============================================================
 import { lerOcupacao, livresNoPeriodo, escadaDaTarde, totalDoDia, semanaUtil } from '../disponibilidade.model.js';
-import { getFrotas, rotulaTipo } from '../frota.model.js';
 import { PERIODOS } from '../sate.model.js';
 import { paraHora } from '../regras.model.js';
+import { getDiasCalendario, diaImpedeExtraclasse, situacaoDoDia } from '../../calendario/calendario.model.js';
 import { esc } from '../../../shared/dom.js';
 import { hojeISO, addDias, fmtData, DOW } from '../../../shared/format.js';
 import { loading, erroBox } from '../../../shared/ui/feedback.js';
 import { ico } from '../../../shared/ui/icones.js';
 import { marcarVazio } from '../../../shared/ui/campo-data-hora.js';
+import { abrirDia, faixaCalendarioHtml } from './dia.js';
 
 let ctx = null;
 let segunda = null;   // data civil da segunda-feira da semana à vista
 let foco = null;      // o dia destacado: a data escolhida ou, sem escolha, hoje
-let linhaAtual = null;   // última ocupação carregada SEM ficar velha (ver `pedido`)
 // Cada carregar() recebe um número: clicar "próxima semana" duas vezes
 // rápido dispara duas buscas, e sem isto a resposta da primeira - mais
 // lenta - pintaria por cima da segunda, com o cabeçalho de uma semana e
@@ -58,13 +59,17 @@ export function render(contexto) {
   document.getElementById('disp-prox').addEventListener('click', () => ir(addDias(segunda, 7)));
   document.getElementById('disp-hoje').addEventListener('click', () => focar(hojeISO()));
   document.getElementById('disp-data').addEventListener('change', (e) => { if (e.target.value) focar(e.target.value); });
-  document.getElementById('disp-corpo').addEventListener('click', abrirDia);
-  // Acessibilidade do card `role="button"`: Enter/Espaço abre igual ao clique.
+  // Quem aprova abre o dia em detalhe (views/dia.js). Clique, Enter ou Espaço.
+  const abrir = (e) => {
+    const card = e.target.closest('[data-dia]');
+    if (card && ctx.aprovador) abrirDia(card.dataset.dia, ctx);
+  };
+  document.getElementById('disp-corpo').addEventListener('click', abrir);
   document.getElementById('disp-corpo').addEventListener('keydown', (e) => {
     if (e.key !== 'Enter' && e.key !== ' ') return;
     if (!e.target.closest('[data-dia]')) return;
     e.preventDefault();
-    abrirDia(e);
+    abrir(e);
   });
   carregar();
 }
@@ -76,13 +81,17 @@ async function carregar() {
   const meu = ++pedido;
   const seg = segunda;   // cópia local: `segunda` pode mudar antes da resposta chegar
   const sexta = addDias(seg, DIAS_UTEIS[DIAS_UTEIS.length - 1]);
-  let linha;
-  try { linha = await lerOcupacao(seg, sexta); }
+  let linha, calendario;
+  try {
+    [linha, calendario] = await Promise.all([
+      lerOcupacao(seg, sexta),
+      getDiasCalendario(seg, sexta).catch(() => ({})),   // informa; não derruba a página
+    ]);
+  }
   catch (err) { if (meu === pedido) box.innerHTML = erroBox(err); return; }
   if (meu !== pedido) return;   // resposta velha: outra busca já está em curso ou chegou antes
   if (!document.getElementById('disp-corpo')) return;
 
-  linhaAtual = linha;
   const hoje = hojeISO();
   const campoData = document.getElementById('disp-data');
   if (campoData) {
@@ -93,22 +102,32 @@ async function carregar() {
   box.innerHTML = `
     ${linha.aproximado ? '<p class="sol-aviso">Contagem sem horário: o banco ainda não tem a atualização desta versão. Os números são por período.</p>' : ''}
     <h2 class="disp-semana">${esc(fmtData(seg))} a ${esc(fmtData(sexta))}</h2>
-    <div class="disp-grade">${dias.map(d => diaHtml(linha, d, hoje)).join('')}</div>`;
+    <div class="disp-grade">${dias.map(d => diaHtml(linha, d, hoje, calendario[d.data] || null)).join('')}</div>`;
 }
 
-function diaHtml(linha, { i, data }, hoje) {
+function diaHtml(linha, { i, data }, hoje, cal) {
   const dow = new Date(data + 'T00:00:00').getDay();
   const tot = totalDoDia(linha, i, 'onibus');
   const totVan = totalDoDia(linha, i, 'vans');
   const passado = data < hoje;
+  const sit = situacaoDoDia(cal);
+  const impede = diaImpedeExtraclasse(cal);
   // O dia em foco, na cor do SATE (o --brand do <body>). aria-current diz
   // ao leitor de tela o que o destaque diz ao olho.
   const emFoco = data === foco;
-  const marca = `${passado ? 'passado' : ''} ${emFoco ? 'foco' : ''}`;
+  const doCalendario = sit === 'bloqueado' ? 'bloqueado' : sit === 'nao_letivo' ? 'nao-letivo' : '';
+  const marca = `${passado ? 'passado' : ''} ${emFoco ? 'foco' : ''} ${doCalendario}`;
   const atual = emFoco ? ' aria-current="date"' : '';
   const cab = `<div class="disp-dia-cab"><b>${esc(DOW[dow])}</b> <span>${esc(fmtData(data))}</span></div>`;
+  const faixa = faixaCalendarioHtml(cal);
   if (!tot && !totVan) {
-    return `<div class="disp-dia ${marca}"${atual}>${cab}<span class="vazio">sem frota</span></div>`;
+    return `<div class="disp-dia ${marca}"${atual}>${cab}${faixa}<span class="vazio">sem frota</span></div>`;
+  }
+  // A escola não pede transporte num dia que o calendário impede: nada de
+  // número de ônibus livre que sugira o contrário. Quem aprova vê os números
+  // esmaecidos - pode, e às vezes precisa, mesmo assim (aviso, não erro).
+  if (impede && !ctx.aprovador) {
+    return `<div class="disp-dia ${marca}"${atual}>${cab}${faixa}<span class="vazio">Não há viagens neste dia</span></div>`;
   }
   const n = (v) => Math.max(0, v);
   const linhaPer = (p) => {
@@ -121,48 +140,14 @@ function diaHtml(linha, { i, data }, hoje) {
   };
   const vans = totVan ? `<div class="disp-per disp-van"><span>${ico('cadeirante', { tam: 12 })} Vans</span>
       <span>${['manha', 'tarde', 'noite'].map(p => n(livresNoPeriodo(linha, i, p, 'vans'))).join(' · ')}</span></div>` : '';
-  const abrir = ctx.aprovador ? ` data-dia="${esc(data)}" data-i="${i}" role="button" tabindex="0" aria-label="Ver a composição da frota de ${esc(fmtData(data))}"` : '';
+  const abrir = ctx.aprovador ? ` data-dia="${esc(data)}" role="button" tabindex="0" aria-label="Ver a disponibilidade de ${esc(fmtData(data))} em detalhe"` : '';
   return `<div class="disp-dia ${marca} ${ctx.aprovador ? 'clicavel' : ''}"${abrir}${atual}>
     ${cab}
-    <div class="disp-tot">${tot} ônibus no dia</div>
-    ${['manha', 'tarde', 'noite'].map(linhaPer).join('')}
-    ${vans}
-    <div class="disp-comp" hidden></div>
+    ${faixa}
+    <div class="disp-nums${impede ? ' esmaecido' : ''}">
+      <div class="disp-tot">${tot} ônibus no dia</div>
+      ${['manha', 'tarde', 'noite'].map(linhaPer).join('')}
+      ${vans}
+    </div>
   </div>`;
-}
-
-// Quantos ônibus estão em uso em cada período, para quem aprova decidir
-// (spec D3). `livres` pode ficar negativo quando o pedido estoura a frota -
-// mostrar o estouro em vez de escondê-lo atrás de um "em uso" que não fecha
-// conta com o total do dia.
-function usoPorPeriodo(linha, i) {
-  const total = totalDoDia(linha, i, 'onibus');
-  return ['manha', 'tarde', 'noite'].map((p) => {
-    const livres = livresNoPeriodo(linha, i, p, 'onibus');
-    // livres = total - usado, então usado = total - livres. Livres negativo
-    // (o período estoura a frota) faz usado passar do total - mostrar os
-    // dois números em vez de fingir que coube.
-    const emUso = Math.max(0, total - livres);
-    const estouro = livres < 0 ? -livres : 0;
-    const texto = estouro ? `em uso ${emUso} (estouro ${estouro})` : `em uso ${emUso}`;
-    return `<div>${esc(PERIODOS[p])}: ${esc(texto)}</div>`;
-  }).join('');
-}
-
-// Quem aprova: a composição da frota do dia, por rótulo, e quantos
-// veículos estão em uso em cada período (spec D3) - abre embaixo do card.
-async function abrirDia(e) {
-  const card = e.target.closest('[data-dia]');
-  if (!card || !ctx.aprovador) return;
-  const comp = card.querySelector('.disp-comp');
-  if (!comp.hidden) { comp.hidden = true; return; }
-  comp.hidden = false;
-  comp.innerHTML = loading();
-  const i = Number(card.dataset.i);
-  const uso = linhaAtual ? usoPorPeriodo(linhaAtual, i) : '';
-  const frotas = await getFrotas({ vigenteEm: card.dataset.dia }).catch(() => []);
-  const composicao = frotas.length
-    ? frotas.map(f => `<div>${esc(f.rotulo?.nome || 'sem rótulo')} · ${esc(String(f.quantidade))} ${esc(rotulaTipo(f.tipo).toLowerCase())}</div>`).join('')
-    : '<span class="vazio">sem frota</span>';
-  comp.innerHTML = `${uso}${composicao}`;
 }

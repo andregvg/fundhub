@@ -22,13 +22,14 @@ import { tituloDoPedido, responsavelDoPedido } from '../regras.model.js';
 import { abrirFrotaExtra } from './frota-extra.js';
 import { abrirRemanejar } from './remanejar.js';
 import { abrirConferirDoPedido } from './conferir-local.js';
+import { abrirDia } from './dia.js';
 import { getParticipacoes } from '../participacoes.model.js';
 import { blocoHtml, ligarParticipantes } from './participantes.js';
-import { lerOcupacao, faltaParaConfirmar, intervaloDaViagem, livresPara, embarqueEfetivo, trajetoParaVaga } from '../disponibilidade.model.js';
+import { lerOcupacao, faltaParaConfirmar } from '../disponibilidade.model.js';
 import { pontosDaViagem, explicarTrajeto, atualizarTrajeto, retratoTrajeto } from '../rota.model.js';
 import { linkRota } from '../../locais/geografia.model.js';
 import { enderecoCompleto } from '../../locais/locais.model.js';
-import { velocidadeOnibusKmh, margemParadaMin, trajetoProvisorioMin } from '../sate.config.js';
+import { velocidadeOnibusKmh, margemParadaMin } from '../sate.config.js';
 import { esc, vazio, val, falhaNoCampo } from '../../../shared/dom.js';
 import { fmtData, fmtDataHora, fmtCep } from '../../../shared/format.js';
 import { modalHead, abrirModal, fecharModal } from '../../../shared/ui/modal.js';
@@ -51,13 +52,10 @@ export async function abrirDetalhe(solicitacao, contexto) {
     ${modalHead(esc(tituloDoPedido(s)), esc(s.unidade?.apelido || s.unidade?.nome || ''))}
     <div class="modal-body" id="det-corpo">${loading()}</div>`, { tamanho: 'medio' });
 
-  // Participações e ocupação vêm do banco; o resto já está na linha da
-  // tabela. `excluir: s.id` tira o próprio pedido da conta - ele já
-  // ocupa, e contá-lo de novo criaria frota extra a mais (D6).
-  const [paradas, linha] = await Promise.all([
-    getParticipacoes(s.id).catch(() => []),
-    lerOcupacao(s.data, s.data, { excluir: s.id }).catch(() => null),
-  ]);
+  // As participações vêm do banco; o resto já está na linha da tabela. A
+  // ocupação do dia não é lida aqui: confirmarPedido a lê na hora de decidir
+  // e o modal "Disponibilidade do dia" mostra o quadro inteiro.
+  const paradas = await getParticipacoes(s.id).catch(() => []);
   paradasAtual = paradas;
   const corpo = document.getElementById('det-corpo');
   if (!corpo) return;   // fechou enquanto carregava
@@ -65,11 +63,7 @@ export async function abrirDetalhe(solicitacao, contexto) {
   corpo.innerHTML = `
     <div class="det-status">
       <span class="tag st-${esc(s.status)}">${esc(STATUS[s.status] || s.status)}</span>
-      ${linha ? (() => {
-        const iv = intervaloDaViagem({ periodo: s.periodo, embarque: embarqueEfetivo(s, paradas), retorno: s.horario_retorno,
-          trajetoMin: trajetoParaVaga(s, trajetoProvisorioMin()), intervaloMin: linha.intervaloMin });
-        return `<span class="di-meta">${Math.max(0, livresPara(linha, iv.ini, iv.fim))} ônibus livres no horário deste pedido, fora ele</span>`;
-      })() : ''}
+      ${ctx.aprovador ? `<button type="button" class="mini-btn" id="det-dia">${ico('calendario', { tam: 13 })} Ver disponibilidade do dia</button>` : ''}
     </div>
 
     ${campo('Data', `${esc(fmtData(s.data))} · ${esc(PERIODOS[s.periodo] || s.periodo)}`)}
@@ -97,6 +91,8 @@ export async function abrirDetalhe(solicitacao, contexto) {
 
   corpo.addEventListener('click', aoClicarAcao);
   corpo.querySelector('#det-recalc')?.addEventListener('click', (e) => recalcular(e.currentTarget, s));
+  corpo.querySelector('#det-dia')?.addEventListener('click', () =>
+    abrirDia(s.data, ctx, { voltar: () => abrirDetalhe(s, ctx), destaque: s.id }));
   corpo.querySelector('#det-conferir')?.addEventListener('click', () => abrirConferirDoPedido(s, ctx, () => abrirDetalhe(s, ctx)));
   // `reabrir` e esta propria funcao: depois de mexer numa escola a
   // viagem volta a abrir com o dado novo, em vez de fechar a pilha.
