@@ -53,13 +53,14 @@ const SELECT_BASE =
 const ausente = (err) => err?.code === '42P01' || err?.code === '42703';
 
 // ── Leitura ──────────────────────────────────────────────────
-export async function listSolicitacoes({ status, de, ate, unidadeId } = {}) {
+export async function listSolicitacoes({ status, de, ate, unidadeId, id } = {}) {
   if (!hasSupabase()) return [];
   let q = sb().from('solicitacao_transporte').select(SELECT_BASE).order('data', { ascending: false });
   if (status) q = Array.isArray(status) ? q.in('status', status) : q.eq('status', status);
   if (de) q = q.gte('data', de);
   if (ate) q = q.lte('data', ate);
   if (unidadeId) q = q.eq('unidade_id', unidadeId);
+  if (id) q = q.eq('id', id);
   const { data, error } = await q;
   if (error) { if (ausente(error)) return []; throw error; }
   return data || [];
