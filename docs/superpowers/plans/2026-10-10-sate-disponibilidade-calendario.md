@@ -4,7 +4,7 @@
 
 **Goal:** A página Disponibilidade mostra o calendário escolar; o formulário acusa a data bloqueada ao escolher; quem aprova abre o modal "Disponibilidade do dia", que substitui a frase "fora ele" da ficha.
 
-**Architecture:** Uma leitura por intervalo em `calendario.model.js`; a interpretação do dia como função pura em `sate/regras.model.js`; o intervalo de um pedido como função pura em `disponibilidade.model.js`; um arquivo de view novo (`views/dia.js`) para o modal. **A conta de vagas não muda.**
+**Architecture:** Uma leitura por intervalo e a interpretação do dia (funções puras) em `calendario.model.js` - é o vocabulário do próprio calendário, e `sate/regras.model.js` já está perto do teto de 250 linhas; o intervalo de um pedido como função pura em `disponibilidade.model.js`; um arquivo de view novo (`views/dia.js`) para o modal. **A conta de vagas não muda.**
 
 **Tech Stack:** JS ES modules sem build, Supabase (PostgREST), `node --test`.
 
@@ -38,22 +38,26 @@
 
 **Files:**
 - Modify: `src/modules/calendario/calendario.model.js`
-- Modify: `src/modules/sate/regras.model.js`
 - Modify: `src/modules/sate/disponibilidade.model.js`
-- Test: `tests/sate-regras.test.mjs`, `tests/sate-disponibilidade.test.mjs`
+- Test: `tests/calendario-dia.test.mjs` (novo), `tests/sate-disponibilidade.test.mjs`
 
 **Interfaces:**
 - Produces:
   - `getDiasCalendario(de, ate) → Promise<{ [dataISO]: { data, letivo, tipo, evento, bloqueia_extraclasse } }>` em `calendario.model.js`.
-  - `situacaoDoDia(dia) → 'bloqueado' | 'nao_letivo' | 'evento' | null`, `diaImpedeEscola(dia) → boolean`, `motivoDoDia(dia) → string`, `ROTULO_DIA` em `regras.model.js`.
+  - `situacaoDoDia(dia) → 'bloqueado' | 'nao_letivo' | 'evento' | null`, `diaImpedeExtraclasse(dia) → boolean`, `motivoDoDia(dia) → string`, `ROTULO_DIA`, também em `calendario.model.js`.
   - `ocupacaoDoPedido(s, paradas = [], intervaloMin = 0) → { ini, fim }` em `disponibilidade.model.js`.
 
 - [ ] **Step 1: Testes que falham.**
 
-Em `tests/sate-regras.test.mjs`, acrescentar `situacaoDoDia, diaImpedeEscola, motivoDoDia` ao import do topo e, ao fim do arquivo:
+Criar `tests/calendario-dia.test.mjs`:
 
 ```js
-// ── O calendário escolar visto pelo SATE (spec 2026-10-10-sate-disponibilidade, D1) ──
+// O que um dia do calendário escolar significa para o extraclasse
+// (spec 2026-10-10-sate-disponibilidade, D1).
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { situacaoDoDia, diaImpedeExtraclasse, motivoDoDia } from '../src/modules/calendario/calendario.model.js';
+
 test('situacaoDoDia: dia sem registro ou comum é null', () => {
   assert.equal(situacaoDoDia(null), null);
   assert.equal(situacaoDoDia(undefined), null);
@@ -71,11 +75,11 @@ test('situacaoDoDia: bloqueado vence não letivo', () => {
   assert.equal(situacaoDoDia({ letivo: false, bloqueia_extraclasse: true }), 'bloqueado');
 });
 
-test('diaImpedeEscola: só não letivo e bloqueado impedem', () => {
-  assert.equal(diaImpedeEscola({ letivo: false }), true);
-  assert.equal(diaImpedeEscola({ letivo: true, bloqueia_extraclasse: true }), true);
-  assert.equal(diaImpedeEscola({ letivo: true, evento: 'Mostra' }), false);
-  assert.equal(diaImpedeEscola(null), false);
+test('diaImpedeExtraclasse: só não letivo e bloqueado impedem', () => {
+  assert.equal(diaImpedeExtraclasse({ letivo: false }), true);
+  assert.equal(diaImpedeExtraclasse({ letivo: true, bloqueia_extraclasse: true }), true);
+  assert.equal(diaImpedeExtraclasse({ letivo: true, evento: 'Mostra' }), false);
+  assert.equal(diaImpedeExtraclasse(null), false);
 });
 
 test('motivoDoDia: a frase de cada situação, com e sem evento', () => {
@@ -114,15 +118,16 @@ test('faltaParaConfirmar continua igual depois de usar ocupacaoDoPedido', () => 
 });
 ```
 
-- [ ] **Step 2:** `node --test tests/sate-regras.test.mjs tests/sate-disponibilidade.test.mjs` → FALHA (exports ausentes).
+- [ ] **Step 2:** `node --test tests/calendario-dia.test.mjs tests/sate-disponibilidade.test.mjs` → FALHA (exports ausentes).
 
-- [ ] **Step 3: `regras.model.js`** - ao fim do arquivo:
+- [ ] **Step 3: `calendario.model.js`** - ao fim do arquivo (funções puras; não tocam no banco):
 
 ```js
-// ── O calendário escolar visto pelo SATE ─────────────────────
-// O que um registro de `dia_calendario` significa para quem pede um
-// ônibus (spec 2026-10-10-sate-disponibilidade, D1). Um lugar só para a
-// Disponibilidade, o modal do dia e o formulário fazerem a mesma leitura.
+// ── O que um dia significa para o extraclasse ────────────────
+// A leitura de um registro de `dia_calendario` para quem agenda uma saída
+// (spec 2026-10-10-sate-disponibilidade, D1). Mora aqui, e não no SATE,
+// porque é o vocabulário do próprio calendário: a Disponibilidade, o
+// modal do dia e o formulário do SATE fazem todos a mesma leitura.
 //
 //   'bloqueado'   extraclasse bloqueado - vence o resto, é a regra mais específica
 //   'nao_letivo'  feriado, recesso
@@ -138,7 +143,7 @@ export function situacaoDoDia(dia) {
 export const ROTULO_DIA = Object.freeze({ bloqueado: 'Extraclasse bloqueado', nao_letivo: 'Não letivo' });
 
 // A escola não pede transporte nestes dias; quem aprova pode (aviso, não erro).
-export const diaImpedeEscola = (dia) => ['bloqueado', 'nao_letivo'].includes(situacaoDoDia(dia));
+export const diaImpedeExtraclasse = (dia) => ['bloqueado', 'nao_letivo'].includes(situacaoDoDia(dia));
 
 // A frase que a pessoa lê sob o campo de data e na recusa do envio.
 export function motivoDoDia(dia) {
@@ -174,7 +179,7 @@ export function ocupacaoDoPedido(s, paradas = [], intervaloMin = 0) {
 ```
   (o resto da função fica igual).
 
-- [ ] **Step 5: `calendario.model.js`** - depois de `getDiaCalendario`:
+- [ ] **Step 5: ainda em `calendario.model.js`** - depois de `getDiaCalendario`:
 
 ```js
 // Os dias REGISTRADOS num intervalo (inclusive), indexados pela data
@@ -203,7 +208,7 @@ export async function getDiasCalendario(de, ate) {
 - Modify: `src/modules/sate/views/disponibilidade.js`, `src/modules/sate/views/detalhe.js`, `src/modules/sate/sate.css`
 
 **Interfaces:**
-- Consumes: `getDiasCalendario`, `situacaoDoDia`, `ROTULO_DIA`, `diaImpedeEscola`, `ocupacaoDoPedido` (Task 1).
+- Consumes: `getDiasCalendario`, `situacaoDoDia`, `ROTULO_DIA`, `diaImpedeExtraclasse` (todos de `calendario/calendario.model.js`) e `ocupacaoDoPedido` (Task 1).
 - Produces: em `views/dia.js` - `abrirDia(data, ctx, { voltar = null, destaque = null } = {})` e `faixaCalendarioHtml(dia, { completo = false } = {})`.
 
 - [ ] **Step 1: Criar `src/modules/sate/views/dia.js`:**
@@ -230,8 +235,8 @@ import { lerOcupacao, livresNoPeriodo, escadaDaTarde, totalDoDia, ocupacaoDoPedi
 import { getSolicitacoesDoDia, STATUS, STATUS_RESERVA, PERIODOS } from '../sate.model.js';
 import { getParticipacoesDe, resumoEscolas } from '../participacoes.model.js';
 import { getFrotas, rotulaTipo } from '../frota.model.js';
-import { situacaoDoDia, ROTULO_DIA, paraHora, tituloDoPedido } from '../regras.model.js';
-import { getDiaCalendario } from '../../calendario/calendario.model.js';
+import { paraHora, tituloDoPedido } from '../regras.model.js';
+import { getDiaCalendario, situacaoDoDia, ROTULO_DIA } from '../../calendario/calendario.model.js';
 import { esc } from '../../../shared/dom.js';
 import { fmtExtenso } from '../../../shared/format.js';
 import { modalHead, abrirModal } from '../../../shared/ui/modal.js';
@@ -351,11 +356,11 @@ function viagensHtml(linha, pedidos, partes, destaque) {
 }
 ```
 
-  Antes de seguir, conferir com `grep -n "^export" src/modules/sate/sate.model.js src/modules/sate/participacoes.model.js src/modules/sate/frota.model.js src/modules/sate/regras.model.js src/modules/sate/disponibilidade.model.js src/shared/ui/feedback.js` que **todos** os símbolos importados acima existem com esses nomes (em especial `DIA`, `STATUS_RESERVA`, `getSolicitacoesDoDia`, `erroBox`). Se algum não existir, pare e reporte NEEDS_CONTEXT - não invente.
+  Antes de seguir, conferir com `grep -n "^export" src/modules/sate/sate.model.js src/modules/sate/participacoes.model.js src/modules/sate/frota.model.js src/modules/sate/regras.model.js src/modules/sate/disponibilidade.model.js src/modules/calendario/calendario.model.js src/shared/ui/feedback.js` que **todos** os símbolos importados acima existem com esses nomes (em especial `DIA`, `STATUS_RESERVA`, `getSolicitacoesDoDia`, `erroBox`). Se algum não existir, pare e reporte NEEDS_CONTEXT - não invente.
 
 - [ ] **Step 2: `views/disponibilidade.js` - calendário nos cards.**
 
-Imports: acrescentar `import { getDiasCalendario } from '../../calendario/calendario.model.js';`, `import { diaImpedeEscola, situacaoDoDia } from '../regras.model.js';` (juntar ao import de `paraHora` que já existe) e `import { abrirDia, faixaCalendarioHtml } from './dia.js';`. Remover o import de `getFrotas, rotulaTipo` (passa a ser só do modal).
+Imports: acrescentar `import { getDiasCalendario, diaImpedeExtraclasse, situacaoDoDia } from '../../calendario/calendario.model.js';` e `import { abrirDia, faixaCalendarioHtml } from './dia.js';`. Remover o import de `getFrotas, rotulaTipo` (passa a ser só do modal).
 
 (a) Em `carregar()`, a ocupação e o calendário são lidos juntos; o calendário falha em silêncio:
 
@@ -372,7 +377,7 @@ Imports: acrescentar `import { getDiasCalendario } from '../../calendario/calend
   e `diaHtml` recebe o registro do dia: `dias.map(d => diaHtml(linha, d, hoje, calendario[d.data] || null))`.
 
 (b) `diaHtml(linha, { i, data }, hoje, cal)`:
-  - `const sit = situacaoDoDia(cal);` e `const impede = diaImpedeEscola(cal);`
+  - `const sit = situacaoDoDia(cal);` e `const impede = diaImpedeExtraclasse(cal);`
   - a classe do card ganha a situação: `${sit === 'bloqueado' ? 'bloqueado' : sit === 'nao_letivo' ? 'nao-letivo' : ''}`;
   - a faixa `faixaCalendarioHtml(cal)` entra logo depois do cabeçalho (`cab`), **também** no ramo "sem frota";
   - **escola** (`!ctx.aprovador`) num dia que impede: no lugar do total e das linhas de período, só `<span class="vazio">Não há viagens neste dia</span>`;
@@ -472,12 +477,12 @@ Imports: acrescentar `import { getDiasCalendario } from '../../calendario/calend
 - Modify: `src/modules/sate/views/formulario-quando.js`, `src/modules/sate/views/formulario.js`
 
 **Interfaces:**
-- Consumes: `getDiaCalendario` (já existe), `diaImpedeEscola`, `motivoDoDia` (Task 1).
+- Consumes: `getDiaCalendario` (já existe), `diaImpedeExtraclasse`, `motivoDoDia` (Task 1), todos de `calendario/calendario.model.js`.
 - Produces: `ligarQuando(aoMudar, { aprovador = false } = {})`.
 
 - [ ] **Step 1: `formulario-quando.js`.**
 
-Imports: `import { getDiaCalendario } from '../../calendario/calendario.model.js';` e acrescentar `diaImpedeEscola, motivoDoDia` ao import de `regras.model.js`.
+Imports: `import { getDiaCalendario, diaImpedeExtraclasse, motivoDoDia } from '../../calendario/calendario.model.js';`.
 
 `ligarQuando(aoMudar, { aprovador = false } = {})`. Dentro dela, antes de `pintarExtenso`:
 
@@ -503,8 +508,8 @@ Imports: `import { getDiaCalendario } from '../../calendario/calendario.model.js
     // Dia não letivo ou bloqueado: erro para a escola, aviso para quem
     // aprova (R15 - erro barra, aviso não). Evento em dia letivo só informa.
     const motivo = motivoDoDia(diaCal);
-    if (!erro && motivo && diaImpedeEscola(diaCal) && !aprovador) erro = motivo;
-    const nota = !erro && motivo ? ` · ${motivo}${diaImpedeEscola(diaCal) ? ' Você pode agendar mesmo assim.' : ''}` : '';
+    if (!erro && motivo && diaImpedeExtraclasse(diaCal) && !aprovador) erro = motivo;
+    const nota = !erro && motivo ? ` · ${motivo}${diaImpedeExtraclasse(diaCal) ? ' Você pode agendar mesmo assim.' : ''}` : '';
     ext.textContent = erro || (nativo.value ? fmtExtenso(nativo.value) + nota : DICA);
 ```
   (substitui a linha `ext.textContent = …` atual; `ext.classList.toggle('err', !!erro)` e `dia.setCustomValidity(erro)` continuam logo depois).
@@ -513,13 +518,13 @@ Chamar `conferirCalendario()` nos dois pontos em que a data muda: dentro do `if 
 
 - [ ] **Step 2: `formulario.js`.**
   - A chamada vira `ligarQuando(revisar, { aprovador: !!ctx.aprovador });`.
-  - No bloco "Bloqueios do calendário escolar" de `enviar`, as duas condições passam a usar as funções puras (acrescentar `diaImpedeEscola, motivoDoDia` ao import de `regras.model.js`):
+  - No bloco "Bloqueios do calendário escolar" de `enviar`, as duas condições passam a usar as funções puras (acrescentar `diaImpedeExtraclasse, motivoDoDia` ao import de `calendario.model.js` que o arquivo já tem):
 
 ```js
   if (!aprovador) {
     try {
       const dia = await getDiaCalendario(data);
-      if (diaImpedeEscola(dia)) return erro('#f-dia', motivoDoDia(dia));
+      if (diaImpedeExtraclasse(dia)) return erro('#f-dia', motivoDoDia(dia));
     } catch (_) { /* sem calendário carregado, segue */ }
   }
 ```
