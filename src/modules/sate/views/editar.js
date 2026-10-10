@@ -14,7 +14,7 @@
 //     da frota extra, em modo remanejamento.
 // ============================================================
 import { editarSolicitacao, STATUS_RESERVA } from '../sate.model.js';
-import { periodoDe, tituloDoPedido } from '../regras.model.js';
+import { periodoDe, rotuloDoPedido } from '../regras.model.js';
 import { lerOcupacao, faltaParaConfirmar } from '../disponibilidade.model.js';
 import { getParticipacoes } from '../participacoes.model.js';
 import { atualizarTrajeto, retratoTrajeto } from '../rota.model.js';
@@ -31,7 +31,7 @@ export function abrirEditar(s, ctx, reabrir) {
   const v = (k) => esc(s[k] ?? '');
 
   abrirModal(`
-    ${modalHead('Editar solicitação', esc(tituloDoPedido(s)))}
+    ${modalHead('Editar solicitação', esc(rotuloDoPedido(s)))}
     <div class="modal-body">
       <form id="rm-form" class="esc-form">
         <fieldset class="form-grupo">

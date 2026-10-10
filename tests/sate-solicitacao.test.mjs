@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { periodoDe, tituloDoPedido, responsavelDoPedido, PERIODOS, alocarFichas } from '../src/modules/sate/regras.model.js';
+import { periodoDe, tituloDoPedido, rotuloDoPedido, responsavelDoPedido, PERIODOS, alocarFichas } from '../src/modules/sate/regras.model.js';
 import { JANELA, TIPICO, trajetoParaVaga, intervaloDaViagem } from '../src/modules/sate/disponibilidade.model.js';
 import { enderecoCompleto, locaisParecidos, localNoEndereco } from '../src/modules/locais/locais.model.js';
 import { localAConferir, acoesDoPedido, alteracaoDeReabertura } from '../src/modules/sate/sate.model.js';
@@ -37,6 +37,13 @@ test('trajetoParaVaga: gravado vence; sem trajeto gravado usa o provisório, com
   assert.equal(trajetoParaVaga({ trajeto_min: 25, local_id: null }, 60), 25);
   assert.equal(trajetoParaVaga({ trajeto_min: null, local_id: null }, 60), 60);
   assert.equal(trajetoParaVaga({ trajeto_min: null, local_id: 'x' }, 60), 60);
+});
+
+test('rotuloDoPedido: escolas e data; cai na unidade e na Gerência; sem data', () => {
+  assert.equal(rotuloDoPedido({ _escolas: 'Escola Exemplo +1', unidade: { nome: 'Outra' }, data: '2026-10-14' }), 'Escola Exemplo +1 · 14/10/2026');
+  assert.equal(rotuloDoPedido({ unidade: { nome: 'Escola Exemplo' }, data: '2026-10-14' }), 'Escola Exemplo · 14/10/2026');
+  assert.equal(rotuloDoPedido({ data: '2026-10-14' }), 'Gerência de Transporte · 14/10/2026');
+  assert.equal(rotuloDoPedido({ _escolas: 'Escola Exemplo' }), 'Escola Exemplo');
 });
 
 test('tituloDoPedido: atividade, livre, destino, padrão', () => {

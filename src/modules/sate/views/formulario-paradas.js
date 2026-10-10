@@ -109,10 +109,14 @@ export function ligarParadas({ unidades, principal: qualPrincipal, aoMudar: mudo
 
 // A escola principal mudou: se ela estava entre as paradas, sai; e as
 // opções da busca acompanham.
+// Devolve o nome da escola retirada (ou null), para o formulário avisar:
+// a linha some com o que a pessoa já tinha digitado nela.
 export function aoMudarPrincipal() {
   const p = principal();
-  if (linhas.some(l => l.id === p)) { linhas = linhas.filter(l => l.id !== p); pintar(); }
+  const tirada = linhas.find(l => l.id === p);
+  if (tirada) { linhas = linhas.filter(l => l.id !== p); pintar(); }
   montarBusca();
+  return tirada ? tirada.nome : null;
 }
 
 export function lerParadas() {

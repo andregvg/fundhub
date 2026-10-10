@@ -22,7 +22,7 @@ import {
   porEmAnalise, confirmarSolicitacao, negarSolicitacao, cancelarSolicitacao,
   pedirCancelamento, confirmarCancelamento, reabrirSolicitacao, localAConferir,
 } from '../sate.model.js';
-import { tituloDoPedido } from '../regras.model.js';
+import { tituloDoPedido, rotuloDoPedido } from '../regras.model.js';
 import { abrirFrotaExtra } from './frota-extra.js';
 import { lerOcupacao, faltaParaConfirmar } from '../disponibilidade.model.js';
 import { esc, val, falhaNoCampo } from '../../../shared/dom.js';
@@ -161,7 +161,7 @@ async function reabrirPedido(btn, { s, paradas, executar }) {
 // função e não o HTML.
 function pedirMotivo({ titulo, rotulo, botao, fn }, { s, reabrir, fechaTudo }) {
   abrirModal(`
-    ${modalHead(esc(titulo), esc(tituloDoPedido(s)))}
+    ${modalHead(esc(titulo), esc(rotuloDoPedido(s)))}
     <div class="modal-body">
       <form id="mot-form" class="esc-form">
         <label>${esc(rotulo)}

@@ -21,6 +21,7 @@
 // chama"): uma solicitação não tem nome próprio.
 // ============================================================
 import { localAConferir, acoesDoPedido, STATUS, PERIODOS } from '../sate.model.js';
+import { rotuloDoPedido } from '../regras.model.js';
 import { abrirEditar } from './editar.js';
 import { abrirConferirDoPedido } from './conferir-local.js';
 import { abrirDia } from './dia.js';
@@ -45,10 +46,9 @@ export async function abrirDetalhe(solicitacao, contexto) {
   ctx = contexto;
   const s = solicitacao;
   const reabrir = () => abrirDetalhe(s, ctx);
-  const quem = s._escolas || s.unidade?.nome || 'Gerência de Transporte';
 
   abrirModal(`
-    ${modalHead('Detalhes da solicitação', `${esc(quem)} · ${esc(fmtData(s.data))}`)}
+    ${modalHead('Detalhes da solicitação', esc(rotuloDoPedido(s)))}
     <div class="modal-body" id="det-corpo">${loading()}</div>`, { tamanho: 'medio' });
 
   // As paradas vêm do banco; o resto já está na linha da tabela.
@@ -234,12 +234,14 @@ async function recalcular(btn, s) {
 // ── Histórico ────────────────────────────────────────────────
 // Quem pediu e quem decidiu, e quando. Mostra a decisão EM VIGOR; as
 // idas e vindas ficam na Auditoria. Timestamp só por fmtDataHora (R8).
-const ROTULO_DECISAO = { confirmado: 'Confirmado por', negado: 'Negado por', cancelado: 'Cancelado por' };
+const ROTULO_DECISAO = { confirmado: 'Confirmado', negado: 'Negado', cancelado: 'Cancelado' };
 
 function historicoHtml(s) {
   const quando = (quem, ts) => [quem ? esc(quem) : '', ts ? `em ${esc(fmtDataHora(ts))}` : ''].filter(Boolean).join(' ');
-  const linhas = par('Solicitado por', quando(s.criado_por, s.criado_em))
-    + (ROTULO_DECISAO[s.status] ? par(ROTULO_DECISAO[s.status], quando(s.decidido_por, s.decidido_em)) : '');
+  // Pedido antigo pode não ter autor: sem ele o rótulo não leva o "por".
+  const rotulo = (base, autor) => (autor ? `${base} por` : base);
+  const linhas = par(rotulo('Solicitado', s.criado_por), quando(s.criado_por, s.criado_em))
+    + (ROTULO_DECISAO[s.status] ? par(rotulo(ROTULO_DECISAO[s.status], s.decidido_por), quando(s.decidido_por, s.decidido_em)) : '');
   return linhas ? `<section class="det-historico">
     <div class="ficha-secao"><h3>${ico('horario', { tam: 12 })} Histórico</h3></div>
     ${linhas}

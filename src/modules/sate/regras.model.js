@@ -17,6 +17,7 @@
 // Elas também estão em docs/modulos/sate.md, escritas para quem usa.
 // ============================================================
 import { norm } from '../../shared/dom.js';
+import { fmtData } from '../../shared/format.js';
 import { exibirTelefone } from '../../shared/ui/phones.js';
 
 export const PERIODOS = Object.freeze({
@@ -53,6 +54,12 @@ export function periodoDe(embarque, retorno) {
 // nome à atividade: o destino é o nome (spec D2). Os antigos mantêm o seu.
 export const tituloDoPedido = (s) =>
   s?.atividade?.nome || s?.atividade_livre || s?.destino_nome || 'Solicitação de transporte';
+
+// De QUAL solicitação um modal fala: "Escola Exemplo +1 · 14/10/2026".
+// É o subtítulo da ficha e dos modais que abrem por cima dela (ui.md,
+// "Como um modal se chama"). `_escolas` é o resumo que a lista já montou.
+export const rotuloDoPedido = (s) =>
+  [s?._escolas || s?.unidade?.nome || 'Gerência de Transporte', s?.data ? fmtData(s.data) : ''].filter(Boolean).join(' · ');
 
 // Responsável pela visita: os campos novos (spec D8), e o texto livre
 // antigo para os pedidos feitos antes deles.

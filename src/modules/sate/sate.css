@@ -119,7 +119,7 @@ body.app-sate { --info-bg: color-mix(in srgb, var(--brand) 12%, var(--surface));
 }
 .sol-parada > b { grid-column: 1 / -1; }
 .sol-parada > label { display: flex; flex-direction: column; gap: 4px; }
-.sol-parada > .mini-btn { justify-self: end; }
+.sol-parada > .mini-btn { justify-self: end; min-height: var(--campo); min-width: var(--campo); }   /* R17: divide a linha com campos */
 @media (min-width: 720px) {
   .sol-parada { grid-template-columns: 2fr 1fr 1fr 1fr auto; }
   .sol-parada > b { grid-column: auto; align-self: center; }

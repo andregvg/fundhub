@@ -40,6 +40,11 @@ let ctx = null;
 // pinte por cima da mais nova.
 let trajeto = null;
 let pedidoTrajeto = 0;
+// Com que escolas e destino o `trajeto` foi (ou está sendo) calculado. Quem
+// sabe é o próprio cálculo: assim nenhum caminho que mexe nas paradas
+// precisa lembrar de atualizar uma cópia (a principal que troca com uma
+// parada, por exemplo).
+let assinaturaTrajeto = '';
 // Escola por busca para quem aprova (são 144); null para a escola, que
 // escolhe numa lista curta (spec 2026-10-02, D13). Destruído a cada
 // abertura pelo mesmo motivo de `bs` em formulario-destino.js.
@@ -124,7 +129,10 @@ function ligar() {
   // A escola escolhida decide o trajeto e quem pode ser o responsável; sai
   // das outras paradas, se estava lá.
   const aoMudarEscola = () => {
-    if (ctx.aprovador) aoMudarPrincipal();
+    if (ctx.aprovador) {
+      const tirada = aoMudarPrincipal();
+      if (tirada) toast({ titulo: 'Parada retirada', texto: `${tirada} passou a ser a escola principal.`, tipo: 'info' });
+    }
     pintarTrajeto();
     carregarEquipe(escolaId());
   };
@@ -145,17 +153,13 @@ function ligar() {
     document.getElementById('f-esc').addEventListener('change', aoMudarEscola);
   }
   trajeto = null;
+  assinaturaTrajeto = '';
   if (ctx.aprovador) {
-    // Digitar estudantes/horário numa parada não muda a rota: só uma parada
-    // que entra ou sai refaz o trajeto.
-    let paradas = '';
+    // Digitar estudantes/horário numa parada não muda a rota: pintarTrajeto
+    // reconhece que o conjunto é o mesmo e não consulta de novo.
     ligarParadas({
       unidades: ctx.unidades, principal: escolaId,
-      aoMudar: () => {
-        const agora = lerParadas().map(p => p.unidadeId).join(',');
-        if (agora !== paradas) { paradas = agora; pintarTrajeto(); }
-        revisar();
-      },
+      aoMudar: () => { pintarTrajeto(); revisar(); },
     });
   }
 
@@ -188,24 +192,37 @@ function lerParaResumo() {
 // (spec D7) - só o local do cadastro entra no cálculo do trajeto. O texto
 // do tempo de viagem é pintado pelo resumo; aqui só se calcula.
 async function pintarTrajeto() {
-  const meu = ++pedidoTrajeto;
   const escId = escolaId();
   const escola = (ctx.unidades || []).find(u => (u.id || u.numero) === escId);
   const d = lerDestino();
   const temDestino = !!(d.localId || d.nome);
-  if (!escola || !temDestino) { trajeto = null; revisar(); return; }
+  if (!escola || !temDestino) { ++pedidoTrajeto; assinaturaTrajeto = ''; trajeto = null; revisar(); return; }
 
+  // Principal, extras na ordem e destino: o que decide a rota. Se é o mesmo
+  // com que já se calculou (ou se calcula), não há o que refazer.
+  const extras = ctx.aprovador ? lerParadas() : [];
+  const assinatura = [escId, ...extras.map(p => p.unidadeId), d.localId || d.nome].join('|');
+  if (assinatura === assinaturaTrajeto) return;
+  assinaturaTrajeto = assinatura;
+
+  const meu = ++pedidoTrajeto;
   trajeto = null;   // enquanto calcula, o resumo não mostra o tempo velho
   // A escola que pede é a primeira parada; quem aprova pode ter acrescentado
   // outras no próprio formulário (spec D6), na ordem em que aparecem.
-  const r = await calcularTrajeto({
-    participacoes: [
-      { unidade_id: escola.id || escola.numero, unidade: escola, status: 'ativa', ordem: 1 },
-      ...(ctx.aprovador ? lerParadas() : []).map((p, i) => ({ unidade_id: p.unidadeId, unidade: p.unidade, status: 'ativa', ordem: i + 2 })),
-    ],
-    destino: d.local,
-    velocidadeKmh: velocidadeOnibusKmh(), margemMin: margemParadaMin(),
-  });
+  let r;
+  try {
+    r = await calcularTrajeto({
+      participacoes: [
+        { unidade_id: escola.id || escola.numero, unidade: escola, status: 'ativa', ordem: 1 },
+        ...extras.map((p, i) => ({ unidade_id: p.unidadeId, unidade: p.unidade, status: 'ativa', ordem: i + 2 })),
+      ],
+      destino: d.local,
+      velocidadeKmh: velocidadeOnibusKmh(), margemMin: margemParadaMin(),
+    });
+  } catch (_) {
+    if (meu === pedidoTrajeto) assinaturaTrajeto = '';   // falhou: a próxima mudança tenta de novo
+    return;
+  }
   if (meu !== pedidoTrajeto || !document.getElementById('f-resumo')) return;
   trajeto = r;
   // O trajeto (trajeto_min) entra no cálculo do intervalo ocupado (D5) -
@@ -318,7 +335,10 @@ async function enviar(e) {
     for (const p of extras) {
       try {
         await acrescentar(criada.id, { unidadeId: p.unidadeId, qtdAlunos: p.qtdAlunos, qtdCadeirante: p.qtdCadeirante, horario: p.horario });
-      } catch (_) { naoEntraram.push(p.unidade?.nome || 'uma escola'); }
+      } catch (err) {
+        console.warn('[sate] parada não acrescentada:', err?.message || err);
+        naoEntraram.push(p.unidade?.nome || 'uma escola');
+      }
     }
     fecharModal();
     ctx.recarregar?.();

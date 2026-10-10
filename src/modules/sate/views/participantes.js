@@ -64,7 +64,7 @@ export function blocoHtml(partes, ctx) {
 // Cancelada continua na lista, e é por ela ficar que a escola que
 // desistiu continua vendo o registro do que aconteceu.
 function linha(p, ctx, totalAtivas) {
-  const nome = p.unidade?.apelido || p.unidade?.nome || p.local?.nome || '—';
+  const nome = p.unidade?.nome || p.local?.nome || '—';
   const minha = (ctx.perfil?.unidades || []).includes(p.unidade_id);
   const ap = !!ctx.aprovador;
   const ehAtiva = ativa(p);
@@ -275,7 +275,7 @@ function formularioParada({ ctx, solicitacao, partes, reabrir }) {
   const pontos = (ctx.locais || []).filter(l => l.ativo && !locaisNa.has(l.id));
   const livres = [...(ctx.unidades || [])]
     .filter(u => !escolasNa.has(u.id))
-    .sort((a, b) => (a.apelido || a.nome).localeCompare(b.apelido || b.nome, 'pt'));
+    .sort((a, b) => a.nome.localeCompare(b.nome, 'pt'));
 
   abrirModal(`
     ${modalHead('Acrescentar parada', 'Entra no fim da fila de paradas; a ordem se ajusta depois.')}
@@ -289,7 +289,7 @@ function formularioParada({ ctx, solicitacao, partes, reabrir }) {
           <label class="col-full" id="dp-esc-w">Escola
             <select id="dp-esc">
               <option value="">Selecione…</option>
-              ${livres.map(u => `<option value="${esc(u.id)}">${esc(u.apelido || u.nome)}</option>`).join('')}
+              ${livres.map(u => `<option value="${esc(u.id)}">${esc(u.nome)}</option>`).join('')}
             </select></label>
           <label class="col-full" id="dp-local-w" hidden>Ponto de embarque
             <select id="dp-local">
