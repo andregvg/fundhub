@@ -9,12 +9,12 @@ export const CONFIG = {
   appName: 'FundHub',
   // Versão do sistema. Ao lançar, subir aqui E registrar em CHANGELOG.md.
   // Semântica: MINOR = módulo novo ou mudança de modelo; PATCH = correção.
-  versao: '0.40.0',
+  versao: '0.41.0',
   // Versão do SATE (sate.html), contada à parte: a escola só vê o número
   // subir quando algo mudou PARA ELA. Mudou o SATE → sobem as duas; mudou
   // só o FundHub → sobe só `versao`. Registrar na seção "SATE" do
   // CHANGELOG. Histórico reconstruído a partir do FundHub em 27/09/2026.
-  versaoSate: '0.18.2',
+  versaoSate: '0.19.0',
   supabaseUrl: 'https://uwkroffzjyzbjslepjnh.supabase.co',
   // Chave "publishable" do Supabase (Project Settings → API). É PÚBLICA por
   // design - sem login institucional + estar na allowlist (perfil), o RLS

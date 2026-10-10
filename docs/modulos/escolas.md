@@ -9,7 +9,7 @@
 - Filtrar por segmento, por oferta, e por "tem transporte" / "atende EJA".
 - Ligar ou escrever para a escola direto da lista: o telefone e o e-mail do card
   são clicáveis.
-- Abrir a ficha de uma escola: telefones, e-mail, endereço, supervisão e equipe. Sob o
+- Abrir a ficha de uma escola: telefones, e-mail, endereço (com o CEP ao lado), supervisão e equipe. Sob o
   nome da escola ficam as tags (segmento, oferta, transporte, EJA). Os
   cadastros menos consultados - **Nome no SAE** (só quando diferente do nome),
   INEP, regional e site da APM - ficam recolhidos em **Mais detalhes**.
@@ -36,7 +36,7 @@ sistema, nos bastidores.
 
 1. Clique em **Nova escola**.
 2. Preencha ao menos o **Nome** (é o que aparece nas listas). Apelido, nome
-   oficial (aparece na ficha, em **Mais detalhes**, como **Nome no SAE**), segmento, oferta, endereço, e-mail, telefones e cadastros (INEP,
+   oficial (aparece na ficha, em **Mais detalhes**, como **Nome no SAE**), segmento, oferta, CEP, endereço, e-mail, telefones e cadastros (INEP,
    APM) são opcionais.
 3. Ligue **Transporte de alunos** e **Atende EJA** se for o caso.
 4. Clique em **Criar**.
@@ -61,16 +61,23 @@ escola até o destino. Sem ela, o transporte continua sendo pedido normalmente,
 só sem o tempo de viagem.
 
 1. Abra a escola e clique para **editar**.
-2. Em **Localização**, confira o **Endereço** e clique em **Localizar pelo
+2. Em **Localização**, digite o **CEP** (`00000-000`). O sistema preenche o
+   **Endereço**, se estiver em branco, e posiciona o pino na rua - **Latitude**
+   e **Longitude** vêm sozinhas. Se a escola já tinha o pino acertado, ele
+   **não se move sozinho**: aparece o botão **Mover o pino para este CEP**, e
+   você decide.
+3. Se o CEP não ajudar, confira o **Endereço** e clique em **Localizar pelo
    endereço**. O sistema preenche **Latitude** e **Longitude** e mostra o
-   endereço que encontrou.
-3. Clique em **conferir no mapa** antes de salvar. Um endereço parecido pode
+   endereço que encontrou. Se a busca com o endereço completo não achar nada,
+   ele tenta de novo só com a rua; e, quando o mapa só encontra o bairro, avisa
+   ("Só encontrei o bairro, não a rua") em vez de pôr o pino longe da escola.
+4. Clique em **conferir no mapa** antes de salvar. Um endereço parecido pode
    cair na rua de mesmo nome em outro bairro.
-4. Se o endereço não for encontrado, ou o ponto estiver errado, copie as
+5. Se o endereço não for encontrado, ou o ponto estiver errado, copie as
    coordenadas do Google Maps: clique com o botão direito sobre a escola e
    clique nos números que aparecem. Cole o primeiro em **Latitude** e o segundo
    em **Longitude**.
-5. Clique em **Salvar**.
+6. Clique em **Salvar**.
 
 Com a escola localizada, o **ver no mapa** da ficha passa a abrir o ponto
 exato, e não uma busca pelo endereço.
@@ -232,4 +239,4 @@ sistema envia só o endereço da escola, nunca dado de pessoa.
 A ficha de uma pessoa só abre para quem tem acesso ao módulo Servidores. Sem
 esse acesso, a equipe continua visível para leitura.
 
-> Atualizado na versão 0.40.0.
+> Atualizado na versão 0.41.0.

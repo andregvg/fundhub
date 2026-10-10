@@ -19,6 +19,7 @@ partir das versões do FundHub que mudaram algo para quem usa o SATE.
 
 | SATE | FundHub | Em resumo |
 |---|---|---|
+| 0.19.0 | 0.41.0 | CEP nos locais e no destino do pedido, busca de endereço mais certeira, conferir local pela aba Locais |
 | 0.18.2 | 0.40.0 | erro do pedido aponta o campo, asterisco nos obrigatórios, dica de hora nos dois horários, mapa recolhido, rodapé fixo |
 | 0.18.0 | 0.39.0 | data só com dia e mês, servidor responsável com telefone automático, tema e cor por pessoa |
 | 0.17.1 | 0.38.1 | pedido com local novo pela busca, disponibilidade de segunda a sexta com o dia destacado |
@@ -45,6 +46,31 @@ partir das versões do FundHub que mudaram algo para quem usa o SATE.
 | 0.1.0 | 0.5.0 | a escola pede, a SME valida |
 
 ---
+
+## [0.41.0] - 2026-10-10
+
+> SATE 0.19.0.
+>
+> **Rodar a migration 047 no Supabase.** Ela cria o campo CEP nas escolas, nos locais e no
+> destino dos pedidos. Sem ela, tudo continua funcionando; só quem preencher um CEP recebe
+> o aviso de que o banco ainda não tem o campo.
+
+### Adicionado
+
+- **CEP** no cadastro de escolas e de locais do SATE, e no destino novo de um pedido de
+  transporte. Ao digitar o CEP, o sistema preenche rua e bairro (só se estiverem em branco)
+  e posiciona o pino no mapa. Num cadastro que já tem o pino acertado, o pino não se move
+  sozinho: aparece o botão **Mover o pino para este CEP**.
+- **A conferir**, no alto da página Locais do SATE (para quem aprova): os destinos que as
+  escolas digitaram e ainda não são um local do cadastro, com o botão **Conferir**.
+
+### Alterado
+
+- **Localizar pelo endereço** acha mais lugares: quando a busca com o endereço completo não
+  encontra nada, o sistema tenta de novo só com a rua. Quando o mapa só acha o bairro, ele
+  avisa em vez de pôr o pino longe do lugar.
+- **Conferir local** vale para o lugar: se vários pedidos digitaram o mesmo destino, uma
+  conferência resolve todos.
 
 ## [0.40.0] - 2026-10-04
 

@@ -201,6 +201,7 @@ alerta para conferir.
 2. Em **Origem**, escolha a escola, as turmas e o número de estudantes. Quem aprova procura a escola **pelo nome** no campo **Escola**: digite parte do nome e escolha na lista. Se você é de uma escola só, o campo já vem preenchido.
 3. Em **Destino**, busque o local no campo **Local** - digite parte do nome e escolha da lista. Endereço, Número e Bairro aparecem preenchidos sozinhos. A lista abre quando você clica no campo, digita ou aperta a seta para baixo. Se você errar uma letra ("Muzeu"), a lista mostra os locais **Parecidos**.
 4. **O lugar não está na lista?** Depois de digitar pelo menos 3 letras do nome, escolha o último item, **Usar “nome digitado” como novo local** (se a lista tiver outros locais, o item aparece em tom apagado, como **Nenhum destes? Cadastrar “nome digitado”**). O campo passa a mostrar a etiqueta **Novo local**, e você preenche **Endereço**, **Número** e **Bairro** - os três são obrigatórios, porque é isso que a empresa de transporte lê na ficha do motorista. O **×** do campo volta à busca.
+   O campo **CEP** é opcional: digite os oito dígitos e o sistema preenche **Endereço** e **Bairro** (só os que estiverem em branco - o **Número** é sempre seu). Informar o CEP ajuda quem aprova a achar o lugar quando for conferir o local.
 5. Ao preencher o endereço de um local novo, se ele já for o de um local cadastrado, aparece "Este endereço já é de …" com o botão **Usar este**, que troca para o local já cadastrado. É só um aviso: você pode seguir com o local novo.
 6. Em **Quando**, digite a **Data** só com dia e mês, sem barra: `1403` vira `14/03`, e logo abaixo o sistema escreve a data por extenso, já com o ano. O ano é o atual. Se o dia não existir (como `3102`), aparece "Essa data não existe." em vermelho. O botão com o calendário, dentro do campo, abre o calendário para escolher, e quem preferir pode digitar o ano também. Depois informe o **Horário de embarque** e o **Horário de saída do evento**, também só com números (`0730` vira `07:30`) - os dois são **obrigatórios**: é a partir deles que o sistema conta quantos ônibus estão livres e calcula o **período**, mostrado em destaque logo abaixo dos campos, sem que você precise escolher (a tabela logo abaixo da lista mostra a regra).
 7. Em **Responsável pela visita**, informe o **Servidor(a) responsável** e o **Telefone / WhatsApp** - os dois são **obrigatórios**, para a empresa de transporte e a Gerência conseguirem falar com alguém em caso de dúvida. Ao escolher a escola, o campo do nome passa a sugerir a equipe dela (gestores e coordenadores): é só começar a digitar e escolher na lista, e o telefone vem preenchido com o que está no cadastro - você pode trocá-lo, se o número do dia da visita for outro. Se o responsável não está na lista (um professor, por exemplo), digite o nome e o telefone normalmente.
@@ -347,23 +348,33 @@ reordenar mudam por onde o ônibus passa.
 ### Localizar um destino
 
 1. No menu, em **Locais**, abra o local (ou crie um com **Novo local**). A
-   janela traz Nome, Ponto de desembarque, Endereço, Número, Bairro, o botão
-   **Ver no mapa** (que abre e recolhe o mapa), Latitude, Longitude e
+   janela traz Nome, Ponto de desembarque, **CEP**, Endereço, Número, Bairro,
+   o botão **Ver no mapa** (que abre e recolhe o mapa), Latitude, Longitude e
    Observação.
-2. Confira o **Endereço**, o **Número** e o **Bairro** e clique em
-   **Localizar pelo endereço**. O pino do mapa se move para o lugar
-   encontrado, e Latitude e Longitude são preenchidas sozinhas.
-3. Clique em **Ver no mapa** e ajuste o ponto **arrastando o pino**, ou clicando no lugar certo -
+2. Digite o **CEP** (`00000-000`): rua e bairro são preenchidos, se estiverem
+   em branco, e o pino vai para a rua. O **Número** o sistema nunca preenche.
+   Se o local já tinha o pino acertado, ele **não se move sozinho** - clique
+   em **Mover o pino para este CEP** se quiser.
+3. Se o CEP não ajudar, confira o **Endereço**, o **Número** e o **Bairro** e
+   clique em **Localizar pelo endereço**. O pino do mapa se move para o lugar
+   encontrado, e Latitude e Longitude são preenchidas sozinhas. Se a busca com
+   o endereço completo não achar nada, o sistema tenta de novo só com a rua.
+   Quando o mapa só encontra o bairro, o sistema avisa ("Só encontrei o
+   bairro, não a rua") em vez de pôr o pino longe do lugar.
+4. Clique em **Ver no mapa** e ajuste o ponto **arrastando o pino**, ou clicando no lugar certo -
    é assim que se acerta o ponto exato de desembarque, não só a rua.
-4. Se o endereço não for encontrado, copie as coordenadas do Google Maps:
+5. Se o endereço não for encontrado, copie as coordenadas do Google Maps:
    botão direito sobre o lugar, e clique nos números; ou clique em **Abrir no
    Google Maps** para conferir o ponto escolhido antes de salvar.
-5. Salve.
+6. Salve.
+
+O CEP aparece ao lado do endereço no card do local.
 
 Se o mapa não carregar (sem internet, por exemplo), a janela continua
 funcionando só com os campos de Latitude e Longitude.
 
-As escolas se localizam do mesmo jeito, no cadastro de **Escolas**.
+As escolas se localizam do mesmo jeito, no cadastro de **Escolas** - também
+com o campo **CEP**.
 
 ### Conferir local
 
@@ -375,16 +386,30 @@ o mesmo vale, por pouco tempo, para um destino já do cadastro que ainda não
 teve o trajeto calculado -, então vale conferir e recalcular assim que
 possível.
 
-1. Abra a solicitação e clique em **Conferir local**.
-2. O sistema mostra locais já cadastrados parecidos com o que a escola
-   digitou (nome parecido ou mesmo bairro). Se um deles for o mesmo lugar,
-   clique em **É este**.
+Há dois caminhos para chegar à conferência:
+
+- pela **solicitação**: abra o pedido e clique em **Conferir local**;
+- pela página **Locais** (quem aprova): no alto, o bloco **A conferir** lista
+  os destinos que as escolas digitaram e ainda não são um local do cadastro,
+  com quantos pedidos usam cada um. Clique em **Conferir** ao lado do destino.
+  Sem nenhum destino pendente, o bloco não aparece.
+
+Daí em diante é igual:
+
+1. A janela **Conferir local** mostra o que a escola digitou (com o CEP, se
+   ela informou) e em quantos pedidos esse destino foi usado.
+2. O sistema lista locais já cadastrados parecidos (nome parecido ou mesmo
+   bairro). Se um deles for o mesmo lugar, clique em **É este**.
 3. Se nenhum for o mesmo lugar, clique em **Nenhum destes: cadastrar novo** -
    abre o cadastro de local já preenchido com o que a escola digitou, pronto
    para localizar no mapa e salvar.
 4. Nos dois casos, o pedido passa a apontar para o local do cadastro e o
    tempo de viagem é recalculado. Data, horários, escolas, estudantes e
    veículos não mudam - só o destino é ajustado.
+
+**A conferência vale para o lugar, não para um pedido só:** todos os pedidos
+que digitaram aquele mesmo destino são resolvidos juntos, e o aviso ao final
+diz quantos foram.
 
 O texto original, digitado pela escola, continua registrado no histórico do
 pedido, mesmo depois de conferido.
@@ -555,4 +580,4 @@ Negado é um pedido que **nunca** chegou a valer - foi recusado na análise.
 Cancelado é um pedido que **estava de pé** e foi desfeito. Os dois exigem
 justificativa.
 
-> Atualizado na versão 0.40.0.
+> Atualizado na versão 0.41.0.
