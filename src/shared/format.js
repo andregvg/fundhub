@@ -173,3 +173,21 @@ export const fmtRG = (v) => (noPadraoRG(v) ? mascaraRG(v) : rgCru(v));
 export const noPadraoCPF = (v) => !cpfCru(v) || /^\d{11}$/.test(cpfCru(v));
 
 export const noPadraoRG = (v) => !rgCru(v) || /^\d{8}[0-9X]$/.test(rgCru(v));
+
+// ── CEP ──────────────────────────────────────────────────────
+// O banco guarda os 8 dígitos; a tela põe o hífen (mesmo critério de CPF).
+
+// O que vai ao banco: 8 dígitos, ou null se não for um CEP inteiro.
+export const cepDe = (v) => {
+  const d = String(v ?? '').replace(/\D/g, '');
+  return d.length === 8 ? d : null;
+};
+
+// '12345678' → '12345-678'. Progressiva: formata o que já foi digitado.
+export const mascaraCep = (v) => {
+  const d = String(v ?? '').replace(/\D/g, '').slice(0, 8);
+  return d.length > 5 ? `${d.slice(0, 5)}-${d.slice(5)}` : d;
+};
+
+// Exibição de um valor pronto: vazio quando não é um CEP inteiro.
+export const fmtCep = (v) => (cepDe(v) ? mascaraCep(v) : '');
