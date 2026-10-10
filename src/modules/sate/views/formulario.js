@@ -23,7 +23,7 @@ import {
   capacidadeOnibus, capacidadeVan, antecedenciaMinDias,
   velocidadeOnibusKmh, margemParadaMin, trajetoProvisorioMin,
 } from '../sate.config.js';
-import { getDiaCalendario } from '../../calendario/calendario.model.js';
+import { getDiaCalendario, diaImpedeExtraclasse, motivoDoDia } from '../../calendario/calendario.model.js';
 import { cadastroRapidoHtml, ligarCadastroRapido } from './frota-rapida.js';
 import { destinoHtml, ligarDestino, lerDestino, validarDestino } from './formulario-destino.js';
 import { quandoHtml, ligarQuando } from './formulario-quando.js';
@@ -154,7 +154,7 @@ function ligar() {
   document.getElementById('f-alunos').addEventListener('input', revisar);
 
   form.addEventListener('submit', enviar);
-  ligarQuando(revisar);
+  ligarQuando(revisar, { aprovador: !!ctx.aprovador });
   ligarResponsavel();
   carregarEquipe(escolaId());   // escola única já vem escolhida
   revisar();
@@ -297,8 +297,7 @@ async function enviar(e) {
   if (!aprovador) {
     try {
       const dia = await getDiaCalendario(data);
-      if (dia?.bloqueia_extraclasse) return erro('#f-dia', `Data bloqueada para extraclasse${dia.evento ? ` (${dia.evento})` : ''}.`);
-      if (dia && dia.letivo === false) return erro('#f-dia', `${fmtData(data)} não é dia letivo${dia.evento ? ` (${dia.evento})` : ''}.`);
+      if (diaImpedeExtraclasse(dia)) return erro('#f-dia', motivoDoDia(dia));
     } catch (_) { /* sem calendário carregado, segue */ }
   }
 

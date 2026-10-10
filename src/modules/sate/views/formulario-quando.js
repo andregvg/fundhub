@@ -13,6 +13,7 @@
 // campo visível mudou.
 // ============================================================
 import { periodoDe, PERIODOS } from '../regras.model.js';
+import { getDiaCalendario, diaImpedeExtraclasse, motivoDoDia } from '../../calendario/calendario.model.js';
 import { mascaraDiaMes, dataDeDiaMes, diaMesDe, fmtExtenso, fmtData } from '../../../shared/format.js';
 import { marcarVazio } from '../../../shared/ui/campo-data-hora.js';
 import { esc, val } from '../../../shared/dom.js';
@@ -62,10 +63,24 @@ function pintarPeriodo() {
     : '';
 }
 
-export function ligarQuando(aoMudar) {
+export function ligarQuando(aoMudar, { aprovador = false } = {}) {
   const dia = document.getElementById('f-dia');
   const nativo = document.getElementById('f-data');
   const ext = document.getElementById('f-data-ext');
+
+  // O calendário escolar do dia escolhido (spec 2026-10-10-sate-disponibilidade,
+  // D2): consultado ao escolher a data, e não só no envio. `consulta`
+  // descarta a resposta de uma data que a pessoa já trocou.
+  let diaCal = null, consulta = 0;
+  const conferirCalendario = async () => {
+    const meu = ++consulta;
+    diaCal = null;
+    if (!nativo.value) return;
+    const d = await getDiaCalendario(nativo.value).catch(() => null);   // sem calendário, segue sem aviso
+    if (meu !== consulta || !document.getElementById('f-dia')) return;
+    diaCal = d;
+    pintarExtenso();
+  };
 
   // Três estados: data que não existe, data antes da primeira possível
   // (ambos erro, e o campo visível fica inválido para o navegador) e o
@@ -76,7 +91,12 @@ export function ligarQuando(aoMudar) {
     let erro = '';
     if (completo && !nativo.value) erro = 'Essa data não existe.';
     else if (nativo.value && nativo.min && nativo.value < nativo.min) erro = `A primeira data possível é ${fmtData(nativo.min)}.`;
-    ext.textContent = erro || (nativo.value ? fmtExtenso(nativo.value) : DICA);
+    // Dia não letivo ou bloqueado: erro para a escola, aviso para quem
+    // aprova (R15 - erro barra, aviso não). Evento em dia letivo só informa.
+    const motivo = motivoDoDia(diaCal);
+    if (!erro && motivo && diaImpedeExtraclasse(diaCal) && !aprovador) erro = motivo;
+    const nota = !erro && motivo ? ` · ${motivo}${diaImpedeExtraclasse(diaCal) ? ' Você pode agendar mesmo assim.' : ''}` : '';
+    ext.textContent = erro || (nativo.value ? fmtExtenso(nativo.value) + nota : DICA);
     ext.classList.toggle('err', !!erro);
     dia.setCustomValidity(erro);
   };
@@ -84,13 +104,14 @@ export function ligarQuando(aoMudar) {
   dia.addEventListener('input', () => {
     dia.value = mascaraDiaMes(dia.value);
     const iso = dataDeDiaMes(dia.value) || '';
-    if (nativo.value !== iso) { nativo.value = iso; marcarVazio(nativo); aoMudar(); }
+    if (nativo.value !== iso) { nativo.value = iso; marcarVazio(nativo); conferirCalendario(); aoMudar(); }
     pintarExtenso();
   });
   // Escolheu no calendário: o texto acompanha.
   nativo.addEventListener('change', () => {
     marcarTocado(dia);   // a escolha no calendário é dela; o texto é escrito por código
     dia.value = nativo.value ? textoDe(nativo.value) : '';
+    conferirCalendario();   // zera `diaCal` na hora; o aviso do dia antigo não fica sob a data nova
     pintarExtenso();
     aoMudar();
   });
