@@ -1,104 +1,183 @@
 // ============================================================
 // FundHub - sate/views/detalhe.js
-// O modal de uma solicitação: tudo o que ela é, e as decisões que
-// cabem naquele status para aquela permissão.
-// Spec: 2026-09-08-sate-solicitacoes-design.md § D4.
+// A ficha "Detalhes da solicitação": tudo o que ela é.
+// Spec: 2026-10-10-sate-solicitacao-reformulada-design.md § D3.
 //
-// Por que as decisões moram aqui e não em botões na linha da tabela:
-// são cinco ações condicionais (analisar, confirmar, negar, cancelar,
-// dar ciência), e três delas exigem justificativa. Espremer isso numa
-// célula daria cinco ícones que aparecem e somem sem explicação.
+// De cima para baixo, na ordem em que a pessoa precisa:
+//   quadro-resumo  o que identifica a viagem de relance (destino, data,
+//                  horários, endereço), com a cor da situação na lateral;
+//   justificativa  em destaque, quando o pedido foi negado, cancelado ou
+//                  tem cancelamento pedido - é o que mais importa ali;
+//   Solicitação    quem pediu e para quem;
+//   Logística      como a viagem acontece: horários, veículos, trajeto e
+//                  as paradas;
+//   histórico      quem pediu e quem decidiu, e quando;
+//   decisões       no pé (views/decisoes.js).
 //
-// Negar, cancelar e pedir cancelamento abrem um SEGUNDO modal por cima
-// (`{ voltar }`), com o campo de justificativa. Empilhado, e não
-// substituindo: o ← devolve ao detalhe com o dado recarregado.
+// Rótulo e valor ficam LADO A LADO (`.det-par`, o par do hub). Só aparece
+// o que tem valor: sem cadeirante, não há "0 cadeirantes".
+//
+// O título é o que o modal É, não o destino (ui.md, "Como um modal se
+// chama"): uma solicitação não tem nome próprio.
 // ============================================================
-import {
-  porEmAnalise, confirmarSolicitacao, negarSolicitacao, cancelarSolicitacao,
-  pedirCancelamento, confirmarCancelamento, localAConferir,
-  STATUS, PERIODOS,
-} from '../sate.model.js';
-import { tituloDoPedido, responsavelDoPedido } from '../regras.model.js';
-import { abrirFrotaExtra } from './frota-extra.js';
-import { abrirRemanejar } from './remanejar.js';
+import { localAConferir, acoesDoPedido, STATUS, PERIODOS } from '../sate.model.js';
+import { abrirEditar } from './editar.js';
 import { abrirConferirDoPedido } from './conferir-local.js';
 import { abrirDia } from './dia.js';
-import { getParticipacoes } from '../participacoes.model.js';
+import { decisoesHtml, ligarDecisoes } from './decisoes.js';
+import { getParticipacoes, resumoEscolas } from '../participacoes.model.js';
 import { blocoHtml, ligarParticipantes } from './participantes.js';
-import { lerOcupacao, faltaParaConfirmar } from '../disponibilidade.model.js';
 import { pontosDaViagem, explicarTrajeto, atualizarTrajeto, retratoTrajeto } from '../rota.model.js';
-import { linkRota } from '../../locais/geografia.model.js';
+import { linkRota, linkMaps } from '../../locais/geografia.model.js';
 import { enderecoCompleto } from '../../locais/locais.model.js';
 import { velocidadeOnibusKmh, margemParadaMin } from '../sate.config.js';
-import { esc, vazio, val, falhaNoCampo } from '../../../shared/dom.js';
+import { esc, vazio } from '../../../shared/dom.js';
 import { fmtData, fmtDataHora, fmtCep } from '../../../shared/format.js';
-import { modalHead, abrirModal, fecharModal } from '../../../shared/ui/modal.js';
-import { loading } from '../../../shared/ui/feedback.js';
+import { exibirTelefone } from '../../../shared/ui/phones.js';
+import { modalHead, abrirModal } from '../../../shared/ui/modal.js';
+import { loading, reportarErro } from '../../../shared/ui/feedback.js';
 import { toast } from '../../../shared/ui/toast.js';
-import { reportarErro } from '../../../shared/ui/feedback.js';
-import { confirmar } from '../../../shared/ui/confirmar.js';
 import { ico } from '../../../shared/ui/icones.js';
 
 let ctx = null;
-let atual = null;
-let paradasAtual = [];   // para confirmar() calcular o mesmo embarque efetivo do badge
 
 export async function abrirDetalhe(solicitacao, contexto) {
   ctx = contexto;
-  atual = solicitacao;
   const s = solicitacao;
+  const reabrir = () => abrirDetalhe(s, ctx);
+  const quem = s._escolas || s.unidade?.nome || 'Gerência de Transporte';
 
   abrirModal(`
-    ${modalHead(esc(tituloDoPedido(s)), esc(s.unidade?.apelido || s.unidade?.nome || ''))}
+    ${modalHead('Detalhes da solicitação', `${esc(quem)} · ${esc(fmtData(s.data))}`)}
     <div class="modal-body" id="det-corpo">${loading()}</div>`, { tamanho: 'medio' });
 
-  // As participações vêm do banco; o resto já está na linha da tabela. A
-  // ocupação do dia não é lida aqui: confirmarPedido a lê na hora de decidir
-  // e o modal "Disponibilidade do dia" mostra o quadro inteiro.
+  // As paradas vêm do banco; o resto já está na linha da tabela.
   const paradas = await getParticipacoes(s.id).catch(() => []);
-  paradasAtual = paradas;
   const corpo = document.getElementById('det-corpo');
   if (!corpo) return;   // fechou enquanto carregava
 
+  const pode = acoesDoPedido(s, { aprovador: !!ctx.aprovador, somenteLeitura: !!ctx.somenteLeitura });
+
   corpo.innerHTML = `
-    <div class="det-status">
-      <span class="tag st-${esc(s.status)}">${esc(STATUS[s.status] || s.status)}</span>
-      ${ctx.aprovador ? `<button type="button" class="mini-btn" id="det-dia">${ico('calendario', { tam: 13 })} Ver disponibilidade do dia</button>` : ''}
+    ${resumoHtml(s, pode.editar)}
+    ${motivoHtml(s)}
+
+    <div class="ficha-secao"><h3>Solicitação</h3></div>
+    ${par('Escola', esc(resumoEscolas(paradas) || quem))}
+    ${par('Situação', `<span class="tag st-${esc(s.status)}">${esc(STATUS[s.status] || s.status)}</span>`)}
+    ${par('Turma(s)', s.turmas ? esc(s.turmas) : '')}
+    ${responsavelHtml(s)}
+    ${par('Estudantes', estudantesHtml(s, paradas))}
+    ${par('Observação', s.observacao ? esc(s.observacao) : '')}
+
+    <div class="ficha-secao det-secao">
+      <h3>Logística</h3>
+      ${ctx.aprovador ? `<div class="ficha-secao-acoes">
+        <button type="button" class="mini-btn" id="det-dia">${ico('calendario', { tam: 13 })} Ver disponibilidade do dia</button>
+      </div>` : ''}
     </div>
-
-    ${campo('Data', `${esc(fmtData(s.data))} · ${esc(PERIODOS[s.periodo] || s.periodo)}`)}
-    ${campo('Turma(s)', s.turmas ? esc(s.turmas) : vazio('não informadas'))}
-    ${campo('Estudantes', `${s.qtd_alunos || 0}${s.qtd_cadeirante ? ` · ${ico('cadeirante', { tam: 13 })} ${s.qtd_cadeirante} cadeirante(s)` : ''}`)}
-    ${campo('Veículos', `${s.qtd_onibus || 0} ônibus${s.qtd_vans ? ` · ${s.qtd_vans} van(s) adaptada(s)` : ''}`)}
-    ${campo('Horários', s.horario_embarque || s.horario_retorno
-      ? `embarque ${esc(s.horario_embarque || '—')} · saída do evento ${esc(s.horario_retorno || '—')}`
-      : vazio('não informados'))}
-    ${campo('Destino', destino(s)
-      ? `${esc(destino(s))}${enderecoDestino(s) ? `<div class="di-meta">${esc(enderecoDestino(s))}</div>` : ''}${conferirLocalHtml(s)}`
-      : vazio('não informado'))}
-    ${campo('Trajeto', trajetoHtml(s, paradas))}
-    ${responsavelDoPedido(s) ? campo('Responsável', esc(responsavelDoPedido(s))) : ''}
-    ${acessibilidadeHtml(paradas) ? campo('Acessibilidade', esc(acessibilidadeHtml(paradas))) : ''}
-    ${s.observacao ? campo('Observação', esc(s.observacao)) : ''}
-
-    <hr class="sep" />
+    ${par('Embarque', s.horario_embarque ? `<b>${esc(s.horario_embarque)}</b>` : '')}
+    ${par('Saída do evento', s.horario_retorno ? `<b>${esc(s.horario_retorno)}</b>` : '')}
+    ${par('Veículos', `${s.qtd_onibus || 0} ônibus${s.qtd_vans ? ` · ${s.qtd_vans} van(s) adaptada(s)` : ''}`)}
+    ${par('Trajeto', trajetoHtml(s, paradas))}
     ${blocoHtml(paradas, ctx)}
 
-    ${s.motivo ? `<hr class="sep" />${campo('Justificativa', esc(s.motivo))}` : ''}
-    ${s.decidido_por ? campo('Decidido por', `${esc(s.decidido_por)}${s.decidido_em ? ` · ${esc(fmtDataHora(s.decidido_em))}` : ''}`) : ''}
+    ${historicoHtml(s)}
+    ${decisoesHtml(s, pode.decisoes)}`;
 
-    <div class="modal-acoes det-acoes-pe">${acoes(s)}</div>`;
-
-  corpo.addEventListener('click', aoClicarAcao);
+  corpo.querySelector('#det-editar')?.addEventListener('click', () => abrirEditar(s, ctx, reabrir));
+  corpo.querySelector('#det-dia')?.addEventListener('click', () => abrirDia(s.data, ctx, { voltar: reabrir, destaque: s.id }));
   corpo.querySelector('#det-recalc')?.addEventListener('click', (e) => recalcular(e.currentTarget, s));
-  corpo.querySelector('#det-dia')?.addEventListener('click', () =>
-    abrirDia(s.data, ctx, { voltar: () => abrirDetalhe(s, ctx), destaque: s.id }));
-  corpo.querySelector('#det-conferir')?.addEventListener('click', () => abrirConferirDoPedido(s, ctx, () => abrirDetalhe(s, ctx)));
+  corpo.querySelector('#det-conferir')?.addEventListener('click', () => abrirConferirDoPedido(s, ctx, reabrir));
+  ligarDecisoes(corpo, { s, ctx, paradas, reabrir });
   // `reabrir` e esta propria funcao: depois de mexer numa escola a
   // viagem volta a abrir com o dado novo, em vez de fechar a pilha.
-  ligarParticipantes(corpo, {
-    ctx, solicitacao: s, partes: paradas, reabrir: () => abrirDetalhe(s, ctx),
-  });
+  ligarParticipantes(corpo, { ctx, solicitacao: s, partes: paradas, reabrir });
+}
+
+// O par rótulo → valor do hub (`.det-par`, components.css). Sem valor,
+// não há linha: a ficha mostra o que existe.
+const par = (rotulo, html) =>
+  (html ? `<div class="det-par"><span class="lbl">${esc(rotulo)}</span><span>${html}</span></div>` : '');
+
+// ── Quadro-resumo ────────────────────────────────────────────
+// O `.ficha-info` de toda ficha do hub, com a cor da SITUAÇÃO na lateral
+// (a mesma da etiqueta) e o lápis no canto quando dá para editar.
+function resumoHtml(s, podeEditar) {
+  const linha = (icone, html) => (html ? `<li>${ico(icone, { tam: 14 })} ${html}</li>` : '');
+  const horas = [s.horario_embarque, s.horario_retorno].filter(Boolean).map(esc).join(' – ');
+  return `<section class="ficha-info det-resumo st-${esc(s.status)}">
+    ${podeEditar ? `<button type="button" class="mini-btn ficha-editar" id="det-editar"
+      aria-label="Editar solicitação" title="Editar solicitação">${ico('editar')}</button>` : ''}
+    <b class="det-destino">${destino(s) ? esc(destino(s)) : vazio('destino não informado')}</b>
+    <ul class="ficha-contato">
+      ${linha('calendario', `${esc(fmtData(s.data))} <span class="tag">${esc(PERIODOS[s.periodo] || s.periodo || '')}</span>`)}
+      ${linha('horario', horas)}
+      ${linha('visita', enderecoHtml(s))}
+    </ul>
+  </section>`;
+}
+
+const destino = (s) => s.destino_nome || s.atividade?.local_nome || '';
+const localDe = (s) => (ctx.locais || []).find(l => l.id === s.local_id) || null;
+
+// O CEP vem do local do cadastro quando o pedido aponta para um; senão
+// (ou se o local saiu do cadastro), do que ficou gravado no pedido.
+const cepDestino = (s) => localDe(s)?.cep || s.destino_cep || '';
+
+// Endereço do destino: as três partes (spec 2026-09-27, D3), com o
+// endereço da atividade como último recurso para pedidos antigos.
+function enderecoDestino(s) {
+  const linha = enderecoCompleto({ endereco: s.destino_endereco, numero: s.destino_numero, bairro: s.destino_bairro })
+    || s.atividade?.local_endereco || '';
+  return linha && cepDestino(s) ? `${linha} · CEP ${fmtCep(cepDestino(s))}` : linha;
+}
+
+// O endereço, o link do mapa (só de local do cadastro, que tem ponto) e,
+// para destino digitado pela escola (spec 2026-09-27, D6), a etiqueta
+// "Local a conferir" - com o botão para quem aprova.
+function enderecoHtml(s) {
+  const l = localDe(s);
+  const mapa = l ? (l.maps_url || linkMaps(l.latitude, l.longitude)) : null;
+  const partes = [
+    enderecoDestino(s) ? esc(enderecoDestino(s)) : '',
+    mapa ? `<a href="${esc(mapa)}" target="_blank" rel="noopener">ver no mapa</a>` : '',
+  ].filter(Boolean).join(' · ');
+  if (!localAConferir(s)) return partes;
+  const botao = ctx.aprovador && !ctx.somenteLeitura
+    ? ` <button type="button" class="mini-btn" id="det-conferir">Conferir local</button>` : '';
+  return `${partes} <span class="tag">Local a conferir</span>${botao}`;
+}
+
+// ── Justificativa ────────────────────────────────────────────
+// Negado, cancelado e cancelamento pedido carregam o porquê - e, nesses
+// casos, é a primeira coisa que a pessoa precisa ler.
+const ROTULO_MOTIVO = { negado: 'Negada', cancelado: 'Cancelada', pendente_cancelamento: 'Cancelamento pedido' };
+
+const motivoHtml = (s) => (s.motivo
+  ? `<p class="det-motivo st-${esc(s.status)}"><b>${esc(ROTULO_MOTIVO[s.status] || 'Justificativa')}:</b> ${esc(s.motivo)}</p>` : '');
+
+// ── Solicitação ──────────────────────────────────────────────
+// Responsável: os campos novos (spec 2026-09-27, D8), com o telefone como
+// link; nos pedidos anteriores a eles, o texto livre que havia.
+function responsavelHtml(s) {
+  if (!s.professor_nome && !s.professor_telefone) return par('Responsável', s.contato_professor ? esc(s.contato_professor) : '');
+  return par('Responsável', s.professor_nome ? esc(s.professor_nome) : '')
+    + par('Telefone', s.professor_telefone
+      ? `<a href="tel:${esc(s.professor_telefone)}">${esc(exibirTelefone(s.professor_telefone))}</a>` : '');
+}
+
+// O total e o que pede atenção, numa linha. Surdos e "outra necessidade"
+// vêm das paradas ATIVAS (spec 2026-09-27, D8): cancelada não embarca.
+function estudantesHtml(s, paradas) {
+  const ativas = (paradas || []).filter(p => p.status === 'ativa');
+  const surdos = ativas.reduce((n, p) => n + (Number(p.qtd_surdo) || 0), 0);
+  return [
+    String(s.qtd_alunos || 0),
+    s.qtd_cadeirante ? `${ico('cadeirante', { tam: 13 })} ${esc(String(s.qtd_cadeirante))} cadeirante(s)` : '',
+    surdos ? `${surdos} surdo(s)` : '',
+    ativas.some(p => p.necessidade_especifica) ? 'outra necessidade específica' : '',
+  ].filter(Boolean).join(' · ');
 }
 
 // ── Trajeto ──────────────────────────────────────────────────
@@ -110,8 +189,7 @@ export async function abrirDetalhe(solicitacao, contexto) {
 // localização e o link do mapa -, porque isso sai das participações já
 // carregadas e não gasta consulta nenhuma.
 function trajetoHtml(s, paradas) {
-  const destino = (ctx.locais || []).find(l => l.id === s.local_id) || null;
-  const vivo = pontosDaViagem(paradas, destino);
+  const vivo = pontosDaViagem(paradas, localDe(s));
   const gravado = s.trajeto_status === 'ok' && s.trajeto_km != null;
 
   let texto;
@@ -123,7 +201,7 @@ function trajetoHtml(s, paradas) {
   const mapa = linkRota(vivo.pontos);
   const extras = [
     mapa ? `<a href="${esc(mapa)}" target="_blank" rel="noopener">${ico('externo', { tam: 12 })} Ver rota no mapa</a>` : '',
-    ctx.aprovador && vivo.status === 'ok'
+    ctx.aprovador && !ctx.somenteLeitura && vivo.status === 'ok'
       ? `<button type="button" class="mini-btn" id="det-recalc">${ico('atualizar', { tam: 12 })} Recalcular</button>` : '',
     gravado ? `<span class="det-trajeto-fonte">Distância: © OpenStreetMap</span>` : '',
   ].filter(Boolean).join('');
@@ -132,8 +210,8 @@ function trajetoHtml(s, paradas) {
 }
 
 // Para depois de cadastrar uma localização que faltava. Atualiza a linha
-// em memória com o retrato novo e reabre: o detalhe desenha a partir
-// dela, e a tabela embaixo recarrega por conta própria.
+// em memória com o retrato novo e reabre: a ficha desenha a partir dela,
+// e a tabela embaixo recarrega por conta própria.
 async function recalcular(btn, s) {
   btn.disabled = true;
   try {
@@ -149,183 +227,17 @@ async function recalcular(btn, s) {
   }
 }
 
-const campo = (rotulo, html) =>
-  `<div class="field"><div class="lbl">${esc(rotulo)}</div><div class="val">${html}</div></div>`;
+// ── Histórico ────────────────────────────────────────────────
+// Quem pediu e quem decidiu, e quando. Mostra a decisão EM VIGOR; as
+// idas e vindas ficam na Auditoria. Timestamp só por fmtDataHora (R8).
+const ROTULO_DECISAO = { confirmado: 'Confirmado por', negado: 'Negado por', cancelado: 'Cancelado por' };
 
-const destino = (s) => s.destino_nome || s.atividade?.local_nome || '';
-
-// Endereço do destino: as três partes (spec 2026-09-27, D3), com o
-// endereço da atividade como último recurso para pedidos antigos.
-// O CEP vem do local do cadastro quando o pedido aponta para um; senão
-// (ou se o local saiu do cadastro), do que ficou gravado no pedido.
-const cepDestino = (s) => (ctx.locais || []).find(l => l.id === s.local_id)?.cep || s.destino_cep || '';
-
-const enderecoDestino = (s) => {
-  const linha = enderecoCompleto({ endereco: s.destino_endereco, numero: s.destino_numero, bairro: s.destino_bairro })
-    || s.atividade?.local_endereco || '';
-  return linha && cepDestino(s) ? `${linha} · CEP ${fmtCep(cepDestino(s))}` : linha;
-};
-
-// Destino digitado pela escola, sem local do cadastro (spec 2026-09-27,
-// D6): sinaliza na tela e, para quem aprova, oferece o botão que aponta
-// para um local existente ou cadastra um novo.
-function conferirLocalHtml(s) {
-  if (!localAConferir(s)) return '';
-  const botao = ctx.aprovador && !ctx.somenteLeitura
-    ? `<button type="button" class="mini-btn" id="det-conferir">Conferir local</button>` : '';
-  return `<div class="det-trajeto-extras"><span class="tag">Local a conferir</span>${botao}</div>`;
-}
-
-// Soma dos surdos e sinaliza outra necessidade específica entre as
-// paradas ATIVAS (spec D8) - cancelada não embarca, não conta aqui.
-function acessibilidadeHtml(paradas) {
-  const ativas = (paradas || []).filter(p => p.status === 'ativa');
-  const surdos = ativas.reduce((n, p) => n + (Number(p.qtd_surdo) || 0), 0);
-  const outra = ativas.some(p => p.necessidade_especifica);
-  const partes = [];
-  if (surdos) partes.push(`${surdos} estudante(s) surdo(s)`);
-  if (outra) partes.push('outra necessidade específica');
-  return partes.join(' · ');
-}
-
-// Só as ações que cabem naquele status para aquela permissão (spec D4).
-// Esconder botão é conforto; quem barra de fato é o RLS (R6).
-function acoes(s) {
-  // Vendo como a escola: nenhuma decisão. Os botões seriam os da escola,
-  // mas quem clicaria é quem aprova, com os poderes dele no banco.
-  if (ctx.somenteLeitura) return '';
-  const ap = !!ctx.aprovador;
-  const b = (acao, rotulo, classe = 'btn-secundario', icone = null) =>
-    `<button type="button" class="${classe}" data-acao="${acao}">${icone ? ico(icone) + ' ' : ''}${esc(rotulo)}</button>`;
-
-  const remanejar = ap && !['negado', 'cancelado'].includes(s.status)
-    ? b('remanejar', 'Remanejar', 'btn-secundario', 'editar') : '';
-  return remanejar + decisoes(s, ap, b);
-}
-
-function decisoes(s, ap, b) {
-  if (s.status === 'solicitado') {
-    return ap
-      ? b('analisar', 'Pôr em análise') + b('negar', 'Negar', 'btn-perigo') + b('confirmar', 'Confirmar', 'btn-primary', 'ok')
-      : b('cancelar', 'Cancelar solicitação', 'btn-perigo');
-  }
-  if (s.status === 'em_analise' || s.status === 'aguardando_transporte_adaptado') {
-    return ap ? b('negar', 'Negar', 'btn-perigo') + b('confirmar', 'Confirmar', 'btn-primary', 'ok') : '';
-  }
-  if (s.status === 'confirmado') {
-    return ap ? b('cancelar', 'Cancelar', 'btn-perigo') : b('pedir', 'Pedir cancelamento', 'btn-secundario');
-  }
-  if (s.status === 'pendente_cancelamento') {
-    return ap ? b('ciencia', 'Confirmar cancelamento', 'btn-primary', 'ok') : '';
-  }
-  return '';   // negado e cancelado: não há mais o que decidir
-}
-
-function aoClicarAcao(e) {
-  const btn = e.target.closest('[data-acao]');
-  if (!btn) return;
-  const acao = btn.dataset.acao;
-
-  // As três que exigem justificativa abrem o modal empilhado.
-  const COM_MOTIVO = {
-    negar: { titulo: 'Negar solicitação', rotulo: 'Por que está sendo negada?', botao: 'Negar', fn: negarSolicitacao },
-    cancelar: { titulo: 'Cancelar solicitação', rotulo: 'Por que está sendo cancelada?', botao: 'Cancelar solicitação', fn: cancelarSolicitacao },
-    pedir: { titulo: 'Pedir cancelamento', rotulo: 'Por que a escola precisa cancelar?', botao: 'Enviar pedido', fn: pedirCancelamento },
-  };
-  if (COM_MOTIVO[acao]) return pedirMotivo(COM_MOTIVO[acao]);
-
-  if (acao === 'remanejar') return abrirRemanejar(atual, ctx, () => abrirDetalhe(atual, ctx));
-  if (acao === 'confirmar') return confirmarPedido(btn);
-
-  const DIRETA = {
-    analisar: { fn: porEmAnalise, titulo: 'Solicitação em análise' },
-    ciencia: { fn: confirmarCancelamento, titulo: 'Cancelamento confirmado' },
-  };
-  if (DIRETA[acao]) return executar(DIRETA[acao].fn, DIRETA[acao].titulo);
-}
-
-// Confirmar olha a frota ANTES (spec 2026-09-13-sate-ciclo-de-aprovacao,
-// D1). Cabe: confirma direto. Não cabe: o modal da frota extra decide - e
-// é por ele que "aguardando transporte adaptado" passa a acontecer (D2).
-// Saldo relido no clique, não o da abertura do detalhe: outro aprovador
-// pode ter confirmado algo no meio tempo.
-async function confirmarPedido(btn) {
-  const s = atual;
-  // Local ainda não conferido: a vaga foi contada com o tempo de viagem
-  // provisório (spec 2026-09-27, D6) - avisa, mas não bloqueia, porque a
-  // SME às vezes precisa confirmar antes de conferir o endereço.
-  if (localAConferir(s)) {
-    const ok = await confirmar('O local deste pedido ainda não foi conferido. A vaga está contada com o tempo de viagem provisório. Confirmar mesmo assim?',
-      { textoOk: 'Confirmar mesmo assim' });
-    if (!ok) return;
-  }
-  btn.disabled = true;
-  try {
-    const falta = faltaParaConfirmar(s, await lerOcupacao(s.data, s.data, { excluir: s.id }), paradasAtual);
-    if (falta.onibus || falta.vans) {
-      return abrirFrotaExtra({ solicitacao: s, falta, modo: 'confirmar', ctx, reabrir: () => abrirDetalhe(s, ctx) });
-    }
-    await executar(confirmarSolicitacao, 'Solicitação confirmada');
-  } catch (err) {
-    reportarErro(err, { titulo: 'Não foi possível confirmar' });
-  } finally {
-    btn.disabled = false;
-  }
-}
-
-// Modal POR CIMA do detalhe. `voltar` reabre o detalhe com o dado
-// recarregado - é o que a pilha de modal.js faz, e por isso guardamos a
-// função e não o HTML.
-function pedirMotivo({ titulo, rotulo, botao, fn }) {
-  const s = atual;
-  abrirModal(`
-    ${modalHead(esc(titulo), esc(tituloDoPedido(s)))}
-    <div class="modal-body">
-      <form id="mot-form" class="esc-form">
-        <label>${esc(rotulo)}
-          <textarea id="mot-txt" rows="4" required
-            placeholder="A escola vê esta justificativa."></textarea></label>
-        <div class="form-foot">
-          <span id="mot-msg" class="auth-msg"></span>
-          <button type="submit" class="btn-perigo" id="mot-ok">${esc(botao)}</button>
-        </div>
-      </form>
-    </div>`, { tamanho: 'estreito', voltar: () => abrirDetalhe(s, ctx) });
-
-  document.getElementById('mot-form').addEventListener('submit', async (ev) => {
-    ev.preventDefault();
-    const msg = document.getElementById('mot-msg'); msg.className = 'auth-msg';
-    const texto = val('mot-txt');
-    // O banco também exige (CHECK da migration 035). Aqui é para a
-    // pessoa saber antes de o servidor recusar.
-    if (!texto) return falhaNoCampo(msg, '#mot-txt', 'A justificativa é obrigatória.');
-    const btn = document.getElementById('mot-ok');
-    btn.disabled = true;
-    try {
-      await fn(s.id, texto);
-      fechaTudo();
-      toast({ titulo, texto: tituloDoPedido(s), tipo: 'sucesso' });
-    } catch (err) {
-      reportarErro(err, { msg, titulo: 'Não foi possível concluir' });
-      btn.disabled = false;
-    }
-  });
-}
-
-async function executar(fn, titulo) {
-  try {
-    await fn(atual.id);
-    fechaTudo();
-    toast({ titulo, texto: tituloDoPedido(atual), tipo: 'sucesso' });
-  } catch (err) {
-    reportarErro(err, { titulo: 'Não foi possível concluir' });
-  }
-}
-
-// Depois de decidir não há para onde voltar: `{ tudo: true }` fecha a
-// pilha inteira em vez de desempilhar para o detalhe da solicitação que
-// acabou de mudar de status.
-function fechaTudo() {
-  fecharModal({ tudo: true });
-  ctx.recarregar?.();
+function historicoHtml(s) {
+  const quando = (quem, ts) => [quem ? esc(quem) : '', ts ? `em ${esc(fmtDataHora(ts))}` : ''].filter(Boolean).join(' ');
+  const linhas = par('Solicitado por', quando(s.criado_por, s.criado_em))
+    + (ROTULO_DECISAO[s.status] ? par(ROTULO_DECISAO[s.status], quando(s.decidido_por, s.decidido_em)) : '');
+  return linhas ? `<section class="det-historico">
+    <div class="ficha-secao"><h3>${ico('horario', { tam: 12 })} Histórico</h3></div>
+    ${linhas}
+  </section>` : '';
 }

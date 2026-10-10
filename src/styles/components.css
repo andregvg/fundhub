@@ -1375,6 +1375,12 @@ body:has(.modal-back.open) .confirmar-back.open { -webkit-backdrop-filter: none;
 .tabela-detalhe > td { padding: 2px 12px 14px; background: var(--surface-2); }
 .det-par { display: flex; align-items: baseline; gap: 10px; padding: 5px 0; }
 .det-par .lbl { flex: 0 0 38%; }
+/* O PAR rótulo → valor do hub: nasceu no detalhe da tabela e é o mesmo
+   em ficha de registro (spec 2026-10-10-sate-solicitacao, D3). Em modal o
+   rótulo tem largura fixa - os valores alinham numa coluna - e o valor
+   longo quebra dentro da própria coluna. */
+.det-par > span:last-child { min-width: 0; overflow-wrap: anywhere; }
+.modal .det-par .lbl { flex: 0 0 8.5em; }
 .det-acoes { display: flex; justify-content: flex-end; gap: 8px; padding-top: 10px; }
 
 .tabela-pe {
@@ -1926,6 +1932,7 @@ hr.sep { margin: 20px 0; border: 0; border-top: 1px solid var(--border); }
 .ficha-secao { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 10px; margin-bottom: 8px; }
 .ficha-secao-acoes { display: flex; flex-wrap: wrap; gap: 6px; }
 .ficha-secao > h3 {
+  display: flex; align-items: center; gap: 6px;
   margin: 0; color: var(--muted);
   font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
 }

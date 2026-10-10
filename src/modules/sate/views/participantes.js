@@ -49,7 +49,7 @@ async function recalcularTrajeto(ctx, solicitacao) {
 export function blocoHtml(partes, ctx) {
   const ap = !!ctx.aprovador && !ctx.somenteLeitura;
   const ativas = (partes || []).filter(ativa);
-  return `<div class="field">
+  return `<div class="field det-paradas">
     <div class="lbl det-partes-cab">Escolas nesta viagem
       ${ap ? `<button type="button" class="mini-btn" id="dp-add">${ico('adicionar', { tam: 13 })} Acrescentar parada</button>` : ''}
     </div>

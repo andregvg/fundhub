@@ -33,6 +33,7 @@ Sempre conferir `src/styles/components.css` antes de escrever CSS novo. O que j�
 - **Abas:** `.tabbar` + `.tab` (`.on` para a ativa)
 - **Listas:** `.solic` (+ `.solic-main`, `.solic-acoes`) · `.dash-item` (+ `.di-top`, `.di-meta`)
 - **Pessoa/vínculo em ficha:** `.people` + `.person` (+ `.role`, `.pname`, `.pmeta`); **card que abre outra ficha:** `.person.clicavel` + `.person-abrir` (o nome, como `<button>`) + `.person-acoes` (ação no canto) - padrão "link esticado", ver abaixo
+- **Par rótulo → valor em linha:** `.det-par` (+ `.lbl`) - o detalhe expandido da tabela e os campos curtos de uma ficha de registro
 - **Cards e grades:** `.card` · `.cards` · `.tile` · `.tiles` · `.panel` · `.dash-grid` · `.md-grid`
 - **Stats:** `.stat-row` · `.stat-tile` · `.stat-num` · `.stat-label`
 - **Formulário:** `.esc-form` · `.esc-row` · `.form-grid` · `.form-grupo` (+ `.form-grupo.plano`, grupo de modal sem moldura) · `.form-foot` · `.form-hint` (+ `.form-hint.err`, a dica que virou erro, em `--danger`) · `.field` · `.lbl`
@@ -186,6 +187,27 @@ Ficha de REGISTRO (ata, ocorrência, visita, projeto) usa o mesmo quadro, com os
 rotulados (`.field`) dentro dele - ali o rótulo fica, porque "Pauta" não se reconhece pela forma.
 `.modal-acoes` sobra só para a ação que não é editar nem excluir (Imprimir, na ata; as decisões
 do pedido, no SATE). Não há ficha pendente de conversão.
+
+## Como um modal se chama
+
+Decisão do André (09/10/2026), spec `2026-10-10-sate-solicitacao-reformulada-design.md`, D1.
+
+> **O título de um modal diz o que ele é ou faz; o subtítulo diz de qual registro.**
+> O nome do modal, numa conversa, é o título que está na tela.
+
+- **Ação ou formulário** - título = a ação: "Nova solicitação", "Negar solicitação",
+  "Conferir local", "Editar escola".
+- **Ficha de registro com nome próprio** (escola, servidor, projeto) - o título é o nome
+  do registro, e o ícone diz o tipo. Chama-se "ficha da escola", "ficha do servidor".
+- **Ficha de registro sem nome próprio** - título = o que o registro é ("Detalhes da
+  solicitação"). Não tomar emprestado um campo (o destino, a data) para servir de título.
+
+Nome de arquivo acompanha o nome na tela: o modal "Editar solicitação" mora em `editar.js`.
+
+**Par rótulo → valor.** Campo curto de ficha de registro vai em `.det-par` (rótulo e
+valor lado a lado); texto longo (pauta, descrição) continua em `.field`, empilhado.
+Convertido no SATE em 10/10/2026. **Pendente, à espera da decisão do André:** as fichas
+de ata, ocorrência, visita e projeto ainda usam `.field` também nos campos curtos.
 
 ## Ícones: um por significado
 

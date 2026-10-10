@@ -124,7 +124,31 @@ body.app-sate { --info-bg: color-mix(in srgb, var(--brand) 12%, var(--surface));
 .det-trajeto-extras { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; margin-top: 4px; font-size: 13px; }
 .det-trajeto-extras a { display: inline-flex; align-items: center; gap: 4px; }
 .det-trajeto-fonte { color: var(--muted); font-size: 11.5px; }
-.det-status { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+/* Quadro-resumo: o .ficha-info do hub com a cor da SITUAÇÃO na lateral,
+   a mesma da etiqueta. O padrão (--muted) vale para "solicitado". */
+.det-resumo { --st: var(--muted); border-left: 4px solid var(--st); }
+.det-resumo.st-confirmado { --st: var(--ok); }
+.det-resumo.st-em_analise, .det-resumo.st-aguardando_transporte_adaptado,
+.det-resumo.st-pendente_cancelamento { --st: var(--accent); }
+.det-resumo.st-negado, .det-resumo.st-cancelado { --st: var(--danger); }
+.det-destino { display: block; margin-bottom: 6px; padding-right: 44px; font-size: 15px; }
+.det-resumo .tag { margin-left: 4px; }
+/* A justificativa, logo abaixo do quadro: é o que mais importa num pedido
+   negado ou cancelado. */
+.det-motivo {
+  margin: 0 0 18px; padding: 10px 12px; border-radius: var(--radius-btn);
+  background: var(--atencao-bg); font-size: 13.5px; line-height: 1.45;
+}
+.det-motivo.st-negado, .det-motivo.st-cancelado { background: var(--erro-bg); }
+.det-secao { margin-top: 18px; }
+.det-paradas { margin-top: 10px; }
+/* Histórico: discreto, ao pé - quem pediu, quem decidiu. */
+.det-historico {
+  margin-top: 18px; padding: 10px 12px; border-radius: var(--radius-btn);
+  background: var(--surface-2); font-size: 12.5px;
+}
+.det-historico .ficha-secao { justify-content: flex-end; margin-bottom: 2px; }
+.det-historico .det-par { padding: 2px 0; }
 /* As decisões ficam no pé, separadas do conteúdo por uma linha: elas
    são o que a pessoa veio fazer, não mais um campo. */
 .det-acoes-pe {
@@ -135,10 +159,8 @@ body.app-sate { --info-bg: color-mix(in srgb, var(--brand) 12%, var(--surface));
   border-top: 1px solid var(--border);
 }
 /* Botão não encolhe: com quatro no rodapé, o flex espremia "Negar" até
-   o texto vazar. Quebra de linha inteiro. Remanejar vai para a esquerda,
-   separado das decisões, porque não decide nada. */
+   o texto vazar. Quebra de linha inteiro. */
 .det-acoes-pe > button { flex: 0 0 auto; }
-.det-acoes-pe > [data-acao="remanejar"] { margin-right: auto; }
 
 /* ── Página Frota ──────────────────────────────────────────── */
 /* Situação da frota: a mesma família de cor das situações de pedido. */

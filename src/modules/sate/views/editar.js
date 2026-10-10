@@ -1,11 +1,12 @@
 // ============================================================
-// FundHub - sate/views/remanejar.js
-// Remanejar um pedido: quem aprova muda data, período, horários,
-// destino e número de veículos.
-// Spec: 2026-09-13-sate-ciclo-de-aprovacao-design.md, D4.
+// FundHub - sate/views/editar.js
+// Editar uma solicitação: quem aprova muda data, horários, destino,
+// veículos, turma, responsável e observação - enquanto ela não está
+// confirmada (spec 2026-10-10-sate-solicitacao, D4; a parte de data e
+// veículos vem da spec 2026-09-13-sate-ciclo-de-aprovacao, D4).
 //
 // Estudantes e escolas NÃO se editam aqui: são das participações, e a
-// lista "Escolas nesta viagem" do detalhe é onde se mexe nelas.
+// lista "Escolas nesta viagem" da ficha é onde se mexe nelas.
 //
 // Ao salvar, duas consequências que a pessoa não precisa lembrar:
 //   - destino mudou → o trajeto é recalculado;
@@ -23,13 +24,14 @@ import { esc, val, falhaNoCampo } from '../../../shared/dom.js';
 import { modalHead, abrirModal } from '../../../shared/ui/modal.js';
 import { toast } from '../../../shared/ui/toast.js';
 import { reportarErro } from '../../../shared/ui/feedback.js';
+import { paraE164, formatarTelefone, exibirTelefone } from '../../../shared/ui/phones.js';
 
-export function abrirRemanejar(s, ctx, reabrir) {
+export function abrirEditar(s, ctx, reabrir) {
   const locais = (ctx.locais || []).filter(l => l.ativo || l.id === s.local_id);
   const v = (k) => esc(s[k] ?? '');
 
   abrirModal(`
-    ${modalHead('Remanejar', esc(tituloDoPedido(s)))}
+    ${modalHead('Editar solicitação', esc(tituloDoPedido(s)))}
     <div class="modal-body">
       <form id="rm-form" class="esc-form">
         <fieldset class="form-grupo">
@@ -53,6 +55,15 @@ export function abrirRemanejar(s, ctx, reabrir) {
           </div>
           <small class="form-hint">Estudantes e escolas se ajustam na lista "Escolas nesta viagem".</small>
         </fieldset>
+        <fieldset class="form-grupo">
+          <legend>Turma e responsável</legend>
+          <div class="campos duas">
+            <label class="col-2">Turma(s) <input id="rm-turmas" type="text" value="${v('turmas')}" placeholder="Ex.: 5º A, 5º B" /></label>
+            <label>Servidor(a) responsável <input id="rm-prof" type="text" value="${v('professor_nome')}" /></label>
+            <label>Telefone / WhatsApp <input id="rm-tel" type="tel" inputmode="tel" value="${esc(s.professor_telefone ? exibirTelefone(s.professor_telefone) : '')}" placeholder="(00) 00000-0000" /></label>
+            <label class="col-2">Observações <textarea id="rm-obs" rows="2">${v('observacao')}</textarea></label>
+          </div>
+        </fieldset>
         <div class="form-foot">
           <span id="rm-msg" class="auth-msg"></span>
           <button type="submit" class="btn-primary" id="rm-ok">Salvar</button>
@@ -61,6 +72,7 @@ export function abrirRemanejar(s, ctx, reabrir) {
     </div>`, { tamanho: 'medio', voltar: reabrir });
 
   document.getElementById('rm-form').addEventListener('submit', (e) => salvar(e, s, ctx, reabrir));
+  document.getElementById('rm-tel').addEventListener('blur', (e) => { e.target.value = formatarTelefone(e.target.value); });
 }
 
 async function salvar(e, s, ctx, reabrir) {
@@ -86,6 +98,12 @@ async function salvar(e, s, ctx, reabrir) {
     horario_retorno: ret,
     qtd_onibus: Math.max(0, parseInt(val('rm-onibus'), 10) || 0),
     qtd_vans: Math.max(0, parseInt(val('rm-vans'), 10) || 0),
+    turmas: val('rm-turmas') || null,
+    professor_nome: val('rm-prof') || null,
+    professor_telefone: val('rm-tel') ? (paraE164(val('rm-tel')) || val('rm-tel')) : null,
+    // O texto composto que a ficha do motorista e os pedidos antigos leem.
+    contato_professor: [val('rm-prof'), val('rm-tel') ? formatarTelefone(val('rm-tel')) : ''].filter(Boolean).join(' · ') || null,
+    observacao: val('rm-obs') || null,
     // Destino do cadastro troca nome e endereço junto; "manter" não mexe.
     ...(local ? { local_id: local.id, destino_nome: local.nome, destino_endereco: local.endereco || null,
       destino_numero: local.numero || null, destino_bairro: local.bairro || null } : {}),
@@ -103,7 +121,7 @@ async function salvar(e, s, ctx, reabrir) {
       if (r) Object.assign(s, retratoTrajeto(r));
     }
     ctx.recarregar?.();
-    toast({ titulo: 'Pedido remanejado', tipo: 'sucesso' });
+    toast({ titulo: 'Solicitação atualizada', tipo: 'sucesso' });
 
     // Pedido que reserva veículo: a nova data comporta? O próprio pedido
     // sai da conta pelo `excluir` - ele já ocupa, e contá-lo de novo
@@ -122,7 +140,7 @@ async function salvar(e, s, ctx, reabrir) {
     }
     await reabrir();
   } catch (err) {
-    reportarErro(err, { msg, titulo: 'Não foi possível remanejar' });
+    reportarErro(err, { msg, titulo: 'Não foi possível salvar' });
     btn.disabled = false;
   }
 }
