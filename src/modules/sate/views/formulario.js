@@ -47,8 +47,7 @@ let assinaturaTrajeto = '';
 let buscaEscola = null;
 const escolaId = () => (buscaEscola ? buscaEscola.valorAtual() : (document.getElementById('f-esc')?.value || ''));
 
-// `rascunho` (opcional): o que a pessoa já tinha digitado, quando o formulário
-// é refeito depois de editar o local (editarLocal).
+// `rascunho`: o já digitado, quando o formulário é refeito após editar o local.
 export function abrirFormulario(contexto, rascunho = null) {
   ctx = contexto;
   trajeto = null;
