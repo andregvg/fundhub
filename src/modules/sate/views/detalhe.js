@@ -73,7 +73,7 @@ export async function abrirDetalhe(solicitacao, contexto) {
     ${motivoHtml(s)}
 
     <div class="ficha-secao"><h3>Solicitação</h3></div>
-    ${par('Escola', esc(resumoEscolas(paradas) || quem))}
+    ${par('Escola', esc(resumoEscolas(paradas) || s.unidade?.nome || 'Gerência de Transporte'))}
     ${par('Situação', `<span class="tag st-${esc(s.status)}">${esc(STATUS[s.status] || s.status)}</span>`)}
     ${par('Turma(s)', s.turmas ? esc(s.turmas) : '')}
     ${responsavelHtml(s)}
