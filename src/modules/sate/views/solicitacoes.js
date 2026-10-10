@@ -13,7 +13,9 @@
 // ============================================================
 import { listSolicitacoes, STATUS, PERIODOS, localAConferir, acoesDoPedido, excluirSolicitacao } from '../sate.model.js';
 import { tituloDoPedido } from '../regras.model.js';
-import { idsComNovidade, aoMudarAvisos } from '../avisos.model.js';
+import { idsComNovidade, aoMudarAvisos, subscribeSolicitacoes } from '../avisos.model.js';
+import { filtroDiasAte, filtroSituacaoPadrao, filtroPeriodoPadrao } from '../sate.config.js';
+import { periodoBadge } from './periodo.js';
 import { getParticipacoesDe, resumoEscolas, envolveUnidade } from '../participacoes.model.js';
 import { existeFrota } from '../frota.model.js';
 import { abrirFormulario } from './formulario.js';
@@ -36,12 +38,18 @@ let tabela = null;
 let soltarAvisos = null;
 // O filtro do BANCO. A busca da tabela é outra coisa: estreita o que já
 // está na tela, sem ida ao servidor (spec de listas, D6).
-let filtro = { status: '', periodo: '', de: addDias(hojeISO(), -30), ate: addDias(hojeISO(), 120) };
+// Nasce na primeira visita (as preferências já foram lidas) e dura a sessão.
+let filtro = null;
+let soltarRealtime = null;
+let recarga = null;
+let viaveis = new Set();   // ids na tela: só a exclusão de uma delas merece aviso
 
 export function render(contexto) {
   ctx = contexto;
   tabela = null;
   soltarAvisos?.();
+  soltarRealtime?.();
+  filtro ||= { status: filtroSituacaoPadrao(), periodo: filtroPeriodoPadrao(), de: hojeISO(), ate: addDias(hojeISO(), filtroDiasAte()) };
   // A guia expõe o recarregamento para o modal de detalhe e o de nova
   // solicitação chamarem depois de gravar.
   ctx.recarregar = carregar;
@@ -87,7 +95,15 @@ export function render(contexto) {
   });
 
   const rec = () => carregar();
-  document.getElementById('sol-de').addEventListener('change', e => { filtro.de = e.target.value; rec(); });
+  document.getElementById('sol-st').value = filtro.status;
+  document.getElementById('sol-per').value = filtro.periodo;
+  // Escolher a data inicial leva a final junto (N dias à frente); a final
+  // ainda pode ser ajustada à mão depois.
+  document.getElementById('sol-de').addEventListener('change', e => {
+    filtro.de = e.target.value;
+    if (filtro.de) { filtro.ate = addDias(filtro.de, filtroDiasAte()); document.getElementById('sol-ate').value = filtro.ate; }
+    rec();
+  });
   document.getElementById('sol-ate').addEventListener('change', e => { filtro.ate = e.target.value; rec(); });
   document.getElementById('sol-st').addEventListener('change', e => { filtro.status = e.target.value; rec(); });
   document.getElementById('sol-per').addEventListener('change', e => { filtro.periodo = e.target.value; rec(); });
@@ -95,6 +111,17 @@ export function render(contexto) {
   // A lista e a carga dos avisos são independentes e nenhuma espera a outra:
   // quando os avisos mudam, o ponto das linhas já desenhadas acompanha.
   soltarAvisos = aoMudarAvisos(repintarNovidades);
+  // O que a Gerência faz na solicitação aparece sozinho para a escola: a
+  // lista se refaz a cada mudança, e a exclusão de uma viagem que estava na
+  // tela vira um aviso (a linha já não existe para guardar um do sino).
+  soltarRealtime = subscribeSolicitacoes((ev) => {
+    if (!document.getElementById('sol-lista')) return;
+    if (ev.eventType === 'DELETE' && viaveis.has(ev.old?.id)) {
+      toast({ titulo: 'Solicitação excluída', texto: 'Uma solicitação da lista foi excluída pela Gerência.', tipo: 'atencao' });
+    }
+    clearTimeout(recarga);
+    recarga = setTimeout(carregar, 300);
+  });
   carregar();
 }
 
@@ -118,9 +145,9 @@ function repintarNovidades() {
 async function carregar() {
   const box = document.getElementById('sol-lista');
   if (!box) return;
-  // O filtro recarrega do banco e a casca da tabela é descartada junto.
-  box.innerHTML = loading();
-  tabela = null;
+  // O filtro recarrega do banco e a casca da tabela é descartada junto. Um
+  // recarregamento por mudança de outra pessoa não pisca a tela.
+  if (!tabela) box.innerHTML = loading();
 
   let lista;
   try {
@@ -132,6 +159,8 @@ async function carregar() {
   } catch (err) { box.innerHTML = erroBox(err); return; }
 
   if (filtro.periodo) lista = lista.filter(s => s.periodo === filtro.periodo);
+  if (!document.getElementById('sol-lista')) return;   // saiu da página durante a consulta
+  tabela = null;
 
   // As escolas de cada viagem, numa consulta só. Sem isto a coluna
   // "Escolas" faria uma ida ao banco por linha da tabela.
@@ -145,6 +174,7 @@ async function carregar() {
     s._partes = porViagem[s.id] || [];
   }
 
+  viaveis = new Set(lista.map(s => s.id));
   tabela = montarTabela(box, {
     colunas: COLUNAS,
     acoes: ctx.aprovador && !ctx.somenteLeitura ? ACOES : [],
@@ -207,7 +237,7 @@ const COLUNAS = [
       + `<span class="sol-esc-nome">${esc(nomeEscolas(s))}</span><span class="sol-esc-apelido">${esc(apelidoEscolas(s))}</span></span>` },
   { id: 'data', rotulo: 'Data', tipo: 'data',
     valor: s => s.data || '',
-    celula: s => `${esc(fmtData(s.data))}${sub(PERIODOS[s.periodo] || '')}` },
+    celula: s => `${esc(fmtData(s.data))}<span class="sol-sub">${periodoBadge(s.periodo)}</span>` },
   { id: 'local', rotulo: 'Local', prioridade: 2,
     valor: s => `${localDe(s)} ${enderecoDe(s)}`,
     celula: s => `${esc(localDe(s))}${localAConferir(s) ? ' <span class="tag">Local a conferir</span>' : ''}${sub(enderecoDe(s))}` },

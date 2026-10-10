@@ -1,7 +1,7 @@
 // ============================================================
 // FundHub - sate/views/formulario-quando.js
-// O grupo LOGÍSTICA do modal de solicitação (spec 2026-10-03, D2): data,
-// turma, quantos vão e os horários. Separado
+// Os grupos QUANDO e QUEM VAI do modal de solicitação (spec 2026-10-03, D2):
+// data e horários; turma e quantos vão. Separado
 // de formulario.js por ter estado e contrato próprios, como
 // formulario-destino.js: a data sem ano, os dois horários e o período
 // calculado - o formulário só pergunta "quando?".
@@ -13,7 +13,8 @@
 // resto do formulário lê a data civil (`val('f-data')`), sem saber que o
 // campo visível mudou.
 // ============================================================
-import { periodoDe, PERIODOS } from '../regras.model.js';
+import { periodoDe } from '../regras.model.js';
+import { periodoBadge } from './periodo.js';
 import { getDiaCalendario, diaImpedeExtraclasse, motivoDoDia } from '../../calendario/calendario.model.js';
 import { mascaraDiaMes, dataDeDiaMes, diaMesDe, fmtExtenso, fmtData } from '../../../shared/format.js';
 import { marcarVazio } from '../../../shared/ui/campo-data-hora.js';
@@ -21,11 +22,24 @@ import { esc, val } from '../../../shared/dom.js';
 import { ico } from '../../../shared/ui/icones.js';
 import { marcarTocado } from '../../../shared/ui/modal.js';
 
+// Quem vai: a turma e os números da escola. Com várias paradas, a dica diz
+// de quem são (da Escola 01) - as outras informam os seus nas paradas.
+export const quemVaiHtml = () => `
+  <fieldset class="form-grupo">
+    <legend>Quem vai</legend>
+    <div class="campos duas">
+      <label class="col-2">Turma / grupo participante <input id="f-turmas" type="text" placeholder="Ex.: 5º A, 5º B" /></label>
+      <label>Qtd. de estudantes * <input id="f-alunos" type="number" inputmode="numeric" min="1" placeholder="0" required /></label>
+      <label>Qtd. de adultos acompanhantes * <input id="f-adultos" type="number" inputmode="numeric" min="0" placeholder="0" required /></label>
+      <p class="form-hint col-2" id="f-esc01-dica" hidden>Estudantes, adultos e embarque acima são da Escola 01. As outras escolas informam os seus em “Mais de uma escola no mesmo ônibus”. A saída do evento é a mesma para todas.</p>
+    </div>
+  </fieldset>`;
+
 const DICA = 'Dia e mês. O ano é o atual.';
 
 export const quandoHtml = (minData) => `
   <fieldset class="form-grupo">
-    <legend>Logística</legend>
+    <legend>Quando</legend>
     <div class="campos duas">
       <div class="lbl col-2">
         <label for="f-dia">Data</label>
@@ -43,14 +57,10 @@ export const quandoHtml = (minData) => `
         </span>
         <small class="form-hint" id="f-data-ext" aria-live="polite">${DICA}</small>
       </div>
-      <label class="col-2">Turma / grupo participante <input id="f-turmas" type="text" placeholder="Ex.: 5º A, 5º B" /></label>
-      <label>Qtd. de estudantes * <input id="f-alunos" type="number" inputmode="numeric" min="1" placeholder="0" required /></label>
-      <label>Qtd. de adultos acompanhantes * <input id="f-adultos" type="number" inputmode="numeric" min="0" placeholder="0" required /></label>
       <label>Horário de embarque na escola * <input id="f-emb" type="time" required aria-describedby="f-emb-dica" />
         <small class="form-hint" id="f-emb-dica">Só os números: 0730 → 07:30</small></label>
       <label>Horário de saída do evento * <input id="f-ret" type="time" required aria-describedby="f-ret-dica" />
         <small class="form-hint" id="f-ret-dica">Só os números: 1130 → 11:30</small></label>
-      <p class="form-hint col-2" id="f-esc01-dica" hidden>Estudantes, adultos e embarque acima são da Escola 01. As outras escolas informam os seus em “Mais de uma escola no mesmo ônibus”. A saída do evento é a mesma para todas.</p>
       <p class="sol-periodo col-2" id="f-periodo" aria-live="polite"></p>
     </div>
   </fieldset>`;
@@ -64,7 +74,7 @@ const textoDe = (iso) => (dataDeDiaMes(diaMesDe(iso)) === iso
 function pintarPeriodo() {
   const p = periodoDe(val('f-emb'), val('f-ret'));
   document.getElementById('f-periodo').innerHTML = p
-    ? `${ico(p === 'noite' ? 'noturno' : 'horario', { tam: 14 })}<span>Período</span><b>${esc(PERIODOS[p])}</b>`
+    ? `${ico('horario', { tam: 14 })}<span>Período</span>${periodoBadge(p)}`
     : '';
 }
 

@@ -14,6 +14,8 @@
 // null e a tela segue com os campos de coordenada. Degrada, não quebra.
 // ============================================================
 import { ico } from './icones.js';
+import { esc } from '../dom.js';
+import { prenderFoco } from './foco.js';
 
 const BASE = 'https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/';
 const SRI_JS = 'sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=';
@@ -55,8 +57,7 @@ function carregarLeaflet() {
 //
 // Devolve o handle na hora, com o mapa ainda por criar: `mover(lat, lng)`
 // guarda o ponto e o pino nasce nele quando o mapa abrir.
-// `leitura`: só mostra o ponto - o pino não se arrasta e o clique não o move.
-export async function montarMapaPino(el, { lat = null, lng = null, aoMover = () => {}, leitura = false } = {}) {
+export async function montarMapaPino(el, { lat = null, lng = null, aoMover = () => {} } = {}) {
   let pos = Number.isFinite(lat) && Number.isFinite(lng) ? [lat, lng] : null;
   let mapa = null, pino = null;
 
@@ -97,9 +98,9 @@ export async function montarMapaPino(el, { lat = null, lng = null, aoMover = () 
       maxZoom: 19, attribution: '© OpenStreetMap',
     }).addTo(mapa);
     mapaAnterior = mapa;
-    pino = L.marker(pos || CENTRO, { draggable: !leitura, opacity: pos ? 1 : 0.5 }).addTo(mapa);
+    pino = L.marker(pos || CENTRO, { draggable: true, opacity: pos ? 1 : 0.5 }).addTo(mapa);
     pino.on('dragend', () => { const q = pino.getLatLng(); pino.setOpacity(1); pos = [q.lat, q.lng]; aoMover(q.lat, q.lng); });
-    if (!leitura) mapa.on('click', (e) => { mover(e.latlng.lat, e.latlng.lng); aoMover(e.latlng.lat, e.latlng.lng); });
+    mapa.on('click', (e) => { mover(e.latlng.lat, e.latlng.lng); aoMover(e.latlng.lat, e.latlng.lng); });
   }
 
   btn.addEventListener('click', async () => {
@@ -112,4 +113,45 @@ export async function montarMapaPino(el, { lat = null, lng = null, aoMover = () 
   });
 
   return { mover };
+}
+
+// O mapa só para OLHAR um ponto, numa camada própria (a do confirmar.js) e
+// não na pilha de modais: aberto de dentro de um formulário, um modal
+// reabriria o de baixo do zero e a pessoa perderia o que digitou.
+export async function abrirMapaLocal({ titulo, endereco = '', lat, lng }) {
+  document.getElementById('mapa-local-back')?.remove();
+  const back = document.createElement('div');
+  back.id = 'mapa-local-back';
+  back.className = 'confirmar-back open';
+  back.innerHTML = `
+    <div class="confirmar-card mapa-local-card" role="dialog" aria-modal="true" aria-labelledby="ml-t">
+      <h3 id="ml-t">${esc(titulo)}</h3>
+      <p>${esc(endereco)}</p>
+      <div class="mapa-pino" id="ml-mapa"></div>
+      <div class="confirmar-acoes"><button type="button" class="btn-secundario" id="ml-fechar">Fechar</button></div>
+    </div>`;
+  document.body.appendChild(back);
+  const anterior = document.activeElement;
+  let mapa = null;
+  let soltar = null;
+  const fechar = () => {
+    try { mapa?.remove(); } catch (_) { /* contêiner já fora */ }
+    soltar?.();
+    back.remove();
+    anterior?.focus?.();
+  };
+  soltar = prenderFoco(back.querySelector('.confirmar-card'), { aoEsc: fechar });
+  back.querySelector('#ml-fechar').addEventListener('click', fechar);
+  back.addEventListener('click', (e) => { if (e.target === back) fechar(); });
+  back.querySelector('#ml-fechar').focus();
+
+  let L;
+  try { L = await carregarLeaflet(); } catch (_) { L = null; }
+  const el = back.querySelector('#ml-mapa');
+  if (!back.isConnected) return;
+  if (!L) { el.textContent = 'Mapa indisponível agora.'; return; }
+  mapa = L.map(el, { scrollWheelZoom: false }).setView([lat, lng], 17);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(mapa);
+  L.marker([lat, lng]).addTo(mapa);
+  setTimeout(() => mapa?.invalidateSize(), 60);
 }

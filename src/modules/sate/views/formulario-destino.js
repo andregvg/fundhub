@@ -16,7 +16,7 @@
 import { enderecoCompleto, localNoEndereco } from '../../locais/locais.model.js';
 import { criarBuscaSelecao } from '../../../shared/ui/busca-selecao.js';
 import { esc, val } from '../../../shared/dom.js';
-import { montarMapaPino } from '../../../shared/ui/mapa-pino.js';
+import { abrirMapaLocal } from '../../../shared/ui/mapa-pino.js';
 import { ico } from '../../../shared/ui/icones.js';
 
 let locaisAtivos = [];
@@ -26,6 +26,7 @@ let bs = null;          // handle de criarBuscaSelecao - destruído antes de
                         // recriar (senão cada abertura do modal deixa um
                         // listener de document a mais)
 let aoMudar = () => {};
+let aoEditar = null;    // (local) => abre o cadastro do local; só para quem edita locais
 
 const ENDERECO = ['f-dest-end', 'f-dest-num', 'f-dest-bairro'];
 
@@ -58,14 +59,15 @@ function mostrar(modo) {
   for (const id of ENDERECO) campo(id).required = modo === 'novo';
 }
 
+// O endereço e, ao lado dele, o mapa (só se o local tem o ponto) e o lápis
+// (só para quem pode editar locais). O mapa abre numa camada própria: um
+// modal reabriria o formulário do zero e a pessoa perderia o que digitou.
 function pintarCartao(l) {
-  const box = campo('f-dest-cartao');
   const linha = [[l.endereco, l.numero].filter(Boolean).join(', '), l.bairro].filter(Boolean).join(' - ');
-  const lat = Number(l.latitude), lng = Number(l.longitude);
-  const temPonto = l.latitude != null && l.longitude != null && Number.isFinite(lat) && Number.isFinite(lng);
-  box.innerHTML = `<div class="dest-cartao-txt">${ico('visita', { tam: 16 })}<span>${esc(linha || 'Endereço não informado no cadastro')}</span></div>`
-    + (temPonto ? '<div class="mapa-pino" id="f-dest-mapa"></div>' : '');
-  if (temPonto) montarMapaPino(campo('f-dest-mapa'), { lat, lng, leitura: true });
+  const temPonto = l.latitude != null && l.longitude != null && Number.isFinite(Number(l.latitude)) && Number.isFinite(Number(l.longitude));
+  campo('f-dest-cartao').innerHTML = `<span class="dest-cartao-txt">${esc(linha || 'Endereço não informado no cadastro')}</span>`
+    + (temPonto ? `<button type="button" class="mini-btn" data-mapa aria-label="Ver ${esc(l.nome)} no mapa" title="Ver no mapa">${ico('visita', { tam: 16 })}</button>` : '')
+    + (aoEditar ? `<button type="button" class="mini-btn" data-editar aria-label="Editar o local ${esc(l.nome)}" title="Editar local">${ico('editar', { tam: 16 })}</button>` : '');
 }
 
 function usarCadastrado(l) {
@@ -86,9 +88,10 @@ function pintarMesmo() {
     : '';
 }
 
-export function ligarDestino(locais, mudou) {
+export function ligarDestino(locais, mudou, { editar = null } = {}) {
   bs?.destruir();
   aoMudar = mudou;
+  aoEditar = editar;
   locaisAtivos = (locais || []).filter(l => l.ativo);
   escolhido = null; novoNome = null;
   bs = criarBuscaSelecao(campo('f-local'), {
@@ -122,6 +125,12 @@ export function ligarDestino(locais, mudou) {
     },
   });
   for (const id of ['f-dest-end', 'f-dest-num']) campo(id).addEventListener('change', pintarMesmo);
+  campo('f-dest-cartao').addEventListener('click', (e) => {
+    if (!escolhido) return;
+    if (e.target.closest('[data-mapa]')) {
+      abrirMapaLocal({ titulo: escolhido.nome, endereco: enderecoCompleto(escolhido), lat: Number(escolhido.latitude), lng: Number(escolhido.longitude) });
+    } else if (e.target.closest('[data-editar]')) aoEditar?.(escolhido);
+  });
   campo('f-dest-mesmo').addEventListener('click', (e) => {
     const b = e.target.closest('[data-usar]'); if (!b) return;
     const l = locaisAtivos.find(x => x.id === b.dataset.usar); if (!l) return;
@@ -147,4 +156,13 @@ export function validarDestino(d) {
   const falta = ENDERECO.map(campo).find(c => !c.value.trim());
   if (falta) return { campo: falta, texto: 'Informe endereço, número e bairro do local novo.' };
   return null;
+}
+
+// O local do cadastro escolhido, para o formulário refeito reaparecer igual.
+export const rascunhoDestino = () => escolhido?.id || null;
+export function restaurarDestino(id) {
+  const l = locaisAtivos.find(x => x.id === id);
+  if (!l) return;
+  bs.definirValor(l.id);
+  usarCadastrado(l);
 }

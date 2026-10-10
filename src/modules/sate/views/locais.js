@@ -103,7 +103,7 @@ function card(l) {
 // página Locais nunca foi desenhada - por isso o terceiro parâmetro
 // (`ctxExterno`), e por isso tudo aqui lê do `c` resolvido, nunca do
 // `ctx` do módulo direto.
-export function abrirLocal(l, { preenchido = {}, aoSalvar = null } = {}, ctxExterno = null) {
+export function abrirLocal(l, { preenchido = {}, aoSalvar = null, voltar = null } = {}, ctxExterno = null) {
   const c = ctxExterno ?? ctx;
   const novo = !l;
   const base = { ...l, ...preenchido };
@@ -165,7 +165,7 @@ export function abrirLocal(l, { preenchido = {}, aoSalvar = null } = {}, ctxExte
           <button type="submit" id="l-save" class="btn-primary">${novo ? 'Criar' : 'Salvar'}</button>
         </div>
       </form>
-    </div>`, { tamanho: 'largo' });
+    </div>`, { tamanho: 'largo', voltar });
 
   atualizarLinkMaps(Number.isFinite(lat) ? lat : null, Number.isFinite(lng) ? lng : null);
 

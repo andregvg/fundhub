@@ -151,6 +151,13 @@
   --eixo-infantil: #b45309;
   --eixo-todas: #57606a;
 
+  /* Período da viagem (SATE): manhã = dourado, tarde = laranja, noite =
+     índigo, dia todo = verde-água. Texto e traço; o fundo é um tom dele. */
+  --per-manha: #a16207;
+  --per-tarde: #c2410c;
+  --per-noite: #4338ca;
+  --per-integral: #0f766e;
+
   /* Cores do SATE (sate.html). A página própria troca o --brand por uma
      delas - escolhida nas configurações do módulo, verde por padrão. O
      resto do tema (fundo, texto, borda) é o do hub: identidade é o
@@ -211,6 +218,11 @@
   --eixo-fundamental: #5b8cff;
   --eixo-infantil: #fbbf24;
   --eixo-todas: #adbac7;
+
+  --per-manha: #facc15;
+  --per-tarde: #fb923c;
+  --per-noite: #a5b4fc;
+  --per-integral: #5eead4;
 }
 
 @media (min-width: 720px) {

@@ -8,10 +8,7 @@
 // de responsável e acessibilidade.
 // Revisto na spec 2026-10-02 (D13): escola por busca para quem aprova, local novo pela própria busca do campo Local.
 //
-// Os campos se agrupam por PERGUNTA - de onde, para onde, quando, quem
-// vai - e não por tipo de campo. No modal largo os blocos deixam o
-// formulário legível de relance; em tela estreita eles são as âncoras
-// que dizem onde a pessoa está numa coluna longa.
+// Os campos se agrupam por PERGUNTA - de onde, para onde, quando, quem vai.
 // ============================================================
 import { criarSolicitacao } from '../sate.model.js';
 import { acrescentar } from '../participacoes.model.js';
@@ -19,11 +16,12 @@ import { periodoDe, onibusPara, vansPara } from '../regras.model.js';
 import { calcularTrajeto, retratoTrajeto } from '../rota.model.js';
 import { capacidadeOnibus, capacidadeVan, antecedenciaMinDias, velocidadeOnibusKmh, margemParadaMin } from '../sate.config.js';
 import { getDiaCalendario, diaImpedeExtraclasse, motivoDoDia } from '../../calendario/calendario.model.js';
-import { destinoHtml, ligarDestino, lerDestino, validarDestino } from './formulario-destino.js';
-import { quandoHtml, ligarQuando } from './formulario-quando.js';
+import { destinoHtml, ligarDestino, lerDestino, validarDestino, rascunhoDestino, restaurarDestino } from './formulario-destino.js';
+import { quandoHtml, quemVaiHtml, ligarQuando } from './formulario-quando.js';
+import { abrirLocal } from './locais.js';
 import { responsavelHtml, ligarResponsavel, carregarEquipe } from './formulario-responsavel.js';
 import { resumoHtml, ligarResumo, revisar, repintarResumo } from './formulario-resumo.js';
-import { origemHtml, rotuloEscola, ligarParadas, aoMudarPrincipal, lerParadas, validarParadas, destruirParadas } from './formulario-paradas.js';
+import { origemHtml, rotuloEscola, rascunhoParadas, restaurarParadas, ligarParadas, aoMudarPrincipal, lerParadas, validarParadas, destruirParadas } from './formulario-paradas.js';
 import { esc, val, falha, falhaNoCampo } from '../../../shared/dom.js';
 import { hojeISO, addDias, isUuid } from '../../../shared/format.js';
 import { paraE164, formatarTelefone } from '../../../shared/ui/phones.js';
@@ -34,10 +32,8 @@ import { ico } from '../../../shared/ui/icones.js';
 import { reportarErro } from '../../../shared/ui/feedback.js';
 
 let ctx = null;
-// O trajeto da escola escolhida até o destino escolhido. Vai para a
-// solicitação como retrato no envio (spec 2026-09-13-sate-rota, D4). O
-// contador evita que uma resposta velha (troca de escola duas vezes)
-// pinte por cima da mais nova.
+// O trajeto da escola até o destino, enviado como retrato (spec
+// 2026-09-13-sate-rota, D4). O contador descarta resposta velha.
 let trajeto = null;
 let pedidoTrajeto = 0;
 // Com que escolas e destino o `trajeto` foi (ou está sendo) calculado. Quem
@@ -51,7 +47,9 @@ let assinaturaTrajeto = '';
 let buscaEscola = null;
 const escolaId = () => (buscaEscola ? buscaEscola.valorAtual() : (document.getElementById('f-esc')?.value || ''));
 
-export function abrirFormulario(contexto) {
+// `rascunho` (opcional): o que a pessoa já tinha digitado, quando o formulário
+// é refeito depois de editar o local (editarLocal).
+export function abrirFormulario(contexto, rascunho = null) {
   ctx = contexto;
   trajeto = null;
   const { perfil, unidades, aprovador } = ctx;
@@ -68,11 +66,13 @@ export function abrirFormulario(contexto) {
 
         ${quandoHtml(minData)}
 
+        ${quemVaiHtml()}
+
         ${responsavelHtml()}
 
-        <details class="sol-recolher">
+        <details class="form-grupo sol-recolher">
           <summary>Acessibilidade</summary>
-          <div class="sol-recolher-corpo campos duas">
+          <div class="campos duas">
             <label>Nº de cadeirantes <input id="f-cadeira" type="number" inputmode="numeric" min="0" value="0" /></label>
             <label>Nº de estudantes surdos <input id="f-surdo" type="number" inputmode="numeric" min="0" value="0" /></label>
             <label class="inline col-2"><input type="checkbox" id="f-nec" /> Outra necessidade específica (descreva nas observações)</label>
@@ -95,6 +95,39 @@ export function abrirFormulario(contexto) {
     </div>`, { tamanho: 'largo' });
 
   ligar();
+  if (rascunho) restaurar(rascunho);
+}
+
+// Editar o local de dentro do formulário: o cadastro abre no lugar dele e,
+// ao salvar ou voltar, o formulário reaparece com o que já estava digitado.
+function capturar() {
+  const campos = {};
+  document.querySelectorAll('#sol-form [id^="f-"]').forEach(el => {
+    if (el.matches('input, select, textarea') && el.type !== 'hidden') campos[el.id] = el.type === 'checkbox' ? el.checked : el.value;
+  });
+  return { campos, escola: escolaId(), paradas: ctx.aprovador ? rascunhoParadas() : [], local: rascunhoDestino() };
+}
+
+function editarLocal(local) {
+  const r = capturar();
+  abrirLocal(local, { voltar: () => abrirFormulario(ctx, r) }, ctx);
+}
+
+function restaurar(r) {
+  for (const [id, v] of Object.entries(r.campos)) {
+    const el = document.getElementById(id);
+    if (!el) continue;
+    if (el.type === 'checkbox') el.checked = v; else el.value = v;
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+    el.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+  if (ctx.aprovador) buscaEscola?.definirValor(r.escola);
+  if (r.local) restaurarDestino(r.local);
+  restaurarParadas(r.paradas);
+  rotularEscolas();
+  carregarEquipe(escolaId());
+  pintarTrajeto();
+  revisar();
 }
 
 function ligar() {
@@ -115,7 +148,8 @@ function ligar() {
     carregarEquipe(escolaId());
   };
 
-  ligarDestino(ctx.locais, () => { pintarTrajeto(); revisar(); });
+  ligarDestino(ctx.locais, () => { pintarTrajeto(); revisar(); },
+    { editar: ctx.aprovador && !ctx.somenteLeitura ? editarLocal : null });
   buscaEscola?.destruir();
   buscaEscola = null;
   if (ctx.aprovador) {
@@ -218,8 +252,7 @@ async function pintarTrajeto() {
   }
   if (meu !== pedidoTrajeto || !document.getElementById('f-resumo')) return;
   trajeto = r;
-  // O trajeto (trajeto_min) entra no cálculo do intervalo ocupado (D5) -
-  // recalcula o saldo para refletir o horário real, não a janela típica.
+  // trajeto_min entra no intervalo ocupado (D5): recalcula o saldo.
   revisar();
 }
 
@@ -229,8 +262,7 @@ async function enviar(e) {
   if (ctx.somenteLeitura) return;   // vendo como a escola: nada é gravado
   const msg = document.getElementById('f-msg'); msg.className = 'auth-msg';
   const { aprovador } = ctx;
-  // Todo erro aponta o CAMPO: marca, foco e rolagem até ele. A mensagem
-  // sozinha no rodapé deixava a pessoa procurando num formulário longo.
+  // Todo erro aponta o CAMPO: marca, foco e rolagem até ele.
   const form = e.currentTarget;
   form.querySelectorAll('[aria-invalid]').forEach(c => c.removeAttribute('aria-invalid'));
   const erro = (campo, txt) => falhaNoCampo(msg, campo, txt);
@@ -278,14 +310,9 @@ async function enviar(e) {
 
   const unidadeId = isUuid(escId) ? escId : null;
 
-  // O cabeçalho é a VIAGEM. `qtd_alunos` NÃO entra aqui: é cache da soma
-  // das participações, mantido por gatilho no banco (migration 037).
-  // `qtd_cadeirante` também é cache, mas PRECISA ir: a coluna do cabeçalho
-  // é NOT NULL (migration 005) e criar_viagem() monta a linha por
-  // jsonb_populate_record, que põe NULO no que não veio - o DEFAULT não
-  // vale, e o banco recusava com "campo obrigatório em branco". O valor é o
-  // mesmo da participação, então o gatilho recalcula para o mesmo número.
-  // Os veículos saem do TOTAL da viagem, com as outras paradas (spec D6).
+  // O cabeçalho é a VIAGEM. `qtd_alunos` NÃO entra: é cache da soma das
+  // participações (gatilho, migration 037). `qtd_cadeirante` PRECISA ir: é
+  // NOT NULL e criar_viagem() não aplica DEFAULT (046). Veículos: total.
   const totalAlunos = qtd + extras.reduce((n, p) => n + p.qtdAlunos, 0);
   const totalCadeira = cadeira + extras.reduce((n, p) => n + p.qtdCadeirante, 0);
   const viagem = {
@@ -305,9 +332,7 @@ async function enviar(e) {
     horario_retorno: ret,
     professor_nome: val('f-prof'),
     professor_telefone: paraE164(val('f-tel')) || val('f-tel'),
-    // Fallback que sobrevive sem a 044: antes dela, jsonb_populate_record
-    // descarta professor_nome/professor_telefone em silêncio (colunas
-    // novas), e contato_professor (coluna antiga) é o único que fica.
+    // Fallback sem a 044: contato_professor (coluna antiga) é o único que fica.
     contato_professor: `${val('f-prof')} · ${formatarTelefone(val('f-tel'))}`,
     observacao: val('f-obs') || null,
     // O retrato do trajeto, se já foi calculado. Não calculado não barra
@@ -352,9 +377,7 @@ async function enviar(e) {
       toast({ titulo: 'Solicitação enviada', texto: escola, tipo: 'sucesso' });
     }
   } catch (err) {
-    // O banco recalcula os veículos e trava por data (migration 042): o
-    // horário pode ter deixado de caber entre a última pintura do saldo e
-    // o clique em Enviar - outra escola pode ter acabado de pegar a vaga.
+    // O saldo pode ter mudado entre a última pintura e o clique (042).
     if (err.code === 'P0001' && String(err.message || '').startsWith('Sem onibus livres')) {
       erro('#f-emb', 'Não há ônibus livres para este horário. Escolha outro horário ou outra data.');
       repintarResumo();

@@ -129,26 +129,32 @@ body.app-sate { --info-bg: color-mix(in srgb, var(--brand) 12%, var(--surface));
   .sol-parada-acoes { grid-column: auto; }
 }
 
-/* Bloco recolhível do formulário (Acessibilidade, várias escolas). */
-.sol-recolher { border: 1px solid var(--grupo-borda); border-radius: var(--radius); background: var(--grupo-bg); margin: 0 0 16px; }
-.sol-recolher.col-2 { margin: 0; background: transparent; }
-.sol-recolher > summary {
-  display: flex; align-items: center; gap: 8px; cursor: pointer; list-style: none;
-  padding: 10px 14px; color: var(--form-legend);
+/* Blocos recolhíveis do formulário. Acessibilidade é um grupo comum
+   (.form-grupo, que traz o cartão e o estilo dos campos); "Adicionar pontos
+   de parada" é um gatilho discreto, alinhado aos campos. */
+.sol-recolher > summary { cursor: pointer; list-style: none; display: flex; align-items: center; gap: 8px; }
+.sol-recolher > summary::-webkit-details-marker { display: none; }
+.form-grupo.sol-recolher > summary {
+  padding: 4px 0 6px; color: var(--form-legend);
   font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
 }
-.sol-recolher.col-2 > summary { font-size: 12.5px; font-weight: 600; text-transform: none; letter-spacing: 0; color: var(--text); }
-.sol-recolher > summary::-webkit-details-marker { display: none; }
-.sol-recolher > summary::after { content: '+'; margin-left: auto; font-size: 16px; font-weight: 400; }
-.sol-recolher[open] > summary::after { content: '−'; }
-.sol-recolher-corpo { padding: 0 14px 14px; display: flex; flex-direction: column; gap: 8px; }
-.sol-recolher-corpo.campos.duas { display: grid; }
+.form-grupo.sol-recolher > summary::after { content: '+'; margin-left: auto; font-size: 16px; font-weight: 400; }
+.form-grupo.sol-recolher[open] > summary::after { content: '−'; }
+.form-grupo.sol-recolher[open] > summary { margin-bottom: 6px; }
+.sol-paradas > summary { padding: 2px 0; color: var(--brand); font-size: 13px; font-weight: 600; }
+.sol-paradas > summary svg { flex: none; }
+.sol-recolher-corpo { display: flex; flex-direction: column; gap: 8px; padding-top: 10px; }
 
 /* Destino do cadastro: endereço em cartão, com o mapa a um clique. */
 .dest-cartao { display: flex; flex-direction: column; gap: 8px; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-btn); background: var(--surface); }
-.dest-cartao-txt { display: flex; align-items: center; gap: 8px; font-size: 13.5px; }
-.dest-cartao-txt svg { flex: none; color: var(--muted); }
-.dest-cartao .mapa-pino-alternar { align-self: flex-start; }
+.dest-cartao { flex-direction: row; align-items: center; flex-wrap: wrap; }
+.dest-cartao-txt { flex: 1 1 200px; min-width: 0; font-size: 13.5px; }
+.dest-cartao .mini-btn { flex: none; min-width: var(--campo); min-height: var(--campo); }
+#f-dest-cartao[hidden], #f-dest-novo[hidden], #f-esc01-dica[hidden] { display: none; }
+.mapa-local-card { width: min(560px, 100%); }
+.mapa-local-card .mapa-pino { margin-bottom: 14px; }
+.app-sate .page-head { position: relative; }
+.page-head .mod-acoes { top: 0; }
 
 /* Cadastro rápido de frota, no resumo (quem aprova, dia sem frota). */
 .sol-cad-frota { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px;
@@ -509,3 +515,21 @@ body.app-sate { --info-bg: color-mix(in srgb, var(--brand) 12%, var(--surface));
 
 /* Segunda linha de uma célula da lista (período, endereço, hora). */
 .sol-sub { display: block; font-size: 11.5px; line-height: 1.3; color: var(--muted); font-weight: 400; }
+
+/* Badge do período: cor semântica por período (tokens --per-*), com fundo
+   que é um tom da própria cor sobre a superfície - vale nos dois temas. */
+.per {
+  --c: var(--muted);
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 1px 8px 1px 6px; border-radius: 999px;
+  font-size: 11.5px; font-weight: 600; line-height: 1.5; white-space: nowrap;
+  color: var(--c);
+  background: color-mix(in srgb, var(--c) 14%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--c) 35%, var(--surface));
+}
+.per-manha { --c: var(--per-manha); }
+.per-tarde { --c: var(--per-tarde); }
+.per-noite { --c: var(--per-noite); }
+.per-integral { --c: var(--per-integral); }
+td .per, .sol-sub .per { margin-top: 2px; }
+.app-sate .page-head:has(.mod-acoes) { padding-right: 48px; }

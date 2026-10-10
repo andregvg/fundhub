@@ -26,7 +26,7 @@ let aoMudar = () => {};
 // viagem cabe em UM ônibus - o total de lugares é conferido no formulário.
 export const paradasHtml = () => `
   <details class="col-2 sol-recolher sol-paradas" id="f-paradas-det">
-    <summary>Mais de uma escola no mesmo ônibus</summary>
+    <summary>${ico('adicionar', { tam: 14 })} Adicionar pontos de parada</summary>
     <div class="sol-recolher-corpo">
       <div id="f-paradas-lista" class="sol-paradas-lista"></div>
       <div id="f-paradas-busca"></div>
@@ -209,4 +209,21 @@ export function destruirParadas() {
   busca?.destruir();
   busca = null;
   linhas = [];
+}
+
+// Rascunho das paradas: o formulário é refeito quando a pessoa vai editar o
+// local e volta (formulario.js), e as paradas digitadas voltam com ele.
+export const rascunhoParadas = () => { const c = lerCampos(); return linhas.map(l => ({ ...l, ...(c[l.id] || {}) })); };
+
+export function restaurarParadas(rascunho) {
+  if (!rascunho?.length) return;
+  linhas = rascunho.map(({ id, nome }) => ({ id, nome }));
+  pintar();
+  for (const p of rascunho) {
+    const el = document.querySelector(`[data-parada="${CSS.escape(String(p.id))}"]`);
+    for (const c of ['alunos', 'adultos', 'cadeira', 'hora']) { const i = el?.querySelector(`[data-campo="${c}"]`); if (i) i.value = p[c] ?? ''; }
+  }
+  document.getElementById('f-paradas-det').open = true;
+  montarBusca();
+  aoMudar();
 }

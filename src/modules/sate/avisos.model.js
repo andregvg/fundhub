@@ -220,6 +220,12 @@ export function subscribeAvisos(handler) {
   return subscribeTabela('solicitacao_aviso', handler, 'solic-aviso-rt');
 }
 
+// As mudanças da própria solicitação (a lista se refaz com elas). O evento de
+// exclusão traz só o id: o RLS não filtra o que já não existe.
+export function subscribeSolicitacoes(handler) {
+  return subscribeTabela('solicitacao_transporte', handler, 'solic-lista-rt');
+}
+
 export function limparAvisos() {
   _geracao++;
   _avisos = []; _email = null; _publico = 'escola';

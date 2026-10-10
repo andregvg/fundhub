@@ -20,6 +20,8 @@
 import { conf, pref } from '../../core/configuracoes.js';
 import { nivel, podeEscrever } from '../../core/permissoes.js';
 import { PADRAO_AVISOS, publicoDe } from './avisos.model.js';
+import { STATUS } from './sate.model.js';
+import { PERIODOS } from './regras.model.js';
 
 // Os padrões vivem AQUI, no acesso, e não em core/configuracoes.js -
 // aquele arquivo só sabe "o que foi gravado".
@@ -38,6 +40,9 @@ export const PADRAO = Object.freeze({
   // (spec 2026-09-27, D6). ESPELHO do padrão de
   // _sate_conf_int('trajeto_provisorio_min', 60) na migration 044.
   trajeto_provisorio_min: 60,
+  // Filtros da lista de Solicitações: quantos dias o "Até" avança a partir
+  // do "De", e a situação/período já escolhidos ao abrir (de cada pessoa).
+  filtro_dias_ate: 8,
 });
 
 // Valor gravado só vence o padrão se for número finito e não negativo.
@@ -75,6 +80,18 @@ export const margemParadaMin = () => num('margem_parada_min', PADRAO.margem_para
 export const capacidadeVan = () => num('capacidade_van', PADRAO.capacidade_van) || PADRAO.capacidade_van;
 export const trajetoProvisorioMin = () => num('trajeto_provisorio_min', PADRAO.trajeto_provisorio_min);
 
+// Preferências de cada pessoa para a lista de Solicitações. `todas` é o
+// "sem filtro" (a lista de opções não tem valor vazio).
+const TODAS = { valor: 'todas', rotulo: 'Todas' };
+const opcoesDe = (mapa) => [TODAS, ...Object.entries(mapa).map(([valor, rotulo]) => ({ valor, rotulo }))];
+export const filtroDiasAte = () => {
+  const v = Number(pref('sate', 'filtro_dias_ate'));
+  return Number.isFinite(v) && v >= 0 ? Math.floor(v) : PADRAO.filtro_dias_ate;
+};
+const filtroPadrao = (chave, mapa) => { const v = pref('sate', chave); return v in mapa ? v : ''; };
+export const filtroSituacaoPadrao = () => filtroPadrao('filtro_situacao', STATUS);
+export const filtroPeriodoPadrao = () => filtroPadrao('filtro_periodo', PERIODOS);
+
 export const DECLARACAO = {
   itens: [
     {
@@ -85,6 +102,24 @@ export const DECLARACAO = {
       get padrao() { return corSate(); },
       rotulo: 'Cor principal do SATE',
       dica: 'A cor de destaque do SATE para você: botões, menu e marca.',
+    },
+    {
+      chave: 'filtro_dias_ate', escopo: 'usuario', grupo: 'exibicao',
+      tipo: 'numero', padrao: PADRAO.filtro_dias_ate, min: 0, max: 365,
+      rotulo: 'Dias do filtro "Até" nas solicitações',
+      dica: 'Ao escolher a data inicial da lista, a data final avança estes dias.',
+    },
+    {
+      chave: 'filtro_situacao', escopo: 'usuario', grupo: 'exibicao',
+      tipo: 'opcao', opcoes: opcoesDe(STATUS), padrao: 'todas',
+      rotulo: 'Situação já escolhida nas solicitações',
+      dica: 'O filtro Situação que a lista traz ao abrir.',
+    },
+    {
+      chave: 'filtro_periodo', escopo: 'usuario', grupo: 'exibicao',
+      tipo: 'opcao', opcoes: opcoesDe(PERIODOS), padrao: 'todas',
+      rotulo: 'Período já escolhido nas solicitações',
+      dica: 'O filtro Período que a lista traz ao abrir.',
     },
     // Avisos do sino (spec 2026-10-10-sate-notificacoes, D3). Cada público
     // vê só os seus. O padrão é getter porque depende de quem está logado,

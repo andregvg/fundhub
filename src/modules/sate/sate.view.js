@@ -14,6 +14,7 @@ import { getUnidades } from '../escolas/escolas.model.js';
 import { getLocais } from '../locais/locais.model.js';
 import { esc } from '../../shared/dom.js';
 import { loading } from '../../shared/ui/feedback.js';
+import { ico } from '../../shared/ui/icones.js';
 
 import * as paginaSolicitacoes from './views/solicitacoes.js';
 import * as paginaDisponibilidade from './views/disponibilidade.js';
@@ -55,13 +56,14 @@ export const faixaSimulacaoHtml = (simulando, { dica = '' } = {}) => simulando ?
 // pode vê-la (src/sate.js); `aprovador` decide o que aparece dentro.
 // `simulando` ({ id, nome } | null): quem aprova está vendo o SATE como
 // uma escola (src/sate.js); ver faixaSimulacaoHtml.
-export async function render(app, { perfil, aprovador, id, irPara, simulando = null, aoSairSimulacao, somenteLeitura = false }) {
+export async function render(app, { perfil, aprovador, id, irPara, simulando = null, aoSairSimulacao, somenteLeitura = false, abrirConfig = null }) {
   const pagina = PAGINAS[id];
   app.innerHTML = `
     ${faixaSimulacaoHtml(simulando)}
     <div class="page-head">
       <h1>${esc(pagina.rotulo)}</h1>
       ${pagina.desc ? `<p>${esc(pagina.desc)}</p>` : ''}
+      ${abrirConfig ? `<div class="mod-acoes"><button type="button" class="mod-acao" id="sate-cfg" aria-label="Configurações do SATE" title="Configurações">${ico('config')}</button></div>` : ''}
     </div>
     <div id="sate-body">${loading()}</div>`;
 
@@ -71,6 +73,7 @@ export async function render(app, { perfil, aprovador, id, irPara, simulando = n
     getLocais().catch(() => []),
   ]);
 
+  document.getElementById('sate-cfg')?.addEventListener('click', abrirConfig);
   document.getElementById('sim-sair')?.addEventListener('click', () => aoSairSimulacao?.());
 
   // Contexto entregue a cada página: dados compartilhados + navegação.

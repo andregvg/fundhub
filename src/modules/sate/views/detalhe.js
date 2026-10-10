@@ -27,6 +27,7 @@ import { abrirEditar } from './editar.js';
 import { abrirConferirDoPedido } from './conferir-local.js';
 import { abrirDia } from './dia.js';
 import { decisoesHtml, ligarDecisoes } from './decisoes.js';
+import { periodoBadge } from './periodo.js';
 import { getParticipacoes, resumoEscolas } from '../participacoes.model.js';
 import { blocoHtml, ligarParticipantes } from './participantes.js';
 import { pontosDaViagem, explicarTrajeto, atualizarTrajeto, retratoTrajeto } from '../rota.model.js';
@@ -121,7 +122,7 @@ function resumoHtml(s, podeEditar) {
       aria-label="Editar solicitação" title="Editar solicitação">${ico('editar')}</button>` : ''}
     <b class="det-destino">${destino(s) ? esc(destino(s)) : vazio('destino não informado')}</b>
     <ul class="ficha-contato">
-      ${linha('calendario', `${esc(fmtData(s.data))} <span class="tag">${esc(PERIODOS[s.periodo] || s.periodo || '')}</span>`)}
+      ${linha('calendario', `${esc(fmtData(s.data))} ${periodoBadge(s.periodo)}`)}
       ${linha('horario', horas)}
       ${linha('visita', enderecoHtml(s))}
     </ul>

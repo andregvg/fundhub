@@ -23,7 +23,7 @@ import { OCULTO, PROPRIOS, LEITURA, ESCRITA } from './core/permissoes.js';
 import { abrirPortao } from './shell/portao.js';
 import { montarNav, marcarNav, marcarAtualizacao, atualizarMeusDados } from './shell/chrome.js';
 import { render, faixaSimulacaoHtml, PAGINAS, PAGINA_INICIAL } from './modules/sate/sate.view.js';
-import { definirIconeDoModal } from './shared/ui/modal.js';
+import { definirIconeDoModal, abrirModal, modalHead } from './shared/ui/modal.js';
 import { corSate } from './modules/sate/sate.config.js';
 import * as notificacoes from './modules/notificacoes/notificacoes.service.js';
 import { pintarConfigDoModulo, pintarTema } from './modules/configuracoes/painel.js';
@@ -187,8 +187,20 @@ async function rotear() {
     irPara: (nova) => { location.hash = `#/${nova}`; },
     simulando, aoSairSimulacao: () => mudarSimulacao(null),
     somenteLeitura: estado.somenteLeitura,
+    abrirConfig: abrirConfigSate,
   }));
   window.scrollTo(0, 0);
+}
+
+// A engrenagem do topo de cada página: as configurações do SATE num modal,
+// como a engrenagem dos módulos do FundHub. A escola vê só as pessoais.
+async function abrirConfigSate() {
+  abrirModal(`
+    ${modalHead('Configurações', 'SATE', { icone: 'config' })}
+    <div class="modal-body" id="sate-cfg-modal">${loading()}</div>`);
+  const box = document.getElementById('sate-cfg-modal');
+  box.addEventListener('cfg:salva', (e) => { if (e.detail.chave === 'cor') aplicarCor(); });
+  await pintarConfigDoModulo(box, moduloPorId('sate'), {}, { soPessoais: !aprovadorEfetivo() });
 }
 
 // Configurações como PÁGINA. Para todos (spec 2026-10-03, D20): tema e cor
