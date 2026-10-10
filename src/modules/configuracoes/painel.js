@@ -75,7 +75,11 @@ export async function pintarConfigDoModulo(box, mod, ctx = {}, { soPessoais = fa
   } catch (err) { box.innerHTML = erroBox(err); return; }
 
   const podeRede = podeEscrever(perm);
-  const itens = (declaracao?.itens || []).filter(i => !soPessoais || i.escopo === 'usuario');
+  // `visivel` (opcional): o item só aparece para quem ele serve - quem
+  // aprova e a escola têm avisos diferentes (spec 2026-10-10-sate-notificacoes, D3).
+  const itens = (declaracao?.itens || [])
+    .filter(i => !soPessoais || i.escopo === 'usuario')
+    .filter(i => typeof i.visivel !== 'function' || i.visivel());
   const porGrupo = GRUPOS
     .map(g => ({ ...g, itens: itens.filter(i => i.grupo === g.id) }))
     .filter(g => g.itens.length);

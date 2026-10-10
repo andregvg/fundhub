@@ -14,6 +14,7 @@
 // ============================================================
 import { listSolicitacoes, STATUS, PERIODOS, localAConferir } from '../sate.model.js';
 import { tituloDoPedido } from '../regras.model.js';
+import { idsComNovidade } from '../avisos.model.js';
 import { getParticipacoesDe, resumoEscolas, envolveUnidade } from '../participacoes.model.js';
 import { existeFrota } from '../frota.model.js';
 import { abrirFormulario } from './formulario.js';
@@ -24,10 +25,13 @@ import { montarTabela } from '../../../shared/ui/tabela.js';
 import { modalHtml, montarModal } from '../../../shared/ui/modal.js';
 import { confirmar } from '../../../shared/ui/confirmar.js';
 import { loading, erroBox } from '../../../shared/ui/feedback.js';
+import { toast } from '../../../shared/ui/toast.js';
 import { ico } from '../../../shared/ui/icones.js';
 
 let ctx = null;
 let tabela = null;
+// Solicitações com aviso por ver (as mesmas do sino): ganham o ponto.
+let novidades = new Set();
 // O filtro do BANCO. A busca da tabela é outra coisa: estreita o que já
 // está na tela, sem ida ao servidor (spec de listas, D6).
 let filtro = { status: '', periodo: '', de: addDias(hojeISO(), -30), ate: addDias(hojeISO(), 120) };
@@ -117,6 +121,7 @@ async function carregar() {
     s._escolasCurto = resumoEscolas(porViagem[s.id] || [], { curto: true });
   }
 
+  novidades = idsComNovidade();
   tabela = montarTabela(box, {
     colunas: COLUNAS,
     linhas: lista,
@@ -130,6 +135,20 @@ async function carregar() {
       texto: 'Ajuste os filtros acima ou clique em “Nova solicitação”.',
     },
   });
+  await abrirPeloEndereco(lista);
+}
+
+// `#/solicitacoes?abrir=<id>`: o sino aponta para cá (spec
+// 2026-10-10-sate-notificacoes, D4). Abre a ficha uma vez e limpa o
+// endereço, para recarregar a página não reabrir a mesma solicitação.
+async function abrirPeloEndereco(lista) {
+  const id = new URLSearchParams(String(location.hash).split('?')[1] || '').get('abrir');
+  if (!id) return;
+  history.replaceState(null, '', `${location.pathname}${location.search}#/solicitacoes`);
+  // Fora do período filtrado, busca pelo id.
+  const s = lista.find(x => x.id === id) || (await listSolicitacoes({ id }).catch(() => []))[0];
+  if (!s) return toast({ titulo: 'Solicitação não encontrada', texto: 'Ela pode ter sido excluída.', tipo: 'atencao' });
+  abrirDetalhe(s, ctx);
 }
 
 // `valor` ordena e busca (texto puro); `celula` desenha (spec de listas,
@@ -145,7 +164,8 @@ const COLUNAS = [
   // para a busca achar por qualquer um; a ordem é pelo nome completo.
   { id: 'escola', rotulo: 'Escolas',
     valor: s => [nomeEscolas(s), apelidoEscolas(s)].filter(Boolean).join(' · '),
-    celula: s => `<span class="sol-esc-nome">${esc(nomeEscolas(s))}</span><span class="sol-esc-apelido">${esc(apelidoEscolas(s))}</span>` },
+    celula: s => `${novidades.has(s.id) ? `<span class="sol-novidade" data-novidade="${esc(s.id)}" role="img" aria-label="Há novidade nesta solicitação" title="Há novidade nesta solicitação"></span>` : ''}`
+      + `<span class="sol-esc-nome">${esc(nomeEscolas(s))}</span><span class="sol-esc-apelido">${esc(apelidoEscolas(s))}</span>` },
   { id: 'data', rotulo: 'Data', tipo: 'data',
     valor: s => s.data || '',
     celula: s => esc(fmtData(s.data)) },

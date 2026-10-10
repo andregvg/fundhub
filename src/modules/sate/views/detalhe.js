@@ -22,6 +22,7 @@
 // ============================================================
 import { localAConferir, acoesDoPedido, STATUS, PERIODOS } from '../sate.model.js';
 import { rotuloDoPedido } from '../regras.model.js';
+import { marcarVisto } from '../avisos.model.js';
 import { abrirEditar } from './editar.js';
 import { abrirConferirDoPedido } from './conferir-local.js';
 import { abrirDia } from './dia.js';
@@ -50,6 +51,11 @@ export async function abrirDetalhe(solicitacao, contexto) {
   abrirModal(`
     ${modalHead('Detalhes da solicitação', esc(rotuloDoPedido(s)))}
     <div class="modal-body" id="det-corpo">${loading()}</div>`, { tamanho: 'medio' });
+
+  // Abrir a solicitação é o que tira os avisos dela do sino (spec
+  // 2026-10-10-sate-notificacoes, D4). Não espera: a ficha não depende disso.
+  marcarVisto(s.id);
+  document.querySelector(`[data-novidade="${CSS.escape(String(s.id))}"]`)?.remove();
 
   // As paradas vêm do banco; o resto já está na linha da tabela.
   const paradas = await getParticipacoes(s.id).catch(() => []);

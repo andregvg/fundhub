@@ -136,6 +136,11 @@ body.app-sate { --info-bg: color-mix(in srgb, var(--brand) 12%, var(--surface));
    completo a partir de 720px (o corte em que a tabela já esconde colunas). */
 .sol-esc-nome { display: none; }
 .sol-esc-apelido { text-transform: uppercase; }
+/* Há aviso por ver nesta solicitação (o mesmo que está no sino). */
+.sol-novidade {
+  display: inline-block; width: 8px; height: 8px; margin-right: 6px;
+  border-radius: 999px; background: var(--brand); vertical-align: middle;
+}
 @media (min-width: 720px) {
   .sol-esc-nome { display: inline; }
   .sol-esc-apelido { display: none; }

@@ -18,6 +18,8 @@
 // cadastrado (spec 2026-09-26, D2).
 // ============================================================
 import { conf, pref } from '../../core/configuracoes.js';
+import { nivel, podeEscrever } from '../../core/permissoes.js';
+import { PADRAO_AVISOS, publicoDe } from './avisos.model.js';
 
 // Os padrões vivem AQUI, no acesso, e não em core/configuracoes.js -
 // aquele arquivo só sabe "o que foi gravado".
@@ -83,6 +85,37 @@ export const DECLARACAO = {
       get padrao() { return corSate(); },
       rotulo: 'Cor principal do SATE',
       dica: 'A cor de destaque do SATE para você: botões, menu e marca.',
+    },
+    // Avisos do sino (spec 2026-10-10-sate-notificacoes, D3). Cada público
+    // vê só os seus. O padrão é getter porque depende de quem está logado,
+    // e a declaração é lida antes do login.
+    {
+      chave: 'avisos_pedidos_escola', escopo: 'usuario', grupo: 'notificacoes', tipo: 'switch',
+      get padrao() { return PADRAO_AVISOS.aprovador.avisos_pedidos_escola; },
+      visivel: () => podeEscrever('sate'),
+      rotulo: 'Pedidos das escolas',
+      dica: 'Pedido de cancelamento e pedido de saída de uma viagem. De solicitação nova você é avisado sempre.',
+    },
+    {
+      chave: 'avisos_equipe', escopo: 'usuario', grupo: 'notificacoes', tipo: 'switch',
+      get padrao() { return PADRAO_AVISOS.aprovador.avisos_equipe; },
+      visivel: () => podeEscrever('sate'),
+      rotulo: 'Ações de outros aprovadores',
+      dica: 'Análise, confirmação, negativa, cancelamento, reabertura, edição e paradas feitas por outra pessoa da equipe.',
+    },
+    {
+      chave: 'avisos_decisao', escopo: 'usuario', grupo: 'notificacoes', tipo: 'switch',
+      get padrao() { return PADRAO_AVISOS[publicoDe(nivel('sate'))]?.avisos_decisao ?? true; },
+      visivel: () => !podeEscrever('sate'),
+      rotulo: 'Decisão da solicitação',
+      dica: 'Quando uma solicitação é confirmada, negada ou cancelada.',
+    },
+    {
+      chave: 'avisos_andamento', escopo: 'usuario', grupo: 'notificacoes', tipo: 'switch',
+      get padrao() { return PADRAO_AVISOS[publicoDe(nivel('sate'))]?.avisos_andamento ?? true; },
+      visivel: () => !podeEscrever('sate'),
+      rotulo: 'Andamento da solicitação',
+      dica: 'Entrou em análise, foi reaberta, teve data ou horário alterado, foi aberta pela Gerência em nome da escola, ou uma escola entrou ou saiu da viagem.',
     },
     {
       chave: 'intervalo_min_periodos', escopo: 'rede', grupo: 'regras',

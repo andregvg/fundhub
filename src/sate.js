@@ -123,7 +123,7 @@ function montarSate({ perfil }) {
   rotear().then(marcarAtualizacao);
   // O sino, só com os avisos do SATE. Mesmo serviço e mesma permissão do
   // FundHub - aqui sem afastamentos e ocorrências, que seriam ruído.
-  if (hasSupabase() && veModulo(moduloPorId('notificacoes'))) notificacoes.iniciar({ fontes: ['sate'] });
+  if (hasSupabase() && veModulo(moduloPorId('notificacoes'))) notificacoes.iniciar({ fontes: ['sate'], naPaginaDoSate: true });
 }
 
 // ── Menu ─────────────────────────────────────────────────────
