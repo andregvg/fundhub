@@ -20,7 +20,7 @@
 - PT-BR em código, comentário e mensagem de commit. Commits na branch `dev`, com a linha final `Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>`.
 - CEP no banco: 8 dígitos sem hífen. Na tela: `00000-000`.
 - Limites: view ≤ 400 linhas, model ≤ 250.
-- Rodar a cada tarefa: `node --test tests/` e `python .claude/scripts/verificar_arquitetura.py` (0 bloqueantes).
+- Rodar a cada tarefa: `node --test "tests/*.test.mjs"` (um teste de ícones, `tests/icones.test.mjs`, já falha antes desta rodada - não é seu) e `python .claude/scripts/verificar_arquitetura.py` (0 bloqueantes).
 - **Não** subir versão nem mexer no CHANGELOG antes da Task 6.
 
 ## Review Focus
@@ -150,7 +150,7 @@ select registrar_migration('047',
   'CEP (8 digitos) em local, unidade_escolar e no destino digitado da solicitacao');
 ```
 
-- [ ] **Step 6:** `node --test tests/` e `python .claude/scripts/verificar_arquitetura.py` → sem falha, 0 bloqueantes.
+- [ ] **Step 6:** `node --test "tests/*.test.mjs"` e `python .claude/scripts/verificar_arquitetura.py` → sem falha, 0 bloqueantes.
 
 - [ ] **Step 7: Commit** - `git add supabase/migrations/047_cep.sql src/shared/format.js tests/format-cep.test.mjs` · mensagem `feat(cep): migration 047 e formato do CEP`.
 
@@ -361,7 +361,7 @@ async function procurar(u) {
 ```
   Conferir com `grep -n "geocodificar\|precisaoDe\|naCidade\|variantesDeEndereco" src/modules/escolas/localizacao.model.js` que nenhum símbolo removido do import continua em uso (se `precisao` for lido de `resultado.precisao`, continua funcionando - o campo existe).
 
-- [ ] **Step 6:** `node --test tests/` → tudo passa; verificador → 0 bloqueantes.
+- [ ] **Step 6:** `node --test "tests/*.test.mjs"` → tudo passa; verificador → 0 bloqueantes.
 
 - [ ] **Step 7: Commit** - `feat(geografia): localizar pelo endereco tenta as variantes e consulta de CEP`.
 
@@ -648,7 +648,7 @@ Imports: trocar `geocodificar` por `localizarEndereco, buscarCep, cepNaCidade` n
           : '')}
 ```
 
-- [ ] **Step 6:** `node --test tests/` → passa; verificador → 0 bloqueantes; `grep -n "geocodificar" src/modules/sate/views/locais.js src/modules/escolas/views/formulario.js` → nada.
+- [ ] **Step 6:** `node --test "tests/*.test.mjs"` → passa; verificador → 0 bloqueantes; `grep -n "geocodificar" src/modules/sate/views/locais.js src/modules/escolas/views/formulario.js` → nada.
 
 - [ ] **Step 7: Commit** - `feat(cep): campo de CEP no cadastro de local e de escola`.
 
@@ -722,7 +722,7 @@ const enderecoDestino = (s) => {
 ```
   (manter o comentário que já existia acima de `enderecoDestino`.)
 
-- [ ] **Step 4:** `node --test tests/`; verificador → 0 bloqueantes.
+- [ ] **Step 4:** `node --test "tests/*.test.mjs"`; verificador → 0 bloqueantes.
 
 - [ ] **Step 5: Commit** - `feat(sate): CEP no destino digitado do pedido`.
 
@@ -1020,7 +1020,7 @@ O formulário de local leva o CEP do que foi digitado: nada a fazer além da Tas
 
 Antes de dar por pronto, conferir que `aoConcluir` com `voltar` não reabre a página de locais em pilha: `abrirModal(..., { voltar: aoConcluir })` chama `aoConcluir` no `←`; aqui ele só redesenha a página, o que é o comportamento certo.
 
-- [ ] **Step 9:** `node --test tests/`; verificador → 0 bloqueantes (em especial a checagem de ciclos, R4, e a checagem 12 de classes sem CSS).
+- [ ] **Step 9:** `node --test "tests/*.test.mjs"`; verificador → 0 bloqueantes (em especial a checagem de ciclos, R4, e a checagem 12 de classes sem CSS).
 
 - [ ] **Step 10: Commit** - `feat(sate): conferir local por lugar e bloco A conferir na aba Locais`.
 
@@ -1077,6 +1077,6 @@ Antes de dar por pronto, conferir que `aoConcluir` com `voltar` não reabre a p�
 
   Regras dos tutoriais: escritos para quem usa; nenhum nome de arquivo, tabela, função ou coluna; botão nomeado como aparece na tela; nenhum dado real.
 
-- [ ] **Step 5:** `node --test tests/`; `python .claude/scripts/verificar_arquitetura.py` → 0 bloqueantes (as checagens 11 e 14 não devem acusar tutorial atrasado nem versão do SATE esquecida).
+- [ ] **Step 5:** `node --test "tests/*.test.mjs"`; `python .claude/scripts/verificar_arquitetura.py` → 0 bloqueantes (as checagens 11 e 14 não devem acusar tutorial atrasado nem versão do SATE esquecida).
 
 - [ ] **Step 6:** `git diff --cached` (depois do `git add`) lido procurando dado real. **Commit** - `feat: 0.41.0 - CEP em escolas e locais, busca de endereco e conferencia por lugar`.
