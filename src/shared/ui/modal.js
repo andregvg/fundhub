@@ -254,8 +254,14 @@ export function definirIconeDoModal(nome) { iconePadrao = nome || ''; }
 // `icone`: só para o modal que é de OUTRO assunto que a página - a ficha da
 // escola aberta de dentro de Servidores é 'escola', o painel é 'config'.
 // Título que já traz um <svg> fica como veio.
-export const modalHead = (titulo, sub = '', { icone = iconePadrao } = {}) => `
+export const modalHead = (titulo, sub = '', { icone = iconePadrao } = {}) => {
+  const comIcone = icone && !String(titulo).includes('<svg');
+  // O ícone é um quadrado do tamanho do × e do ←, ao lado das duas linhas
+  // (título e subtítulo): os três botões do cabeçalho leem como uma família.
+  return `
   <div class="modal-head" id="modal-titulo">
-    <div><h2>${icone && !String(titulo).includes('<svg') ? ico(icone, { tam: 18 }) : ''}${titulo}</h2>${sub ? `<small>${sub}</small>` : ''}</div>
+    ${comIcone ? `<span class="modal-ico" aria-hidden="true">${ico(icone, { tam: 20 })}</span>` : ''}
+    <div><h2>${titulo}</h2>${sub ? `<small>${sub}</small>` : ''}</div>
     <button class="modal-close" type="button" aria-label="Fechar">${ico('fechar')}</button>
   </div>`;
+};

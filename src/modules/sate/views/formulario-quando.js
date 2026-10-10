@@ -29,9 +29,9 @@ export const quemVaiHtml = () => `
     <legend>Quem vai</legend>
     <div class="campos duas">
       <label class="col-2">Turma / grupo participante <input id="f-turmas" type="text" placeholder="Ex.: 5º A, 5º B" /></label>
-      <label>Qtd. de estudantes * <input id="f-alunos" type="number" inputmode="numeric" min="1" placeholder="0" required /></label>
-      <label>Qtd. de adultos acompanhantes * <input id="f-adultos" type="number" inputmode="numeric" min="0" placeholder="0" required /></label>
-      <p class="form-hint col-2" id="f-esc01-dica" hidden>Estudantes, adultos e embarque acima são da Escola 01. As outras escolas informam os seus em “Mais de uma escola no mesmo ônibus”. A saída do evento é a mesma para todas.</p>
+      <label>Qtd. de estudantes<input id="f-alunos" type="number" inputmode="numeric" min="1" placeholder="0" required /></label>
+      <label>Qtd. de adultos acompanhantes<input id="f-adultos" type="number" inputmode="numeric" min="0" placeholder="0" required /></label>
+      <p class="form-hint col-2" id="f-esc01-dica" hidden>Estudantes, adultos e embarque acima são da Escola 01. As outras escolas informam os seus em “Adicionar pontos de parada”. A saída do evento é a mesma para todas.</p>
     </div>
   </fieldset>`;
 
@@ -57,9 +57,9 @@ export const quandoHtml = (minData) => `
         </span>
         <small class="form-hint" id="f-data-ext" aria-live="polite">${DICA}</small>
       </div>
-      <label>Horário de embarque na escola * <input id="f-emb" type="time" required aria-describedby="f-emb-dica" />
+      <label>Horário de embarque na escola<input id="f-emb" type="time" required aria-describedby="f-emb-dica" />
         <small class="form-hint" id="f-emb-dica">Só os números: 0730 → 07:30</small></label>
-      <label>Horário de saída do evento * <input id="f-ret" type="time" required aria-describedby="f-ret-dica" />
+      <label>Horário de saída do evento<input id="f-ret" type="time" required aria-describedby="f-ret-dica" />
         <small class="form-hint" id="f-ret-dica">Só os números: 1130 → 11:30</small></label>
       <p class="sol-periodo col-2" id="f-periodo" aria-live="polite"></p>
     </div>

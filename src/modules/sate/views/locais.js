@@ -112,7 +112,7 @@ export function abrirLocal(l, { preenchido = {}, aoSalvar = null, voltar = null 
   const lng = Number(base?.longitude);
 
   abrirModal(`
-    ${modalHead(novo ? 'Novo local' : 'Editar local', novo ? '' : esc(base.nome))}
+    ${modalHead(novo ? 'Novo local' : 'Editar local', novo ? '' : `<span id="l-sub">${esc(base.nome)}</span>`)}
     <div class="modal-body">
       <form id="local-form" class="esc-form">
 
@@ -169,6 +169,11 @@ export function abrirLocal(l, { preenchido = {}, aoSalvar = null, voltar = null 
 
   atualizarLinkMaps(Number.isFinite(lat) ? lat : null, Number.isFinite(lng) ? lng : null);
 
+  // O subtítulo é o próprio campo Nome, ao vivo.
+  document.getElementById('l-nome').addEventListener('input', (e) => {
+    const sub = document.getElementById('l-sub');
+    if (sub) sub.textContent = e.target.value;
+  });
   document.getElementById('local-form').addEventListener('submit', (e) => salvar(e, l, c, aoSalvar));
   document.getElementById('l-geo').addEventListener('click', localizar);
   document.getElementById('l-lat').addEventListener('change', aoMudarCoordenadaAMao);
@@ -186,7 +191,7 @@ export function abrirLocal(l, { preenchido = {}, aoSalvar = null, voltar = null 
   montarMapaPino(mapaEl, {
     lat: Number.isFinite(lat) ? lat : null,
     lng: Number.isFinite(lng) ? lng : null,
-    aoMover,
+    aoMover, recolhido: false,
   }).then((m) => {
     // Resposta tardia de um modal que já não existe não toma o lugar do atual.
     if (document.getElementById('l-mapa') !== mapaEl) return;

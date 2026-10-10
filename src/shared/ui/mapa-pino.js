@@ -57,19 +57,35 @@ function carregarLeaflet() {
 //
 // Devolve o handle na hora, com o mapa ainda por criar: `mover(lat, lng)`
 // guarda o ponto e o pino nasce nele quando o mapa abrir.
-export async function montarMapaPino(el, { lat = null, lng = null, aoMover = () => {} } = {}) {
+// A roda do mouse só dá zoom depois de um clique no mapa e volta a ser
+// ignorada ao clicar fora: dentro de um formulário que rola, ela não pode
+// prender a rolagem de quem só está passando.
+function rodaPorClique(mapa, el) {
+  mapa.scrollWheelZoom.disable();
+  const dentro = () => mapa.scrollWheelZoom.enable();
+  const fora = (e) => {
+    if (!el.isConnected) { document.removeEventListener('pointerdown', fora); return; }
+    if (!el.contains(e.target)) mapa.scrollWheelZoom.disable();
+  };
+  el.addEventListener('pointerdown', dentro);
+  document.addEventListener('pointerdown', fora);
+}
+
+// `recolhido: false` mostra o mapa direto, sem o botão "Ver no mapa".
+export async function montarMapaPino(el, { lat = null, lng = null, aoMover = () => {}, recolhido = true } = {}) {
   let pos = Number.isFinite(lat) && Number.isFinite(lng) ? [lat, lng] : null;
   let mapa = null, pino = null;
 
   const btn = document.createElement('button');
   btn.type = 'button';
   btn.className = 'mini-btn mapa-pino-alternar';
+  btn.hidden = !recolhido;
   const rotular = (aberto) => {
     btn.innerHTML = `${ico('visita', { tam: 13 })} ${aberto ? 'Ocultar mapa' : 'Ver no mapa'}`;
     btn.setAttribute('aria-expanded', String(aberto));
   };
   rotular(false);
-  el.hidden = true;
+  el.hidden = recolhido;
   el.before(btn);
 
   const mover = (a, b) => {
@@ -94,6 +110,7 @@ export async function montarMapaPino(el, { lat = null, lng = null, aoMover = () 
     // derrubar o mapa que está em uso.
     try { mapaAnterior?.remove(); } catch (_) { /* contêiner já fora do documento */ }
     mapa = L.map(el, { scrollWheelZoom: false }).setView(pos || CENTRO, pos ? 17 : 13);
+    rodaPorClique(mapa, el);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19, attribution: '© OpenStreetMap',
     }).addTo(mapa);
@@ -112,6 +129,8 @@ export async function montarMapaPino(el, { lat = null, lng = null, aoMover = () 
     setTimeout(() => { if (mapa && mapaAnterior === mapa) mapa.invalidateSize(); }, 60);
   });
 
+  if (!recolhido) criar().then(() => setTimeout(() => { if (mapa && mapaAnterior === mapa) mapa.invalidateSize(); }, 60));
+
   return { mover };
 }
 
@@ -125,10 +144,12 @@ export async function abrirMapaLocal({ titulo, endereco = '', lat, lng }) {
   back.className = 'confirmar-back open';
   back.innerHTML = `
     <div class="confirmar-card mapa-local-card" role="dialog" aria-modal="true" aria-labelledby="ml-t">
-      <h3 id="ml-t">${esc(titulo)}</h3>
-      <p>${esc(endereco)}</p>
-      <div class="mapa-pino" id="ml-mapa"></div>
-      <div class="confirmar-acoes"><button type="button" class="btn-secundario" id="ml-fechar">Fechar</button></div>
+      <div class="modal-head liso" id="ml-t">
+        <span class="modal-ico" aria-hidden="true">${ico('visita', { tam: 20 })}</span>
+        <div><h2>${esc(titulo)}</h2>${endereco ? `<small>${esc(endereco)}</small>` : ''}</div>
+        <button class="modal-close" type="button" id="ml-fechar" aria-label="Fechar">${ico('fechar')}</button>
+      </div>
+      <div class="mapa-local-corpo"><div class="mapa-pino" id="ml-mapa"></div></div>
     </div>`;
   document.body.appendChild(back);
   const anterior = document.activeElement;
@@ -150,7 +171,7 @@ export async function abrirMapaLocal({ titulo, endereco = '', lat, lng }) {
   const el = back.querySelector('#ml-mapa');
   if (!back.isConnected) return;
   if (!L) { el.textContent = 'Mapa indisponível agora.'; return; }
-  mapa = L.map(el, { scrollWheelZoom: false }).setView([lat, lng], 17);
+  mapa = L.map(el).setView([lat, lng], 17);   // sem formulário que role: a roda dá zoom
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(mapa);
   L.marker([lat, lng]).addTo(mapa);
   setTimeout(() => mapa?.invalidateSize(), 60);

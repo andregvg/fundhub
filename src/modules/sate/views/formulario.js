@@ -56,7 +56,7 @@ export function abrirFormulario(contexto, rascunho = null) {
   const minData = aprovador ? hojeISO() : addDias(hojeISO(), antecedenciaMinDias());
 
   abrirModal(`
-    ${modalHead(ico('onibus', { tam: 20 }) + 'Nova solicitação')}
+    ${modalHead('Nova solicitação', '', { icone: 'onibus' })}
     <div class="modal-body">
       <form id="sol-form" class="esc-form">
 
@@ -110,7 +110,8 @@ function capturar() {
 
 function editarLocal(local) {
   const r = capturar();
-  abrirLocal(local, { voltar: () => abrirFormulario(ctx, r) }, ctx);
+  // aoSalvar vazio: sem ele o cadastro redesenharia a página Locais na tela de baixo.
+  abrirLocal(local, { voltar: () => abrirFormulario(ctx, r), aoSalvar: () => {} }, ctx);
 }
 
 function restaurar(r) {

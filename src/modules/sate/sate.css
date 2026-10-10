@@ -151,8 +151,9 @@ body.app-sate { --info-bg: color-mix(in srgb, var(--brand) 12%, var(--surface));
 .dest-cartao-txt { flex: 1 1 200px; min-width: 0; font-size: 13.5px; }
 .dest-cartao .mini-btn { flex: none; min-width: var(--campo); min-height: var(--campo); }
 #f-dest-cartao[hidden], #f-dest-novo[hidden], #f-esc01-dica[hidden] { display: none; }
-.mapa-local-card { width: min(560px, 100%); }
-.mapa-local-card .mapa-pino { margin-bottom: 14px; }
+.mapa-local-card { width: min(560px, 100%); padding: 0; }
+.mapa-local-card .modal-head { --botao-cab: 36px; }
+.mapa-local-corpo { padding: 0 18px 18px; }
 .app-sate .page-head { position: relative; }
 .page-head .mod-acoes { top: 0; }
 
