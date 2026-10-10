@@ -107,6 +107,12 @@ export async function editarSolicitacao(id, payload) {
   if (error) throw error;
 }
 
+export async function excluirSolicitacao(id) {
+  if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
+  const { error } = await sb().from('solicitacao_transporte').delete().eq('id', id);
+  if (error) throw error;
+}
+
 // Destino digitado pela escola, ainda sem local do cadastro (spec
 // 2026-09-27, D6). Derivado, não guardado: não tem como dessincronizar.
 export const localAConferir = (s) => !s?.local_id && !!s?.destino_nome;

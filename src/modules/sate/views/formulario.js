@@ -23,7 +23,7 @@ import { destinoHtml, ligarDestino, lerDestino, validarDestino } from './formula
 import { quandoHtml, ligarQuando } from './formulario-quando.js';
 import { responsavelHtml, ligarResponsavel, carregarEquipe } from './formulario-responsavel.js';
 import { resumoHtml, ligarResumo, revisar, repintarResumo } from './formulario-resumo.js';
-import { paradasHtml, ligarParadas, aoMudarPrincipal, lerParadas, validarParadas, destruirParadas } from './formulario-paradas.js';
+import { origemHtml, rotuloEscola, ligarParadas, aoMudarPrincipal, lerParadas, validarParadas, destruirParadas } from './formulario-paradas.js';
 import { esc, val, falha, falhaNoCampo } from '../../../shared/dom.js';
 import { hojeISO, addDias, isUuid } from '../../../shared/format.js';
 import { paraE164, formatarTelefone } from '../../../shared/ui/phones.js';
@@ -62,17 +62,7 @@ export function abrirFormulario(contexto) {
     <div class="modal-body">
       <form id="sol-form" class="esc-form">
 
-        <fieldset class="form-grupo">
-          <legend>Origem</legend>
-          <div class="campos duas">
-            ${aprovador
-              ? '<div id="f-esc-busca" class="col-2"></div>'
-              : `<label class="col-2">Escola <select id="f-esc" required>${opcoesEscola(unidades, perfil)}</select></label>`}
-            <label>Turma(s) <input id="f-turmas" type="text" placeholder="Ex.: 5º A, 5º B" /></label>
-            <label>Nº de estudantes <input id="f-alunos" type="number" inputmode="numeric" min="1" placeholder="0" required /></label>
-            ${aprovador ? paradasHtml() : ''}
-          </div>
-        </fieldset>
+        ${origemHtml(unidades, perfil, aprovador)}
 
         ${destinoHtml()}
 
@@ -80,14 +70,14 @@ export function abrirFormulario(contexto) {
 
         ${responsavelHtml()}
 
-        <fieldset class="form-grupo">
-          <legend>Acessibilidade</legend>
-          <div class="campos duas">
+        <details class="sol-recolher">
+          <summary>Acessibilidade</summary>
+          <div class="sol-recolher-corpo campos duas">
             <label>Nº de cadeirantes <input id="f-cadeira" type="number" inputmode="numeric" min="0" value="0" /></label>
             <label>Nº de estudantes surdos <input id="f-surdo" type="number" inputmode="numeric" min="0" value="0" /></label>
             <label class="inline col-2"><input type="checkbox" id="f-nec" /> Outra necessidade específica (descreva nas observações)</label>
           </div>
-        </fieldset>
+        </details>
 
         <fieldset class="form-grupo">
           <legend>Observações da escola</legend>
@@ -107,20 +97,6 @@ export function abrirFormulario(contexto) {
   ligar();
 }
 
-// A escola escolhe só entre as dela - antes a lista trazia a rede inteira e
-// o banco recusava o pedido feito para outra unidade, com um erro que a
-// pessoa não entendia. Se é uma só, já vem escolhida. Nome completo, como
-// no cartão da escola (spec 2026-10-02, D13).
-function opcoesEscola(unidades, perfil) {
-  const minhas = perfil?.unidades || [];
-  const lista = [...(unidades || [])]
-    .filter(u => minhas.includes(u.id))
-    .sort((a, b) => (a.nome || '').localeCompare(b.nome || '', 'pt'));
-  const unica = lista.length === 1;
-  return (unica ? '' : '<option value="">Selecione…</option>')
-    + lista.map(u => `<option value="${esc(u.id || u.numero)}" ${unica ? 'selected' : ''}>${esc(u.nome)}</option>`).join('');
-}
-
 function ligar() {
   const form = document.getElementById('sol-form');
   pedidoTrajeto++;   // resposta de trajeto ainda em voo da abertura anterior não pinta neste modal
@@ -134,6 +110,7 @@ function ligar() {
       const tirada = aoMudarPrincipal();
       if (tirada) toast({ titulo: 'Parada retirada', texto: `${tirada} passou a ser a escola principal.`, tipo: 'info' });
     }
+    rotularEscolas();
     pintarTrajeto();
     carregarEquipe(escolaId());
   };
@@ -151,7 +128,7 @@ function ligar() {
       onChange: aoMudarEscola,
     });
   } else {
-    document.getElementById('f-esc').addEventListener('change', aoMudarEscola);
+    document.getElementById('f-esc').addEventListener('change', aoMudarEscola);   // o input escondido (escola única) não dispara
   }
   trajeto = null;
   assinaturaTrajeto = '';
@@ -160,20 +137,29 @@ function ligar() {
     // reconhece que o conjunto é o mesmo e não consulta de novo.
     ligarParadas({
       unidades: ctx.unidades, principal: escolaId,
-      aoMudar: () => { pintarTrajeto(); revisar(); },
+      aoMudar: () => { rotularEscolas(); pintarTrajeto(); revisar(); },
     });
   }
 
-  for (const id of ['f-alunos', 'f-cadeira']) {
+  for (const id of ['f-alunos', 'f-adultos', 'f-cadeira']) {
     document.getElementById(id).addEventListener('change', revisar);
   }
-  document.getElementById('f-alunos').addEventListener('input', revisar);
+  for (const id of ['f-alunos', 'f-adultos']) document.getElementById(id).addEventListener('input', revisar);
 
   form.addEventListener('submit', enviar);
   ligarQuando(revisar, { aprovador: !!ctx.aprovador });
   ligarResponsavel();
   carregarEquipe(escolaId());   // escola única já vem escolhida
   revisar();
+}
+
+// Com mais de uma parada, a principal vira "Escola 01" e a dica explica de
+// quem são os números do grupo Logística.
+function rotularEscolas() {
+  const varias = ctx.aprovador && lerParadas().length > 0;
+  const rot = document.querySelector('#f-esc-busca label.lbl');
+  if (rot) rot.textContent = varias ? `${rotuloEscola(1)}` : 'Escola';
+  document.getElementById('f-esc01-dica').hidden = !varias;
 }
 
 // Tudo o que o resumo precisa saber do que foi digitado - a soma dos
@@ -188,6 +174,8 @@ function lerParaResumo() {
     data: val('f-data'), emb, ret: val('f-ret') || null,
     alunos: (parseInt(val('f-alunos'), 10) || 0) + extras.reduce((n, p) => n + p.qtdAlunos, 0),
     cadeirantes: (parseInt(val('f-cadeira'), 10) || 0) + extras.reduce((n, p) => n + p.qtdCadeirante, 0),
+    adultos: (parseInt(val('f-adultos'), 10) || 0) + extras.reduce((n, p) => n + p.qtdAdultos, 0),
+    paradas: extras.length,
     trajeto, localId: lerDestino().localId,
   };
 }
@@ -252,18 +240,27 @@ async function enviar(e) {
   const emb = val('f-emb'), ret = val('f-ret');
   const periodo = periodoDe(emb, ret);
   const qtd = parseInt(val('f-alunos'), 10);
+  const adultos = parseInt(val('f-adultos'), 10) || 0;
   const cadeira = parseInt(val('f-cadeira'), 10) || 0;
   const surdo = parseInt(val('f-surdo'), 10) || 0;
   const d = lerDestino();
 
   if (!escId) return erro(aprovador ? '#f-esc-busca input' : '#f-esc', 'Escolha a escola.');
-  if (!qtd) return erro('#f-alunos', 'Informe o nº de estudantes.');
   const erroDestino = validarDestino(d);
   if (erroDestino) return erro(erroDestino.campo, erroDestino.texto);
   const extras = aprovador ? lerParadas() : [];
   const erroParada = aprovador ? validarParadas() : null;
   if (erroParada) return erro(erroParada.campo, erroParada.texto);
   if (!data) return erro('#f-dia', 'Informe a data da viagem.');
+  if (!qtd) return erro('#f-alunos', 'Informe a quantidade de estudantes.');
+  if (val('f-adultos') === '') return erro('#f-adultos', 'Informe a quantidade de adultos acompanhantes (0 se não houver).');
+  // Várias paradas só cabem num ônibus: estudantes e adultos de todas as
+  // escolas somados não passam dos lugares do veículo.
+  const lugares = capacidadeOnibus();
+  const passageiros = qtd + adultos + extras.reduce((n, p) => n + p.qtdAlunos + p.qtdAdultos, 0);
+  if (extras.length && passageiros > lugares) {
+    return erro('#f-alunos', `Com várias escolas no mesmo ônibus, o total de estudantes e adultos não pode passar de ${lugares} lugares (somando ${passageiros}).`);
+  }
   if (!emb) return erro('#f-emb', 'Informe o horário de embarque.');
   if (!ret) return erro('#f-ret', 'Informe o horário de saída do evento.');
   if (periodo !== 'noite' && ret <= emb) return erro('#f-ret', 'A saída do evento precisa ser depois do embarque.');
@@ -325,6 +322,7 @@ async function enviar(e) {
     qtd_alunos: qtd,
     qtd_cadeirante: cadeira,
     qtd_surdo: surdo,
+    qtd_adultos: adultos,
     necessidade_especifica: document.getElementById('f-nec').checked,
     horario: emb,
   };
@@ -339,7 +337,7 @@ async function enviar(e) {
     const naoEntraram = [];
     for (const p of extras) {
       try {
-        await acrescentar(criada.id, { unidadeId: p.unidadeId, qtdAlunos: p.qtdAlunos, qtdCadeirante: p.qtdCadeirante, horario: p.horario });
+        await acrescentar(criada.id, { unidadeId: p.unidadeId, qtdAlunos: p.qtdAlunos, qtdCadeirante: p.qtdCadeirante, qtdAdultos: p.qtdAdultos, horario: p.horario });
       } catch (err) {
         console.warn('[sate] parada não acrescentada:', err?.message || err);
         naoEntraram.push(p.unidade?.nome || 'uma escola');

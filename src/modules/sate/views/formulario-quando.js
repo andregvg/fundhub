@@ -1,6 +1,7 @@
 // ============================================================
 // FundHub - sate/views/formulario-quando.js
-// O grupo QUANDO do modal de solicitação (spec 2026-10-03, D2). Separado
+// O grupo LOGÍSTICA do modal de solicitação (spec 2026-10-03, D2): data,
+// turma, quantos vão e os horários. Separado
 // de formulario.js por ter estado e contrato próprios, como
 // formulario-destino.js: a data sem ano, os dois horários e o período
 // calculado - o formulário só pergunta "quando?".
@@ -24,7 +25,7 @@ const DICA = 'Dia e mês. O ano é o atual.';
 
 export const quandoHtml = (minData) => `
   <fieldset class="form-grupo">
-    <legend>Quando</legend>
+    <legend>Logística</legend>
     <div class="campos duas">
       <div class="lbl col-2">
         <label for="f-dia">Data</label>
@@ -42,10 +43,14 @@ export const quandoHtml = (minData) => `
         </span>
         <small class="form-hint" id="f-data-ext" aria-live="polite">${DICA}</small>
       </div>
-      <label>Horário de embarque <input id="f-emb" type="time" required aria-describedby="f-emb-dica" />
+      <label class="col-2">Turma / grupo participante <input id="f-turmas" type="text" placeholder="Ex.: 5º A, 5º B" /></label>
+      <label>Qtd. de estudantes * <input id="f-alunos" type="number" inputmode="numeric" min="1" placeholder="0" required /></label>
+      <label>Qtd. de adultos acompanhantes * <input id="f-adultos" type="number" inputmode="numeric" min="0" placeholder="0" required /></label>
+      <label>Horário de embarque na escola * <input id="f-emb" type="time" required aria-describedby="f-emb-dica" />
         <small class="form-hint" id="f-emb-dica">Só os números: 0730 → 07:30</small></label>
-      <label>Horário de saída do evento <input id="f-ret" type="time" required aria-describedby="f-ret-dica" />
+      <label>Horário de saída do evento * <input id="f-ret" type="time" required aria-describedby="f-ret-dica" />
         <small class="form-hint" id="f-ret-dica">Só os números: 1130 → 11:30</small></label>
+      <p class="form-hint col-2" id="f-esc01-dica" hidden>Estudantes, adultos e embarque acima são da Escola 01. As outras escolas informam os seus em “Mais de uma escola no mesmo ônibus”. A saída do evento é a mesma para todas.</p>
       <p class="sol-periodo col-2" id="f-periodo" aria-live="polite"></p>
     </div>
   </fieldset>`;

@@ -7,24 +7,25 @@
 // celular: tudo isso é do componente. Ela declara colunas e entrega os
 // dados.
 //
-// Sem coluna de ações, de propósito (§ D1): as decisões dependem do
-// status e da permissão, e seriam cinco botões condicionais espremidos
-// numa célula. A linha inteira abre o modal de detalhe, e as ações moram
-// lá, com espaço para a justificativa que três delas exigem.
+// Quem aprova ganha, na própria linha, os atalhos que cabem naquela
+// situação (aprovar, editar, negar, excluir). A linha abre o detalhe, onde
+// moram as demais decisões.
 // ============================================================
-import { listSolicitacoes, STATUS, PERIODOS, localAConferir } from '../sate.model.js';
+import { listSolicitacoes, STATUS, PERIODOS, localAConferir, acoesDoPedido, excluirSolicitacao } from '../sate.model.js';
 import { tituloDoPedido } from '../regras.model.js';
 import { idsComNovidade, aoMudarAvisos } from '../avisos.model.js';
 import { getParticipacoesDe, resumoEscolas, envolveUnidade } from '../participacoes.model.js';
 import { existeFrota } from '../frota.model.js';
 import { abrirFormulario } from './formulario.js';
 import { abrirDetalhe } from './detalhe.js';
+import { abrirEditar } from './editar.js';
+import { decidirDaLista } from './decisoes.js';
 import { esc } from '../../../shared/dom.js';
-import { fmtData, hojeISO, addDias } from '../../../shared/format.js';
+import { fmtData, fmtDataHora, hojeISO, addDias } from '../../../shared/format.js';
 import { montarTabela } from '../../../shared/ui/tabela.js';
 import { modalHtml, montarModal } from '../../../shared/ui/modal.js';
 import { confirmar } from '../../../shared/ui/confirmar.js';
-import { loading, erroBox } from '../../../shared/ui/feedback.js';
+import { loading, erroBox, reportarErro } from '../../../shared/ui/feedback.js';
 import { toast } from '../../../shared/ui/toast.js';
 import { ico } from '../../../shared/ui/icones.js';
 
@@ -141,13 +142,15 @@ async function carregar() {
   for (const s of lista) {
     s._escolas = resumoEscolas(porViagem[s.id] || []);
     s._escolasCurto = resumoEscolas(porViagem[s.id] || [], { curto: true });
+    s._partes = porViagem[s.id] || [];
   }
 
   tabela = montarTabela(box, {
     colunas: COLUNAS,
+    acoes: ctx.aprovador && !ctx.somenteLeitura ? ACOES : [],
     linhas: lista,
     chave: s => s.id,
-    buscarEm: ['escola', 'atividade', 'situacao'],
+    buscarEm: ['escola', 'local', 'situacao'],
     ordem: { coluna: 'data', dir: 'desc' },
     substantivo: 'solicitações',
     aoClicarLinha: (s) => abrirDetalhe(s, ctx),
@@ -187,6 +190,11 @@ async function abrirPeloEndereco(lista) {
 const nomeEscolas = (s) => s._escolas || s.unidade?.nome || '';
 const apelidoEscolas = (s) => s._escolasCurto || s.unidade?.apelido || nomeEscolas(s);
 
+const sub = (t) => (t ? `<small class="sol-sub">${esc(t)}</small>` : '');
+const hora = (h) => (h ? String(h).slice(0, 5) : '');
+const enderecoDe = (s) => [[s.destino_endereco, s.destino_numero].filter(Boolean).join(', '), s.destino_bairro].filter(Boolean).join(' - ');
+const localDe = (s) => s.destino_nome || tituloDoPedido(s);
+
 const COLUNAS = [
   // "Escolas", no plural: uma viagem pode ter várias, e a coluna mostra
   // a primeira mais a contagem ("Escola Exemplo +2"). Nome completo; em
@@ -199,18 +207,44 @@ const COLUNAS = [
       + `<span class="sol-esc-nome">${esc(nomeEscolas(s))}</span><span class="sol-esc-apelido">${esc(apelidoEscolas(s))}</span></span>` },
   { id: 'data', rotulo: 'Data', tipo: 'data',
     valor: s => s.data || '',
-    celula: s => esc(fmtData(s.data)) },
-  { id: 'situacao', rotulo: 'Situação',
-    valor: s => STATUS[s.status] || s.status,
-    celula: s => `<span class="tag st-${esc(s.status)}">${esc(STATUS[s.status] || s.status)}</span>` },
-  { id: 'periodo', rotulo: 'Período', prioridade: 2,
-    valor: s => PERIODOS[s.periodo] || s.periodo || '' },
-  { id: 'atividade', rotulo: 'Atividade', prioridade: 2,
-    valor: s => tituloDoPedido(s),
-    celula: s => `${esc(tituloDoPedido(s))}${localAConferir(s) ? ' <span class="tag">Local a conferir</span>' : ''}` },
+    celula: s => `${esc(fmtData(s.data))}${sub(PERIODOS[s.periodo] || '')}` },
+  { id: 'local', rotulo: 'Local', prioridade: 2,
+    valor: s => `${localDe(s)} ${enderecoDe(s)}`,
+    celula: s => `${esc(localDe(s))}${localAConferir(s) ? ' <span class="tag">Local a conferir</span>' : ''}${sub(enderecoDe(s))}` },
   { id: 'alunos', rotulo: 'Estudantes', prioridade: 3, tipo: 'numero', alinhar: 'dir',
     valor: s => s.qtd_alunos || 0 },
+  { id: 'embarque', rotulo: 'Embarque', prioridade: 3,
+    valor: s => hora(s.horario_embarque) },
+  { id: 'saida', rotulo: 'Saída', prioridade: 3,
+    valor: s => hora(s.horario_retorno) },
   { id: 'onibus', rotulo: 'Ônibus', prioridade: 3, tipo: 'numero', alinhar: 'dir',
     valor: s => s.qtd_onibus || 0,
     celula: s => `${s.qtd_onibus || 0}${s.qtd_vans ? ` <span class="tag bus">${ico('cadeirante', { tam: 11 })} +${s.qtd_vans} van</span>` : ''}` },
+  { id: 'situacao', rotulo: 'Status',
+    valor: s => STATUS[s.status] || s.status,
+    celula: s => `<span class="tag st-${esc(s.status)}">${esc(STATUS[s.status] || s.status)}</span>` },
+  { id: 'criado', rotulo: 'Solicitado em', prioridade: 2, tipo: 'datahora',
+    valor: s => s.criado_em || '',
+    celula: s => { const [d, h] = fmtDataHora(s.criado_em).split(', '); return `${esc(d || '')}${sub(h)}`; } },
+];
+
+// Ações da linha, na ordem: aprovar, editar, negar, excluir. Quais cabem
+// vem de acoesDoPedido (a mesma regra da ficha); o RLS é quem barra de fato.
+const cabe = (s, acao) => acoesDoPedido(s, { aprovador: !!ctx?.aprovador, somenteLeitura: !!ctx?.somenteLeitura }).decisoes.includes(acao);
+const ACOES = [
+  { rotulo: 'Aprovar', ico: 'ok', quando: s => cabe(s, 'confirmar'),
+    ao: s => decidirDaLista('confirmar', s, { ctx, paradas: s._partes || [] }) },
+  { rotulo: 'Editar', ico: 'editar', quando: s => acoesDoPedido(s, { aprovador: !!ctx?.aprovador }).editar,
+    ao: s => abrirEditar(s, ctx, () => ctx.recarregar?.()) },
+  { rotulo: 'Negar', ico: 'fechar', perigo: true, quando: s => cabe(s, 'negar'),
+    ao: s => decidirDaLista('negar', s, { ctx, paradas: s._partes || [] }) },
+  { rotulo: 'Excluir', ico: 'excluir', perigo: true,
+    ao: async (s) => {
+      const ok = await confirmar('Excluir esta solicitação?', {
+        detalhe: 'Ela some da lista com as escolas da viagem. A exclusão fica registrada na Auditoria.', textoOk: 'Excluir', perigo: true,
+      });
+      if (!ok) return;
+      try { await excluirSolicitacao(s.id); toast({ titulo: 'Solicitação excluída', texto: tituloDoPedido(s), tipo: 'sucesso' }); carregar(); }
+      catch (err) { reportarErro(err, { titulo: 'Não foi possível excluir' }); }
+    } },
 ];

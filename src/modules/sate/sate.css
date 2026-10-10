@@ -118,12 +118,37 @@ body.app-sate { --info-bg: color-mix(in srgb, var(--brand) 12%, var(--surface));
   padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-btn);
 }
 .sol-parada > b { grid-column: 1 / -1; }
+.sol-parada-n { color: var(--muted); font-weight: 600; margin-right: 4px; }
 .sol-parada > label { display: flex; flex-direction: column; gap: 4px; }
-.sol-parada > .mini-btn { justify-self: end; min-height: var(--campo); min-width: var(--campo); }   /* R17: divide a linha com campos */
+.sol-parada-acoes { grid-column: 1 / -1; display: flex; justify-content: flex-end; gap: 6px; }
+.sol-parada-acoes > .mini-btn { min-height: var(--campo); min-width: var(--campo); }   /* R17: divide a linha com campos */
+.sol-parada-acoes > .mini-btn[data-mover="-1"] svg { transform: rotate(180deg); }
 @media (min-width: 720px) {
-  .sol-parada { grid-template-columns: 2fr 1fr 1fr 1fr auto; }
-  .sol-parada > b { grid-column: auto; align-self: center; }
+  .sol-parada { grid-template-columns: repeat(4, 1fr) auto; }
+  .sol-parada > b { grid-column: 1 / -1; }
+  .sol-parada-acoes { grid-column: auto; }
 }
+
+/* Bloco recolhível do formulário (Acessibilidade, várias escolas). */
+.sol-recolher { border: 1px solid var(--grupo-borda); border-radius: var(--radius); background: var(--grupo-bg); margin: 0 0 16px; }
+.sol-recolher.col-2 { margin: 0; background: transparent; }
+.sol-recolher > summary {
+  display: flex; align-items: center; gap: 8px; cursor: pointer; list-style: none;
+  padding: 10px 14px; color: var(--form-legend);
+  font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
+}
+.sol-recolher.col-2 > summary { font-size: 12.5px; font-weight: 600; text-transform: none; letter-spacing: 0; color: var(--text); }
+.sol-recolher > summary::-webkit-details-marker { display: none; }
+.sol-recolher > summary::after { content: '+'; margin-left: auto; font-size: 16px; font-weight: 400; }
+.sol-recolher[open] > summary::after { content: '−'; }
+.sol-recolher-corpo { padding: 0 14px 14px; display: flex; flex-direction: column; gap: 8px; }
+.sol-recolher-corpo.campos.duas { display: grid; }
+
+/* Destino do cadastro: endereço em cartão, com o mapa a um clique. */
+.dest-cartao { display: flex; flex-direction: column; gap: 8px; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-btn); background: var(--surface); }
+.dest-cartao-txt { display: flex; align-items: center; gap: 8px; font-size: 13.5px; }
+.dest-cartao-txt svg { flex: none; color: var(--muted); }
+.dest-cartao .mapa-pino-alternar { align-self: flex-start; }
 
 /* Cadastro rápido de frota, no resumo (quem aprova, dia sem frota). */
 .sol-cad-frota { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px;
@@ -481,3 +506,6 @@ body.app-sate { --info-bg: color-mix(in srgb, var(--brand) 12%, var(--surface));
 .sol-periodo > span { color: var(--muted); }
 .sol-periodo > b { font-weight: 700; }
 .sol-periodo:empty { display: none; }
+
+/* Segunda linha de uma célula da lista (período, endereço, hora). */
+.sol-sub { display: block; font-size: 11.5px; line-height: 1.3; color: var(--muted); font-weight: 400; }

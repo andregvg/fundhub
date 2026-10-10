@@ -66,15 +66,7 @@ export function ligarDecisoes(corpo, { s, ctx, paradas, reabrir }) {
     ctx.recarregar?.();
   };
 
-  const executar = async (fn, titulo) => {
-    try {
-      await fn(s.id);
-      fechaTudo();
-      toast({ titulo, texto: tituloDoPedido(s), tipo: 'sucesso' });
-    } catch (err) {
-      reportarErro(err, { titulo: 'Não foi possível concluir' });
-    }
-  };
+  const executar = fabricarExecutar(s, fechaTudo);
 
   corpo.addEventListener('click', (e) => {
     const btn = e.target.closest('[data-acao]');
@@ -82,11 +74,6 @@ export function ligarDecisoes(corpo, { s, ctx, paradas, reabrir }) {
     const acao = btn.dataset.acao;
 
     // As três que exigem justificativa abrem o modal empilhado.
-    const COM_MOTIVO = {
-      negar: { titulo: 'Negar solicitação', rotulo: 'Por que está sendo negada?', botao: 'Negar', fn: negarSolicitacao },
-      cancelar: { titulo: 'Cancelar solicitação', rotulo: 'Por que está sendo cancelada?', botao: 'Cancelar solicitação', fn: cancelarSolicitacao },
-      pedir: { titulo: 'Pedir cancelamento', rotulo: 'Por que a escola precisa cancelar?', botao: 'Enviar pedido', fn: pedirCancelamento },
-    };
     if (COM_MOTIVO[acao]) return pedirMotivo(COM_MOTIVO[acao], { s, reabrir, fechaTudo });
 
     if (acao === 'confirmar') return confirmarPedido(btn, { s, ctx, paradas, reabrir, executar });
@@ -98,6 +85,31 @@ export function ligarDecisoes(corpo, { s, ctx, paradas, reabrir }) {
     };
     if (DIRETA[acao]) return executar(DIRETA[acao].fn, DIRETA[acao].titulo);
   });
+}
+
+const COM_MOTIVO = {
+  negar: { titulo: 'Negar solicitação', rotulo: 'Por que está sendo negada?', botao: 'Negar', fn: negarSolicitacao },
+  cancelar: { titulo: 'Cancelar solicitação', rotulo: 'Por que está sendo cancelada?', botao: 'Cancelar solicitação', fn: cancelarSolicitacao },
+  pedir: { titulo: 'Pedir cancelamento', rotulo: 'Por que a escola precisa cancelar?', botao: 'Enviar pedido', fn: pedirCancelamento },
+};
+
+const fabricarExecutar = (s, fechaTudo) => async (fn, titulo) => {
+  try {
+    await fn(s.id);
+    fechaTudo();
+    toast({ titulo, texto: tituloDoPedido(s), tipo: 'sucesso' });
+  } catch (err) {
+    reportarErro(err, { titulo: 'Não foi possível concluir' });
+  }
+};
+
+// Aprovar e negar direto da lista, sem abrir a ficha: as mesmas conferências
+// de frota e a mesma justificativa. `paradas` são as participações da viagem.
+export function decidirDaLista(acao, s, { ctx, paradas }) {
+  const reabrir = async () => { ctx.recarregar?.(); };
+  const fechaTudo = () => { fecharModal({ tudo: true }); ctx.recarregar?.(); };
+  if (acao === 'negar') return pedirMotivo(COM_MOTIVO.negar, { s, reabrir, fechaTudo });
+  return confirmarPedido({}, { s, ctx, paradas, reabrir, executar: fabricarExecutar(s, fechaTudo) });
 }
 
 // Confirmar olha a frota ANTES (spec 2026-09-13-sate-ciclo-de-aprovacao,

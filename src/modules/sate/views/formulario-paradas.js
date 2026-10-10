@@ -22,13 +22,54 @@ let busca = null;        // handle de criarBuscaSelecao (destruído ao reabrir)
 let principal = () => '';
 let aoMudar = () => {};
 
+// Recolhida: viagem com várias escolas é exceção. Com várias paradas a
+// viagem cabe em UM ônibus - o total de lugares é conferido no formulário.
 export const paradasHtml = () => `
-  <div class="col-2 sol-paradas">
-    <div class="lbl">Outras escolas no mesmo ônibus</div>
-    <div id="f-paradas-lista" class="sol-paradas-lista"></div>
-    <div id="f-paradas-busca"></div>
-    <small class="form-hint">Cada escola é uma parada de embarque. A ordem das paradas se ajusta depois, na solicitação.</small>
-  </div>`;
+  <details class="col-2 sol-recolher sol-paradas" id="f-paradas-det">
+    <summary>Mais de uma escola no mesmo ônibus</summary>
+    <div class="sol-recolher-corpo">
+      <div id="f-paradas-lista" class="sol-paradas-lista"></div>
+      <div id="f-paradas-busca"></div>
+      <small class="form-hint">Cada escola é uma parada de embarque, na ordem em que o ônibus passa. Use as setas para reordenar.</small>
+    </div>
+  </details>`;
+
+// Escola 01 é a principal; as paradas seguem de 02.
+export const rotuloEscola = (n) => `Escola ${String(n).padStart(2, '0')}`;
+
+// Origem: quem aprova escolhe a escola (e pode juntar outras no mesmo
+// ônibus). A escola já é a origem do próprio pedido: com uma unidade só, o
+// grupo nem aparece; com mais de uma, escolhe numa lista curta.
+export function origemHtml(unidades, perfil, aprovador) {
+  if (aprovador) {
+    return `<fieldset class="form-grupo">
+          <legend>Origem</legend>
+          <div class="campos duas">
+            <div id="f-esc-busca" class="col-2"></div>
+            ${paradasHtml()}
+          </div>
+        </fieldset>`;
+  }
+  const minhas = (unidades || []).filter(u => (perfil?.unidades || []).includes(u.id));
+  if (minhas.length === 1) return `<input type="hidden" id="f-esc" value="${esc(minhas[0].id || minhas[0].numero)}" />`;
+  return `<fieldset class="form-grupo">
+          <legend>Origem</legend>
+          <div class="campos"><label>Escola <select id="f-esc" required>${opcoesEscola(unidades, perfil)}</select></label></div>
+        </fieldset>`;
+}
+
+// A escola escolhe só entre as dela - antes a lista trazia a rede inteira e
+// o banco recusava o pedido feito para outra unidade, com um erro que a
+// pessoa não entendia. Nome completo, como
+// no cartão da escola (spec 2026-10-02, D13).
+function opcoesEscola(unidades, perfil) {
+  const minhas = perfil?.unidades || [];
+  const lista = [...(unidades || [])]
+    .filter(u => minhas.includes(u.id))
+    .sort((a, b) => (a.nome || '').localeCompare(b.nome || '', 'pt'));
+  return '<option value="">Selecione…</option>'
+    + lista.map(u => `<option value="${esc(u.id || u.numero)}">${esc(u.nome)}</option>`).join('');
+}
 
 const idDe = (u) => u.id || u.numero;
 
@@ -68,12 +109,18 @@ function pintar() {
   const antes = lerCampos();
   box.innerHTML = linhas.map(l => {
     const v = antes[l.id] || {};
+    const i = linhas.indexOf(l);
     return `<div class="sol-parada" data-parada="${esc(l.id)}">
-      <b>${esc(l.nome)}</b>
-      <label>Estudantes <input type="number" inputmode="numeric" min="1" data-campo="alunos" value="${esc(v.alunos ?? '')}" aria-label="Estudantes de ${esc(l.nome)}" /></label>
+      <b><span class="sol-parada-n">${rotuloEscola(i + 2)}</span> ${esc(l.nome)}</b>
+      <label>Qtd. de estudantes <input type="number" inputmode="numeric" min="1" data-campo="alunos" value="${esc(v.alunos ?? '')}" aria-label="Estudantes de ${esc(l.nome)}" /></label>
+      <label>Qtd. de adultos <input type="number" inputmode="numeric" min="0" data-campo="adultos" value="${esc(v.adultos ?? '0')}" aria-label="Adultos acompanhantes de ${esc(l.nome)}" /></label>
       <label>Cadeirantes <input type="number" inputmode="numeric" min="0" data-campo="cadeira" value="${esc(v.cadeira ?? '0')}" aria-label="Cadeirantes de ${esc(l.nome)}" /></label>
       <label>Embarque <input type="time" data-campo="hora" value="${esc(v.hora ?? '')}" aria-label="Horário de embarque de ${esc(l.nome)}" /></label>
-      <button type="button" class="mini-btn no" data-tirar="${esc(l.id)}" aria-label="Tirar ${esc(l.nome)}">${ico('excluir')}</button>
+      <span class="sol-parada-acoes">
+        <button type="button" class="mini-btn" data-mover="-1" data-id="${esc(l.id)}" ${i === 0 ? 'disabled' : ''} aria-label="Subir ${esc(l.nome)}" title="Subir">${ico('chevron', { tam: 14 })}</button>
+        <button type="button" class="mini-btn" data-mover="1" data-id="${esc(l.id)}" ${i === linhas.length - 1 ? 'disabled' : ''} aria-label="Descer ${esc(l.nome)}" title="Descer">${ico('chevron', { tam: 14 })}</button>
+        <button type="button" class="mini-btn no" data-tirar="${esc(l.id)}" aria-label="Tirar ${esc(l.nome)}">${ico('excluir')}</button>
+      </span>
     </div>`;
   }).join('');
 }
@@ -82,7 +129,7 @@ function lerCampos() {
   const out = {};
   document.querySelectorAll('#f-paradas-lista [data-parada]').forEach(el => {
     const c = (nome) => el.querySelector(`[data-campo="${nome}"]`)?.value ?? '';
-    out[el.dataset.parada] = { alunos: c('alunos'), cadeira: c('cadeira'), hora: c('hora') };
+    out[el.dataset.parada] = { alunos: c('alunos'), adultos: c('adultos'), cadeira: c('cadeira'), hora: c('hora') };
   });
   return out;
 }
@@ -97,6 +144,16 @@ export function ligarParadas({ unidades, principal: qualPrincipal, aoMudar: mudo
 
   const box = document.getElementById('f-paradas-lista');
   box.addEventListener('click', (e) => {
+    const m = e.target.closest('[data-mover]');
+    if (m) {
+      const i = linhas.findIndex(l => String(l.id) === m.dataset.id);
+      const j = i + Number(m.dataset.mover);
+      if (i < 0 || j < 0 || j >= linhas.length) return;
+      [linhas[i], linhas[j]] = [linhas[j], linhas[i]];
+      pintar();
+      aoMudar();
+      return;
+    }
     const b = e.target.closest('[data-tirar]');
     if (!b) return;
     linhas = linhas.filter(l => String(l.id) !== b.dataset.tirar);
@@ -128,6 +185,7 @@ export function lerParadas() {
       unidade: escolas.find(u => idDe(u) === l.id) || null,
       qtdAlunos: parseInt(c.alunos, 10) || 0,
       qtdCadeirante: parseInt(c.cadeira, 10) || 0,
+      qtdAdultos: parseInt(c.adultos, 10) || 0,
       horario: c.hora || null,
     };
   });
@@ -137,6 +195,7 @@ export function lerParadas() {
 export function validarParadas() {
   for (const p of lerParadas()) {
     if (!p.qtdAlunos) {
+      document.getElementById('f-paradas-det').open = true;
       return {
         campo: document.querySelector(`[data-parada="${CSS.escape(String(p.unidadeId))}"] [data-campo="alunos"]`),
         texto: `Informe o nº de estudantes de ${p.unidade?.nome || 'cada escola'}.`,

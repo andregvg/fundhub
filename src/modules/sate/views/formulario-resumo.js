@@ -60,7 +60,7 @@ async function pintarSaldo() {
   const btn = document.getElementById('f-submit');
   if (!box) return;   // o modal fechou enquanto o debounce corria
 
-  const { data, emb, ret, alunos, cadeirantes, trajeto, localId } = ler();
+  const { data, emb, ret, alunos, adultos = 0, paradas = 0, cadeirantes, trajeto, localId } = ler();
   const periodo = periodoDe(emb, ret);
   if (!data || !periodo || !alunos) { box.innerHTML = ''; box.hidden = true; btn.disabled = !!ctx.somenteLeitura; return; }
 
@@ -80,6 +80,11 @@ async function pintarSaldo() {
   const livresVan = iv ? livresPara(linha, iv.ini, iv.fim, 'vans') : livresNoPeriodo(linha, 0, periodo, 'vans');
   const totalDia = totalDoDia(linha, 0, 'onibus');
   const r = avaliar({ data, periodo, alunos, cadeirantes, livres, livresVan, totalDia, emb, ret, linha, iv });
+  // Várias paradas = um ônibus só: o total de passageiros cabe nele.
+  const lugares = capacidadeOnibus();
+  if (paradas && alunos + adultos > lugares) {
+    r.erros.push({ codigo: 'lotacao_paradas', texto: `Com várias escolas no mesmo ônibus, estudantes e adultos somam ${alunos + adultos} e o ônibus tem ${lugares} lugares.` });
+  }
 
   const precisa = `${alunos} estudante(s) · ${r.onibus} ônibus (${capacidadeOnibus()} lugares cada)`
     + (r.vans ? ` · ${r.vans} van(s) adaptada(s)` : '');

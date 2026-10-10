@@ -15,10 +15,9 @@
 // ============================================================
 import { enderecoCompleto, localNoEndereco } from '../../locais/locais.model.js';
 import { criarBuscaSelecao } from '../../../shared/ui/busca-selecao.js';
-import { buscarCep } from '../../locais/geografia.model.js';
 import { esc, val } from '../../../shared/dom.js';
-import { cepDe, fmtCep } from '../../../shared/format.js';
-import { ligarCep } from '../../../shared/ui/campo-cep.js';
+import { montarMapaPino } from '../../../shared/ui/mapa-pino.js';
+import { ico } from '../../../shared/ui/icones.js';
 
 let locaisAtivos = [];
 let escolhido = null;   // Local do cadastro, ou null
@@ -26,45 +25,52 @@ let novoNome = null;    // nome digitado aceito como local NOVO, ou null
 let bs = null;          // handle de criarBuscaSelecao - destruído antes de
                         // recriar (senão cada abertura do modal deixa um
                         // listener de document a mais)
-let cepDestino = null;  // handle de ligarCep: reiniciar() quando o CÓDIGO troca o CEP
 let aoMudar = () => {};
 
 const ENDERECO = ['f-dest-end', 'f-dest-num', 'f-dest-bairro'];
 
+// Local do cadastro: o endereço é só um cartão (com o mapa, se há ponto).
+// Local NOVO: aparecem os três campos de endereço. O CEP saiu do
+// formulário - ninguém precisa dele para pedir o ônibus.
 export const destinoHtml = () => `
   <fieldset class="form-grupo">
     <legend>Destino</legend>
     <div class="campos duas">
       <div id="f-local" class="col-2"></div>
-      <label class="col-2">CEP <input id="f-dest-cep" type="text" inputmode="numeric" maxlength="9" placeholder="00000-000" readonly />
-        <small class="form-hint" id="f-dest-cep-dica" aria-live="polite">Opcional. Preenche o endereço.</small></label>
-      <label class="col-2">Endereço <input id="f-dest-end" type="text" placeholder="Ex.: Rua Exemplo" readonly /></label>
-      <label>Número <input id="f-dest-num" type="text" inputmode="numeric" placeholder="Ex.: 123" readonly /></label>
-      <label>Bairro <input id="f-dest-bairro" type="text" placeholder="Ex.: Centro" readonly /></label>
+      <div class="col-2 dest-cartao" id="f-dest-cartao" hidden></div>
+      <div class="col-2 campos duas" id="f-dest-novo" hidden>
+        <label class="col-2">Endereço <input id="f-dest-end" type="text" placeholder="Ex.: Rua Exemplo" /></label>
+        <label>Número <input id="f-dest-num" type="text" inputmode="numeric" placeholder="Ex.: 123" /></label>
+        <label>Bairro <input id="f-dest-bairro" type="text" placeholder="Ex.: Centro" /></label>
+      </div>
       <div class="col-2 dest-mesmo" id="f-dest-mesmo" aria-live="polite"></div>
     </div>
   </fieldset>`;
 
 const campo = (id) => document.getElementById(id);
 
-function preencher(l) {
-  campo('f-dest-end').value = l?.endereco || '';
-  campo('f-dest-num').value = l?.numero || '';
-  campo('f-dest-bairro').value = l?.bairro || '';
-  campo('f-dest-cep').value = fmtCep(l?.cep);
-  cepDestino?.reiniciar();   // pode rodar antes de ligarCep
+function limparEndereco() { for (const id of ENDERECO) campo(id).value = ''; }
+
+// Mostra o cartão do cadastrado, os campos do novo ou nada.
+function mostrar(modo) {
+  campo('f-dest-cartao').hidden = modo !== 'cadastrado';
+  campo('f-dest-novo').hidden = modo !== 'novo';
+  for (const id of ENDERECO) campo(id).required = modo === 'novo';
 }
 
-// Local do cadastro: endereço só leitura (vem do cadastro). Local novo:
-// os três campos destravam e passam a ser obrigatórios.
-function destravar(novo) {
-  for (const id of ENDERECO) { campo(id).readOnly = !novo; campo(id).required = novo; }
-  campo('f-dest-cep').readOnly = !novo;   // opcional: fora de ENDERECO, não é obrigatório
+function pintarCartao(l) {
+  const box = campo('f-dest-cartao');
+  const linha = [[l.endereco, l.numero].filter(Boolean).join(', '), l.bairro].filter(Boolean).join(' - ');
+  const lat = Number(l.latitude), lng = Number(l.longitude);
+  const temPonto = l.latitude != null && l.longitude != null && Number.isFinite(lat) && Number.isFinite(lng);
+  box.innerHTML = `<div class="dest-cartao-txt">${ico('visita', { tam: 16 })}<span>${esc(linha || 'Endereço não informado no cadastro')}</span></div>`
+    + (temPonto ? '<div class="mapa-pino" id="f-dest-mapa"></div>' : '');
+  if (temPonto) montarMapaPino(campo('f-dest-mapa'), { lat, lng, leitura: true });
 }
 
 function usarCadastrado(l) {
   escolhido = l; novoNome = null;
-  preencher(l); destravar(false); pintarMesmo();
+  limparEndereco(); pintarCartao(l); mostrar('cadastrado'); pintarMesmo();
   aoMudar();
 }
 
@@ -84,7 +90,7 @@ export function ligarDestino(locais, mudou) {
   bs?.destruir();
   aoMudar = mudou;
   locaisAtivos = (locais || []).filter(l => l.ativo);
-  escolhido = null; novoNome = null; cepDestino = null;
+  escolhido = null; novoNome = null;
   bs = criarBuscaSelecao(campo('f-local'), {
     rotulo: 'Local',
     opcoes: locaisAtivos.map(l => ({ id: l.id, rotulo: l.nome, detalhe: enderecoCompleto(l), busca: l.bairro || '' })),
@@ -100,8 +106,8 @@ export function ligarDestino(locais, mudou) {
         // pode apagar o que a pessoa já digitou.
         const doCadastro = !!escolhido;
         escolhido = null; novoNome = termo;
-        if (doCadastro) preencher(null);
-        destravar(true); pintarMesmo();
+        if (doCadastro) limparEndereco();
+        mostrar('novo'); pintarMesmo();
         campo('f-dest-end').focus();
         aoMudar();
       },
@@ -111,21 +117,11 @@ export function ligarDestino(locais, mudou) {
       if (l) { usarCadastrado(l); return; }
       // Limpou o campo: nem cadastrado nem novo.
       escolhido = null; novoNome = null;
-      preencher(null); destravar(false); pintarMesmo();
+      limparEndereco(); mostrar(null); pintarMesmo();
       aoMudar();
     },
   });
   for (const id of ['f-dest-end', 'f-dest-num']) campo(id).addEventListener('change', pintarMesmo);
-  // Só dispara para local NOVO: campo somente-leitura não emite `input`.
-  cepDestino = ligarCep(campo('f-dest-cep'), {
-    buscar: buscarCep, dica: campo('f-dest-cep-dica'),
-    aoAchar: (r, dizer) => {
-      if (!campo('f-dest-end').value.trim() && r.rua) campo('f-dest-end').value = r.rua;
-      if (!campo('f-dest-bairro').value.trim() && r.bairro) campo('f-dest-bairro').value = r.bairro;
-      dizer(`Encontrado: ${[r.rua, r.bairro].filter(Boolean).join(' - ') || 'CEP sem logradouro'}`);
-      pintarMesmo();
-    },
-  });
   campo('f-dest-mesmo').addEventListener('click', (e) => {
     const b = e.target.closest('[data-usar]'); if (!b) return;
     const l = locaisAtivos.find(x => x.id === b.dataset.usar); if (!l) return;
@@ -139,7 +135,7 @@ export function lerDestino() {
     const l = escolhido;
     return { localId: l.id, local: l, nome: l.nome || '', endereco: l.endereco || '', numero: l.numero || '', bairro: l.bairro || '', cep: l.cep || null };
   }
-  return { localId: null, local: null, nome: novoNome || '', endereco: val('f-dest-end'), numero: val('f-dest-num'), bairro: val('f-dest-bairro'), cep: cepDe(val('f-dest-cep')) };
+  return { localId: null, local: null, nome: novoNome || '', endereco: val('f-dest-end'), numero: val('f-dest-num'), bairro: val('f-dest-bairro'), cep: null };
 }
 
 // Local do cadastro: basta tê-lo escolhido. Local novo: as quatro partes
@@ -150,6 +146,5 @@ export function validarDestino(d) {
   if (!novoNome) return { campo: campo('f-local').querySelector('input'), texto: 'Escolha o local na lista ou digite o nome de um local novo.' };
   const falta = ENDERECO.map(campo).find(c => !c.value.trim());
   if (falta) return { campo: falta, texto: 'Informe endereço, número e bairro do local novo.' };
-  if (val('f-dest-cep') && !cepDe(val('f-dest-cep'))) return { campo: campo('f-dest-cep'), texto: 'CEP incompleto: são 8 dígitos.' };
   return null;
 }

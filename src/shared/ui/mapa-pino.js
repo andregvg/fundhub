@@ -55,7 +55,8 @@ function carregarLeaflet() {
 //
 // Devolve o handle na hora, com o mapa ainda por criar: `mover(lat, lng)`
 // guarda o ponto e o pino nasce nele quando o mapa abrir.
-export async function montarMapaPino(el, { lat = null, lng = null, aoMover = () => {} } = {}) {
+// `leitura`: só mostra o ponto - o pino não se arrasta e o clique não o move.
+export async function montarMapaPino(el, { lat = null, lng = null, aoMover = () => {}, leitura = false } = {}) {
   let pos = Number.isFinite(lat) && Number.isFinite(lng) ? [lat, lng] : null;
   let mapa = null, pino = null;
 
@@ -96,9 +97,9 @@ export async function montarMapaPino(el, { lat = null, lng = null, aoMover = () 
       maxZoom: 19, attribution: '© OpenStreetMap',
     }).addTo(mapa);
     mapaAnterior = mapa;
-    pino = L.marker(pos || CENTRO, { draggable: true, opacity: pos ? 1 : 0.5 }).addTo(mapa);
+    pino = L.marker(pos || CENTRO, { draggable: !leitura, opacity: pos ? 1 : 0.5 }).addTo(mapa);
     pino.on('dragend', () => { const q = pino.getLatLng(); pino.setOpacity(1); pos = [q.lat, q.lng]; aoMover(q.lat, q.lng); });
-    mapa.on('click', (e) => { mover(e.latlng.lat, e.latlng.lng); aoMover(e.latlng.lat, e.latlng.lng); });
+    if (!leitura) mapa.on('click', (e) => { mover(e.latlng.lat, e.latlng.lng); aoMover(e.latlng.lat, e.latlng.lng); });
   }
 
   btn.addEventListener('click', async () => {

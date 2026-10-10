@@ -54,7 +54,7 @@ export async function getParticipacoesDe(solicitacaoIds) {
 
 // Acrescenta uma escola à viagem. Só quem tem escrita (RLS) - montar
 // itinerário é decisão da Gerência.
-export async function acrescentar(solicitacaoId, { unidadeId = null, localId = null, qtdAlunos = 0, qtdCadeirante = 0, horario = null }) {
+export async function acrescentar(solicitacaoId, { unidadeId = null, localId = null, qtdAlunos = 0, qtdCadeirante = 0, qtdAdultos = 0, horario = null }) {
   if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
   const atuais = await getParticipacoes(solicitacaoId);
   const { error } = await sb().from('solicitacao_participacao').insert({
@@ -63,6 +63,8 @@ export async function acrescentar(solicitacaoId, { unidadeId = null, localId = n
     ordem: Math.max(0, ...atuais.map(p => p.ordem || 0)) + 1,
     unidade_id: unidadeId, local_id: localId,
     qtd_alunos: qtdAlunos, qtd_cadeirante: qtdCadeirante,
+    // Só vai se há adultos: sem a migration 049 a coluna não existe (42703).
+    ...(qtdAdultos ? { qtd_adultos: qtdAdultos } : {}),
     horario, status: 'ativa',
   });
   if (error) throw error;
