@@ -30,7 +30,7 @@ import { linkRota } from '../../locais/geografia.model.js';
 import { enderecoCompleto } from '../../locais/locais.model.js';
 import { velocidadeOnibusKmh, margemParadaMin, trajetoProvisorioMin } from '../sate.config.js';
 import { esc, vazio, val, falhaNoCampo } from '../../../shared/dom.js';
-import { fmtData, fmtDataHora } from '../../../shared/format.js';
+import { fmtData, fmtDataHora, fmtCep } from '../../../shared/format.js';
 import { modalHead, abrirModal, fecharModal } from '../../../shared/ui/modal.js';
 import { loading } from '../../../shared/ui/feedback.js';
 import { toast } from '../../../shared/ui/toast.js';
@@ -160,8 +160,15 @@ const destino = (s) => s.destino_nome || s.atividade?.local_nome || '';
 
 // Endereço do destino: as três partes (spec 2026-09-27, D3), com o
 // endereço da atividade como último recurso para pedidos antigos.
-const enderecoDestino = (s) => enderecoCompleto({ endereco: s.destino_endereco, numero: s.destino_numero, bairro: s.destino_bairro })
-  || s.atividade?.local_endereco || '';
+// O CEP vem do local do cadastro quando o pedido aponta para um; senão,
+// do que a escola digitou.
+const cepDestino = (s) => (s.local_id ? (ctx.locais || []).find(l => l.id === s.local_id)?.cep : s.destino_cep) || '';
+
+const enderecoDestino = (s) => {
+  const linha = enderecoCompleto({ endereco: s.destino_endereco, numero: s.destino_numero, bairro: s.destino_bairro })
+    || s.atividade?.local_endereco || '';
+  return linha && cepDestino(s) ? `${linha} · CEP ${fmtCep(cepDestino(s))}` : linha;
+};
 
 // Destino digitado pela escola, sem local do cadastro (spec 2026-09-27,
 // D6): sinaliza na tela e, para quem aprova, oferece o botão que aponta

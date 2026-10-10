@@ -15,7 +15,10 @@
 // ============================================================
 import { enderecoCompleto, localNoEndereco } from '../../locais/locais.model.js';
 import { criarBuscaSelecao } from '../../../shared/ui/busca-selecao.js';
+import { buscarCep } from '../../locais/geografia.model.js';
 import { esc, val } from '../../../shared/dom.js';
+import { cepDe, fmtCep } from '../../../shared/format.js';
+import { ligarCep } from '../../../shared/ui/campo-cep.js';
 
 let locaisAtivos = [];
 let escolhido = null;   // Local do cadastro, ou null
@@ -32,6 +35,8 @@ export const destinoHtml = () => `
     <legend>Destino</legend>
     <div class="campos duas">
       <div id="f-local" class="col-2"></div>
+      <label class="col-2">CEP <input id="f-dest-cep" type="text" inputmode="numeric" maxlength="9" placeholder="00000-000" readonly />
+        <small class="form-hint" id="f-dest-cep-dica" aria-live="polite">Opcional. Preenche o endereço.</small></label>
       <label class="col-2">Endereço <input id="f-dest-end" type="text" placeholder="Ex.: Rua Exemplo" readonly /></label>
       <label>Número <input id="f-dest-num" type="text" inputmode="numeric" placeholder="Ex.: 123" readonly /></label>
       <label>Bairro <input id="f-dest-bairro" type="text" placeholder="Ex.: Centro" readonly /></label>
@@ -45,12 +50,14 @@ function preencher(l) {
   campo('f-dest-end').value = l?.endereco || '';
   campo('f-dest-num').value = l?.numero || '';
   campo('f-dest-bairro').value = l?.bairro || '';
+  campo('f-dest-cep').value = fmtCep(l?.cep);
 }
 
 // Local do cadastro: endereço só leitura (vem do cadastro). Local novo:
 // os três campos destravam e passam a ser obrigatórios.
 function destravar(novo) {
   for (const id of ENDERECO) { campo(id).readOnly = !novo; campo(id).required = novo; }
+  campo('f-dest-cep').readOnly = !novo;   // opcional: fora de ENDERECO, não é obrigatório
 }
 
 function usarCadastrado(l) {
@@ -107,6 +114,16 @@ export function ligarDestino(locais, mudou) {
     },
   });
   for (const id of ['f-dest-end', 'f-dest-num']) campo(id).addEventListener('change', pintarMesmo);
+  // Só dispara para local NOVO: campo somente-leitura não emite `input`.
+  ligarCep(campo('f-dest-cep'), {
+    buscar: buscarCep, dica: campo('f-dest-cep-dica'),
+    aoAchar: (r, dizer) => {
+      if (!campo('f-dest-end').value.trim() && r.rua) campo('f-dest-end').value = r.rua;
+      if (!campo('f-dest-bairro').value.trim() && r.bairro) campo('f-dest-bairro').value = r.bairro;
+      dizer(`Encontrado: ${[r.rua, r.bairro].filter(Boolean).join(' - ') || 'CEP sem logradouro'}`);
+      pintarMesmo();
+    },
+  });
   campo('f-dest-mesmo').addEventListener('click', (e) => {
     const b = e.target.closest('[data-usar]'); if (!b) return;
     const l = locaisAtivos.find(x => x.id === b.dataset.usar); if (!l) return;
@@ -118,9 +135,9 @@ export function ligarDestino(locais, mudou) {
 export function lerDestino() {
   if (escolhido) {
     const l = escolhido;
-    return { localId: l.id, local: l, nome: l.nome || '', endereco: l.endereco || '', numero: l.numero || '', bairro: l.bairro || '' };
+    return { localId: l.id, local: l, nome: l.nome || '', endereco: l.endereco || '', numero: l.numero || '', bairro: l.bairro || '', cep: l.cep || null };
   }
-  return { localId: null, local: null, nome: novoNome || '', endereco: val('f-dest-end'), numero: val('f-dest-num'), bairro: val('f-dest-bairro') };
+  return { localId: null, local: null, nome: novoNome || '', endereco: val('f-dest-end'), numero: val('f-dest-num'), bairro: val('f-dest-bairro'), cep: cepDe(val('f-dest-cep')) };
 }
 
 // Local do cadastro: basta tê-lo escolhido. Local novo: as quatro partes
@@ -131,5 +148,6 @@ export function validarDestino(d) {
   if (!novoNome) return { campo: campo('f-local').querySelector('input'), texto: 'Escolha o local na lista ou digite o nome de um local novo.' };
   const falta = ENDERECO.map(campo).find(c => !c.value.trim());
   if (falta) return { campo: falta, texto: 'Informe endereço, número e bairro do local novo.' };
+  if (val('f-dest-cep') && !cepDe(val('f-dest-cep'))) return { campo: campo('f-dest-cep'), texto: 'CEP incompleto: são 8 dígitos.' };
   return null;
 }

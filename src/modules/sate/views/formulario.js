@@ -323,6 +323,7 @@ async function enviar(e) {
     destino_endereco: d.endereco || null,
     destino_numero: d.numero || null,
     destino_bairro: d.bairro || null,
+    ...(d.cep ? { destino_cep: d.cep } : {}),
     horario_embarque: emb,
     horario_retorno: ret,
     professor_nome: val('f-prof'),
