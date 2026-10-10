@@ -16,9 +16,9 @@ import { registrarCache } from '../../shared/cache.js';
 import { norm, semelhanca } from '../../shared/dom.js';
 import { linkMaps } from './geografia.model.js';
 
-const COLS = 'id, nome, endereco, numero, bairro, desembarque, latitude, longitude, maps_url, ativo, obs';
-// Sem a migration 044 numero/bairro não existem (42703): lê do jeito antigo.
-const COLS_ANTIGAS = 'id, nome, endereco, desembarque, latitude, longitude, maps_url, ativo, obs';
+const COLS = 'id, nome, endereco, numero, bairro, cep, desembarque, latitude, longitude, maps_url, ativo, obs';
+// Sem a migration 047 a coluna `cep` não existe (42703): lê sem ela.
+const COLS_SEM_CEP = 'id, nome, endereco, numero, bairro, desembarque, latitude, longitude, maps_url, ativo, obs';
 
 let _cache = null;
 function limparCacheLocais() { _cache = null; }
@@ -30,7 +30,7 @@ export async function getLocais({ somenteAtivos = false } = {}) {
   if (_cache) return somenteAtivos ? _cache.filter(l => l.ativo) : _cache;
   if (!hasSupabase()) { _cache = []; return _cache; }
   let { data, error } = await sb().from('local').select(COLS).order('nome');
-  if (error?.code === '42703') ({ data, error } = await sb().from('local').select(COLS_ANTIGAS).order('nome'));
+  if (error?.code === '42703') ({ data, error } = await sb().from('local').select(COLS_SEM_CEP).order('nome'));
   if (error) {
     if (error.code === '42P01') { console.warn('Tabela local ausente - rode a migration 017.'); return []; }
     throw error;
@@ -39,7 +39,7 @@ export async function getLocais({ somenteAtivos = false } = {}) {
   return somenteAtivos ? _cache.filter(l => l.ativo) : _cache;
 }
 
-const CAMPOS = ['nome', 'endereco', 'numero', 'bairro', 'desembarque', 'latitude', 'longitude', 'maps_url', 'ativo', 'obs'];
+const CAMPOS = ['nome', 'endereco', 'numero', 'bairro', 'cep', 'desembarque', 'latitude', 'longitude', 'maps_url', 'ativo', 'obs'];
 
 function limpar(p) {
   const out = {};

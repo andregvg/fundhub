@@ -178,7 +178,7 @@ export async function excluirLocalInterno(id) {
 // Campos editáveis de uma unidade (o resto é derivado/sistema).
 // Telefones NÃO entram aqui: moram na tabela `telefone` (ver
 // telefones.model.js) e são sincronizados à parte pela view.
-const CAMPOS = ['nome', 'nome_oficial', 'apelido', 'segmento', 'endereco',
+const CAMPOS = ['nome', 'nome_oficial', 'apelido', 'segmento', 'endereco', 'cep',
   'email', 'oferta', 'tem_transporte', 'tem_eja', 'inep', 'site_apm',
   'latitude', 'longitude', 'link_prestacao_contas'];
 

@@ -25,6 +25,7 @@ import { podeEscrever } from '../../../core/permissoes.js';
 import { podeAbrirFicha } from '../../../core/registry.js';
 import { abrirFicha } from '../../../core/router.js';
 import { esc, norm, urlSegura } from '../../../shared/dom.js';
+import { fmtCep } from '../../../shared/format.js';
 import { modalHead, abrirModal } from '../../../shared/ui/modal.js';
 import { telefonesTexto, exibirTelefone, paraE164 } from '../../../shared/ui/phones.js';
 import { loading, erroBox } from '../../../shared/ui/feedback.js';
@@ -88,7 +89,8 @@ function detalhe(u, ctx, opts) {
         ${linha('', tel)}
         ${linha('email', u.email ? `<a href="mailto:${esc(u.email)}">${esc(u.email)}</a>` : '')}
         ${linha('visita', u.endereco
-          ? esc(u.endereco) + (maps ? ` · <a href="${maps}" target="_blank" rel="noopener">ver no mapa</a>` : '')
+          ? esc(u.endereco) + (u.cep ? ` · CEP ${esc(fmtCep(u.cep))}` : '')
+            + (maps ? ` · <a href="${maps}" target="_blank" rel="noopener">ver no mapa</a>` : '')
           : '')}
         </ul>
         <div class="ficha-linha" id="esc-supervisao"></div>

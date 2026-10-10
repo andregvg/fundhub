@@ -3,10 +3,12 @@
 // ============================================================
 import { criarUnidade, atualizarUnidade, excluirUnidade, getUnidades } from '../escolas.model.js';
 import { sincronizarTelefones } from '../../telefones/telefones.model.js';
-import { geocodificar, linkMaps, temCoordenada } from '../../locais/geografia.model.js';
-import { esc, falhaNoCampo } from '../../../shared/dom.js';
+import { localizarEndereco, buscarCep, cepNaCidade, linkMaps, temCoordenada } from '../../locais/geografia.model.js';
+import { esc, falha, falhaNoCampo } from '../../../shared/dom.js';
+import { fmtCep, cepDe } from '../../../shared/format.js';
 import { modalHead, abrirModal, fecharModal, marcarTocado } from '../../../shared/ui/modal.js';
 import { montarMapaPino } from '../../../shared/ui/mapa-pino.js';
+import { ligarCep } from '../../../shared/ui/campo-cep.js';
 import { phonesEditorHtml, montarPhonesEditor, lerPhonesEditor } from '../../../shared/ui/phones.js';
 import { confirmar } from '../../../shared/ui/confirmar.js';
 import { toast } from '../../../shared/ui/toast.js';
@@ -67,12 +69,16 @@ export function abrirForm(u, ctx, { voltar = null } = {}) {
         <fieldset class="form-grupo">
           <legend>Localização</legend>
           <div class="campos auto">
+            <label>CEP <input name="cep" inputmode="numeric" autocomplete="postal-code" maxlength="9"
+                value="${esc(fmtCep(u?.cep))}" placeholder="00000-000" />
+              <small class="form-hint" id="ef-cep-dica" aria-live="polite">Preenche o endereço e ajuda a achar a escola no mapa.</small></label>
             <label class="col-full">Endereço <input name="endereco" value="${v('endereco')}" /></label>
             <div class="col-full"><div id="ef-mapa" class="mapa-pino"></div></div>
             <label>Latitude <input name="latitude" type="number" step="any" inputmode="decimal" value="${v('latitude')}" /></label>
             <label>Longitude <input name="longitude" type="number" step="any" inputmode="decimal" value="${v('longitude')}" /></label>
             <div class="col-full geo-linha">
               <button type="button" class="mini-btn" id="ef-geo">${ico('visita', { tam: 13 })} Localizar pelo endereço</button>
+              <button type="button" class="mini-btn" id="ef-cep-pino" hidden>${ico('visita', { tam: 13 })} Mover o pino para este CEP</button>
               <span class="form-hint" id="ef-geo-dica" aria-live="polite">Clique no mapa ou arraste o pino para acertar o ponto. É a localização que permite ao SATE calcular o tempo de viagem do ônibus.</span>
             </div>
           </div>
@@ -146,15 +152,35 @@ export function abrirForm(u, ctx, { voltar = null } = {}) {
   };
   f.latitude.addEventListener('change', aoDigitar);
   f.longitude.addEventListener('change', aoDigitar);
+
+  // CEP (spec 2026-10-10, D6): endereço só se estiver vazio; o pino que já
+  // existe só se move pelo botão.
+  ligarCep(f.cep, {
+    buscar: buscarCep, dica: document.getElementById('ef-cep-dica'),
+    aoAchar: (r, dizer) => {
+      const texto = [r.rua, r.bairro].filter(Boolean).join(', ');
+      if (!f.endereco.value.trim() && texto) { marcarTocado(f.endereco); f.endereco.value = texto; }
+      const fora = cepNaCidade(r) ? '' : ` · CEP de ${[r.cidade, r.uf].filter(Boolean).join('/')}`;
+      dizer(`Encontrado: ${texto || 'CEP sem logradouro'}${fora}`);
+      const botao = document.getElementById('ef-cep-pino');
+      botao.hidden = true;
+      if (r.lat == null) return;
+      const mover = () => {
+        marcarTocado(f.latitude); marcarTocado(f.longitude);
+        f.latitude.value = r.lat.toFixed(6); f.longitude.value = r.lng.toFixed(6);
+        mapaAtual?.mover(r.lat, r.lng);
+        botao.hidden = true;
+      };
+      if (!temCoordenada(f.latitude.value.trim(), f.longitude.value.trim())) return mover();
+      botao.hidden = false;
+      botao.onclick = mover;
+    },
+  });
 }
 
 // Endereço → latitude e longitude, pelo OpenStreetMap. Preenche os campos
 // e NÃO grava: quem salva é a pessoa, depois de conferir no mapa - um
 // endereço ambíguo pode cair na rua de mesmo nome em outro bairro.
-//
-// Primeira de duas cópias desta ligação (a outra é a guia Locais do
-// SATE): ~25 linhas iguais esperam o terceiro caso para virar
-// componente (R13).
 async function localizar() {
   const f = document.getElementById('esc-form');
   const btn = document.getElementById('ef-geo');
@@ -162,16 +188,18 @@ async function localizar() {
   btn.disabled = true;
   dica.textContent = 'Procurando…';
   try {
-    const r = await geocodificar(f.endereco.value);
-    if (!r) {
-      dica.textContent = 'Endereço não encontrado. Dá para copiar as coordenadas do Google Maps: clique com o botão direito no lugar e clique nos números.';
+    const r = await localizarEndereco(f.endereco.value, { pausaMs: 1100 });
+    if (!r.achado) {
+      dica.textContent = r.motivo === 'aproximado'
+        ? 'Só encontrei o bairro, não a rua. Informe o CEP ou acerte o pino à mão.'
+        : 'Endereço não encontrado. Informe o CEP, ou copie as coordenadas do Google Maps: clique com o botão direito no lugar e clique nos números.';
       return;
     }
     marcarTocado(f.latitude); marcarTocado(f.longitude);   // "Localizar" também é gesto dela
-    f.latitude.value = r.lat.toFixed(6);
-    f.longitude.value = r.lng.toFixed(6);
-    mapaAtual?.mover(r.lat, r.lng);
-    dica.innerHTML = `Encontrado: ${esc(r.formatado)} · <a href="${esc(linkMaps(r.lat, r.lng))}" target="_blank" rel="noopener">conferir no mapa</a> antes de salvar.`;
+    f.latitude.value = r.achado.lat.toFixed(6);
+    f.longitude.value = r.achado.lng.toFixed(6);
+    mapaAtual?.mover(r.achado.lat, r.achado.lng);
+    dica.innerHTML = `Encontrado: ${esc(r.achado.formatado)} · <a href="${esc(linkMaps(r.achado.lat, r.achado.lng))}" target="_blank" rel="noopener">conferir no mapa</a> antes de salvar${r.precisao === 'rua' ? ' - achei a rua, não o número' : ''}.`;
   } catch (err) {
     dica.textContent = err?.name === 'AbortError' ? 'O serviço de mapa não respondeu. Tente de novo em instantes.' : (err?.message || String(err));
   } finally {
@@ -193,12 +221,15 @@ async function salvar(e, u, ctx) {
   e.preventDefault();
   const f = e.target;
   const msg = document.getElementById('ef-msg'); msg.className = 'auth-msg';
+  const cep = cepDe(f.cep.value);
+  if (f.cep.value.trim() && !cep) return falhaNoCampo(msg, f.cep, 'CEP incompleto: são 8 dígitos.');
   const payload = {
     nome: f.nome.value.trim(),
     apelido: f.apelido.value.trim() || null,
     nome_oficial: f.nome_oficial.value.trim() || null,
     segmento: f.segmento.value.trim() || null,
     endereco: f.endereco.value.trim() || null,
+    ...(cep || u?.cep ? { cep } : {}),
     ...coordenadas(f),
     email: f.email.value.trim() || null,
     oferta: f.oferta.value.trim() || null,
@@ -220,6 +251,11 @@ async function salvar(e, u, ctx) {
     fecharModal();
     toast({ titulo: u ? 'Escola atualizada' : 'Escola cadastrada', texto: payload.nome, tipo: 'sucesso' });
   } catch (err) {
+    if (['42703', 'PGRST204'].includes(err?.code)) {
+      falha(msg, 'O banco ainda não tem o campo CEP. Avise a Gerência.');
+      btn.disabled = false; btn.textContent = u ? 'Salvar' : 'Criar';
+      return;
+    }
     // Erro de gravação: inline quando dá para corrigir no formulário
     // aberto, toast quando não dá - reportarErro decide pelo código.
     reportarErro(err, { msg, titulo: 'Não foi possível salvar' });
