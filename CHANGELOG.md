@@ -19,6 +19,7 @@ partir das versões do FundHub que mudaram algo para quem usa o SATE.
 
 | SATE | FundHub | Em resumo |
 |---|---|---|
+| 0.20.0 | 0.42.0 | calendário escolar na Disponibilidade, o dia em detalhe para quem aprova, data bloqueada avisada ao escolher |
 | 0.19.0 | 0.41.0 | CEP nos locais e no destino do pedido, busca de endereço mais certeira, conferir local pela aba Locais |
 | 0.18.2 | 0.40.0 | erro do pedido aponta o campo, asterisco nos obrigatórios, dica de hora nos dois horários, mapa recolhido, rodapé fixo |
 | 0.18.0 | 0.39.0 | data só com dia e mês, servidor responsável com telefone automático, tema e cor por pessoa |
@@ -46,6 +47,30 @@ partir das versões do FundHub que mudaram algo para quem usa o SATE.
 | 0.1.0 | 0.5.0 | a escola pede, a SME valida |
 
 ---
+
+## [0.42.0] - 2026-10-10
+
+> SATE 0.20.0. Não exige atualização do banco.
+
+### Adicionado
+
+- **Calendário escolar na Disponibilidade.** Cada dia mostra o que o calendário diz dele:
+  feriado e recesso ("Não letivo"), dia com extraclasse bloqueado, ou o nome do evento do
+  dia (prova, evento pedagógico). Num dia em que a escola não pode pedir transporte, ela
+  não vê números de ônibus - vê "Não há viagens neste dia".
+- **Disponibilidade do dia** (para quem aprova): clicar num dia abre uma janela com a frota
+  do dia, os ônibus em uso e livres em cada período e a lista das viagens que ocupam os
+  veículos, com a hora em que cada uma os libera. A mesma janela abre pela solicitação, no
+  botão **Ver disponibilidade do dia**.
+
+### Alterado
+
+- **O pedido avisa da data na hora.** Ao escolher uma data que é feriado ou está bloqueada
+  para extraclasse, o aviso aparece logo abaixo do campo, antes de preencher o resto. Quem
+  aprova vê o aviso e pode agendar mesmo assim.
+- Na solicitação, saiu a frase "N ônibus livres no horário deste pedido, fora ele". Ela
+  descontava o próprio pedido e dava a impressão de que ele não ocupava ônibus. A contagem
+  de vagas **não mudou**.
 
 ## [0.41.0] - 2026-10-10
 

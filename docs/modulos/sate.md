@@ -160,12 +160,36 @@ alguém aprovar. Negar o pedido ou cancelá-lo devolve a vaga na hora.
    que quantos ônibus cabem depende do horário de embarque escolhido.
 4. Um dia sem nenhum veículo cadastrado mostra "sem frota"; um dia que já
    passou aparece esmaecido.
-5. Quem aprova pode clicar num dia para ver a composição da frota por rótulo
-   (por exemplo, "9 Regular + 16 Feira do Livro") e quantos veículos já estão
-   em uso em cada período.
+5. Cada dia também mostra o que o **calendário escolar** diz dele:
+   - **Não letivo** - feriado, recesso ou outro dia sem aula, com o nome do
+     evento ao lado;
+   - **Extraclasse bloqueado** - dia em que o calendário não admite atividade
+     fora da escola, também com o nome do evento;
+   - num dia de aula comum com algum evento (uma prova, um evento pedagógico),
+     aparecem só o nome e o tipo do evento, para você saber o que acontece
+     naquele dia.
+
+   Num dia **Não letivo** ou com **Extraclasse bloqueado**, a escola não pede
+   transporte. Por isso, em vez dos números de ônibus, a escola vê **Não há
+   viagens neste dia**. Quem aprova continua vendo os números, em tom
+   esmaecido: pode, e às vezes precisa, agendar mesmo assim.
+6. Quem aprova pode clicar num dia para abrir a janela **Disponibilidade do
+   dia**, que explica o número que está no cartão:
+   - o que o calendário escolar diz do dia;
+   - **Frota do dia** - o total de veículos e a composição por rótulo (por
+     exemplo, "9 Regular + 16 Feira do Livro");
+   - **Ônibus por período** - quantos estão livres e quantos já estão em uso
+     na **Manhã**, na **Tarde** e na **Noite**;
+   - **Viagens do dia** - cada viagem que ocupa veículos, do embarque até a
+     hora em que eles voltam a ficar livres ("07:30 · livre às 11:40"), com as
+     escolas, o destino, quantos veículos e a situação do pedido. Os ônibus
+     que ainda estão com uma viagem da noite anterior aparecem numa linha à
+     parte, e um pedido de cancelamento ainda não ciente aparece marcado como
+     **não ocupa veículo**.
 
 Os números são para uma viagem **típica** de cada período - o formulário de
-pedido confere o horário exato antes de enviar.
+pedido confere o horário exato antes de enviar. A lista de **Viagens do dia**
+é o que mostra o horário exato de cada uma.
 
 ### Cadastrar a frota (quem aprova)
 
@@ -203,7 +227,7 @@ alerta para conferir.
 4. **O lugar não está na lista?** Depois de digitar pelo menos 3 letras do nome, escolha o último item, **Usar “nome digitado” como novo local** (se a lista tiver outros locais, o item aparece em tom apagado, como **Nenhum destes? Cadastrar “nome digitado”**). O campo passa a mostrar a etiqueta **Novo local**, e você preenche **Endereço**, **Número** e **Bairro** - os três são obrigatórios, porque é isso que a empresa de transporte lê na ficha do motorista. O **×** do campo volta à busca.
    O campo **CEP** é opcional: digite os oito dígitos e o sistema preenche **Endereço** e **Bairro** (só os que estiverem em branco - o **Número** é sempre seu). Informar o CEP ajuda quem aprova a achar o lugar quando for conferir o local.
 5. Ao preencher o endereço de um local novo, se ele já for o de um local cadastrado, aparece "Este endereço já é de …" com o botão **Usar este**, que troca para o local já cadastrado. É só um aviso: você pode seguir com o local novo.
-6. Em **Quando**, digite a **Data** só com dia e mês, sem barra: `1403` vira `14/03`, e logo abaixo o sistema escreve a data por extenso, já com o ano. O ano é o atual. Se o dia não existir (como `3102`), aparece "Essa data não existe." em vermelho. O botão com o calendário, dentro do campo, abre o calendário para escolher, e quem preferir pode digitar o ano também. Depois informe o **Horário de embarque** e o **Horário de saída do evento**, também só com números (`0730` vira `07:30`) - os dois são **obrigatórios**: é a partir deles que o sistema conta quantos ônibus estão livres e calcula o **período**, mostrado em destaque logo abaixo dos campos, sem que você precise escolher (a tabela logo abaixo da lista mostra a regra).
+6. Em **Quando**, digite a **Data** só com dia e mês, sem barra: `1403` vira `14/03`, e logo abaixo o sistema escreve a data por extenso, já com o ano. O ano é o atual. Se o dia não existir (como `3102`), aparece "Essa data não existe." em vermelho. O botão com o calendário, dentro do campo, abre o calendário para escolher, e quem preferir pode digitar o ano também. Se a data escolhida for feriado, dia sem aula ou estiver bloqueada para atividade fora da escola, o sistema avisa logo abaixo do campo, na hora, sem esperar o envio: para a escola o aviso aparece em vermelho e o pedido não é aceito nessa data; para quem aprova é só um aviso, que termina com "Você pode agendar mesmo assim." Num dia de aula com algum evento (uma prova, por exemplo), o sistema só informa "Neste dia: …", sem impedir nada. Depois informe o **Horário de embarque** e o **Horário de saída do evento**, também só com números (`0730` vira `07:30`) - os dois são **obrigatórios**: é a partir deles que o sistema conta quantos ônibus estão livres e calcula o **período**, mostrado em destaque logo abaixo dos campos, sem que você precise escolher (a tabela logo abaixo da lista mostra a regra).
 7. Em **Responsável pela visita**, informe o **Servidor(a) responsável** e o **Telefone / WhatsApp** - os dois são **obrigatórios**, para a empresa de transporte e a Gerência conseguirem falar com alguém em caso de dúvida. Ao escolher a escola, o campo do nome passa a sugerir a equipe dela (gestores e coordenadores): é só começar a digitar e escolher na lista, e o telefone vem preenchido com o que está no cadastro - você pode trocá-lo, se o número do dia da visita for outro. Se o responsável não está na lista (um professor, por exemplo), digite o nome e o telefone normalmente.
 8. Em **Acessibilidade**, informe quantos estudantes usam **cadeira de rodas** e quantos são **surdos**, e marque **Outra necessidade específica** se houver mais alguma coisa - descreva-a em Observações. O sistema calcula sozinho quantos ônibus e quantas vans adaptadas são necessários; surdo não muda o veículo, mas o dado vai para a ficha da viagem.
 9. Escolhidos a escola e o destino, aparece o **tempo de viagem** estimado até lá. Se não aparecer, a linha diz o porquê - o pedido pode ser enviado assim mesmo.
@@ -240,8 +264,12 @@ escola não vê esse aviso: o formulário abre normalmente e diz que não há
 
 1. No menu, em **Solicitações**, **clique na linha** do pedido. Abre uma janela
    com tudo o que ele é e, no pé, só as decisões que cabem naquela situação.
-2. **Confirmar** aprova o transporte e reserva os veículos.
-3. **Negar** recusa o pedido. Abre uma segunda janela pedindo a justificativa,
+2. Para conferir como está o dia do pedido antes de decidir, clique em **Ver
+   disponibilidade do dia**, ao lado da situação. Abre a janela
+   **Disponibilidade do dia**, com a viagem deste pedido destacada na lista de
+   **Viagens do dia**; a seta **←** volta para o pedido.
+3. **Confirmar** aprova o transporte e reserva os veículos.
+4. **Negar** recusa o pedido. Abre uma segunda janela pedindo a justificativa,
    que é **obrigatória** - a escola vê o texto que você escrever.
 
 ### Confirmar quando a frota do dia não comporta
@@ -460,6 +488,9 @@ pedido segue normalmente.
   aprova: sem veículo cadastrado não há o que reservar.
 - **Faltar ônibus no horário pedido, para a escola.** O número de veículos é
   inviolável: se não há ônibus livre naquele horário, o pedido não é aceito.
+- **Data de feriado, dia sem aula ou bloqueada para extraclasse, para a
+  escola.** O calendário escolar manda: a escola não pede transporte nesses
+  dias. Quem aprova recebe só um aviso, ver abaixo.
 - **Horário de embarque ou de saída do evento em branco.**
 - **Saída do evento antes do embarque.** Não vale para a **noite**: um pedido
   noturno pode voltar depois da meia-noite.
@@ -488,6 +519,9 @@ pedido segue normalmente.
 - **Cadeirante sem van adaptada livre.** O pedido segue. Ao confirmar, quem
   aprova cria a van extra ou deixa o pedido *aguardando transporte adaptado*
   até a van ser resolvida.
+- **Data de feriado, dia sem aula ou bloqueada para extraclasse, para quem
+  aprova.** O aviso aparece logo abaixo do campo de data ("Você pode agendar
+  mesmo assim."): a SME às vezes precisa agendar num dia assim.
 - **Faltar ônibus no horário, para quem aprova.** Quem aprova pode e às vezes
   precisa passar do limite. Quando isso acontece, o sistema **cria um veículo
   extra só para aquele dia** e pede um rótulo que explique o motivo (por
@@ -528,7 +562,9 @@ continuam com o nome deles.
 - **Escolas** fornece o endereço de embarque, a localização no mapa e o
   contato da unidade.
 - **Calendário Escolar** é consultado para avisar quando a data pedida cai em
-  recesso ou em dia sem aula.
+  recesso ou em dia sem aula, e a página **Disponibilidade** mostra, em cada
+  dia, o que o calendário diz dele (dia não letivo, extraclasse bloqueado ou o
+  evento do dia).
 - As **Fichas** do próprio SATE trazem a programação do dia já confirmada, pronta para conferir e imprimir.
 - **Visão geral** traz as atividades extraclasse do dia na tela inicial.
 - **OpenStreetMap** fornece as distâncias e a busca de endereço. É gratuito,
@@ -580,4 +616,4 @@ Negado é um pedido que **nunca** chegou a valer - foi recusado na análise.
 Cancelado é um pedido que **estava de pé** e foi desfeito. Os dois exigem
 justificativa.
 
-> Atualizado na versão 0.41.0.
+> Atualizado na versão 0.42.0.
