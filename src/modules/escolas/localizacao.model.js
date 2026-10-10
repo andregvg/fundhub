@@ -93,7 +93,7 @@ export function cancelarLocalizacao() {
 }
 
 // Procura uma escola pelas variantes do endereço (geografia.model.js).
-// Devolve { achado, precisao } ou { achado: null }; lança só se o SERVIÇO
+// Devolve { achado, precisao } ou { achado: null, motivo }; lança só se o SERVIÇO
 // falhar. A pausa depois da chamada mantém o ritmo entre uma escola e a
 // seguinte; a pausa ENTRE variantes é da própria função.
 async function procurar(u) {

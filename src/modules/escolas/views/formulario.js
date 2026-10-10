@@ -157,6 +157,7 @@ export function abrirForm(u, ctx, { voltar = null } = {}) {
   // existe só se move pelo botão.
   ligarCep(f.cep, {
     buscar: buscarCep, dica: document.getElementById('ef-cep-dica'),
+    aoMudar: () => { document.getElementById('ef-cep-pino').hidden = true; },
     aoAchar: (r, dizer) => {
       const texto = [r.rua, r.bairro].filter(Boolean).join(', ');
       if (!f.endereco.value.trim() && texto) { marcarTocado(f.endereco); f.endereco.value = texto; }

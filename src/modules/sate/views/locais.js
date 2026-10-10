@@ -71,6 +71,7 @@ async function pintarAConferir() {
     // Dinâmico: conferir-local.js importa este arquivo (abrirLocal).
     const { abrirConferirLocal } = await import('./conferir-local.js');
     abrirConferirLocal(grupos[Number(b.dataset.conferir)], ctx, async () => {
+      fecharModal({ tudo: true });
       await ctx.recarregarLocais();
       render(ctx);
     });
@@ -174,6 +175,7 @@ export function abrirLocal(l, { preenchido = {}, aoSalvar = null } = {}, ctxExte
   document.getElementById('l-lng').addEventListener('change', aoMudarCoordenadaAMao);
   ligarCep(document.getElementById('l-cep'), {
     buscar: buscarCep, dica: document.getElementById('l-cep-dica'), aoAchar: aoAcharCep,
+    aoMudar: () => { document.getElementById('l-cep-pino').hidden = true; },
   });
 
   const mapaEl = document.getElementById('l-mapa');

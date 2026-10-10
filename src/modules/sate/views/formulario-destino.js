@@ -26,6 +26,7 @@ let novoNome = null;    // nome digitado aceito como local NOVO, ou null
 let bs = null;          // handle de criarBuscaSelecao - destruído antes de
                         // recriar (senão cada abertura do modal deixa um
                         // listener de document a mais)
+let cepDestino = null;  // handle de ligarCep: reiniciar() quando o CÓDIGO troca o CEP
 let aoMudar = () => {};
 
 const ENDERECO = ['f-dest-end', 'f-dest-num', 'f-dest-bairro'];
@@ -51,6 +52,7 @@ function preencher(l) {
   campo('f-dest-num').value = l?.numero || '';
   campo('f-dest-bairro').value = l?.bairro || '';
   campo('f-dest-cep').value = fmtCep(l?.cep);
+  cepDestino?.reiniciar();   // pode rodar antes de ligarCep
 }
 
 // Local do cadastro: endereço só leitura (vem do cadastro). Local novo:
@@ -82,7 +84,7 @@ export function ligarDestino(locais, mudou) {
   bs?.destruir();
   aoMudar = mudou;
   locaisAtivos = (locais || []).filter(l => l.ativo);
-  escolhido = null; novoNome = null;
+  escolhido = null; novoNome = null; cepDestino = null;
   bs = criarBuscaSelecao(campo('f-local'), {
     rotulo: 'Local',
     opcoes: locaisAtivos.map(l => ({ id: l.id, rotulo: l.nome, detalhe: enderecoCompleto(l), busca: l.bairro || '' })),
@@ -115,7 +117,7 @@ export function ligarDestino(locais, mudou) {
   });
   for (const id of ['f-dest-end', 'f-dest-num']) campo(id).addEventListener('change', pintarMesmo);
   // Só dispara para local NOVO: campo somente-leitura não emite `input`.
-  ligarCep(campo('f-dest-cep'), {
+  cepDestino = ligarCep(campo('f-dest-cep'), {
     buscar: buscarCep, dica: campo('f-dest-cep-dica'),
     aoAchar: (r, dizer) => {
       if (!campo('f-dest-end').value.trim() && r.rua) campo('f-dest-end').value = r.rua;
