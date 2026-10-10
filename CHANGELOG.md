@@ -19,6 +19,7 @@ partir das versões do FundHub que mudaram algo para quem usa o SATE.
 
 | SATE | FundHub | Em resumo |
 |---|---|---|
+| 0.21.0 | 0.43.0 | solicitação redesenhada, reabrir decisão, editar antes de confirmar, várias escolas já no pedido, nome completo na lista |
 | 0.20.0 | 0.42.0 | calendário escolar na Disponibilidade, o dia em detalhe para quem aprova, data bloqueada avisada ao escolher |
 | 0.19.0 | 0.41.0 | CEP nos locais e no destino do pedido, busca de endereço mais certeira, conferir local pela aba Locais |
 | 0.18.2 | 0.40.0 | erro do pedido aponta o campo, asterisco nos obrigatórios, dica de hora nos dois horários, mapa recolhido, rodapé fixo |
@@ -47,6 +48,33 @@ partir das versões do FundHub que mudaram algo para quem usa o SATE.
 | 0.1.0 | 0.5.0 | a escola pede, a SME valida |
 
 ---
+
+## [0.43.0] - 2026-10-10
+
+> SATE 0.21.0. Não exige atualização do banco.
+
+### Adicionado
+
+- **Reabrir uma decisão** (quem aprova): uma solicitação negada, cancelada ou confirmada
+  pode voltar para análise pelo botão **Reabrir** (em pedido confirmado, **Voltar para
+  análise**). Daí ela pode ser confirmada ou negada de novo. Se não houver veículo livre
+  no horário, o sistema avisa antes.
+- **Várias escolas já no pedido** (quem aprova): em **Nova solicitação**, o bloco
+  **Outras escolas no mesmo ônibus** acrescenta as demais paradas na hora de cadastrar.
+  Os ônibus e o tempo de viagem já consideram todas. A escola continua pedindo só para si.
+- **Resumo do pedido**, logo acima do botão de enviar: estudantes, ônibus necessários,
+  ônibus livres para o horário e tempo de viagem, num quadro só.
+
+### Alterado
+
+- **A solicitação tem outra cara.** A janela agora se chama **Detalhes da solicitação** e
+  traz um quadro com destino, data, horários e endereço; as informações com rótulo e valor
+  lado a lado, em **Solicitação** e **Logística**; a justificativa em destaque quando o
+  pedido foi negado ou cancelado; e o histórico (quem pediu, quem decidiu, quando) ao pé.
+- **Editar solicitação** substitui "Remanejar": é o lápis no canto do quadro, e passa a
+  permitir também turma, responsável, telefone e observação. Só aparece enquanto a
+  solicitação não está confirmada - para editar uma confirmada, volte-a para análise.
+- **A lista mostra o nome completo da escola.** Em tela estreita, o apelido em maiúsculas.
 
 ## [0.42.0] - 2026-10-10
 

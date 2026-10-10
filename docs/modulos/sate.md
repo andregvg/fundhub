@@ -66,7 +66,7 @@ valem para a rede toda.
   cada dia e período antes de pedir.
 - Ver quantos quilômetros e quanto tempo o ônibus leva das escolas até o
   destino, e abrir a rota no mapa.
-- Aprovar, negar e remanejar pedidos (para quem tem essa permissão).
+- Aprovar, negar, editar e reabrir pedidos (para quem tem essa permissão).
 - Cadastrar a frota disponível e os reforços de período de evento.
 - Imprimir as **fichas de ônibus** que vão para a empresa de transporte.
 
@@ -75,8 +75,26 @@ valem para a rede toda.
 | Quem | O que faz |
 |---|---|
 | Escola | Pede transporte **para os próprios estudantes** e vê **os agendamentos em que está envolvida** |
-| Gerência de Transporte | Vê a rede inteira, aprova, nega, remaneja e cadastra a frota |
+| Gerência de Transporte | Vê a rede inteira, aprova, nega, edita, reabre e cadastra a frota |
 | Equipe da SME | Vê a rede inteira, não decide |
+
+### O que cada situação permite
+
+Os botões que aparecem no pé da janela **Detalhes da solicitação** dependem da
+situação do pedido. Só aparece o que cabe:
+
+| Situação | Quem aprova | A escola |
+|---|---|---|
+| Solicitado | **Pôr em análise**, **Negar**, **Confirmar** e o lápis de editar | **Cancelar solicitação** |
+| Em análise | **Negar**, **Confirmar** e o lápis de editar | - |
+| Aguardando adaptado | **Negar**, **Confirmar** e o lápis de editar | - |
+| Confirmado | **Voltar para análise** e **Cancelar solicitação** | **Pedir cancelamento** |
+| Pendente de cancelamento | **Confirmar cancelamento** | - |
+| Negado | **Reabrir** | - |
+| Cancelado | **Reabrir** | - |
+
+O lápis de editar existe só **antes de confirmar**. Para mudar um pedido já
+confirmado, volte-o para análise primeiro (ver *Reabrir uma decisão*).
 
 ### O que "envolvida" quer dizer
 
@@ -221,8 +239,8 @@ alerta para conferir.
 
 ### Pedir transporte
 
-1. No menu, em **Solicitações**, clique no botão **Nova solicitação**. Abre a janela **Nova solicitação de ônibus**, com o formulário dividido em blocos: Origem, Destino, Quando, Responsável pela visita, Acessibilidade e Observações da escola. Os campos com um asterisco (`*`) ao lado do nome são obrigatórios. Se algum ficar em branco ou com erro ao enviar, o sistema leva você até ele e o destaca em vermelho.
-2. Em **Origem**, escolha a escola, as turmas e o número de estudantes. Quem aprova procura a escola **pelo nome** no campo **Escola**: digite parte do nome e escolha na lista. Se você é de uma escola só, o campo já vem preenchido.
+1. No menu, em **Solicitações**, clique no botão **Nova solicitação**. Abre a janela **Nova solicitação**, com o formulário dividido em blocos: Origem, Destino, Quando, Responsável pela visita, Acessibilidade e Observações da escola. Os campos com um asterisco (`*`) ao lado do nome são obrigatórios. Se algum ficar em branco ou com erro ao enviar, o sistema leva você até ele e o destaca em vermelho.
+2. Em **Origem**, escolha a escola, as turmas e o número de estudantes. Quem aprova procura a escola **pelo nome** no campo **Escola**: digite parte do nome e escolha na lista. Se você é de uma escola só, o campo já vem preenchido. **Quem aprova** pode montar, já aqui, uma viagem com várias escolas. Logo abaixo, o bloco **Outras escolas no mesmo ônibus** tem o campo **Acrescentar escola**: digite parte do nome e escolha na lista. Cada escola acrescentada ganha uma linha própria, com **Estudantes**, **Cadeirantes** e **Embarque**, e um botão com a lixeira para tirá-la. Informe os estudantes de cada uma (é obrigatório). Os ônibus necessários e o tempo de viagem passam a contar **todas** as escolas. A ordem das paradas se ajusta depois, na solicitação. Se você trocar a escola principal por uma que já estava acrescentada, a linha dela sai e o sistema avisa. A escola, ao pedir, pede só para si e não vê esse bloco.
 3. Em **Destino**, busque o local no campo **Local** - digite parte do nome e escolha da lista. Endereço, Número e Bairro aparecem preenchidos sozinhos. A lista abre quando você clica no campo, digita ou aperta a seta para baixo. Se você errar uma letra ("Muzeu"), a lista mostra os locais **Parecidos**.
 4. **O lugar não está na lista?** Depois de digitar pelo menos 3 letras do nome, escolha o último item, **Usar “nome digitado” como novo local** (se a lista tiver outros locais, o item aparece em tom apagado, como **Nenhum destes? Cadastrar “nome digitado”**). O campo passa a mostrar a etiqueta **Novo local**, e você preenche **Endereço**, **Número** e **Bairro** - os três são obrigatórios, porque é isso que a empresa de transporte lê na ficha do motorista. O **×** do campo volta à busca.
    O campo **CEP** é opcional: digite os oito dígitos e o sistema preenche **Endereço** e **Bairro** (só os que estiverem em branco - o **Número** é sempre seu). Informar o CEP ajuda quem aprova a achar o lugar quando for conferir o local.
@@ -230,11 +248,12 @@ alerta para conferir.
 6. Em **Quando**, digite a **Data** só com dia e mês, sem barra: `1403` vira `14/03`, e logo abaixo o sistema escreve a data por extenso, já com o ano. O ano é o atual. Se o dia não existir (como `3102`), aparece "Essa data não existe." em vermelho. O botão com o calendário, dentro do campo, abre o calendário para escolher, e quem preferir pode digitar o ano também. Se a data escolhida for feriado, dia sem aula ou estiver bloqueada para atividade fora da escola, o sistema avisa logo abaixo do campo, na hora, sem esperar o envio: para a escola o aviso aparece em vermelho e o pedido não é aceito nessa data; para quem aprova é só um aviso, que termina com "Você pode agendar mesmo assim." Num dia de aula com algum evento (uma prova, por exemplo), o sistema só informa "Neste dia: …", sem impedir nada. Depois informe o **Horário de embarque** e o **Horário de saída do evento**, também só com números (`0730` vira `07:30`) - os dois são **obrigatórios**: é a partir deles que o sistema conta quantos ônibus estão livres e calcula o **período**, mostrado em destaque logo abaixo dos campos, sem que você precise escolher (a tabela logo abaixo da lista mostra a regra).
 7. Em **Responsável pela visita**, informe o **Servidor(a) responsável** e o **Telefone / WhatsApp** - os dois são **obrigatórios**, para a empresa de transporte e a Gerência conseguirem falar com alguém em caso de dúvida. Ao escolher a escola, o campo do nome passa a sugerir a equipe dela (gestores e coordenadores): é só começar a digitar e escolher na lista, e o telefone vem preenchido com o que está no cadastro - você pode trocá-lo, se o número do dia da visita for outro. Se o responsável não está na lista (um professor, por exemplo), digite o nome e o telefone normalmente.
 8. Em **Acessibilidade**, informe quantos estudantes usam **cadeira de rodas** e quantos são **surdos**, e marque **Outra necessidade específica** se houver mais alguma coisa - descreva-a em Observações. O sistema calcula sozinho quantos ônibus e quantas vans adaptadas são necessários; surdo não muda o veículo, mas o dado vai para a ficha da viagem.
-9. Escolhidos a escola e o destino, aparece o **tempo de viagem** estimado até lá. Se não aparecer, a linha diz o porquê - o pedido pode ser enviado assim mesmo.
-10. **Acompanhe a linha de saldo** logo acima do botão de enviar: "3 ônibus livres para embarque às 13:00 em 05/10 · este pedido usa 2". Antes de preencher os dois horários, ela mostra o número do período, o mesmo que aparece em Disponibilidade; depois, conta pelo horário exato, e se atualiza sozinha a cada troca.
-11. Se faltar ônibus no horário escolhido e houver um horário do mesmo período em que o pedido caberia, a linha sugere: "A partir das 14h10 há ônibus suficientes." Quem aprova, num dia **sem nenhuma frota**, vê ali mesmo um cadastro rápido - Rótulo, quantos ônibus e até quando - para resolver sem sair do formulário.
-12. Se ainda assim não houver como enviar, a linha explica o motivo e o botão de enviar fica desabilitado - escolha outro horário ou outra data.
-13. Envie. O pedido nasce **pendente de autorização** e já reserva a vaga.
+9. **Confira o resumo do pedido**, o quadro logo acima do botão de enviar. Ele junta, num lugar só, quantos **estudantes** e quantos **ônibus** são necessários (e vans adaptadas, quando há cadeirante - já com as outras escolas, se quem aprova as acrescentou); quantos ônibus estão **livres** para aquele horário ("3 ônibus livres para embarque às 13:00 em 05/10"); e o **tempo de viagem** estimado até o destino, que considera todas as escolas e, se não puder ser calculado, diz o porquê - o pedido pode ser enviado assim mesmo. Antes de preencher os dois horários, o número de ônibus livres é o do período, o mesmo que aparece em Disponibilidade; depois, conta pelo horário exato e se atualiza sozinho a cada troca. O quadro só aparece quando a data, o horário de embarque e o número de estudantes já foram informados.
+10. Se faltar ônibus no horário escolhido e houver um horário do mesmo período em que o pedido caberia, o quadro sugere: "A partir das 14h10 há ônibus suficientes." Quem aprova, num dia **sem nenhuma frota**, vê ali mesmo um cadastro rápido - Rótulo, quantos ônibus e até quando - para resolver sem sair do formulário.
+11. Os **erros** e os **avisos** também aparecem dentro do quadro. Se houver um erro que impede o envio, o quadro explica o motivo e o botão de enviar fica desabilitado - escolha outro horário ou outra data.
+12. Clique em **Enviar solicitação**. O pedido nasce **pendente de autorização** e já reserva a vaga.
+
+Se, ao enviar, alguma das **outras escolas** não puder ser acrescentada, o pedido é criado do mesmo jeito e um aviso diz qual escola ficou de fora. Para colocá-la, abra a solicitação e use **Acrescentar parada** (ver *Montar e ajustar as paradas*).
 
 O **período** é calculado assim:
 
@@ -262,15 +281,25 @@ escola não vê esse aviso: o formulário abre normalmente e diz que não há
 
 ### Aprovar ou negar
 
-1. No menu, em **Solicitações**, **clique na linha** do pedido. Abre uma janela
-   com tudo o que ele é e, no pé, só as decisões que cabem naquela situação.
-2. Para conferir como está o dia do pedido antes de decidir, clique em **Ver
-   disponibilidade do dia**, ao lado da situação. Abre a janela
-   **Disponibilidade do dia**, com a viagem deste pedido destacada na lista de
-   **Viagens do dia**; a seta **←** volta para o pedido.
+No menu, em **Solicitações**, **clique na linha** do pedido. Abre a janela
+**Detalhes da solicitação**, com a escola (ou as escolas) e a data logo abaixo
+do título. De cima para baixo, ela traz:
+
+- um **quadro-resumo**: o destino, a data e o período, os horários, o endereço e o link **ver no mapa**. Quem aprova vê, no canto do quadro, o lápis de **Editar solicitação** (ver a seção própria, mais abaixo);
+- quando o pedido foi **negado**, **cancelado** ou tem **cancelamento pedido**, a **justificativa** em destaque, logo abaixo do quadro;
+- a seção **Solicitação**, com Escola, Situação, Turma(s), Responsável, Telefone, Estudantes e Observação - o rótulo de um lado, o valor do outro. Só aparece o que foi informado;
+- a seção **Logística**, com Embarque, Saída do evento, Veículos, Trajeto e a lista **Escolas nesta viagem** (cada parada com o nome completo da escola);
+- o **Histórico**, que diz quem pediu e, depois da decisão, quem confirmou, negou ou cancelou, e quando;
+- no pé, só os botões de decisão que cabem naquela situação (ver a tabela em *O que cada situação permite*).
+
+Para decidir:
+
+1. Para conferir como está o dia do pedido antes de decidir, clique em **Ver disponibilidade do dia**, no alto da seção **Logística**. Abre a janela **Disponibilidade do dia**, com a viagem deste pedido destacada na lista de **Viagens do dia**; a seta **←** volta para o pedido.
+2. Um pedido **Solicitado** pode ir para **Pôr em análise** enquanto você o confere. Isso não decide nada; só marca que alguém está olhando.
 3. **Confirmar** aprova o transporte e reserva os veículos.
-4. **Negar** recusa o pedido. Abre uma segunda janela pedindo a justificativa,
-   que é **obrigatória** - a escola vê o texto que você escrever.
+4. **Negar** recusa o pedido. Abre uma segunda janela pedindo a justificativa, que é **obrigatória** - a escola vê o texto que você escrever.
+
+Decidiu errado? Veja *Reabrir uma decisão*, mais abaixo.
 
 ### Confirmar quando a frota do dia não comporta
 
@@ -288,21 +317,42 @@ quantos ônibus e vans adaptadas faltam.
    transporte adaptado*; quando a van estiver resolvida, abra o pedido e
    clique em **Confirmar** de novo.
 
-### Remanejar um pedido
+### Editar uma solicitação (quem aprova)
 
-1. Abra o pedido e clique em **Remanejar**, no canto esquerdo do rodapé.
-2. Altere o que for preciso: data, período, horários, destino (da lista de
-   locais) e número de ônibus e vans. Estudantes e escolas não mudam aqui -
-   ajuste-os em **Escolas nesta viagem**.
+1. Abra o pedido e clique no **lápis**, no canto do quadro-resumo. Ele só aparece enquanto o pedido está **Solicitado**, **Em análise** ou **Aguardando adaptado**. Para editar um pedido já confirmado, volte-o primeiro para análise (ver *Reabrir uma decisão*).
+2. Abre a janela **Editar solicitação**, com três blocos: **Quando** (**Data**, **Horário de embarque** e **Horário de saída do evento** - o período é calculado pelos horários, como no pedido), **Para onde e com quantos veículos** (**Destino**, da lista de locais, **Ônibus** e **Vans adaptadas**) e **Turma e responsável** (**Turma(s)**, **Servidor(a) responsável**, **Telefone / WhatsApp** e **Observações**). Estudantes e escolas não mudam aqui - ajuste-os em **Escolas nesta viagem**, na seção **Logística**.
 3. Clique em **Salvar**. Se o destino mudou, o tempo de viagem é recalculado.
-4. Se o pedido já reserva veículos e a nova data não comporta, abre a janela
-   **Faltam veículos neste dia** para criar a frota extra - ou **Agora não**,
-   para decidir depois.
+4. Se o pedido já reserva veículos e a nova data não comporta, abre a janela **Faltam veículos neste dia** para criar a frota extra - ou **Agora não**, para decidir depois.
 
-Para achar um pedido específico, use a caixa **Buscar na lista** acima da
-tabela, ou clique no título de uma coluna para reorganizar. Os campos de data
-e situação no alto buscam no sistema; a caixa de busca estreita o que já está
-na tela.
+### Reabrir uma decisão (quem aprova)
+
+Negou, cancelou ou confirmou por engano - ou a situação mudou e o pedido
+precisa de outra decisão? Dá para desfazer, em três casos:
+
+| O pedido está | O botão no pé da janela é | O que acontece |
+|---|---|---|
+| Negado | **Reabrir** | volta para **Em análise** |
+| Cancelado | **Reabrir** | volta para **Em análise** |
+| Confirmado | **Voltar para análise** | volta para **Em análise** |
+
+1. Abra o pedido e clique no botão.
+2. O sistema pergunta **Reabrir esta solicitação?** e explica que o pedido volta para análise **e volta a reservar os veículos**. Clique em **Reabrir**.
+3. Se o pedido estava negado ou cancelado e **não há veículo livre** naquele horário, a pergunta vira **Não há veículos livres neste horário. Reabrir mesmo assim?**, com o botão **Reabrir mesmo assim**. É só um aviso: você pode seguir e resolver na hora de confirmar (por exemplo, com uma frota extra).
+4. Pronto: o pedido está **Em análise**. Daí ele pode ser **confirmado** ou **negado** de novo, ou **editado** pelo lápis.
+
+A decisão anterior - quem decidiu, quando e a justificativa - **some da
+janela**, para não confundir. Ela **continua registrada na Auditoria**. Um
+pedido com cancelamento pedido pela escola não tem **Reabrir**: primeiro dê
+ciência, em **Confirmar cancelamento**.
+
+### Achar um pedido na lista
+
+A lista de **Solicitações** mostra o **nome completo** da escola; em tela
+estreita, mostra o apelido em maiúsculas. Para achar um pedido específico, use
+a caixa **Buscar na lista** acima da tabela, ou clique no título de uma coluna
+para reorganizar. Os campos de data e situação no alto buscam no sistema; a
+caixa de busca estreita o que já está na tela. A busca acha a escola tanto
+pelo nome quanto pelo apelido.
 
 ### Imprimir as fichas para a empresa
 
@@ -326,8 +376,8 @@ O que fazer depende de o pedido já ter sido aprovado ou não:
 
 | Situação | Quem cancela | Como |
 |---|---|---|
-| Ainda não aprovado | a escola, ou quem aprova | cancela na hora, com justificativa |
-| Já aprovado | a escola **pede** | fica *pendente de cancelamento* até quem aprova dar ciência |
+| Ainda não aprovado | a escola, ou quem aprova | **Cancelar solicitação**: cancela na hora, com justificativa |
+| Já aprovado | a escola **pede** | **Pedir cancelamento**: fica *pendente de cancelamento* até quem aprova dar ciência, em **Confirmar cancelamento** |
 
 A vaga volta ao saldo **no momento do pedido**, não no da ciência - assim o
 ônibus não fica parado esperando uma formalidade.
@@ -346,6 +396,10 @@ não cancela a viagem inteira: ela **sai da viagem**.
    escola saiu - a informação não some.
 
 ### Montar e ajustar as paradas (quem aprova)
+
+As paradas podem nascer já no pedido: em **Nova solicitação**, quem aprova usa
+o bloco **Outras escolas no mesmo ônibus** (ver *Pedir transporte*). Depois, a
+revisão continua na própria solicitação, na seção **Logística**:
 
 1. Abra o agendamento. Em **Escolas nesta viagem**, clique em **Acrescentar
    parada**. Escolha **Escola** e a unidade, ou **Outro ponto de embarque** e
@@ -501,6 +555,12 @@ pedido segue normalmente.
   além do nome, quando o destino não vem da lista de locais - é o que a
   empresa de transporte vai ler na ficha.
 - **Pedido sem o servidor(a) responsável ou sem o telefone/WhatsApp.**
+- **Outra escola acrescentada ao pedido sem o número de estudantes.** Cada
+  escola de **Outras escolas no mesmo ônibus** precisa dizer quantos estudantes
+  embarcam.
+- **Editar um pedido já confirmado, negado ou cancelado.** O lápis de **Editar
+  solicitação** só existe enquanto o pedido está Solicitado, Em análise ou
+  Aguardando adaptado. Para mudar um confirmado, volte-o para análise antes.
 
 ### O que apenas avisa
 
@@ -514,6 +574,13 @@ pedido segue normalmente.
 - **Endereço que já é de um local cadastrado.** Ao cadastrar um novo local, o
   sistema avisa e oferece **Usar este**, mas deixa seguir: dois nomes num
   mesmo endereço às vezes são dois lugares diferentes.
+- **Reabrir uma decisão sem veículo livre.** Ao reabrir um pedido negado ou
+  cancelado, o sistema avisa que não há veículos livres no horário e pergunta
+  se quer **Reabrir mesmo assim**. Não bloqueia: quem aprova pode, e a falta se
+  resolve na hora de confirmar.
+- **Uma das outras escolas não entrar na viagem ao enviar o pedido.** O pedido
+  é criado do mesmo jeito, e um aviso diz qual escola ficou de fora, para
+  acrescentá-la depois pela solicitação.
 - **Fechar a janela com algo preenchido.** O sistema pergunta antes de
   descartar - fechar sem querer faria perder o que foi digitado.
 - **Cadeirante sem van adaptada livre.** O pedido segue. Ao confirmar, quem
@@ -546,7 +613,7 @@ rótulo que permite entender, olhando um dia com 25 ônibus, que são 9 da frota
 regular mais 16 da Feira.
 
 **Frota extra sem pedido.** Se um pedido que ganhou frota extra é negado,
-cancelado ou remanejado para outra data, os veículos extras **não somem
+cancelado ou editado para outra data, os veículos extras **não somem
 sozinhos**. Eles aparecem no topo da página **Frota**, em *Frota extra sem
 pedido*, com dois botões: **Manter** (os veículos continuam, como um reforço
 comum daquele dia) e **Remover**. Quando o pedido é da **noite**, essa frota
@@ -570,7 +637,8 @@ continuam com o nome deles.
 - **OpenStreetMap** fornece as distâncias e a busca de endereço. É gratuito,
   sem conta, e recebe só endereços e coordenadas - nunca dado de pessoa.
 - **Auditoria** guarda quem aprovou, quem negou e quem cancelou cada pedido,
-  com data e hora.
+  com data e hora - e também as decisões que foram reabertas, com o que
+  valia antes.
 
 ## Perguntas frequentes
 
@@ -586,7 +654,7 @@ no mapa** só abre o Google Maps no navegador, sem nenhuma cobrança.
 
 **Pedi e o sistema disse que não há ônibus. E agora?**
 Pode ser o dia ou o horário: um dia com frota de sobra ainda pode não ter
-ônibus livre no horário exato que você pediu. Se a linha do saldo sugerir um
+ônibus livre no horário exato que você pediu. Se o resumo do pedido sugerir um
 horário - "A partir das 14h10 há ônibus suficientes" -, tente esse horário
 primeiro. Senão, troque a data ou confira a página **Disponibilidade** para
 achar um horário com mais folga.
@@ -616,4 +684,22 @@ Negado é um pedido que **nunca** chegou a valer - foi recusado na análise.
 Cancelado é um pedido que **estava de pé** e foi desfeito. Os dois exigem
 justificativa.
 
-> Atualizado na versão 0.42.0.
+**Neguei por engano. E agora?**
+Abra o pedido e clique em **Reabrir**. Ele volta para **Em análise** e você
+pode confirmá-lo. O sistema avisa se não houver veículo livre naquele
+horário, mas deixa seguir. A justificativa da negativa some da janela e fica
+guardada na Auditoria.
+
+**Preciso mudar um pedido que já confirmei.**
+O lápis de **Editar solicitação** só aparece antes de confirmar. Clique em
+**Voltar para análise**, edite o que for preciso e confirme de novo.
+
+**Cadastrei um pedido com várias escolas e uma ficou de fora.**
+O pedido foi criado, e o aviso na tela disse qual escola não entrou. Abra a
+solicitação e, em **Logística**, use **Acrescentar parada** para colocá-la.
+
+**A lista mostra o apelido da escola em vez do nome.**
+Em tela estreita a lista usa o apelido, em maiúsculas, para caber. Em tela
+larga ela mostra o nome completo.
+
+> Atualizado na versão 0.43.0.
