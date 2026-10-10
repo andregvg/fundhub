@@ -231,9 +231,16 @@ export const alteracaoDeReabertura = (agora) => ({
 
 export async function reabrirSolicitacao(id) {
   if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
-  const { error } = await sb().from('solicitacao_transporte')
-    .update(alteracaoDeReabertura(agoraISO())).eq('id', id);
+  // Só reabre o que está decidido: a tela pode estar velha, ou outro
+  // aprovador ter reaberto na frente.
+  const { data, error } = await sb().from('solicitacao_transporte')
+    .update(alteracaoDeReabertura(agoraISO())).eq('id', id)
+    .in('status', ['confirmado', 'negado', 'cancelado']).select('id');
   if (error) throw error;
+  if (!data?.length) {
+    const e = new Error('Esta solicitação já não está confirmada, negada nem cancelada. Atualize a lista.');
+    e.amigavel = true; throw e;
+  }
 }
 
 // ── Realtime ─────────────────────────────────────────────────

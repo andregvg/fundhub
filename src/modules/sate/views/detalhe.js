@@ -31,7 +31,7 @@ import { pontosDaViagem, explicarTrajeto, atualizarTrajeto, retratoTrajeto } fro
 import { linkRota, linkMaps } from '../../locais/geografia.model.js';
 import { enderecoCompleto } from '../../locais/locais.model.js';
 import { velocidadeOnibusKmh, margemParadaMin } from '../sate.config.js';
-import { esc, vazio } from '../../../shared/dom.js';
+import { esc, vazio, urlSegura } from '../../../shared/dom.js';
 import { fmtData, fmtDataHora, fmtCep } from '../../../shared/format.js';
 import { exibirTelefone } from '../../../shared/ui/phones.js';
 import { modalHead, abrirModal } from '../../../shared/ui/modal.js';
@@ -55,6 +55,10 @@ export async function abrirDetalhe(solicitacao, contexto) {
   const paradas = await getParticipacoes(s.id).catch(() => []);
   const corpo = document.getElementById('det-corpo');
   if (!corpo) return;   // fechou enquanto carregava
+  // Duas aberturas quase juntas (clique duplo na linha) chegam aqui com o
+  // MESMO nó: só a primeira desenha e liga os ouvintes.
+  if (corpo.dataset.ligado) return;
+  corpo.dataset.ligado = '1';
 
   const pode = acoesDoPedido(s, { aprovador: !!ctx.aprovador, somenteLeitura: !!ctx.somenteLeitura });
 
@@ -78,7 +82,7 @@ export async function abrirDetalhe(solicitacao, contexto) {
     </div>
     ${par('Embarque', s.horario_embarque ? `<b>${esc(s.horario_embarque)}</b>` : '')}
     ${par('Saída do evento', s.horario_retorno ? `<b>${esc(s.horario_retorno)}</b>` : '')}
-    ${par('Veículos', `${s.qtd_onibus || 0} ônibus${s.qtd_vans ? ` · ${s.qtd_vans} van(s) adaptada(s)` : ''}`)}
+    ${par('Veículos', `${esc(String(s.qtd_onibus || 0))} ônibus${s.qtd_vans ? ` · ${esc(String(s.qtd_vans))} van(s) adaptada(s)` : ''}`)}
     ${par('Trajeto', trajetoHtml(s, paradas))}
     ${blocoHtml(paradas, ctx)}
 
@@ -141,7 +145,7 @@ function enderecoHtml(s) {
   const mapa = l ? (l.maps_url || linkMaps(l.latitude, l.longitude)) : null;
   const partes = [
     enderecoDestino(s) ? esc(enderecoDestino(s)) : '',
-    mapa ? `<a href="${esc(mapa)}" target="_blank" rel="noopener">ver no mapa</a>` : '',
+    urlSegura(mapa) ? `<a href="${esc(mapa)}" target="_blank" rel="noopener">ver no mapa</a>` : '',
   ].filter(Boolean).join(' · ');
   if (!localAConferir(s)) return partes;
   const botao = ctx.aprovador && !ctx.somenteLeitura
@@ -173,7 +177,7 @@ function estudantesHtml(s, paradas) {
   const ativas = (paradas || []).filter(p => p.status === 'ativa');
   const surdos = ativas.reduce((n, p) => n + (Number(p.qtd_surdo) || 0), 0);
   return [
-    String(s.qtd_alunos || 0),
+    esc(String(s.qtd_alunos || 0)),
     s.qtd_cadeirante ? `${ico('cadeirante', { tam: 13 })} ${esc(String(s.qtd_cadeirante))} cadeirante(s)` : '',
     surdos ? `${surdos} surdo(s)` : '',
     ativas.some(p => p.necessidade_especifica) ? 'outra necessidade específica' : '',

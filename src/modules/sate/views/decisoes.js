@@ -149,6 +149,8 @@ async function reabrirPedido(btn, { s, paradas, executar }) {
       textoOk: semVaga ? 'Reabrir mesmo assim' : 'Reabrir',
     });
     if (ok) await executar(reabrirSolicitacao, 'Solicitação reaberta');
+  } catch (err) {
+    reportarErro(err, { titulo: 'Não foi possível reabrir' });
   } finally {
     btn.disabled = false;
   }

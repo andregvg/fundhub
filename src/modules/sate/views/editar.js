@@ -71,11 +71,14 @@ export function abrirEditar(s, ctx, reabrir) {
       </form>
     </div>`, { tamanho: 'medio', voltar: reabrir });
 
-  document.getElementById('rm-form').addEventListener('submit', (e) => salvar(e, s, ctx, reabrir));
+  // O texto que a pessoa vê nos dois campos ao abrir: é com ele que o salvar
+  // descobre se ela mexeu no responsável.
+  const inicial = { prof: val('rm-prof'), tel: val('rm-tel') };
+  document.getElementById('rm-form').addEventListener('submit', (e) => salvar(e, s, ctx, reabrir, inicial));
   document.getElementById('rm-tel').addEventListener('blur', (e) => { e.target.value = formatarTelefone(e.target.value); });
 }
 
-async function salvar(e, s, ctx, reabrir) {
+async function salvar(e, s, ctx, reabrir, inicial) {
   e.preventDefault();
   const msg = document.getElementById('rm-msg'); msg.className = 'auth-msg';
   const emb = val('rm-emb') || null, ret = val('rm-ret') || null;
@@ -91,6 +94,10 @@ async function salvar(e, s, ctx, reabrir) {
 
   const localId = document.getElementById('rm-local').value || null;
   const local = (ctx.locais || []).find(l => l.id === localId);
+  // O responsável só é regravado quando a pessoa mexeu nele. Pedido antigo
+  // guarda o contato só no texto livre (`contato_professor`), e o formulário
+  // abre com os dois campos vazios: regravar sem mudança apagaria o contato.
+  const mudouResponsavel = val('rm-prof') !== inicial.prof || val('rm-tel') !== inicial.tel;
   const patch = {
     data: val('rm-data'),
     periodo,
@@ -99,11 +106,13 @@ async function salvar(e, s, ctx, reabrir) {
     qtd_onibus: Math.max(0, parseInt(val('rm-onibus'), 10) || 0),
     qtd_vans: Math.max(0, parseInt(val('rm-vans'), 10) || 0),
     turmas: val('rm-turmas') || null,
-    professor_nome: val('rm-prof') || null,
-    professor_telefone: val('rm-tel') ? (paraE164(val('rm-tel')) || val('rm-tel')) : null,
-    // O texto composto que a ficha do motorista e os pedidos antigos leem.
-    contato_professor: [val('rm-prof'), val('rm-tel') ? formatarTelefone(val('rm-tel')) : ''].filter(Boolean).join(' · ') || null,
     observacao: val('rm-obs') || null,
+    ...(mudouResponsavel ? {
+      professor_nome: val('rm-prof') || null,
+      professor_telefone: val('rm-tel') ? (paraE164(val('rm-tel')) || val('rm-tel')) : null,
+      // O texto composto que a ficha do motorista e os pedidos antigos leem.
+      contato_professor: [val('rm-prof'), val('rm-tel') ? formatarTelefone(val('rm-tel')) : ''].filter(Boolean).join(' · ') || null,
+    } : {}),
     // Destino do cadastro troca nome e endereço junto; "manter" não mexe.
     ...(local ? { local_id: local.id, destino_nome: local.nome, destino_endereco: local.endereco || null,
       destino_numero: local.numero || null, destino_bairro: local.bairro || null } : {}),
