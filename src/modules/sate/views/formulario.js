@@ -14,22 +14,18 @@
 // que dizem onde a pessoa está numa coluna longa.
 // ============================================================
 import { criarSolicitacao } from '../sate.model.js';
-import {
-  lerOcupacao, intervaloDaViagem, livresPara, totalDoDia, proximoHorario, livresNoPeriodo, trajetoParaVaga,
-} from '../disponibilidade.model.js';
-import { periodoDe, onibusPara, vansPara, avaliarPedido } from '../regras.model.js';
-import { calcularTrajeto, retratoTrajeto, explicarTrajeto } from '../rota.model.js';
-import {
-  capacidadeOnibus, capacidadeVan, antecedenciaMinDias,
-  velocidadeOnibusKmh, margemParadaMin, trajetoProvisorioMin,
-} from '../sate.config.js';
+import { acrescentar } from '../participacoes.model.js';
+import { periodoDe, onibusPara, vansPara } from '../regras.model.js';
+import { calcularTrajeto, retratoTrajeto } from '../rota.model.js';
+import { capacidadeOnibus, capacidadeVan, antecedenciaMinDias, velocidadeOnibusKmh, margemParadaMin } from '../sate.config.js';
 import { getDiaCalendario, diaImpedeExtraclasse, motivoDoDia } from '../../calendario/calendario.model.js';
-import { cadastroRapidoHtml, ligarCadastroRapido } from './frota-rapida.js';
 import { destinoHtml, ligarDestino, lerDestino, validarDestino } from './formulario-destino.js';
 import { quandoHtml, ligarQuando } from './formulario-quando.js';
 import { responsavelHtml, ligarResponsavel, carregarEquipe } from './formulario-responsavel.js';
+import { resumoHtml, ligarResumo, revisar, repintarResumo } from './formulario-resumo.js';
+import { paradasHtml, ligarParadas, aoMudarPrincipal, lerParadas, validarParadas, destruirParadas } from './formulario-paradas.js';
 import { esc, val, falha, falhaNoCampo } from '../../../shared/dom.js';
-import { hojeISO, addDias, fmtData, isUuid } from '../../../shared/format.js';
+import { hojeISO, addDias, isUuid } from '../../../shared/format.js';
 import { paraE164, formatarTelefone } from '../../../shared/ui/phones.js';
 import { criarBuscaSelecao } from '../../../shared/ui/busca-selecao.js';
 import { modalHead, abrirModal, fecharModal } from '../../../shared/ui/modal.js';
@@ -38,17 +34,12 @@ import { ico } from '../../../shared/ui/icones.js';
 import { reportarErro } from '../../../shared/ui/feedback.js';
 
 let ctx = null;
-// Cada consulta de saldo recebe um número. Digitar "40" dispara duas
-// mudanças, e sem isto a resposta da primeira pode chegar depois da
-// segunda e pintar o saldo do número errado.
-let pedidoSaldo = 0;
 // O trajeto da escola escolhida até o destino escolhido. Vai para a
 // solicitação como retrato no envio (spec 2026-09-13-sate-rota, D4). O
 // contador evita que uma resposta velha (troca de escola duas vezes)
 // pinte por cima da mais nova.
 let trajeto = null;
 let pedidoTrajeto = 0;
-let deb = null;
 // Escola por busca para quem aprova (são 144); null para a escola, que
 // escolhe numa lista curta (spec 2026-10-02, D13). Destruído a cada
 // abertura pelo mesmo motivo de `bs` em formulario-destino.js.
@@ -62,7 +53,7 @@ export function abrirFormulario(contexto) {
   const minData = aprovador ? hojeISO() : addDias(hojeISO(), antecedenciaMinDias());
 
   abrirModal(`
-    ${modalHead(ico('onibus', { tam: 20 }) + 'Nova solicitação de ônibus')}
+    ${modalHead(ico('onibus', { tam: 20 }) + 'Nova solicitação')}
     <div class="modal-body">
       <form id="sol-form" class="esc-form">
 
@@ -74,6 +65,7 @@ export function abrirFormulario(contexto) {
               : `<label class="col-2">Escola <select id="f-esc" required>${opcoesEscola(unidades, perfil)}</select></label>`}
             <label>Turma(s) <input id="f-turmas" type="text" placeholder="Ex.: 5º A, 5º B" /></label>
             <label>Nº de estudantes <input id="f-alunos" type="number" inputmode="numeric" min="1" placeholder="0" required /></label>
+            ${aprovador ? paradasHtml() : ''}
           </div>
         </fieldset>
 
@@ -99,8 +91,7 @@ export function abrirFormulario(contexto) {
           </div>
         </fieldset>
 
-        <div id="f-trajeto" class="sol-trajeto" aria-live="polite"></div>
-        <div id="f-saldo" class="sol-saldo" aria-live="polite"></div>
+        ${resumoHtml()}
         <div class="form-foot">
           <span id="f-msg" class="auth-msg"></span>
           <button type="submit" id="f-submit" class="btn-primary" ${ctx.somenteLeitura ? 'disabled' : ''}>${ctx.somenteLeitura ? 'Envio desativado nesta visualização' : 'Enviar solicitação'}</button>
@@ -127,9 +118,16 @@ function opcoesEscola(unidades, perfil) {
 
 function ligar() {
   const form = document.getElementById('sol-form');
+  destruirParadas();
+  ligarResumo({ ctx, ler: lerParaResumo });
 
-  // A escola escolhida decide o trajeto e quem pode ser o responsável.
-  const aoMudarEscola = () => { pintarTrajeto(); carregarEquipe(escolaId()); };
+  // A escola escolhida decide o trajeto e quem pode ser o responsável; sai
+  // das outras paradas, se estava lá.
+  const aoMudarEscola = () => {
+    if (ctx.aprovador) aoMudarPrincipal();
+    pintarTrajeto();
+    carregarEquipe(escolaId());
+  };
 
   ligarDestino(ctx.locais, () => { pintarTrajeto(); revisar(); });
   buscaEscola?.destruir();
@@ -147,6 +145,19 @@ function ligar() {
     document.getElementById('f-esc').addEventListener('change', aoMudarEscola);
   }
   trajeto = null;
+  if (ctx.aprovador) {
+    // Digitar estudantes/horário numa parada não muda a rota: só uma parada
+    // que entra ou sai refaz o trajeto.
+    let paradas = '';
+    ligarParadas({
+      unidades: ctx.unidades, principal: escolaId,
+      aoMudar: () => {
+        const agora = lerParadas().map(p => p.unidadeId).join(',');
+        if (agora !== paradas) { paradas = agora; pintarTrajeto(); }
+        revisar();
+      },
+    });
+  }
 
   for (const id of ['f-alunos', 'f-cadeira']) {
     document.getElementById(id).addEventListener('change', revisar);
@@ -160,104 +171,46 @@ function ligar() {
   revisar();
 }
 
+// Tudo o que o resumo precisa saber do que foi digitado - a soma dos
+// estudantes e dos cadeirantes inclui as outras paradas (spec D6).
+function lerParaResumo() {
+  const extras = ctx.aprovador ? lerParadas() : [];
+  return {
+    data: val('f-data'), emb: val('f-emb') || null, ret: val('f-ret') || null,
+    alunos: (parseInt(val('f-alunos'), 10) || 0) + extras.reduce((n, p) => n + p.qtdAlunos, 0),
+    cadeirantes: (parseInt(val('f-cadeira'), 10) || 0) + extras.reduce((n, p) => n + p.qtdCadeirante, 0),
+    trajeto, localId: lerDestino().localId,
+  };
+}
+
 // ── Trajeto ──────────────────────────────────────────────────
 // Destino digitado à mão não tem coordenada e não é localizado sozinho
-// (spec D7) - só o local do cadastro entra no cálculo do trajeto.
+// (spec D7) - só o local do cadastro entra no cálculo do trajeto. O texto
+// do tempo de viagem é pintado pelo resumo; aqui só se calcula.
 async function pintarTrajeto() {
-  const box = document.getElementById('f-trajeto');
-  if (!box) return;
+  const meu = ++pedidoTrajeto;
   const escId = escolaId();
   const escola = (ctx.unidades || []).find(u => (u.id || u.numero) === escId);
   const d = lerDestino();
   const temDestino = !!(d.localId || d.nome);
-  if (!escola || !temDestino) { box.innerHTML = ''; trajeto = null; revisar(); return; }
+  if (!escola || !temDestino) { trajeto = null; revisar(); return; }
 
-  const meu = ++pedidoTrajeto;
-  box.innerHTML = `<span class="sol-trajeto-txt">Calculando o tempo de viagem…</span>`;
-  // A escola que pede é a única parada: o formulário cria uma viagem com
-  // uma participação, e a Gerência acrescenta as outras depois.
+  trajeto = null;   // enquanto calcula, o resumo não mostra o tempo velho
+  // A escola que pede é a primeira parada; quem aprova pode ter acrescentado
+  // outras no próprio formulário (spec D6), na ordem em que aparecem.
   const r = await calcularTrajeto({
-    participacoes: [{ unidade_id: escola.id || escola.numero, unidade: escola, status: 'ativa', ordem: 1 }],
+    participacoes: [
+      { unidade_id: escola.id || escola.numero, unidade: escola, status: 'ativa', ordem: 1 },
+      ...(ctx.aprovador ? lerParadas() : []).map((p, i) => ({ unidade_id: p.unidadeId, unidade: p.unidade, status: 'ativa', ordem: i + 2 })),
+    ],
     destino: d.local,
     velocidadeKmh: velocidadeOnibusKmh(), margemMin: margemParadaMin(),
   });
-  if (meu !== pedidoTrajeto || !document.getElementById('f-trajeto')) return;
+  if (meu !== pedidoTrajeto || !document.getElementById('f-resumo')) return;
   trajeto = r;
-  box.innerHTML = `<span class="sol-trajeto-txt ${r.status === 'ok' ? '' : 'fora'}">${esc(explicarTrajeto(r))}</span>`
-    + (r.status === 'ok' ? `<span class="sol-trajeto-fonte">Distância: © OpenStreetMap</span>` : '');
   // O trajeto (trajeto_min) entra no cálculo do intervalo ocupado (D5) -
   // recalcula o saldo para refletir o horário real, não a janela típica.
   revisar();
-}
-
-// ── Saldo ao vivo ────────────────────────────────────────────
-// Consulta o banco no máximo a cada 400 ms, e só quando data, período e
-// nº de estudantes já foram informados - sem eles não há saldo a mostrar.
-function revisar() {
-  clearTimeout(deb);
-  deb = setTimeout(pintarSaldo, 400);
-}
-
-async function pintarSaldo() {
-  const box = document.getElementById('f-saldo');
-  const btn = document.getElementById('f-submit');
-  if (!box) return;   // o modal fechou enquanto o debounce corria
-
-  const data = val('f-data');
-  const periodo = periodoDe(val('f-emb'), val('f-ret'));
-  const alunos = parseInt(val('f-alunos'), 10) || 0;
-  if (!data || !periodo || !alunos) { box.innerHTML = ''; btn.disabled = !!ctx.somenteLeitura; return; }
-
-  const meu = ++pedidoSaldo;
-  let linha;
-  try { linha = await lerOcupacao(data); }
-  catch (_) { box.innerHTML = ''; btn.disabled = !!ctx.somenteLeitura; return; }
-  if (meu !== pedidoSaldo) return;   // resposta velha: descarta
-
-  const emb = val('f-emb') || null, ret = val('f-ret') || null;
-  const trajetoMin = trajetoParaVaga({ trajeto_min: trajeto?.min ?? null, local_id: lerDestino().localId }, trajetoProvisorioMin());
-  // Com os dois horários, a conta é do INTERVALO do pedido (spec D5/D8).
-  // Sem eles, o número da página Disponibilidade para o período.
-  const iv = emb && ret ? intervaloDaViagem({
-    periodo, embarque: emb, retorno: ret, trajetoMin, intervaloMin: linha.intervaloMin,
-  }) : null;
-  const livres = iv ? livresPara(linha, iv.ini, iv.fim, 'onibus') : livresNoPeriodo(linha, 0, periodo, 'onibus');
-  const livresVan = iv ? livresPara(linha, iv.ini, iv.fim, 'vans') : livresNoPeriodo(linha, 0, periodo, 'vans');
-  const totalDia = totalDoDia(linha, 0, 'onibus');
-  const r = avaliar({ data, periodo, alunos, livres, livresVan, totalDia, emb, ret, linha, iv });
-
-  const quando = iv ? `para embarque às ${esc(emb)}` : `no período`;
-  const linhas = [
-    totalDia ? `<div class="sol-saldo-num"><b>${Math.max(0, livres)}</b> ônibus livres ${quando} em ${esc(fmtData(data))}`
-      + ` · este pedido usa <b>${r.onibus}</b></div>` : '',
-    linha.aproximado ? '<div class="sol-aviso">Contagem sem horário: o banco ainda não tem a atualização desta versão.</div>' : '',
-    ...r.erros.map(e => `<div class="sol-erro">${esc(e.texto)}</div>`),
-    ...r.avisos.map(a => `<div class="sol-aviso">${esc(a.texto)}</div>`),
-  ];
-  // Quem aprova, num dia sem frota: o cadastro rápido ali mesmo (spec D4).
-  if (ctx.aprovador && r.erros.some(e => e.codigo === 'sem_frota_dia')) linhas.push(await cadastroRapidoHtml(data, periodo));
-  // cadastroRapidoHtml() consultou o banco (getRotulos): outra pintura
-  // pode ter começado e terminado nesse meio-tempo, ou o modal fechou.
-  if (meu !== pedidoSaldo || !document.getElementById('f-saldo')) return;
-  box.innerHTML = linhas.join('');
-  ligarCadastroRapido(data, pintarSaldo);
-  btn.disabled = r.erros.length > 0 || !!ctx.somenteLeitura;
-}
-
-function avaliar({ data, periodo, alunos, livres, livresVan, totalDia, emb, ret, linha, iv }) {
-  const dias = Math.round((new Date(data + 'T00:00:00') - new Date(hojeISO() + 'T00:00:00')) / 86400000);
-  const precisa = Math.ceil(alunos / capacidadeOnibus());
-  return avaliarPedido({
-    periodo, qtdAlunos: alunos, usaOnibus: true,
-    qtdCadeirantes: parseInt(val('f-cadeira'), 10) || 0,
-    livres, livresVan, totalDia,
-    proximo: iv && precisa > livres ? proximoHorario(linha, { ini: iv.ini, fim: iv.fim, precisa, periodo }) : null,
-    diasDeAntecedencia: dias,
-    horarioEmbarque: emb, horarioRetorno: ret,
-    capacidadeOnibus: capacidadeOnibus(), capacidadeVan: capacidadeVan(),
-    antecedenciaMin: antecedenciaMinDias(),
-    aprovador: !!ctx.aprovador,
-  });
 }
 
 // ── Envio ────────────────────────────────────────────────────
@@ -285,6 +238,9 @@ async function enviar(e) {
   if (!qtd) return erro('#f-alunos', 'Informe o nº de estudantes.');
   const erroDestino = validarDestino(d);
   if (erroDestino) return erro(erroDestino.campo, erroDestino.texto);
+  const extras = aprovador ? lerParadas() : [];
+  const erroParada = aprovador ? validarParadas() : null;
+  if (erroParada) return erro(erroParada.campo, erroParada.texto);
   if (!data) return erro('#f-dia', 'Informe a data da viagem.');
   if (!emb) return erro('#f-emb', 'Informe o horário de embarque.');
   if (!ret) return erro('#f-ret', 'Informe o horário de saída do evento.');
@@ -310,12 +266,15 @@ async function enviar(e) {
   // jsonb_populate_record, que põe NULO no que não veio - o DEFAULT não
   // vale, e o banco recusava com "campo obrigatório em branco". O valor é o
   // mesmo da participação, então o gatilho recalcula para o mesmo número.
+  // Os veículos saem do TOTAL da viagem, com as outras paradas (spec D6).
+  const totalAlunos = qtd + extras.reduce((n, p) => n + p.qtdAlunos, 0);
+  const totalCadeira = cadeira + extras.reduce((n, p) => n + p.qtdCadeirante, 0);
   const viagem = {
     qtd_cadeirante: cadeira,
     unidade_id: unidadeId,          // quem ABRIU o pedido, não quem é dono
     data, periodo,                  // o banco recalcula (044); vai para o caso de a 044 não ter rodado
-    qtd_onibus: onibusPara(qtd, capacidadeOnibus()),
-    qtd_vans: vansPara(cadeira, capacidadeVan()),
+    qtd_onibus: onibusPara(totalAlunos, capacidadeOnibus()),
+    qtd_vans: vansPara(totalCadeira, capacidadeVan()),
     turmas: val('f-turmas') || null,
     local_id: d.localId,
     destino_nome: d.nome || null,
@@ -352,17 +311,30 @@ async function enviar(e) {
   const btn = document.getElementById('f-submit');
   btn.disabled = true; btn.textContent = 'Enviando…';
   try {
-    await criarSolicitacao(viagem, participacao);
+    const criada = await criarSolicitacao(viagem, participacao);
+    // As outras paradas entram em seguida (spec D6). Se alguma falhar, a
+    // viagem EXISTE: avisa qual não entrou, para acrescentar pela solicitação.
+    const naoEntraram = [];
+    for (const p of extras) {
+      try {
+        await acrescentar(criada.id, { unidadeId: p.unidadeId, qtdAlunos: p.qtdAlunos, qtdCadeirante: p.qtdCadeirante, horario: p.horario });
+      } catch (_) { naoEntraram.push(p.unidade?.nome || 'uma escola'); }
+    }
     fecharModal();
     ctx.recarregar?.();
-    toast({ titulo: 'Solicitação enviada', texto: escola, tipo: 'sucesso' });
+    if (naoEntraram.length) {
+      toast({ titulo: 'Solicitação enviada, mas falta acrescentar', tipo: 'atencao',
+        texto: `${naoEntraram.join(', ')} não entrou na viagem. Abra a solicitação e use "Acrescentar parada".` });
+    } else {
+      toast({ titulo: 'Solicitação enviada', texto: escola, tipo: 'sucesso' });
+    }
   } catch (err) {
     // O banco recalcula os veículos e trava por data (migration 042): o
     // horário pode ter deixado de caber entre a última pintura do saldo e
     // o clique em Enviar - outra escola pode ter acabado de pegar a vaga.
     if (err.code === 'P0001' && String(err.message || '').startsWith('Sem onibus livres')) {
       erro('#f-emb', 'Não há ônibus livres para este horário. Escolha outro horário ou outra data.');
-      pintarSaldo();
+      repintarResumo();
     } else if (err.code === '23502' && String(err.message || '').startsWith('Informe o horario')) {
       erro(emb ? '#f-ret' : '#f-emb', 'Informe o horário de embarque e o de saída do evento.');
     } else if (err.code === '23502' && String(err.message || '').startsWith('Informe o professor')) {

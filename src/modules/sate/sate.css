@@ -84,17 +84,22 @@ body.app-sate { --info-bg: color-mix(in srgb, var(--brand) 12%, var(--surface));
 .dest-mesmo:empty { display: none; }
 .dest-mesmo .form-hint { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
 
-/* ── Saldo ao vivo no formulário (spec S3, D3) ──────────────── */
-.sol-saldo { margin: 4px 0 12px; display: flex; flex-direction: column; gap: 6px; }
-/* Trajeto: uma linha discreta acima do saldo. Informação para decidir,
-   não alerta - por isso sem fundo colorido, nem quando não calculou. */
-.sol-trajeto:empty { display: none; }
-.sol-trajeto { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin-top: 4px; font-size: 13px; }
-.sol-trajeto-txt { color: var(--text); }
-.sol-trajeto-txt.fora { color: var(--muted); }
+/* ── Resumo do pedido, no formulário ────────────────────────── */
+/* O que a pessoa confere antes de enviar. Um quadro só, com a faixa lateral
+   na cor do SATE (spec 2026-10-10-sate-solicitacao, D8). */
+.sol-resumo {
+  display: flex; flex-direction: column; gap: 8px;
+  margin: 4px 0 12px; padding: 12px 14px;
+  border: 1px solid color-mix(in srgb, var(--brand) 18%, var(--border));
+  border-left: 4px solid var(--brand); border-radius: var(--radius);
+  background: color-mix(in srgb, var(--brand) 5%, var(--surface));
+}
+.sol-resumo[hidden] { display: none; }
+.sol-resumo-fatos { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 4px; font-size: 13.5px; }
+.sol-resumo-fatos > li { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.sol-resumo-fatos .ico { color: var(--muted); flex: 0 0 auto; }
+.sol-resumo-fatos .fora { color: var(--muted); }
 .sol-trajeto-fonte { color: var(--muted); font-size: 11.5px; }
-.sol-saldo-num { color: var(--muted); font-size: 13px; }
-.sol-saldo-num b { color: var(--text); font-size: 15px; }
 .sol-erro, .sol-aviso {
   padding: 8px 11px;
   border-radius: var(--radius-btn);
@@ -104,7 +109,23 @@ body.app-sate { --info-bg: color-mix(in srgb, var(--brand) 12%, var(--surface));
 .sol-erro   { background: var(--erro-bg);    color: var(--danger); }
 .sol-aviso  { background: var(--atencao-bg); color: var(--text); }
 
-/* Cadastro rápido de frota, na linha do saldo (quem aprova, dia sem frota). */
+/* Outras escolas no mesmo ônibus (quem aprova). */
+.sol-paradas { display: flex; flex-direction: column; gap: 8px; }
+.sol-paradas-lista { display: flex; flex-direction: column; gap: 8px; }
+.sol-paradas-lista:empty { display: none; }
+.sol-parada {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px; align-items: end;
+  padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-btn);
+}
+.sol-parada > b { grid-column: 1 / -1; }
+.sol-parada > label { display: flex; flex-direction: column; gap: 4px; }
+.sol-parada > .mini-btn { justify-self: end; }
+@media (min-width: 720px) {
+  .sol-parada { grid-template-columns: 2fr 1fr 1fr 1fr auto; }
+  .sol-parada > b { grid-column: auto; align-self: center; }
+}
+
+/* Cadastro rápido de frota, no resumo (quem aprova, dia sem frota). */
 .sol-cad-frota { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px;
   border: 1px dashed var(--border-forte); border-radius: var(--radius-btn); }
 .sol-cad-campos { display: grid; grid-template-columns: 1fr; gap: 8px; align-items: end; }
