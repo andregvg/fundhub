@@ -757,4 +757,4 @@ Confira em **Configurações**, no grupo **Notificações**, se o interruptor
 daquele tipo de aviso está ligado. Só quem aprova recebe sempre o aviso de
 solicitação nova.
 
-> Atualizado na versão 0.44.0.
+> Atualizado na versão 0.44.1.

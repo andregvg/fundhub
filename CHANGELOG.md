@@ -19,6 +19,7 @@ partir das versões do FundHub que mudaram algo para quem usa o SATE.
 
 | SATE | FundHub | Em resumo |
 |---|---|---|
+| 0.22.1 | 0.44.1 | correções: solicitação sem escola ativa volta a abrir, ponto de novidade sempre aparece |
 | 0.22.0 | 0.44.0 | avisos que ficam no sino até a solicitação ser aberta, sem avisar quem fez a ação, com escolha do que receber |
 | 0.21.0 | 0.43.0 | solicitação redesenhada, reabrir decisão, editar antes de confirmar, várias escolas já no pedido, nome completo na lista |
 | 0.20.0 | 0.42.0 | calendário escolar na Disponibilidade, o dia em detalhe para quem aprova, data bloqueada avisada ao escolher |
@@ -50,6 +51,21 @@ partir das versões do FundHub que mudaram algo para quem usa o SATE.
 
 ---
 
+## [0.44.1] - 2026-10-10
+
+> SATE 0.22.1. Não exige atualização do banco.
+
+### Corrigido
+
+- **Uma solicitação em que nenhuma escola está mais ativa volta a abrir.** Ela ficava parada em
+  "carregando".
+- **O ponto de novidade da lista de solicitações aparece sempre.** Antes ele podia faltar ao abrir
+  a página, e não acendia quando um aviso chegava com a lista já na tela.
+- **As listas dos tutoriais não recomeçam mais a numeração** no meio de um passo a passo.
+- Ao editar uma solicitação e trocar o destino, o CEP acompanha o endereço novo.
+- Ao conferir um local, os botões ficam travados enquanto os pedidos são atualizados, e o aviso
+  diz quando o tempo de viagem de algum deles não pôde ser recalculado.
+
 ## [0.44.0] - 2026-10-10
 
 > SATE 0.22.0.
@@ -73,11 +89,6 @@ partir das versões do FundHub que mudaram algo para quem usa o SATE.
 
 - Na lista de solicitações, um **ponto** ao lado da escola marca as que têm novidade por ver.
 - Clicar num aviso abre a solicitação correspondente.
-
-### Corrigido
-
-- As listas dos tutoriais não recomeçam mais a numeração no meio de um passo a passo.
-- Uma solicitação em que nenhuma escola está mais ativa volta a abrir.
 
 ## [0.43.0] - 2026-10-10
 
