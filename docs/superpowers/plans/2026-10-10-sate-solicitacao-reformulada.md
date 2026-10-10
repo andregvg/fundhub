@@ -497,9 +497,9 @@ function resumoHtml(s, podeEditar) {
 const destino = (s) => s.destino_nome || s.atividade?.local_nome || '';
 const localDe = (s) => (ctx.locais || []).find(l => l.id === s.local_id) || null;
 
-// O CEP vem do local do cadastro quando o pedido aponta para um; senão,
-// do que a escola digitou.
-const cepDestino = (s) => (s.local_id ? localDe(s)?.cep : s.destino_cep) || '';
+// O CEP vem do local do cadastro quando o pedido aponta para um; senão
+// (ou se o local saiu do cadastro), do que ficou gravado no pedido.
+const cepDestino = (s) => localDe(s)?.cep || s.destino_cep || '';
 
 // Endereço do destino: as três partes (spec 2026-09-27, D3), com o
 // endereço da atividade como último recurso para pedidos antigos.
