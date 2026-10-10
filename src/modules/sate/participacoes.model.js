@@ -163,11 +163,12 @@ export const envolveUnidade = (solicitacao, partes, unidadeId) =>
   || (partes || []).some(p => p.unidade_id === unidadeId);
 
 // ── Resumo para as listas ────────────────────────────────────
-// O nome que a tabela de solicitações mostra na coluna "Escolas": uma
-// escola pelo nome, várias pela contagem. É função pura.
-export function resumoEscolas(participacoes = []) {
+// As escolas ATIVAS de uma viagem, numa linha: "Escola Exemplo" ou
+// "Escola Exemplo +2". Nome completo por padrão; `curto` usa o apelido
+// (a coluna da lista em tela estreita). Cancelada não embarca, não conta.
+export function resumoEscolas(participacoes = [], { curto = false } = {}) {
   const nomes = participacoes.filter(ativa)
-    .map(p => p.unidade?.apelido || p.unidade?.nome || p.local?.nome || '')
+    .map(p => (curto && p.unidade?.apelido) || p.unidade?.nome || p.local?.nome || '')
     .filter(Boolean);
   if (!nomes.length) return '';
   if (nomes.length === 1) return nomes[0];

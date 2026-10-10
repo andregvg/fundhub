@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import { periodoDe, tituloDoPedido, responsavelDoPedido, PERIODOS, alocarFichas } from '../src/modules/sate/regras.model.js';
 import { JANELA, TIPICO, trajetoParaVaga, intervaloDaViagem } from '../src/modules/sate/disponibilidade.model.js';
 import { enderecoCompleto, locaisParecidos, localNoEndereco } from '../src/modules/locais/locais.model.js';
-import { localAConferir } from '../src/modules/sate/sate.model.js';
+import { localAConferir, acoesDoPedido, alteracaoDeReabertura } from '../src/modules/sate/sate.model.js';
+import { resumoEscolas } from '../src/modules/sate/participacoes.model.js';
 
 test('periodoDe: manhã, integral, tarde, noite', () => {
   assert.equal(periodoDe('07:30', '11:00'), 'manha');
@@ -109,4 +110,69 @@ test('localNoEndereco: mesma rua e número, sem acento, caixa ou abreviação', 
   assert.equal(localNoEndereco('Rua Velha Exemplo', '5', locais), null);   // inativo
   assert.equal(localNoEndereco('', '100', locais), null);
   assert.equal(localNoEndereco('Rua São Exemplo', '', locais), null);
+});
+
+// ── O que cabe em cada situação (spec 2026-10-10-sate-solicitacao, D4 e D5) ──
+const ap = { aprovador: true };
+const esc_ = { aprovador: false };
+const dec = (status, quem) => acoesDoPedido({ status }, quem).decisoes;
+
+test('acoesDoPedido: quem aprova, por situação', () => {
+  assert.deepEqual(dec('solicitado', ap), ['analisar', 'negar', 'confirmar']);
+  assert.deepEqual(dec('em_analise', ap), ['negar', 'confirmar']);
+  assert.deepEqual(dec('aguardando_transporte_adaptado', ap), ['negar', 'confirmar']);
+  assert.deepEqual(dec('confirmado', ap), ['reabrir', 'cancelar']);
+  assert.deepEqual(dec('pendente_cancelamento', ap), ['ciencia']);
+  assert.deepEqual(dec('negado', ap), ['reabrir']);
+  assert.deepEqual(dec('cancelado', ap), ['reabrir']);
+});
+
+test('acoesDoPedido: a escola só cancela ou pede cancelamento', () => {
+  assert.deepEqual(dec('solicitado', esc_), ['cancelar']);
+  assert.deepEqual(dec('confirmado', esc_), ['pedir']);
+  for (const st of ['em_analise', 'aguardando_transporte_adaptado', 'pendente_cancelamento', 'negado', 'cancelado']) {
+    assert.deepEqual(dec(st, esc_), [], st);
+  }
+});
+
+test('acoesDoPedido: editar só quem aprova, e só antes de confirmar', () => {
+  for (const st of ['solicitado', 'em_analise', 'aguardando_transporte_adaptado']) {
+    assert.equal(acoesDoPedido({ status: st }, ap).editar, true, st);
+    assert.equal(acoesDoPedido({ status: st }, esc_).editar, false, st);
+  }
+  for (const st of ['confirmado', 'pendente_cancelamento', 'negado', 'cancelado']) {
+    assert.equal(acoesDoPedido({ status: st }, ap).editar, false, st);
+  }
+});
+
+test('acoesDoPedido: vendo como escola, nada', () => {
+  assert.deepEqual(acoesDoPedido({ status: 'solicitado' }, { aprovador: true, somenteLeitura: true }),
+    { editar: false, decisoes: [] });
+});
+
+test('alteracaoDeReabertura volta para análise e limpa a decisão', () => {
+  assert.deepEqual(alteracaoDeReabertura('2026-10-10T12:00:00.000Z'), {
+    status: 'em_analise', motivo: null, decidido_por: null, decidido_em: null,
+    atualizado_em: '2026-10-10T12:00:00.000Z',
+  });
+});
+
+// ── A coluna Escolas (spec 2026-10-10-sate-solicitacao, D2) ──
+const parte = (nome, apelido, status = 'ativa') => ({ status, unidade: { nome, apelido } });
+
+test('resumoEscolas: nome completo por padrão, apelido no curto', () => {
+  const uma = [parte('Escola Municipal Exemplo', 'Exemplo')];
+  assert.equal(resumoEscolas(uma), 'Escola Municipal Exemplo');
+  assert.equal(resumoEscolas(uma, { curto: true }), 'Exemplo');
+});
+
+test('resumoEscolas: várias escolas viram "primeira +N"', () => {
+  const tres = [parte('Escola A', 'A'), parte('Escola B', 'B'), parte('Escola C', 'C')];
+  assert.equal(resumoEscolas(tres), 'Escola A +2');
+  assert.equal(resumoEscolas(tres, { curto: true }), 'A +2');
+});
+
+test('resumoEscolas: cancelada não conta, e sem apelido o curto cai no nome', () => {
+  assert.equal(resumoEscolas([parte('Escola A', 'A', 'cancelada'), parte('Escola B', null)], { curto: true }), 'Escola B');
+  assert.equal(resumoEscolas([]), '');
 });

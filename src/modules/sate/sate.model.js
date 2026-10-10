@@ -191,6 +191,51 @@ export function pedirCancelamento(id, motivo) {
 // que a escola escreveu no pedido.
 export const confirmarCancelamento = (id) => transicionar(id, 'cancelado');
 
+// ── O que cabe em cada situação ──────────────────────────────
+// As ações de uma solicitação, por situação e por quem olha (spec
+// 2026-10-10-sate-solicitacao, D4 e D5). Pura: a ficha só desenha o que
+// sai daqui. Esconder botão é conforto; quem barra de fato é o RLS (R6).
+//
+//   editar    - o lápis: só quem aprova, e só antes de confirmar. Para
+//               editar um pedido confirmado, primeiro se reabre.
+//   decisoes  - na ordem em que os botões aparecem.
+const EDITAVEL = ['solicitado', 'em_analise', 'aguardando_transporte_adaptado'];
+const DECISOES = {
+  aprovador: {
+    solicitado: ['analisar', 'negar', 'confirmar'],
+    em_analise: ['negar', 'confirmar'],
+    aguardando_transporte_adaptado: ['negar', 'confirmar'],
+    confirmado: ['reabrir', 'cancelar'],
+    pendente_cancelamento: ['ciencia'],
+    negado: ['reabrir'],
+    cancelado: ['reabrir'],
+  },
+  escola: { solicitado: ['cancelar'], confirmado: ['pedir'] },
+};
+
+export function acoesDoPedido(s, { aprovador = false, somenteLeitura = false } = {}) {
+  // Vendo como a escola: os botões seriam os dela, mas quem clicaria tem
+  // os poderes de quem aprova no banco. Nada.
+  if (somenteLeitura) return { editar: false, decisoes: [] };
+  const mapa = aprovador ? DECISOES.aprovador : DECISOES.escola;
+  return { editar: aprovador && EDITAVEL.includes(s?.status), decisoes: [...(mapa[s?.status] || [])] };
+}
+
+// Reabrir desfaz uma decisão: negado, cancelado ou confirmado voltam para
+// análise, de onde saem confirmar e negar. Limpa quem decidiu, quando e a
+// justificativa - o que houve antes continua no audit_log. Pura, para o
+// teste fixar exatamente o que muda.
+export const alteracaoDeReabertura = (agora) => ({
+  status: 'em_analise', motivo: null, decidido_por: null, decidido_em: null, atualizado_em: agora,
+});
+
+export async function reabrirSolicitacao(id) {
+  if (!hasSupabase()) throw new Error('Sem conexão com o banco.');
+  const { error } = await sb().from('solicitacao_transporte')
+    .update(alteracaoDeReabertura(agoraISO())).eq('id', id);
+  if (error) throw error;
+}
+
 // ── Realtime ─────────────────────────────────────────────────
 export function subscribeSolicitacoes(handler) {
   return subscribeTabela('solicitacao_transporte', handler, 'solic-rt');

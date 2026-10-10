@@ -111,6 +111,15 @@ body.app-sate { --info-bg: color-mix(in srgb, var(--brand) 12%, var(--surface));
 @media (min-width: 720px) { .sol-cad-campos { grid-template-columns: 2fr 1fr 1fr auto; } }
 .sol-cad-campos label { display: flex; flex-direction: column; gap: 4px; }
 
+/* Coluna Escolas da lista: apelido em maiúsculas na tela estreita, nome
+   completo a partir de 720px (o corte em que a tabela já esconde colunas). */
+.sol-esc-nome { display: none; }
+.sol-esc-apelido { text-transform: uppercase; }
+@media (min-width: 720px) {
+  .sol-esc-nome { display: inline; }
+  .sol-esc-apelido { display: none; }
+}
+
 /* ── Modal de detalhe ───────────────────────────────────────── */
 .det-trajeto-extras { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; margin-top: 4px; font-size: 13px; }
 .det-trajeto-extras a { display: inline-flex; align-items: center; gap: 4px; }

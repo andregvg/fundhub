@@ -112,7 +112,10 @@ async function carregar() {
   // Vendo como uma escola: o banco devolveu a rede inteira (quem olha
   // aprova), e a lista mostra só o que a escola veria.
   if (ctx.simulando) lista = lista.filter(s => envolveUnidade(s, porViagem[s.id], ctx.simulando.id));
-  for (const s of lista) s._escolas = resumoEscolas(porViagem[s.id] || []);
+  for (const s of lista) {
+    s._escolas = resumoEscolas(porViagem[s.id] || []);
+    s._escolasCurto = resumoEscolas(porViagem[s.id] || [], { curto: true });
+  }
 
   tabela = montarTabela(box, {
     colunas: COLUNAS,
@@ -131,11 +134,18 @@ async function carregar() {
 
 // `valor` ordena e busca (texto puro); `celula` desenha (spec de listas,
 // D2). Sem a separação, ordenar "Situação" ordenaria pelo markup do chip.
+const nomeEscolas = (s) => s._escolas || s.unidade?.nome || '';
+const apelidoEscolas = (s) => s._escolasCurto || s.unidade?.apelido || nomeEscolas(s);
+
 const COLUNAS = [
   // "Escolas", no plural: uma viagem pode ter várias, e a coluna mostra
-  // a primeira mais a contagem ("Escola Exemplo +2").
+  // a primeira mais a contagem ("Escola Exemplo +2"). Nome completo; em
+  // tela estreita, o apelido em maiúsculas (spec 2026-10-10-sate-solicitacao,
+  // D2) - os dois vão na célula e o CSS mostra um. `valor` traz os dois
+  // para a busca achar por qualquer um; a ordem é pelo nome completo.
   { id: 'escola', rotulo: 'Escolas',
-    valor: s => s._escolas || s.unidade?.apelido || s.unidade?.nome || '' },
+    valor: s => [nomeEscolas(s), apelidoEscolas(s)].filter(Boolean).join(' · '),
+    celula: s => `<span class="sol-esc-nome">${esc(nomeEscolas(s))}</span><span class="sol-esc-apelido">${esc(apelidoEscolas(s))}</span>` },
   { id: 'data', rotulo: 'Data', tipo: 'data',
     valor: s => s.data || '',
     celula: s => esc(fmtData(s.data)) },
