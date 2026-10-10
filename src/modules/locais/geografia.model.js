@@ -30,11 +30,14 @@ const CIDADE_PADRAO = 'Ribeirão Preto, SP, Brasil';
 const TEMPO_LIMITE_MS = 10000;
 
 // Serviço público fora do ar não pode deixar botão girando para sempre.
-async function buscarJson(url) {
+// `nuloEm404`: o serviço de CEP responde 404 para CEP que não existe - é
+// resposta, não falha.
+async function buscarJson(url, { nuloEm404 = false } = {}) {
   const ctl = new AbortController();
   const t = setTimeout(() => ctl.abort(), TEMPO_LIMITE_MS);
   try {
     const r = await fetch(url, { signal: ctl.signal, headers: { Accept: 'application/json' } });
+    if (r.status === 404 && nuloEm404) return null;
     if (!r.ok) throw new Error(`Serviço de mapa respondeu ${r.status}.`);
     return await r.json();
   } finally {
@@ -97,6 +100,34 @@ export function variantesDeEndereco(endereco) {
   return [...new Set([original, enxuto].filter(Boolean))];
 }
 
+const esperar = (ms) => new Promise(r => setTimeout(r, ms));
+
+// Procura um endereço tentando as variantes, da mais completa à mais
+// enxuta. Devolve { achado, precisao } ou { achado: null, motivo }:
+//   'aproximado' - o mapa só achou o bairro ou a cidade (erra quilômetros,
+//                  e gravar isso seria pior que não ter localização);
+//   'nada'       - não achou, ou achou em outra cidade.
+// Lança só se o SERVIÇO falhar. `pausaMs` separa as consultas (o Nominatim
+// aceita uma por segundo); `continuar` é como quem chama manda parar.
+// `buscar` existe para o teste trocar a rede.
+//
+// Três usos: o lote de escolas e os dois formulários com "Localizar pelo
+// endereço" (spec 2026-10-10-sate-endereco-e-cep, D1).
+export async function localizarEndereco(endereco, { pausaMs = 0, continuar = () => true, buscar = geocodificar } = {}) {
+  let motivo = 'nada';
+  const variantes = variantesDeEndereco(endereco);
+  for (let i = 0; i < variantes.length; i++) {
+    if (!continuar()) break;
+    if (i > 0 && pausaMs) await esperar(pausaMs);
+    const r = await buscar(variantes[i]);
+    if (!r || !naCidade(r)) continue;
+    const precisao = precisaoDe(r);
+    if (precisao === 'aproximada') { motivo = 'aproximado'; continue; }
+    return { achado: r, precisao };
+  }
+  return { achado: null, motivo };
+}
+
 // Coordenada válida: número finito dentro do globo. `0,0` fica de fora de
 // propósito - é o valor que um campo vazio vira quando alguém faz
 // `Number('')`, e fica no meio do Atlântico.
@@ -106,6 +137,38 @@ export function temCoordenada(lat, lng) {
     && Number.isFinite(a) && Number.isFinite(b)
     && Math.abs(a) <= 90 && Math.abs(b) <= 180 && !(a === 0 && b === 0);
 }
+
+// ── CEP ──────────────────────────────────────────────────────
+// Rua, bairro e um ponto NO NÍVEL DA RUA a partir do CEP. É o que acha o
+// lugar quando o nome oficial da rua difere do nome no OpenStreetMap.
+// Serviço público, sem chave (spec 2026-10-10-sate-endereco-e-cep, D4).
+// Sai do navegador só o CEP - nunca dado de pessoa.
+
+// A resposta do serviço → o que o FundHub usa. Pura.
+export function lerRespostaCep(json) {
+  const cep = String(json?.cep ?? '').replace(/\D/g, '');
+  if (!json || json.code === 'not_found' || cep.length !== 8) return null;
+  const temPonto = temCoordenada(json.lat, json.lng);
+  return {
+    cep,
+    rua: String(json.address || '').trim(),
+    bairro: String(json.district || '').trim(),
+    cidade: String(json.city || '').trim(),
+    uf: String(json.state || '').trim(),
+    lat: temPonto ? Number(json.lat) : null,
+    lng: temPonto ? Number(json.lng) : null,
+  };
+}
+
+// null = CEP que não existe. Lança se o serviço falhar ou demorar.
+export async function buscarCep(cep) {
+  const d = String(cep ?? '').replace(/\D/g, '');
+  if (d.length !== 8) throw new Error('Informe os 8 dígitos do CEP.');
+  return lerRespostaCep(await buscarJson(`https://cep.awesomeapi.com.br/json/${d}`, { nuloEm404: true }));
+}
+
+// A cidade do CEP é a da rede? Para o formulário avisar quando não é.
+export const cepNaCidade = (r) => !r?.cidade || norm(r.cidade) === norm(CIDADE_PADRAO.split(',')[0]);
 
 // OSRM pede longitude ANTES de latitude - a ordem inversa da que todo
 // mundo escreve. Ponto: { lat, lng }.

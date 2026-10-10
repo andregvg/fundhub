@@ -18,9 +18,7 @@
 // escolas uma tarefa de dois minutos, não de dois segundos.
 // ============================================================
 import { getUnidades, atualizarUnidade } from './escolas.model.js';
-import {
-  geocodificar, precisaoDe, naCidade, variantesDeEndereco, temCoordenada,
-} from '../locais/geografia.model.js';
+import { localizarEndereco, temCoordenada } from '../locais/geografia.model.js';
 
 const INTERVALO_MS = 1100;          // um pouco acima de 1 s, com folga
 const FALHAS_SEGUIDAS_MAX = 3;      // serviço fora do ar: para, não insiste
@@ -94,21 +92,16 @@ export function cancelarLocalizacao() {
   if (_tarefa?.ativa) { _tarefa.cancelada = true; avisar(); }
 }
 
-// Procura uma escola, tentando as variantes do endereço. Devolve
-// { achado, precisao } ou { achado: null }; lança só se o SERVIÇO falhar.
+// Procura uma escola pelas variantes do endereço (geografia.model.js).
+// Devolve { achado, precisao } ou { achado: null }; lança só se o SERVIÇO
+// falhar. A pausa depois da chamada mantém o ritmo entre uma escola e a
+// seguinte; a pausa ENTRE variantes é da própria função.
 async function procurar(u) {
-  for (const endereco of variantesDeEndereco(u.endereco)) {
-    if (_tarefa.cancelada) break;
-    const r = await geocodificar(endereco);
-    await esperar(INTERVALO_MS);
-    if (!r || !naCidade(r)) continue;
-    const precisao = precisaoDe(r);
-    // Bairro ou cidade inteira não é localização: erra quilômetros, e o
-    // tempo de viagem do SATE sairia errado sem ninguém perceber.
-    if (precisao === 'aproximada') continue;
-    return { achado: r, precisao };
-  }
-  return { achado: null };
+  const r = await localizarEndereco(u.endereco, {
+    pausaMs: INTERVALO_MS, continuar: () => !_tarefa.cancelada,
+  });
+  await esperar(INTERVALO_MS);
+  return r;
 }
 
 export async function localizarEscolas() {
