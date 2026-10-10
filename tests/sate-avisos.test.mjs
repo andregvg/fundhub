@@ -3,7 +3,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  publicoDe, chaveDoAviso, interessa, naoLidos, ordenarAvisos, descrever, PADRAO_AVISOS,
+  publicoDe, chaveDoAviso, interessa, tiposDeInteresse, ordenarAvisos, descrever, PADRAO_AVISOS,
 } from '../src/modules/sate/avisos.model.js';
 
 const EU = 'nome@exemplo.com';
@@ -60,16 +60,25 @@ test('leitor: os avisos da escola, desligados por padrão', () => {
   assert.equal(interessa(av('confirmado'), { email: EU, publico: 'leitor', prefs: { avisos_decisao: true } }), true);
 });
 
-test('naoLidos: sem visto, visto antes e visto depois', () => {
-  const lista = [av('nova', { id: 1, solicitacao_id: 'a' }), av('negado', { id: 2, solicitacao_id: 'b' }), av('editada', { id: 3, solicitacao_id: 'c' })];
-  const vistos = { b: '2026-10-10T11:00:00+00:00', c: '2026-10-10T13:00:00+00:00' };
-  assert.deepEqual(naoLidos(lista, vistos).map(a => a.id), [1, 2]);
+test('tiposDeInteresse: quem aprova, preferências padrão', () => {
+  const tipos = tiposDeInteresse('aprovador');
+  for (const t of ['nova', 'pendente_cancelamento', 'saida_pedida']) assert.ok(tipos.includes(t), t);
+  for (const t of ['confirmado', 'negado', 'editada']) assert.ok(!tipos.includes(t), t);
 });
 
-test('naoLidos compara instantes, não texto (frações de segundo diferentes)', () => {
-  const lista = [av('nova', { em: '2026-10-10T12:00:00.5+00:00' })];
-  assert.equal(naoLidos(lista, { s1: '2026-10-10T12:00:00.123456+00:00' }).length, 1);
-  assert.equal(naoLidos(lista, { s1: '2026-10-10T12:00:01+00:00' }).length, 0);
+test('tiposDeInteresse: quem aprova com tudo desligado só recebe pedido novo', () => {
+  assert.deepEqual(tiposDeInteresse('aprovador', { avisos_pedidos_escola: false, avisos_equipe: false }), ['nova']);
+});
+
+test('tiposDeInteresse: escola recebe os 13 tipos por padrão e cada chave desliga o seu grupo', () => {
+  assert.equal(tiposDeInteresse('escola').length, 13);
+  const sem = tiposDeInteresse('escola', { avisos_decisao: false });
+  for (const t of ['confirmado', 'negado', 'cancelado']) assert.ok(!sem.includes(t), t);
+  assert.ok(sem.includes('em_analise'));
+});
+
+test('tiposDeInteresse: leitor não recebe nada por padrão', () => {
+  assert.deepEqual(tiposDeInteresse('leitor'), []);
 });
 
 test('ordenarAvisos junta os da mesma solicitação, a mais recente em cima', () => {

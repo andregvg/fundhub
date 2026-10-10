@@ -15,6 +15,10 @@
 --   solicitacao_visto  quando cada pessoa ABRIU cada solicitacao. Nao lido =
 --                      aviso mais novo que o visto dela naquela solicitacao.
 --
+-- A leitura do "por ver" e a funcao avisos_por_ver (secao 2): o banco faz a
+-- conta (tipos que a pessoa quer, nao feitos por ela, mais novos que o
+-- visto), em vez de o navegador filtrar os N fatos mais recentes.
+--
 -- QUEM RECEBE nao e gravado: recebe quem pode ver a solicitacao (o RLS
 -- decide na leitura), menos quem fez. Sem lista de destinatarios para
 -- manter, e mudar a permissao de alguem vale no mesmo instante.
@@ -57,8 +61,9 @@ end $$;
 -- solicitacao: a subconsulta passa pelo RLS da propria solicitacao.
 alter table solicitacao_aviso enable row level security;
 drop policy if exists solic_aviso_sel on solicitacao_aviso;
-create policy solic_aviso_sel on solicitacao_aviso for select
-  using (exists (select 1 from solicitacao_transporte s where s.id = solicitacao_id));
+create policy solic_aviso_sel on solicitacao_aviso for select to authenticated
+  using (exists (select 1 from solicitacao_transporte s
+                  where s.id = solicitacao_aviso.solicitacao_id));
 grant select on solicitacao_aviso to authenticated;   -- sem insert/update/delete de proposito
 
 -- ── 2. O visto ───────────────────────────────────────────────
@@ -92,6 +97,41 @@ create or replace function marcar_solicitacao_vista(p_solicitacao uuid) returns 
     returning visto_em
   $$;
 grant execute on function marcar_solicitacao_vista(uuid) to authenticated;
+
+-- O que esta por ver, para QUEM PERGUNTA. A conta e do banco, e nao do
+-- navegador: quem aprova enxerga a rede inteira, e ler "os N fatos mais
+-- recentes" para filtrar na tela deixaria cair, em silencio, o aviso de
+-- uma solicitacao nova ainda nao aberta - e a regra e que ele so some
+-- quando a pessoa abre a solicitacao.
+--
+-- Sai so: os tipos que a pessoa quer (p_tipos - quem monta e o front, a
+-- partir do nivel dela e das preferencias); o que NAO foi ela que fez; e o
+-- que e mais novo que o "visto" dela naquela solicitacao. Ja vem com os
+-- dados da solicitacao para o texto do aviso.
+--
+-- Sem `security definer`: passa pelo RLS das tres tabelas - a pessoa so
+-- recebe aviso de solicitacao que enxerga. p_id (opcional) pergunta por UM
+-- aviso: e o que o front usa quando ele chega pelo Realtime.
+create or replace function avisos_por_ver(p_tipos text[], p_id bigint default null)
+  returns table (
+    id bigint, solicitacao_id uuid, tipo text, unidade_id uuid, autor text, em timestamptz,
+    solic_data date, solic_destino text, solic_atividade text, solic_unidade uuid)
+  language sql stable set search_path = public as $$
+    select a.id, a.solicitacao_id, a.tipo, a.unidade_id, a.autor, a.em,
+           s.data, s.destino_nome, s.atividade_livre, s.unidade_id
+      from solicitacao_aviso a
+      join solicitacao_transporte s on s.id = a.solicitacao_id
+      left join solicitacao_visto v
+        on v.solicitacao_id = a.solicitacao_id and v.email = auth_email()
+     where a.tipo = any(p_tipos)
+       and (p_id is null or a.id = p_id)
+       and a.autor is distinct from auth_email()
+       and a.em > coalesce(v.visto_em, '-infinity'::timestamptz)
+       and a.em >= now() - interval '60 days'
+     order by a.em desc
+     limit 300
+  $$;
+grant execute on function avisos_por_ver(text[], bigint) to authenticated;
 
 -- ── 3. Os gatilhos que registram o fato ──────────────────────
 -- Funcao de gatilho nao pode ser chamada por RPC: o unico caminho para uma

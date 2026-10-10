@@ -10,6 +10,9 @@
 
 **Spec:** `docs/superpowers/specs/2026-10-10-sate-notificacoes-design.md`
 
+**Ajuste na execução (10/10/2026):** o model lia as 200 linhas mais recentes de `solicitacao_aviso` e filtrava no navegador; para quem aprova (vê a rede inteira) um aviso antigo ainda não aberto cairia fora em silêncio. A leitura passou para a função `avisos_por_ver(tipos)` na migration 048 (só o que a pessoa quer, não fez e não viu).
+No model, saem `naoLidos` e o estado de vistos; entra `tiposDeInteresse(publico, prefs)`; `receberAviso` pergunta ao banco por aquele aviso e não duplica. O serviço do sino recarrega ao salvar preferência do SATE (`cfg:salva`).
+
 ## Global Constraints
 
 - Sem npm, sem dependência nova.

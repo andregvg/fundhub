@@ -94,6 +94,12 @@ estado pessoal de leitura, ruído puro. A migration termina com
 
 **Realtime:** `solicitacao_aviso` entra na publicação `supabase_realtime`.
 
+**Leitura do que está por ver:** é a função `avisos_por_ver(tipos)` do banco - devolve só
+o que a pessoa quer (os `tipos` que o front monta a partir do nível e das preferências),
+não fez e ainda não viu, dos últimos 60 dias, já com os dados da solicitação. A conta é do
+banco porque quem aprova enxerga a rede inteira: ler "os N fatos mais recentes" e filtrar
+no navegador deixaria cair, em silêncio, um aviso antigo ainda não aberto.
+
 **Conteúdo:** o aviso guarda só tipo, ids e o e-mail de quem fez - o mesmo dado que a
 solicitação já mostra em "decidido por". Nenhum texto livre, nenhum dado de terceiros.
 
@@ -151,8 +157,9 @@ painel genérico.
 
 ### D4 - O sino
 
-- Ao entrar, o sino **carrega os avisos não lidos** dos últimos 60 dias. O número no
-  sino é a contagem deles.
+- Ao entrar, o sino **carrega os avisos não lidos** dos últimos 60 dias - quem conta o
+  que está por ver é o banco (`avisos_por_ver`), não o navegador. O número no sino é a
+  contagem deles.
 - **Abrir o sino não limpa nada.** Cada aviso é um link para a solicitação; clicar abre
   a ficha "Detalhes da solicitação", e é isso que marca como visto.
 - **Abrir a solicitação pela lista** tem o mesmo efeito: o aviso some do sino.
@@ -174,7 +181,7 @@ filtrado, é buscada pelo id.
 
 - `modules/sate/avisos.model.js` (novo, API pública): ler avisos e vistos, marcar visto,
   assinar o Realtime, e as funções **puras** - `publicoDe(nivel)`,
-  `interessa(aviso, { email, publico, prefs })`, `naoLidos(avisos, vistos)`,
+  `interessa(aviso, { email, publico, prefs })`, `tiposDeInteresse(publico, prefs)`,
   `descrever(aviso, nomes)`.
 - `notificacoes.service.js`: a fonte SATE deixa de assinar duas tabelas e interpretar
   linha crua, e passa a consumir `avisos.model.js`. **Saem** os dois descritores do SATE
@@ -225,7 +232,7 @@ está dita no CHANGELOG.
 ## Verificação
 
 - **Testes:** `publicoDe`; `interessa` para cada público × tipo × preferência, e o autor
-  nunca recebe; `naoLidos` (sem visto, visto antes, visto depois); `descrever`.
+  nunca recebe; `tiposDeInteresse` (os tipos que cada público recebe, com e sem preferências); `descrever`.
 - **Banco** (roteiro no fim da migration, para o SQL Editor): criar, negar, reabrir e
   editar um pedido de teste e conferir as linhas de `solicitacao_aviso`.
 - **Navegador, dev-local**, com avisos de fixture: contagem no sino; abrir o sino não

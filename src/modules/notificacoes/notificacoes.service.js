@@ -88,6 +88,7 @@ export async function iniciar({ fontes = TODAS, naPaginaDoSate: noSate = false }
     // Qualquer mudança nos avisos (carga, chegada, visto) repinta o sino.
     unsubs.push(aoMudarAvisos(pintar), subscribeAvisos(aoAvisoDoSate));
     document.addEventListener('visibilitychange', aoVoltarParaAba);
+    document.addEventListener('cfg:salva', aoSalvarConfiguracao);
     await carregarAvisos({ nivel: nivel('sate') });
   }
 }
@@ -96,6 +97,13 @@ export async function iniciar({ fontes = TODAS, naPaginaDoSate: noSate = false }
 // nova aba): ao voltar para esta, o sino confere de novo.
 function aoVoltarParaAba() {
   if (!document.hidden && ligado && comSate) carregarAvisos();
+}
+
+// A lista por ver vem do banco já filtrada pelos tipos que a pessoa quer:
+// LIGAR um aviso nas Configurações precisa de uma recarga para trazer o que
+// estava fora. (Desligar já vale na hora, pelo filtro de pendentes().)
+function aoSalvarConfiguracao(e) {
+  if (ligado && comSate && e.detail?.modulo === 'sate') carregarAvisos();
 }
 
 // Só INSERT interessa: aviso não se edita. O balão sai apenas para o que
@@ -111,6 +119,7 @@ export function parar() {
   ligado = false; aberto = false;
   eventos = []; naoLidas = 0;
   document.removeEventListener('visibilitychange', aoVoltarParaAba);
+  document.removeEventListener('cfg:salva', aoSalvarConfiguracao);
   limparAvisos();
   comSate = false;
   document.querySelector('.bell-wrap')?.remove();

@@ -9,6 +9,10 @@
 // novo que o visto daquela solicitação. Abrir a solicitação marca o visto
 // e limpa todos os avisos dela de uma vez.
 //
+// Quem CONTA o que está por ver é o banco (`avisos_por_ver`, migration 048):
+// quem aprova enxerga a rede inteira, e filtrar no navegador os N fatos mais
+// recentes deixaria cair, em silêncio, um aviso antigo ainda não aberto.
+//
 // QUEM RECEBE não é gravado: o banco entrega o aviso a quem enxerga a
 // solicitação (RLS), e aqui se tira o que a própria pessoa fez e o que ela
 // desligou nas preferências. As regras são puras, para o teste fixá-las.
@@ -19,7 +23,7 @@
 import { sb, hasSupabase, emailAtual } from '../../core/supabase.js';
 import { pref } from '../../core/configuracoes.js';
 import { subscribeTabela } from '../../shared/realtime.js';
-import { hojeISO, addDias, fmtData } from '../../shared/format.js';
+import { fmtData } from '../../shared/format.js';
 
 // Título e tom de cada tipo. `tipo` é o tom do balão (shared/ui/toast.js).
 const TIPOS = Object.freeze({
@@ -73,12 +77,14 @@ export function interessa(aviso, { email, publico, prefs = {} }) {
   return typeof escolha === 'boolean' ? escolha : !!PADRAO_AVISOS[publico]?.[chave];
 }
 
+// Os tipos que a pessoa quer receber - o que o front manda ao banco para
+// ele devolver só o que interessa (o banco tira o que é dela e o que já viu).
+export const tiposDeInteresse = (publico, prefs = {}) =>
+  Object.keys(TIPOS).filter(tipo => interessa({ tipo, autor: null }, { email: null, publico, prefs }));
+
 // Compara INSTANTES, não texto: o banco devolve frações de segundo de
 // tamanhos diferentes, e a ordem alfabética erraria.
 const instante = (ts) => Date.parse(ts) || 0;
-
-export const naoLidos = (avisos, vistos = {}) =>
-  (avisos || []).filter(a => instante(a.em) > instante(vistos[a.solicitacao_id]));
 
 // Os avisos da mesma solicitação ficam JUNTOS, o mais recente em cima; e a
 // solicitação com a novidade mais recente vem primeiro.
@@ -102,12 +108,14 @@ export function descrever(aviso, nomes = {}) {
 }
 
 // ── Estado ───────────────────────────────────────────────────
-const COLS = 'id, solicitacao_id, tipo, unidade_id, autor, em,'
-  + ' solicitacao:solicitacao_transporte(id, data, destino_nome, atividade_livre, unidade_id)';
-const JANELA_DIAS = 60;
+// Linha de avisos_por_ver() → o formato que descrever() lê.
+const deLinha = (r) => ({
+  id: r.id, solicitacao_id: r.solicitacao_id, tipo: r.tipo, unidade_id: r.unidade_id, autor: r.autor, em: r.em,
+  solicitacao: { data: r.solic_data, destino_nome: r.solic_destino, atividade_livre: r.solic_atividade, unidade_id: r.solic_unidade },
+});
+const LIMITE = 300;
 
-let _avisos = [];
-let _vistos = {};
+let _avisos = [];   // o que está por ver, como o banco devolveu
 let _email = null;
 let _publico = 'escola';
 const _ouvintes = new Set();
@@ -124,64 +132,62 @@ function avisar() {
   for (const fn of _ouvintes) { try { fn(); } catch (err) { console.warn('[sate] ouvinte de avisos:', err); } }
 }
 
-// Carrega os avisos recentes e os vistos da pessoa. QUALQUER falha vira
-// "sem avisos" (inclusive tabela ausente, 42P01, antes da migration 048):
-// o sino informa, e não pode derrubar o resto do app.
+// Carrega o que está por ver. A conta é do banco (avisos_por_ver, migration
+// 048): tipos que a pessoa quer, feitos por outra pessoa, mais novos que o
+// "visto" dela. QUALQUER falha vira "sem avisos" (inclusive função ou
+// tabela ausente, antes da 048): o sino informa, e não pode derrubar o app.
 export async function carregarAvisos({ nivel } = {}) {
   if (nivel) _publico = publicoDe(nivel);
-  if (!hasSupabase()) { _avisos = []; _vistos = {}; avisar(); return; }
+  if (!hasSupabase()) { _avisos = []; avisar(); return; }
   try {
     _email = _email || await emailAtual();
-    const { data, error } = await sb().from('solicitacao_aviso').select(COLS)
-      .gte('em', addDias(hojeISO(), -JANELA_DIAS)).order('em', { ascending: false }).limit(200);
+    const { data, error } = await sb().rpc('avisos_por_ver', { p_tipos: tiposDeInteresse(_publico, prefs()) });
     if (error) throw error;
-    _avisos = data || [];
-    const ids = [...new Set(_avisos.map(a => a.solicitacao_id))];
-    _vistos = {};
-    if (ids.length) {
-      const v = await sb().from('solicitacao_visto').select('solicitacao_id, visto_em').in('solicitacao_id', ids);
-      if (v.error) throw v.error;
-      for (const r of v.data || []) _vistos[r.solicitacao_id] = r.visto_em;
-    }
+    _avisos = (data || []).map(deLinha);
   } catch (err) {
     console.warn('[sate] avisos indisponíveis:', err?.message || err);
-    _avisos = []; _vistos = {};
+    _avisos = [];
   }
   avisar();
 }
 
-// Os que estão por ver e interessam à pessoa, na ordem do sino.
-export const pendentes = () => ordenarAvisos(naoLidos(_avisos, _vistos).filter(meInteressa));
+// Por ver e do interesse da pessoa, na ordem do sino. O filtro de novo
+// aqui faz uma preferência desligada valer na hora, sem esperar a recarga.
+export const pendentes = () => ordenarAvisos(_avisos.filter(meInteressa));
 
 export const idsComNovidade = () => new Set(pendentes().map(a => a.solicitacao_id));
 
-// Chegou um aviso pelo Realtime: o evento traz só a linha crua, então
-// busca o aviso com a solicitação junto. O RLS decide se a pessoa o
-// enxerga - se não, a busca volta vazia e nada acontece. Devolve o aviso
-// só se ele interessa (é o que decide o balão).
+// Chegou um aviso pelo Realtime: o evento traz só a linha crua. Pergunta
+// ao banco por ele - a mesma função da carga, que só o devolve se a pessoa
+// o enxerga, não foi ela que fez e ainda não viu. Devolve o aviso quando
+// ele entra na lista (é o que decide o balão).
 export async function receberAviso(id) {
   if (!hasSupabase() || id == null || _avisos.some(a => a.id === id)) return null;
-  const { data, error } = await sb().from('solicitacao_aviso').select(COLS).eq('id', id).maybeSingle();
-  if (error || !data) return null;
-  _avisos.unshift(data);
-  avisar();
-  return meInteressa(data) ? data : null;
+  try {
+    _email = _email || await emailAtual();
+    const { data, error } = await sb().rpc('avisos_por_ver', { p_tipos: tiposDeInteresse(_publico, prefs()), p_id: id });
+    if (error || !data?.length) return null;
+    // De novo depois da espera: o mesmo evento pode chegar duas vezes
+    // (reconexão), ou a carga pode ter trazido o aviso nesse meio-tempo.
+    if (_avisos.some(a => a.id === id)) return null;
+    const aviso = deLinha(data[0]);
+    _avisos.unshift(aviso);
+    if (_avisos.length > LIMITE) _avisos.length = LIMITE;
+    avisar();
+    return aviso;
+  } catch (_) { return null; }
 }
 
-// Abrir a solicitação marca o visto, com a hora do BANCO (o aviso é
-// carimbado lá; o relógio do navegador pode estar adiantado ou atrasado).
-// Enquanto a resposta não chega, a tela já trata como visto: se a gravação
-// falhar, o aviso reaparece na próxima carga - melhor que travar a ficha.
+// Abrir a solicitação tira os avisos dela do sino. A hora do "visto" é a
+// do BANCO (a RPC usa now()): o aviso é carimbado lá. A tela não espera a
+// resposta; se a gravação falhar, o aviso volta na próxima carga.
 export async function marcarVisto(solicitacaoId) {
   if (!hasSupabase() || !solicitacaoId) return;
-  const tinha = idsComNovidade().has(solicitacaoId);
-  const maisNovo = _avisos.filter(a => a.solicitacao_id === solicitacaoId).map(a => a.em)
-    .sort((a, b) => instante(b) - instante(a))[0];
-  if (maisNovo) _vistos[solicitacaoId] = maisNovo;
-  if (tinha) avisar();
-  const { data, error } = await sb().rpc('marcar_solicitacao_vista', { p_solicitacao: solicitacaoId });
-  if (error) { console.warn('[sate] visto não gravado:', error.message); return; }
-  if (data) _vistos[solicitacaoId] = data;
+  const antes = _avisos.length;
+  _avisos = _avisos.filter(a => a.solicitacao_id !== solicitacaoId);
+  if (_avisos.length !== antes) avisar();
+  const { error } = await sb().rpc('marcar_solicitacao_vista', { p_solicitacao: solicitacaoId });
+  if (error) console.warn('[sate] visto não gravado:', error.message);
 }
 
 export function aoMudarAvisos(fn) {
@@ -194,5 +200,5 @@ export function subscribeAvisos(handler) {
 }
 
 export function limparAvisos() {
-  _avisos = []; _vistos = {}; _email = null; _publico = 'escola';
+  _avisos = []; _email = null; _publico = 'escola';
 }
