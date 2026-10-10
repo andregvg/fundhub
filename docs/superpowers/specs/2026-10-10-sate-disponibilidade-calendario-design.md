@@ -105,10 +105,10 @@ argumentos (`detalhe.js`, `faltaParaConfirmar`, `remanejar.js`).
 
 ### D4 - A linha "fora ele" sai da ficha
 
-A frase que induz ao erro é retirada. Quem aprova passa a ter o botão do
-D3, que mostra o pedido **dentro** da lista do dia; a escola não vê número de frota na
-ficha. A troca é feita na spec da solicitação reformulada, junto com o redesenho da
-ficha - aqui fica registrado que o modal do D3 é o que a substitui.
+A frase que induz ao erro é retirada **nesta entrega**, e no lugar dela quem aprova
+ganha o botão "Ver disponibilidade do dia" (D3), que mostra o pedido **dentro** da lista
+do dia. A escola não vê número de frota na ficha. A spec da solicitação reformulada só
+muda o botão de lugar, junto com o redesenho da ficha.
 
 ## Fora de escopo
 

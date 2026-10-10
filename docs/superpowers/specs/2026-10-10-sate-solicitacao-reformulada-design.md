@@ -192,9 +192,9 @@ acrescenta parada; a escola pede só para si; na aprovação, quem aprova revisa
   da soma dos estudantes, e o tempo de viagem passa por todas as paradas na ordem.
 - **Ao enviar**, a viagem é criada com a primeira escola e as demais são acrescentadas
   em seguida. Se alguma falhar, a viagem **existe** e a pessoa é avisada de qual escola
-  não entrou, com a ficha aberta para acrescentar de novo. Não se mexe em
-  `criar_viagem()` para isso: só quem aprova usa o bloco, e a ficha é onde ele confere
-  o resultado de qualquer forma.
+  não entrou, para acrescentá-la pela solicitação. Não se mexe em `criar_viagem()` para
+  isso: só quem aprova usa o bloco, e a ficha é onde ele confere o resultado de
+  qualquer forma.
 - **Na ficha**, a lista de paradas continua editável por quem aprova (acrescentar,
   reordenar, cancelar, remover) - é a revisão. Muda de lugar: passa a ser uma linha da
   seção **Logística**, onde o agendamentos-fil tem "Compartilhar ônibus com…".
@@ -206,9 +206,9 @@ No código: `views/formulario-paradas.js` (novo), com estado e contrato próprio
 
 - A linha "N ônibus livres no horário deste pedido, fora ele" **sai** - para todos.
   (Por que ela enganava: spec da Disponibilidade, "A contagem não muda".)
-- **Quem aprova** ganha **"Ver disponibilidade do dia"** na seção Logística, que abre o
-  modal daquela spec por cima da ficha, com este pedido destacado na lista do dia. O
-  `←` volta para a ficha.
+- **Quem aprova** tem **"Ver disponibilidade do dia"** (entregue com a spec da
+  Disponibilidade), que aqui passa para a seção Logística. Abre o modal por cima da
+  ficha, com este pedido destacado na lista do dia; o `←` volta para a ficha.
 - **A escola** não vê número de frota na ficha. No formulário ela continua vendo se o
   pedido cabe - é o que ela precisa para escolher o horário - e a página
   Disponibilidade continua aberta a todos.
