@@ -274,14 +274,14 @@ select registrar_migration('048',
 
 **Files:**
 - Create: `src/modules/sate/avisos.model.js`
-- Modify: `src/modules/sate/sate.model.js` (`getSolicitacao`)
+- Modify: `src/modules/sate/sate.model.js` (`listSolicitacoes` aceita `id`)
 - Test: `tests/sate-avisos.test.mjs`
 
 **Interfaces:**
 - Produces, em `avisos.model.js`:
   - puras: `publicoDe(nivel) → 'aprovador' | 'leitor' | 'escola'`; `PADRAO_AVISOS`; `chaveDoAviso(tipo, publico) → string | null`; `interessa(aviso, { email, publico, prefs }) → boolean`; `naoLidos(avisos, vistos) → aviso[]`; `ordenarAvisos(avisos) → aviso[]`; `descrever(aviso, nomes) → { titulo, tipo, texto }`.
   - com estado: `carregarAvisos({ nivel }) → Promise<void>`; `pendentes() → aviso[]` (não lidos que interessam, já ordenados); `idsComNovidade() → Set<string>`; `receberAviso(id) → Promise<aviso | null>` (devolve o aviso só se ele interessa); `marcarVisto(solicitacaoId) → Promise<void>`; `aoMudarAvisos(fn) → () => void`; `subscribeAvisos(handler) → () => void`; `limparAvisos()`.
-- Produces, em `sate.model.js`: `getSolicitacao(id) → Promise<solicitacao | null>`.
+- Produces, em `sate.model.js`: `listSolicitacoes({ id })` - o filtro por id (devolve lista de zero ou um item).
 
 - [ ] **Step 1: Teste que falha** - criar `tests/sate-avisos.test.mjs`:
 
@@ -592,20 +592,11 @@ export function limparAvisos() {
 
 - [ ] **Step 4:** `node --test tests/sate-avisos.test.mjs` → PASSA. (Se o teste não conseguir importar o arquivo por causa de `core/configuracoes.js` ou `core/supabase.js`, veja como `tests/sate-disponibilidade.test.mjs` importa um model que usa `core/supabase.js` - funciona sem ajuste. Não mude o arquivo de produção para agradar o teste sem antes reportar.)
 
-- [ ] **Step 5: `sate.model.js`** - depois de `listSolicitacoes`:
+- [ ] **Step 5: `sate.model.js`** - `listSolicitacoes` ganha o filtro por `id`, para abrir a ficha a partir de um aviso quando a solicitação está fora do período que a lista mostra (spec D4). O arquivo está em 249 linhas e o teto é 250: **uma linha só**, sem função nova.
+  - a assinatura passa a ser `listSolicitacoes({ status, de, ate, unidadeId, id } = {})`;
+  - junto dos outros filtros: `if (id) q = q.eq('id', id);`
 
-```js
-// Uma solicitação pelo id - para abrir a ficha a partir de um aviso, quando
-// ela está fora do período que a lista mostra (spec 2026-10-10-sate-notificacoes, D4).
-export async function getSolicitacao(id) {
-  if (!hasSupabase()) return null;
-  const { data, error } = await sb().from('solicitacao_transporte').select(SELECT_BASE).eq('id', id).maybeSingle();
-  if (error) { if (ausente(error)) return null; throw error; }
-  return data;
-}
-```
-
-- [ ] **Step 6:** `node --test "tests/*.test.mjs"`; verificador → 0 bloqueantes; `wc -l src/modules/sate/avisos.model.js src/modules/sate/sate.model.js` ≤ 250 cada.
+- [ ] **Step 6:** `node --test "tests/*.test.mjs"`; verificador → 0 bloqueantes; `wc -l src/modules/sate/avisos.model.js src/modules/sate/sate.model.js` ≤ 250 cada (`sate.model.js` fica em exatamente 250).
 
 - [ ] **Step 7: Commit** - `feat(sate): model dos avisos - quem recebe, o que esta por ver e marcar visto`.
 
@@ -620,7 +611,7 @@ export async function getSolicitacao(id) {
 - Modify: `src/modules/sate/sate.config.js`, `src/modules/configuracoes/painel.js`
 
 **Interfaces:**
-- Consumes: tudo de `avisos.model.js` (Task 2); `getSolicitacao` (Task 2).
+- Consumes: tudo de `avisos.model.js` (Task 2); `listSolicitacoes({ id })` (Task 2).
 - Produces: `iniciar({ fontes, naPaginaDoSate = false })` em `notificacoes.service.js`; item de configuração aceita `visivel: () => boolean`.
 
 **Antes de escrever:** ler `notificacoes.service.js` inteiro. A fonte SATE muda de natureza; as fontes `afastamentos` e `ocorrencias` **não mudam** (continuam ao vivo e somem ao recarregar - pendência registrada na spec).
@@ -769,7 +760,7 @@ a.bell-item:focus-visible { outline: 2px solid var(--brand); outline-offset: 1px
 
 - [ ] **Step 5: `views/solicitacoes.js`** - o ponto de novidade e o endereço direto.
 
-Imports: `import { idsComNovidade } from '../avisos.model.js';` e acrescentar `getSolicitacao` ao import de `sate.model.js`; `import { toast } from '../../../shared/ui/toast.js';` se ainda não houver.
+Imports: `import { idsComNovidade } from '../avisos.model.js';` (`listSolicitacoes` já é importado); `import { toast } from '../../../shared/ui/toast.js';` se ainda não houver.
 
 (a) Na `celula` da coluna `escola`, o ponto vem antes do nome:
 
@@ -795,7 +786,7 @@ async function abrirPeloEndereco(lista) {
   if (!id) return;
   history.replaceState(null, '', `${location.pathname}${location.search}#/solicitacoes`);
   // Fora do período filtrado, busca pelo id.
-  const s = lista.find(x => x.id === id) || await getSolicitacao(id).catch(() => null);
+  const s = lista.find(x => x.id === id) || (await listSolicitacoes({ id }).catch(() => []))[0];
   if (!s) return toast({ titulo: 'Solicitação não encontrada', texto: 'Ela pode ter sido excluída.', tipo: 'atencao' });
   abrirDetalhe(s, ctx);
 }

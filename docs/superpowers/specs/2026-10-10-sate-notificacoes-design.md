@@ -212,7 +212,7 @@ está dita no CHANGELOG.
 | `supabase/migrations/048_sate_avisos.sql` | novo |
 | `.claude/scripts/verificar_arquitetura.py` | duas tabelas em `ISENTAS_AUDITORIA` |
 | `src/modules/sate/avisos.model.js` | novo |
-| `src/modules/sate/sate.model.js` | `getSolicitacao(id)` |
+| `src/modules/sate/sate.model.js` | `listSolicitacoes` aceita o filtro por `id` |
 | `src/modules/sate/sate.config.js` | itens de notificação |
 | `src/modules/sate/views/solicitacoes.js`, `detalhe.js` | D4 |
 | `src/modules/notificacoes/notificacoes.service.js`, `notificacoes.css` | D4, D5 |
