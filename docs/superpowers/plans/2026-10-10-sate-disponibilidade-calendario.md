@@ -21,7 +21,7 @@
 - **Não alterar** `lerOcupacao`, `livresPara`, `intervaloDaViagem`, `montarLinha` nem nada em `supabase/migrations/` - decisão do André: a contagem fica como está.
 - PT-BR em código, comentário e commit. Commits na `dev`, com a linha final `Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>`.
 - Limites: view ≤ 400 linhas, model ≤ 250.
-- A cada tarefa: `node --test "tests/*.test.mjs"` (um teste de ícones, `tests/icones.test.mjs`, já falha antes desta rodada - não é seu) e `python .claude/scripts/verificar_arquitetura.py` (0 bloqueantes).
+- A cada tarefa: `node --test "tests/*.test.mjs"` (todos passam) e `python .claude/scripts/verificar_arquitetura.py` (0 bloqueantes).
 - **Não** subir versão nem mexer no CHANGELOG antes da Task 4.
 
 ## Review Focus
