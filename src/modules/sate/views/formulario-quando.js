@@ -14,7 +14,8 @@
 // campo visível mudou.
 // ============================================================
 import { periodoDe } from '../regras.model.js';
-import { periodoBadge } from './periodo.js';
+import { ICONE_PERIODO } from './periodo.js';
+import { PERIODOS } from '../regras.model.js';
 import { getDiaCalendario, diaImpedeExtraclasse, motivoDoDia } from '../../calendario/calendario.model.js';
 import { mascaraDiaMes, dataDeDiaMes, diaMesDe, fmtExtenso, fmtData } from '../../../shared/format.js';
 import { marcarVazio } from '../../../shared/ui/campo-data-hora.js';
@@ -29,8 +30,8 @@ export const quemVaiHtml = () => `
     <legend>Quem vai</legend>
     <div class="campos duas">
       <label class="col-2">Turma / grupo participante <input id="f-turmas" type="text" placeholder="Ex.: 5º A, 5º B" /></label>
-      <label>Qtd. de estudantes<input id="f-alunos" type="number" inputmode="numeric" min="1" placeholder="0" required /></label>
-      <label>Qtd. de adultos acompanhantes<input id="f-adultos" type="number" inputmode="numeric" min="0" placeholder="0" required /></label>
+      <label>Qtd. estudantes<input id="f-alunos" type="number" inputmode="numeric" min="1" placeholder="0" required /></label>
+      <label>Qtd. adultos<input id="f-adultos" type="number" inputmode="numeric" min="0" placeholder="0" required /></label>
       <p class="form-hint col-2" id="f-esc01-dica" hidden>Estudantes, adultos e embarque acima são da Escola 01. As outras escolas informam os seus em “Adicionar pontos de parada”. A saída do evento é a mesma para todas.</p>
     </div>
   </fieldset>`;
@@ -73,8 +74,12 @@ const textoDe = (iso) => (dataDeDiaMes(diaMesDe(iso)) === iso
 // O período é calculado (spec 2026-09-27, D4): a escola vê, não escolhe.
 function pintarPeriodo() {
   const p = periodoDe(val('f-emb'), val('f-ret'));
-  document.getElementById('f-periodo').innerHTML = p
-    ? `${ico('horario', { tam: 14 })}<span>Período</span>${periodoBadge(p)}`
+  // A cor é a do período (tokens --per-*), pelo atributo: o parágrafo é a
+  // variante em linha do badge, sem a cápsula.
+  const el = document.getElementById('f-periodo');
+  el.dataset.per = p || '';
+  el.innerHTML = p
+    ? `${ico(ICONE_PERIODO[p] || 'horario', { tam: 14 })}<b>Período da ${esc(PERIODOS[p].toLowerCase())}</b>`
     : '';
 }
 

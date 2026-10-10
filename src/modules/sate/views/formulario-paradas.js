@@ -112,8 +112,8 @@ function pintar() {
     const i = linhas.indexOf(l);
     return `<div class="sol-parada" data-parada="${esc(l.id)}">
       <b><span class="sol-parada-n">${rotuloEscola(i + 2)}</span> ${esc(l.nome)}</b>
-      <label>Qtd. de estudantes <input type="number" inputmode="numeric" min="1" data-campo="alunos" value="${esc(v.alunos ?? '')}" aria-label="Estudantes de ${esc(l.nome)}" /></label>
-      <label>Qtd. de adultos <input type="number" inputmode="numeric" min="0" data-campo="adultos" value="${esc(v.adultos ?? '0')}" aria-label="Adultos acompanhantes de ${esc(l.nome)}" /></label>
+      <label>Qtd. estudantes <input type="number" inputmode="numeric" min="1" data-campo="alunos" value="${esc(v.alunos ?? '')}" aria-label="Estudantes de ${esc(l.nome)}" /></label>
+      <label>Qtd. adultos <input type="number" inputmode="numeric" min="0" data-campo="adultos" value="${esc(v.adultos ?? '0')}" aria-label="Adultos acompanhantes de ${esc(l.nome)}" /></label>
       <label>Cadeirantes <input type="number" inputmode="numeric" min="0" data-campo="cadeira" value="${esc(v.cadeira ?? '0')}" aria-label="Cadeirantes de ${esc(l.nome)}" /></label>
       <label>Embarque <input type="time" data-campo="hora" value="${esc(v.hora ?? '')}" aria-label="Horário de embarque de ${esc(l.nome)}" /></label>
       <span class="sol-parada-acoes">

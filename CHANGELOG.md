@@ -19,6 +19,7 @@ partir das versões do FundHub que mudaram algo para quem usa o SATE.
 
 | SATE | FundHub | Em resumo |
 |---|---|---|
+| 0.23.0 | 0.45.0 | nova solicitação reorganizada (adultos, vários pontos de parada, endereço e mapa do local), ações na lista, período em cores, filtros configuráveis, aviso de exclusão no sino |
 | 0.22.1 | 0.44.1 | correções: solicitação sem escola ativa volta a abrir, ponto de novidade sempre aparece |
 | 0.22.0 | 0.44.0 | avisos que ficam no sino até a solicitação ser aberta, sem avisar quem fez a ação, com escolha do que receber |
 | 0.21.0 | 0.43.0 | solicitação redesenhada, reabrir decisão, editar antes de confirmar, várias escolas já no pedido, nome completo na lista |
@@ -50,6 +51,57 @@ partir das versões do FundHub que mudaram algo para quem usa o SATE.
 | 0.1.0 | 0.5.0 | a escola pede, a SME valida |
 
 ---
+
+## [0.45.0] - 2026-10-10
+
+> SATE 0.23.0.
+>
+> **Rodar as migrations 049 e 050 no Supabase.** A 049 guarda os adultos acompanhantes; a 050
+> guarda o aviso de solicitação excluída. Até rodar, o resto funciona, mas a quantidade de
+> adultos não é gravada e a exclusão não avisa ninguém no sino.
+
+### Alterado
+
+- **A nova solicitação foi reorganizada.** Quem é de escola não vê mais o grupo da origem: a
+  escola já é a do pedido. Quem aprova escolhe a escola e, só se precisar, abre **Adicionar
+  pontos de parada** para juntar outras escolas no mesmo ônibus.
+- **Vários pontos de parada:** as escolas são numeradas (Escola 01, 02…), cada uma informa
+  seus estudantes, adultos e horário de embarque, e as setas mudam a ordem de parada. Como a
+  viagem é de um ônibus só, o total de estudantes e adultos não pode passar dos lugares dele.
+- **Destino:** local já cadastrado mostra só o endereço, com o ícone do mapa (quando o local
+  tem localização) e o lápis para editar o local sem perder o que já foi preenchido. Só o
+  local novo pede endereço, número e bairro. O CEP saiu desta tela.
+- **O formulário se divide em Quando e Quem vai**, com os horários logo abaixo da data. O
+  período aparece com o ícone e a cor dele (manhã, tarde, noite).
+- **O resumo do pedido fica sempre à vista**, logo abaixo de Quem vai: quantos estudantes e
+  adultos, quantos ônibus, a chegada prevista ao local e a recomendação de ao menos 2
+  adultos por turma. A conta de ônibus livres deixou de aparecer ali; o aviso de falta de
+  ônibus continua.
+- **Acessibilidade** vem recolhida, com **Qtd. cadeirantes** e **Qtd. estudantes surdos**.
+- **Na lista de Solicitações** as colunas mudaram de ordem e ganharam o local com endereço, o
+  embarque, a saída e quando foi solicitado. Quem aprova tem, na própria linha, os botões
+  de aprovar, editar, negar e excluir.
+- **O período aparece em cores** (manhã, tarde e noite), com um ícone para cada um, na lista,
+  na ficha e no formulário, legíveis nos temas claro e escuro.
+- **Os filtros da lista começam em hoje e vão até 8 dias à frente.** Em Configurações do SATE
+  você escolhe quantos dias, e também a situação e o período que a lista já traz escolhidos.
+- **A janela dos locais, do mapa e de todos os modais** passou a ter o mesmo cabeçalho: o
+  ícone do módulo em um quadrado, do tamanho dos botões de voltar e fechar. O nome do local
+  no cabeçalho acompanha o que você digita. O mapa só dá zoom com a roda do mouse depois de
+  um clique nele.
+
+### Adicionado
+
+- **Aviso de solicitação excluída no sino**, para a escola e para os outros aprovadores. A
+  lista de solicitações também se atualiza sozinha quando alguém muda ou exclui uma.
+- **A engrenagem de configurações** em todas as páginas do SATE.
+- **Quantidade de adultos acompanhantes** em cada escola da viagem.
+
+### Corrigido
+
+- O texto "Sistema de Agendamento de Transporte Extraclasse" no topo aparecia cortado embaixo.
+- Ao editar um local de dentro da nova solicitação e salvar, voltava-se para a lista em vez
+  de voltar ao formulário.
 
 ## [0.44.1] - 2026-10-10
 

@@ -42,7 +42,6 @@ let soltarAvisos = null;
 let filtro = null;
 let soltarRealtime = null;
 let recarga = null;
-let viaveis = new Set();   // ids na tela: só a exclusão de uma delas merece aviso
 
 export function render(contexto) {
   ctx = contexto;
@@ -112,13 +111,9 @@ export function render(contexto) {
   // quando os avisos mudam, o ponto das linhas já desenhadas acompanha.
   soltarAvisos = aoMudarAvisos(repintarNovidades);
   // O que a Gerência faz na solicitação aparece sozinho para a escola: a
-  // lista se refaz a cada mudança, e a exclusão de uma viagem que estava na
-  // tela vira um aviso (a linha já não existe para guardar um do sino).
-  soltarRealtime = subscribeSolicitacoes((ev) => {
+  // lista se refaz a cada mudança (o aviso da exclusão é do sino).
+  soltarRealtime = subscribeSolicitacoes(() => {
     if (!document.getElementById('sol-lista')) return;
-    if (ev.eventType === 'DELETE' && viaveis.has(ev.old?.id)) {
-      toast({ titulo: 'Solicitação excluída', texto: 'Uma solicitação da lista foi excluída pela Gerência.', tipo: 'atencao' });
-    }
     clearTimeout(recarga);
     recarga = setTimeout(carregar, 300);
   });
@@ -174,7 +169,6 @@ async function carregar() {
     s._partes = porViagem[s.id] || [];
   }
 
-  viaveis = new Set(lista.map(s => s.id));
   tabela = montarTabela(box, {
     colunas: COLUNAS,
     acoes: ctx.aprovador && !ctx.somenteLeitura ? ACOES : [],

@@ -21,7 +21,8 @@
 // para não consultar o banco a cada notificação.
 // ============================================================
 import {
-  carregarAvisos, pendentes, receberAviso, descrever, subscribeAvisos, aoMudarAvisos, limparAvisos,
+  carregarAvisos, pendentes, receberAviso, receberExclusao, dispensarExclusao, descrever,
+  subscribeAvisos, subscribeExclusoes, aoMudarAvisos, limparAvisos,
 } from '../sate/avisos.model.js';
 import { nivel } from '../../core/permissoes.js';
 import { subscribeAfastamentos } from '../afastamentos/afastamentos.model.js';
@@ -88,7 +89,7 @@ export async function iniciar({ fontes = TODAS, naPaginaDoSate: noSate = false }
 
   if (comSate) {
     // Qualquer mudança nos avisos (carga, chegada, visto) repinta o sino.
-    unsubs.push(aoMudarAvisos(pintar), subscribeAvisos(aoAvisoDoSate));
+    unsubs.push(aoMudarAvisos(pintar), subscribeAvisos(aoAvisoDoSate), subscribeExclusoes(aoExclusaoDoSate));
     document.addEventListener('visibilitychange', aoVoltarParaAba);
     document.addEventListener('cfg:salva', aoSalvarConfiguracao);
     await carregarAvisos({ nivel: nivel('sate') });
@@ -117,6 +118,16 @@ async function aoAvisoDoSate(payload) {
     if (aviso && ligado) toast(descrever(aviso, nomeCompleto));
   } catch (err) {
     console.warn('[notificacoes] aviso do SATE:', err?.message || err);
+  }
+}
+
+async function aoExclusaoDoSate(payload) {
+  if (payload?.eventType !== 'INSERT') return;
+  try {
+    const aviso = await receberExclusao(payload.new?.id);
+    if (aviso && ligado) toast(descrever(aviso, nomeCompleto));
+  } catch (err) {
+    console.warn('[notificacoes] exclusão do SATE:', err?.message || err);
   }
 }
 
@@ -205,6 +216,13 @@ function pintar() {
   const fora = naPaginaDoSate ? '' : ' target="_blank" rel="noopener"';
   const persistentes = doSate.map(a => {
     const d = descrever(a, nomeCompleto);
+    // Solicitação excluída: não há ficha para abrir; clicar dispensa o aviso.
+    if (a.tipo === 'excluida') {
+      return `<a class="bell-item t-${esc(d.tipo)}" href="#" data-exclusao="${esc(a.exclusaoId)}">
+      <div class="bi-tit">${esc(d.titulo)} <span class="bi-hora">${esc(fmtDataHora(a.em))}</span></div>
+      <div class="bi-txt">${esc(d.texto)}</div>
+    </a>`;
+    }
     return `<a class="bell-item t-${esc(d.tipo)}" href="${esc(linkDaSolicitacao(a.solicitacao_id))}"${fora}>
       <div class="bi-tit">${esc(d.titulo)} <span class="bi-hora">${esc(fmtDataHora(a.em))}</span></div>
       <div class="bi-txt">${esc(d.texto)}</div>
@@ -216,4 +234,8 @@ function pintar() {
       <div class="bi-txt">${esc(e.texto)}</div>
     </div>`).join('');
   el.innerHTML = (persistentes + aoVivo) || `<div class="bell-vazio">Sem notificações.</div>`;
+  el.querySelectorAll('[data-exclusao]').forEach(a => a.addEventListener('click', (e) => {
+    e.preventDefault();
+    dispensarExclusao(Number(a.dataset.exclusao));
+  }));
 }

@@ -66,7 +66,7 @@ test('todos os icones do conjunto produzem svg', () => {
     'excluir', 'buscar', 'adicionar', 'fechar', 'ok', 'atencao', 'erro',
     'restrito', 'menu', 'perdido', 'vazio', 'fixo', 'celular', 'whatsapp',
     'email', 'documento', 'arquivo', 'identidade', 'imprimir', 'tema',
-    'noturno', 'subir', 'meta', 'parceria', 'obra', 'infantil',
+    'noturno', 'manha', 'tarde', 'subir', 'meta', 'parceria', 'obra', 'infantil',
     'acessibilidade', 'destaque', 'atualizar', 'sair', 'chevron', 'voltar', 'info', 'arrastar',
     'config', 'ajuda', 'avancar', 'externo', 'onibus', 'cadeirante'];
   for (const n of nomes) {

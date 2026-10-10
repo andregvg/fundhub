@@ -30,7 +30,7 @@ export const responsavelHtml = () => `
   <fieldset class="form-grupo">
     <legend>Responsável pela visita</legend>
     <div class="campos duas">
-      <label>Servidor(a) responsável
+      <label>Nome do(a) responsável
         <input id="f-prof" type="text" list="f-prof-lista" autocomplete="off" required />
         <datalist id="f-prof-lista"></datalist></label>
       <label>Telefone / WhatsApp

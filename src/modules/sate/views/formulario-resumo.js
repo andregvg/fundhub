@@ -21,7 +21,7 @@ import {
 } from '../sate.config.js';
 import { cadastroRapidoHtml, ligarCadastroRapido } from './frota-rapida.js';
 import { esc } from '../../../shared/dom.js';
-import { hojeISO, fmtData } from '../../../shared/format.js';
+import { hojeISO } from '../../../shared/format.js';
 import { ico } from '../../../shared/ui/icones.js';
 
 let ctx = null;
@@ -32,7 +32,47 @@ let ler = () => ({});
 let pedidoSaldo = 0;
 let deb = null;
 
-export const resumoHtml = () => `<div id="f-resumo" class="sol-resumo" aria-live="polite" hidden></div>`;
+export const resumoHtml = () => `
+  <div id="f-resumo" class="sol-resumo" aria-live="polite">
+    <ul class="sol-resumo-fatos" id="f-resumo-fatos">${fatosHtml({})}</ul>
+    <div id="f-resumo-msgs"></div>
+  </div>`;
+
+// Sempre visível: zeros enquanto nada foi digitado. Os números em negrito.
+// O ônibus é contado só pelos estudantes (a regra do pedido); vans pelos
+// cadeirantes. Com várias paradas a viagem é um ônibus só.
+function fatosHtml({ alunos = 0, adultos = 0, cadeirantes = 0, emb = null, trajeto = null }) {
+  const lugares = capacidadeOnibus();
+  const onibus = alunos ? Math.ceil(alunos / lugares) : 0;
+  const vans = cadeirantes ? Math.ceil(cadeirantes / capacidadeVan()) : 0;
+  const chegada = trajeto?.status === 'ok' && emb && trajeto.min != null ? somarMinutos(emb, trajeto.min) : null;
+  return [
+    `<li>${ico('equipe', { tam: 14 })} <b>${alunos}</b> estudantes · <b>${adultos}</b> adultos acompanhantes</li>`,
+    `<li>${ico('onibus', { tam: 14 })} <b>${onibus}</b> ônibus (${lugares} lugares cada)`
+      + `${vans ? ` · <b>${vans}</b> van(s) adaptada(s)` : ''}</li>`,
+    chegada ? `<li>${ico('horario', { tam: 14 })} Chegada prevista ao local: <b>${esc(chegada)}</b>`
+      + ` <span class="sol-trajeto-fonte">Distância: © OpenStreetMap</span></li>`
+      : (trajeto ? `<li>${ico('horario', { tam: 14 })} <span class="fora">${esc(explicarTrajeto(trajeto))}</span></li>` : ''),
+    // Pelo menos 2 adultos por ônibus: dica, não bloqueio (R15).
+    alunos && adultos < 2 * onibus
+      ? `<li class="sol-dica"><span aria-hidden="true">💡</span> Recomenda-se ao menos 2 adultos acompanhantes por turma.</li>` : '',
+  ].filter(Boolean).join('');
+}
+
+// "HH:MM" + minutos → "HH:MM" (aritmética de relógio, não de data; vira o dia).
+function somarMinutos(hhmm, min) {
+  const [h, m] = String(hhmm).split(':').map(Number);
+  if (!Number.isFinite(h) || !Number.isFinite(m)) return null;
+  const t = (h * 60 + m + Math.round(min)) % 1440;
+  return `${String(Math.floor(t / 60)).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}`;
+}
+
+// Os números do resumo acompanham o que é digitado, na hora; o que depende
+// do banco (vagas) vem depois, por pintarSaldo.
+function pintarFatos() {
+  const el = document.getElementById('f-resumo-fatos');
+  if (el) el.innerHTML = fatosHtml(ler());
+}
 
 // `ler()` devolve { data, emb, ret, alunos, cadeirantes, trajeto, localId }.
 // Cada abertura do modal começa limpa: sem consulta velha nem atraso pendente.
@@ -51,28 +91,38 @@ export const repintarResumo = () => pintarSaldo();
 // Consulta o banco no máximo a cada 400 ms, e só quando data, período e
 // nº de estudantes já foram informados - sem eles não há saldo a mostrar.
 export function revisar() {
+  pintarFatos();
   clearTimeout(deb);
   deb = setTimeout(pintarSaldo, 400);
 }
 
 async function pintarSaldo() {
-  const box = document.getElementById('f-resumo');
+  const msgs = document.getElementById('f-resumo-msgs');
   const btn = document.getElementById('f-submit');
-  if (!box) return;   // o modal fechou enquanto o debounce corria
+  if (!msgs) return;   // o modal fechou enquanto o debounce corria
 
-  const { data, emb, ret, alunos, adultos = 0, paradas = 0, cadeirantes, trajeto, localId } = ler();
+  const dados = ler();
+  const { data, emb, ret, alunos, adultos = 0, paradas = 0, cadeirantes, trajeto, localId } = dados;
+  pintarFatos();
   const periodo = periodoDe(emb, ret);
-  if (!data || !periodo || !alunos) { box.innerHTML = ''; box.hidden = true; btn.disabled = !!ctx.somenteLeitura; return; }
+  // Várias paradas = um ônibus só: o total de passageiros cabe nele.
+  const lugares = capacidadeOnibus();
+  const lotado = paradas && alunos + adultos > lugares
+    ? [{ codigo: 'lotacao_paradas', texto: `Com várias escolas no mesmo ônibus, estudantes e adultos somam ${alunos + adultos} e o ônibus tem ${lugares} lugares.` }]
+    : [];
+  const vazio = () => {
+    msgs.innerHTML = lotado.map(e => `<div class="sol-erro">${esc(e.texto)}</div>`).join('');
+    btn.disabled = lotado.length > 0 || !!ctx.somenteLeitura;
+  };
+  if (!data || !periodo || !alunos) { vazio(); return; }
 
   const meu = ++pedidoSaldo;
   let linha;
-  try { linha = await lerOcupacao(data); }
-  catch (_) { box.innerHTML = ''; box.hidden = true; btn.disabled = !!ctx.somenteLeitura; return; }
+  try { linha = await lerOcupacao(data); } catch (_) { vazio(); return; }
   if (meu !== pedidoSaldo) return;   // resposta velha: descarta
 
   const trajetoMin = trajetoParaVaga({ trajeto_min: trajeto?.min ?? null, local_id: localId }, trajetoProvisorioMin());
   // Com os dois horários, a conta é do INTERVALO do pedido (spec D5/D8).
-  // Sem eles, o número da página Disponibilidade para o período.
   const iv = emb && ret ? intervaloDaViagem({
     periodo, embarque: emb, retorno: ret, trajetoMin, intervaloMin: linha.intervaloMin,
   }) : null;
@@ -80,22 +130,9 @@ async function pintarSaldo() {
   const livresVan = iv ? livresPara(linha, iv.ini, iv.fim, 'vans') : livresNoPeriodo(linha, 0, periodo, 'vans');
   const totalDia = totalDoDia(linha, 0, 'onibus');
   const r = avaliar({ data, periodo, alunos, cadeirantes, livres, livresVan, totalDia, emb, ret, linha, iv });
-  // Várias paradas = um ônibus só: o total de passageiros cabe nele.
-  const lugares = capacidadeOnibus();
-  if (paradas && alunos + adultos > lugares) {
-    r.erros.push({ codigo: 'lotacao_paradas', texto: `Com várias escolas no mesmo ônibus, estudantes e adultos somam ${alunos + adultos} e o ônibus tem ${lugares} lugares.` });
-  }
+  r.erros.push(...lotado);
 
-  const precisa = `${alunos} estudante(s) · ${r.onibus} ônibus (${capacidadeOnibus()} lugares cada)`
-    + (r.vans ? ` · ${r.vans} van(s) adaptada(s)` : '');
-  const quando = iv ? `para embarque às ${esc(emb)}` : 'no período';
-  const fatos = [
-    `<li>${ico('onibus', { tam: 14 })} ${esc(precisa)}</li>`,
-    totalDia ? `<li>${ico('calendario', { tam: 14 })} <b>${Math.max(0, livres)}</b> ônibus livres ${quando} em ${esc(fmtData(data))}</li>` : '',
-    trajeto ? `<li>${ico('horario', { tam: 14 })} <span class="${trajeto.status === 'ok' ? '' : 'fora'}">${esc(explicarTrajeto(trajeto))}</span>${trajeto.status === 'ok' ? ' <span class="sol-trajeto-fonte">Distância: © OpenStreetMap</span>' : ''}</li>` : '',
-  ].filter(Boolean).join('');
   const linhas = [
-    `<ul class="sol-resumo-fatos">${fatos}</ul>`,
     linha.aproximado ? '<div class="sol-aviso">Contagem sem horário: o banco ainda não tem a atualização desta versão.</div>' : '',
     ...r.erros.map(e => `<div class="sol-erro">${esc(e.texto)}</div>`),
     ...r.avisos.map(a => `<div class="sol-aviso">${esc(a.texto)}</div>`),
@@ -104,9 +141,8 @@ async function pintarSaldo() {
   if (ctx.aprovador && r.erros.some(e => e.codigo === 'sem_frota_dia')) linhas.push(await cadastroRapidoHtml(data, periodo));
   // cadastroRapidoHtml() consultou o banco (getRotulos): outra pintura
   // pode ter começado e terminado nesse meio-tempo, ou o modal fechou.
-  if (meu !== pedidoSaldo || !document.getElementById('f-resumo')) return;
-  box.innerHTML = linhas.join('');
-  box.hidden = false;
+  if (meu !== pedidoSaldo || !document.getElementById('f-resumo-msgs')) return;
+  msgs.innerHTML = linhas.join('');
   ligarCadastroRapido(data, repintarResumo);
   btn.disabled = r.erros.length > 0 || !!ctx.somenteLeitura;
 }

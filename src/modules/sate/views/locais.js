@@ -129,12 +129,12 @@ export function abrirLocal(l, { preenchido = {}, aoSalvar = null, voltar = null 
         <fieldset class="form-grupo">
           <legend>Endereço</legend>
           <div class="campos auto">
-            <label>CEP <input id="l-cep" inputmode="numeric" autocomplete="postal-code" maxlength="9"
-                value="${esc(fmtCep(base?.cep))}" placeholder="00000-000" />
-              <small class="form-hint" id="l-cep-dica" aria-live="polite">Preenche rua e bairro e ajuda a achar o lugar no mapa.</small></label>
             <label class="col-full">Endereço <input id="l-end" value="${v('endereco')}" placeholder="Ex.: Rua Exemplo" /></label>
             <label>Número <input id="l-num" inputmode="numeric" value="${v('numero')}" placeholder="Ex.: 123" /></label>
             <label>Bairro <input id="l-bairro" value="${v('bairro')}" placeholder="Ex.: Centro" /></label>
+            <label>CEP <input id="l-cep" inputmode="numeric" autocomplete="postal-code" maxlength="9"
+                value="${esc(fmtCep(base?.cep))}" placeholder="00000-000" />
+              <small class="form-hint" id="l-cep-dica" aria-live="polite">Preenche rua e bairro e ajuda a achar o lugar no mapa.</small></label>
           </div>
         </fieldset>
 

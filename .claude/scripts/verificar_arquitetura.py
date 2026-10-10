@@ -590,6 +590,8 @@ ISENTAS_AUDITORIA = {
     'schema_migrations',    # metadado de infraestrutura, nao cadastro
     'solicitacao_aviso',    # log de um fato ja auditado na origem (a solicitacao)
     'solicitacao_visto',    # estado pessoal de leitura; ruido puro
+    'solicitacao_exclusao',  # idem solicitacao_aviso, para a exclusao
+    'solicitacao_exclusao_visto',  # estado pessoal de leitura; ruido puro
 }
 
 # A partir daqui a migration que cria tabela precisa religar a auditoria.

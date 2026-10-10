@@ -67,14 +67,15 @@ export function abrirFormulario(contexto, rascunho = null) {
 
         ${quemVaiHtml()}
 
+        ${resumoHtml()}
+
         ${responsavelHtml()}
 
         <details class="form-grupo sol-recolher">
           <summary>Acessibilidade</summary>
           <div class="campos duas">
-            <label>Nº de cadeirantes <input id="f-cadeira" type="number" inputmode="numeric" min="0" value="0" /></label>
-            <label>Nº de estudantes surdos <input id="f-surdo" type="number" inputmode="numeric" min="0" value="0" /></label>
-            <label class="inline col-2"><input type="checkbox" id="f-nec" /> Outra necessidade específica (descreva nas observações)</label>
+            <label>Qtd. cadeirantes <input id="f-cadeira" type="number" inputmode="numeric" min="0" value="0" /></label>
+            <label>Qtd. estudantes surdos <input id="f-surdo" type="number" inputmode="numeric" min="0" value="0" /></label>
           </div>
         </details>
 
@@ -85,7 +86,6 @@ export function abrirFormulario(contexto, rascunho = null) {
           </div>
         </fieldset>
 
-        ${resumoHtml()}
         <div class="form-foot">
           <span id="f-msg" class="auth-msg"></span>
           <button type="submit" id="f-submit" class="btn-primary" ${ctx.somenteLeitura ? 'disabled' : ''}>${ctx.somenteLeitura ? 'Envio desativado nesta visualização' : 'Enviar solicitação'}</button>
@@ -348,7 +348,6 @@ async function enviar(e) {
     qtd_cadeirante: cadeira,
     qtd_surdo: surdo,
     qtd_adultos: adultos,
-    necessidade_especifica: document.getElementById('f-nec').checked,
     horario: emb,
   };
 

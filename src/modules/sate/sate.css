@@ -94,7 +94,10 @@ body.app-sate { --info-bg: color-mix(in srgb, var(--brand) 12%, var(--surface));
   border-left: 4px solid var(--brand); border-radius: var(--radius);
   background: color-mix(in srgb, var(--brand) 5%, var(--surface));
 }
-.sol-resumo[hidden] { display: none; }
+.sol-resumo-fatos b { font-weight: 700; }
+.sol-resumo-fatos .sol-dica { color: var(--muted); }
+.sol-resumo-msgs:empty, #f-resumo-msgs:empty { display: none; }
+#f-resumo-msgs { display: flex; flex-direction: column; gap: 8px; }
 .sol-resumo-fatos { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 4px; font-size: 13.5px; }
 .sol-resumo-fatos > li { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
 .sol-resumo-fatos .ico { color: var(--muted); flex: 0 0 auto; }
@@ -502,15 +505,19 @@ body.app-sate { --info-bg: color-mix(in srgb, var(--brand) 12%, var(--surface));
 
 /* Período calculado: selo, não texto de dica (D2, 1e). */
 .sol-periodo {
+  --c: var(--brand);
   justify-self: start; align-self: start;   /* grade (largo) e coluna (estreito) */
   display: inline-flex; align-items: center; gap: 7px;
   margin: 0; padding: 5px 12px;
-  border: 1px solid color-mix(in srgb, var(--brand) 30%, var(--border));
+  border: 1px solid color-mix(in srgb, var(--c) 35%, var(--surface));
   border-radius: 999px;
-  background: var(--info-bg);
-  color: var(--brand); font-size: 13px;
+  background: color-mix(in srgb, var(--c) 14%, var(--surface));
+  color: color-mix(in srgb, var(--c) 82%, var(--text)); font-size: 13px;
 }
-.sol-periodo > span { color: var(--muted); }
+.sol-periodo[data-per="manha"] { --c: var(--per-manha); }
+.sol-periodo[data-per="tarde"] { --c: var(--per-tarde); }
+.sol-periodo[data-per="noite"] { --c: var(--per-noite); }
+.sol-periodo[data-per="integral"] { --c: var(--per-integral); }
 .sol-periodo > b { font-weight: 700; }
 .sol-periodo:empty { display: none; }
 
@@ -524,7 +531,7 @@ body.app-sate { --info-bg: color-mix(in srgb, var(--brand) 12%, var(--surface));
   display: inline-flex; align-items: center; gap: 4px;
   padding: 1px 8px 1px 6px; border-radius: 999px;
   font-size: 11.5px; font-weight: 600; line-height: 1.5; white-space: nowrap;
-  color: var(--c);
+  color: color-mix(in srgb, var(--c) 82%, var(--text));
   background: color-mix(in srgb, var(--c) 14%, var(--surface));
   border: 1px solid color-mix(in srgb, var(--c) 35%, var(--surface));
 }

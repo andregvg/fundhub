@@ -70,8 +70,8 @@ test('tiposDeInteresse: quem aprova com tudo desligado só recebe pedido novo', 
   assert.deepEqual(tiposDeInteresse('aprovador', { avisos_pedidos_escola: false, avisos_equipe: false }), ['nova']);
 });
 
-test('tiposDeInteresse: escola recebe os 13 tipos por padrão e cada chave desliga o seu grupo', () => {
-  assert.equal(tiposDeInteresse('escola').length, 13);
+test('tiposDeInteresse: escola recebe os 14 tipos por padrão e cada chave desliga o seu grupo', () => {
+  assert.equal(tiposDeInteresse('escola').length, 14);
   const sem = tiposDeInteresse('escola', { avisos_decisao: false });
   for (const t of ['confirmado', 'negado', 'cancelado']) assert.ok(!sem.includes(t), t);
   assert.ok(sem.includes('em_analise'));
