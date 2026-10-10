@@ -19,6 +19,7 @@ partir das versões do FundHub que mudaram algo para quem usa o SATE.
 
 | SATE | FundHub | Em resumo |
 |---|---|---|
+| 0.22.0 | 0.44.0 | avisos que ficam no sino até a solicitação ser aberta, sem avisar quem fez a ação, com escolha do que receber |
 | 0.21.0 | 0.43.0 | solicitação redesenhada, reabrir decisão, editar antes de confirmar, várias escolas já no pedido, nome completo na lista |
 | 0.20.0 | 0.42.0 | calendário escolar na Disponibilidade, o dia em detalhe para quem aprova, data bloqueada avisada ao escolher |
 | 0.19.0 | 0.41.0 | CEP nos locais e no destino do pedido, busca de endereço mais certeira, conferir local pela aba Locais |
@@ -48,6 +49,30 @@ partir das versões do FundHub que mudaram algo para quem usa o SATE.
 | 0.1.0 | 0.5.0 | a escola pede, a SME valida |
 
 ---
+
+## [0.44.0] - 2026-10-10
+
+> SATE 0.22.0.
+>
+> **Rodar a migration 048 no Supabase.** É ela que guarda os avisos. **Até rodar, o sino do
+> SATE não mostra aviso nenhum** - o resto do sistema funciona normalmente.
+
+### Alterado
+
+- **Os avisos do SATE ficam no sino até você abrir a solicitação.** Antes, só recebia quem
+  estava com a tela aberta naquele momento, e o sino se esvaziava ao ser aberto. Agora o
+  aviso espera: some quando você abre a solicitação, clicando nele ou pela lista.
+- **Você não é mais avisado do que você mesmo fez.** Negar, confirmar ou editar uma
+  solicitação não gera aviso para quem fez.
+- **Cada um escolhe o que recebe**, em Configurações do SATE, em **Notificações**. Quem
+  aprova é sempre avisado de solicitação nova; pode ligar ou desligar os pedidos das
+  escolas e as ações de outros aprovadores. A escola escolhe entre a decisão da solicitação
+  e o andamento dela.
+
+### Adicionado
+
+- Na lista de solicitações, um **ponto** ao lado da escola marca as que têm novidade por ver.
+- Clicar num aviso abre a solicitação correspondente.
 
 ## [0.43.0] - 2026-10-10
 
@@ -120,7 +145,7 @@ partir das versões do FundHub que mudaram algo para quem usa o SATE.
 ### Alterado
 
 - **Localizar pelo endereço** acha mais lugares: quando a busca com o endereço completo não
-  encontra nada, o sistema tenta de novo só com a rua. Quando o mapa só acha o bairro, ele
+  encontra nada, o sistema tenta de novo só com rua e número, sem o bairro. Quando o mapa só acha o bairro, ele
   avisa em vez de pôr o pino longe do lugar.
 - **Conferir local** vale para o lugar: se vários pedidos digitaram o mesmo destino, uma
   conferência resolve todos.

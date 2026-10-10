@@ -15,6 +15,10 @@ Cada módulo que tem algo a ajustar mostra uma **engrenagem** no canto superior
 direito. Ela abre as opções daquele módulo ali mesmo. A tela **Configurações**
 (no menu, em "Minha conta") reúne as opções de todos os módulos num lugar só.
 
+Algumas preferências só aparecem para quem elas servem. Os avisos do SATE, por
+exemplo, são diferentes para quem aprova e para a escola: cada pessoa vê, no
+grupo **Notificações**, só os interruptores que valem para ela.
+
 O **tema escuro** também tem interruptor no menu que abre ao clicar no seu
 nome, no alto da tela (o ícone da pessoa). Os dois são o mesmo ajuste: mexeu
 num, o outro acompanha. O tema vale para o FundHub e para o SATE, neste
@@ -81,4 +85,4 @@ novo) ou é uma configuração da rede que você não tem permissão para mudar.
 **Minhas preferências somem quando eu saio?**
 Não. Elas são do seu e-mail, não do navegador.
 
-> Atualizado na versão 0.40.0.
+> Atualizado na versão 0.44.0.

@@ -69,7 +69,7 @@ só sem o tempo de viagem.
 3. Se o CEP não ajudar, confira o **Endereço** e clique em **Localizar pelo
    endereço**. O sistema preenche **Latitude** e **Longitude** e mostra o
    endereço que encontrou. Se a busca com o endereço completo não achar nada,
-   ele tenta de novo só com a rua; e, quando o mapa só encontra o bairro, avisa
+   ele tenta de novo só com a rua e o número, sem o bairro; e, quando o mapa só encontra o bairro, avisa
    ("Só encontrei o bairro, não a rua") em vez de pôr o pino longe da escola.
 4. Clique em **conferir no mapa** antes de salvar. Um endereço parecido pode
    cair na rua de mesmo nome em outro bairro.
@@ -239,4 +239,4 @@ sistema envia só o endereço da escola, nunca dado de pessoa.
 A ficha de uma pessoa só abre para quem tem acesso ao módulo Servidores. Sem
 esse acesso, a equipe continua visível para leitura.
 
-> Atualizado na versão 0.41.0.
+> Atualizado na versão 0.44.0.

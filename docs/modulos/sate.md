@@ -1,7 +1,8 @@
-# SATE · Transporte extraclasse
+# SATE · Sistema de Agendamento de Transporte Extraclasse
 
-> Onde a escola pede o ônibus para uma atividade fora da unidade, e onde a
-> Gerência de Transporte aprova.
+> Através do SATE, a escola solicita transporte para uma atividade extraclasse,
+> a Gerência de Logística e Transporte avalia e a empresa contratada recebe o
+> pedido aprovado.
 
 ## Onde fica o SATE
 
@@ -19,9 +20,20 @@ lateral:
 
 **Como usar o SATE** abre este tutorial.
 
-O **sino** no topo avisa, na hora, do que acontece nos pedidos que você
-enxerga: pedido novo, mudança de situação, escola acrescentada a uma viagem,
-**pedido de saída** de uma escola e saída confirmada.
+O **sino** no topo avisa do que acontece nos pedidos que você enxerga: pedido
+novo, mudança de situação, escola acrescentada a uma viagem, **pedido de
+saída** de uma escola e saída confirmada. Cada aviso diz o que houve ("Nova
+solicitação", "Confirmado", "Pedido de saída") e, embaixo, a escola, o destino
+e a data do pedido.
+
+O aviso **fica no sino até você abrir a solicitação**: clicando nele, que abre
+a janela **Detalhes da solicitação**, ou abrindo o pedido pela lista de
+**Solicitações**. Abrir o sino só para olhar não apaga nada, e o aviso continua
+lá mesmo que você feche a página e volte depois. Na lista de **Solicitações**,
+um pontinho ao lado da escola marca os pedidos com aviso que você ainda não
+viu. **Ninguém é avisado do que ele mesmo fez**: se você nega ou confirma um
+pedido, o aviso vai para as outras pessoas, não para você. Quais avisos você
+recebe é escolha sua (ver *Escolher os avisos que você recebe*).
 
 ### Ver como uma escola (quem aprova)
 
@@ -145,8 +157,8 @@ pedindo:
 - **Um ônibus da manhã só serve à tarde depois dessa folga.** Um horário de
   embarque mais cedo do que isso não cabe, mesmo que o dia tenha frota de
   sobra.
-- **Um pedido à noite ocupa a manhã seguinte.** O veículo só volta a contar no
-  saldo depois do meio-dia do dia seguinte.
+- **Um pedido à noite ocupa a manhã seguinte.** O veículo só volta a contar como
+  livre depois do meio-dia do dia seguinte.
 
 O tempo de viagem de volta é **calculado pelo sistema** a partir da distância
 entre as escolas e o destino (ver *Trajeto e tempo de viagem*, mais abaixo). A
@@ -189,13 +201,15 @@ alguém aprovar. Negar o pedido ou cancelá-lo devolve a vaga na hora.
 
    Num dia **Não letivo** ou com **Extraclasse bloqueado**, a escola não pede
    transporte. Por isso, em vez dos números de ônibus, a escola vê **Não há
-   viagens neste dia**. Quem aprova continua vendo os números, em tom
-   esmaecido: pode, e às vezes precisa, agendar mesmo assim.
+   viagens neste dia** - quando o dia tem frota; um dia sem nenhum veículo
+   cadastrado continua mostrando "sem frota". Quem aprova continua vendo os
+   números, em tom esmaecido: pode, e às vezes precisa, agendar mesmo assim.
 6. Quem aprova pode clicar num dia para abrir a janela **Disponibilidade do
    dia**, que explica o número que está no cartão:
    - o que o calendário escolar diz do dia;
-   - **Frota do dia** - o total de veículos e a composição por rótulo (por
-     exemplo, "9 Regular + 16 Feira do Livro");
+   - **Frota do dia** - o total de veículos e a composição, com uma linha
+     para cada rótulo (por exemplo, "Regular · 9 ônibus" e "Feira do Livro ·
+     16 ônibus");
    - **Ônibus por período** - quantos estão livres e quantos já estão em uso
      na **Manhã**, na **Tarde** e na **Noite**;
    - **Viagens do dia** - cada viagem que ocupa veículos, do embarque até a
@@ -241,14 +255,14 @@ alerta para conferir.
 
 1. No menu, em **Solicitações**, clique no botão **Nova solicitação**. Abre a janela **Nova solicitação**, com o formulário dividido em blocos: Origem, Destino, Quando, Responsável pela visita, Acessibilidade e Observações da escola. Os campos com um asterisco (`*`) ao lado do nome são obrigatórios. Se algum ficar em branco ou com erro ao enviar, o sistema leva você até ele e o destaca em vermelho.
 2. Em **Origem**, escolha a escola, as turmas e o número de estudantes. Quem aprova procura a escola **pelo nome** no campo **Escola**: digite parte do nome e escolha na lista. Se você é de uma escola só, o campo já vem preenchido. **Quem aprova** pode montar, já aqui, uma viagem com várias escolas. Logo abaixo, o bloco **Outras escolas no mesmo ônibus** tem o campo **Acrescentar escola**: digite parte do nome e escolha na lista. Cada escola acrescentada ganha uma linha própria, com **Estudantes**, **Cadeirantes** e **Embarque**, e um botão com a lixeira para tirá-la. Informe os estudantes de cada uma (é obrigatório). Os ônibus necessários e o tempo de viagem passam a contar **todas** as escolas. A ordem das paradas se ajusta depois, na solicitação. Se você trocar a escola principal por uma que já estava acrescentada, a linha dela sai e o sistema avisa. A escola, ao pedir, pede só para si e não vê esse bloco.
-3. Em **Destino**, busque o local no campo **Local** - digite parte do nome e escolha da lista. Endereço, Número e Bairro aparecem preenchidos sozinhos. A lista abre quando você clica no campo, digita ou aperta a seta para baixo. Se você errar uma letra ("Muzeu"), a lista mostra os locais **Parecidos**.
+3. Em **Destino**, busque o local no campo **Local** - digite parte do nome e escolha da lista. **CEP**, Endereço, Número e Bairro aparecem preenchidos sozinhos, só para leitura. A lista abre quando você clica no campo, digita ou aperta a seta para baixo. Se você errar uma letra ("Muzeu"), a lista mostra os locais **Parecidos**.
 4. **O lugar não está na lista?** Depois de digitar pelo menos 3 letras do nome, escolha o último item, **Usar “nome digitado” como novo local** (se a lista tiver outros locais, o item aparece em tom apagado, como **Nenhum destes? Cadastrar “nome digitado”**). O campo passa a mostrar a etiqueta **Novo local**, e você preenche **Endereço**, **Número** e **Bairro** - os três são obrigatórios, porque é isso que a empresa de transporte lê na ficha do motorista. O **×** do campo volta à busca.
    O campo **CEP** é opcional: digite os oito dígitos e o sistema preenche **Endereço** e **Bairro** (só os que estiverem em branco - o **Número** é sempre seu). Informar o CEP ajuda quem aprova a achar o lugar quando for conferir o local.
 5. Ao preencher o endereço de um local novo, se ele já for o de um local cadastrado, aparece "Este endereço já é de …" com o botão **Usar este**, que troca para o local já cadastrado. É só um aviso: você pode seguir com o local novo.
 6. Em **Quando**, digite a **Data** só com dia e mês, sem barra: `1403` vira `14/03`, e logo abaixo o sistema escreve a data por extenso, já com o ano. O ano é o atual. Se o dia não existir (como `3102`), aparece "Essa data não existe." em vermelho. O botão com o calendário, dentro do campo, abre o calendário para escolher, e quem preferir pode digitar o ano também. Se a data escolhida for feriado, dia sem aula ou estiver bloqueada para atividade fora da escola, o sistema avisa logo abaixo do campo, na hora, sem esperar o envio: para a escola o aviso aparece em vermelho e o pedido não é aceito nessa data; para quem aprova é só um aviso, que termina com "Você pode agendar mesmo assim." Num dia de aula com algum evento (uma prova, por exemplo), o sistema só informa "Neste dia: …", sem impedir nada. Depois informe o **Horário de embarque** e o **Horário de saída do evento**, também só com números (`0730` vira `07:30`) - os dois são **obrigatórios**: é a partir deles que o sistema conta quantos ônibus estão livres e calcula o **período**, mostrado em destaque logo abaixo dos campos, sem que você precise escolher (a tabela logo abaixo da lista mostra a regra).
 7. Em **Responsável pela visita**, informe o **Servidor(a) responsável** e o **Telefone / WhatsApp** - os dois são **obrigatórios**, para a empresa de transporte e a Gerência conseguirem falar com alguém em caso de dúvida. Ao escolher a escola, o campo do nome passa a sugerir a equipe dela (gestores e coordenadores): é só começar a digitar e escolher na lista, e o telefone vem preenchido com o que está no cadastro - você pode trocá-lo, se o número do dia da visita for outro. Se o responsável não está na lista (um professor, por exemplo), digite o nome e o telefone normalmente.
 8. Em **Acessibilidade**, informe quantos estudantes usam **cadeira de rodas** e quantos são **surdos**, e marque **Outra necessidade específica** se houver mais alguma coisa - descreva-a em Observações. O sistema calcula sozinho quantos ônibus e quantas vans adaptadas são necessários; surdo não muda o veículo, mas o dado vai para a ficha da viagem.
-9. **Confira o resumo do pedido**, o quadro logo acima do botão de enviar. Ele junta, num lugar só, quantos **estudantes** e quantos **ônibus** são necessários (e vans adaptadas, quando há cadeirante - já com as outras escolas, se quem aprova as acrescentou); quantos ônibus estão **livres** para aquele horário ("3 ônibus livres para embarque às 13:00 em 05/10"); e o **tempo de viagem** estimado até o destino, que considera todas as escolas e, se não puder ser calculado, diz o porquê - o pedido pode ser enviado assim mesmo. Antes de preencher os dois horários, o número de ônibus livres é o do período, o mesmo que aparece em Disponibilidade; depois, conta pelo horário exato e se atualiza sozinho a cada troca. O quadro só aparece quando a data, o horário de embarque e o número de estudantes já foram informados.
+9. **Confira o resumo do pedido**, o quadro logo acima do botão de enviar. Ele junta, num lugar só, quantos **estudantes** e quantos **ônibus** são necessários (e vans adaptadas, quando há cadeirante - já com as outras escolas, se quem aprova as acrescentou); quantos ônibus estão **livres** para aquele horário ("3 ônibus livres para embarque às 13:00 em 05/10/2026"); e o **tempo de viagem** estimado até o destino, que considera todas as escolas e, se não puder ser calculado, diz o porquê - o pedido pode ser enviado assim mesmo. Antes de preencher os dois horários, o número de ônibus livres é o do período, o mesmo que aparece em Disponibilidade; depois, conta pelo horário exato e se atualiza sozinho a cada troca. O quadro só aparece quando a data, o horário de embarque e o número de estudantes já foram informados.
 10. Se faltar ônibus no horário escolhido e houver um horário do mesmo período em que o pedido caberia, o quadro sugere: "A partir das 14h10 há ônibus suficientes." Quem aprova, num dia **sem nenhuma frota**, vê ali mesmo um cadastro rápido - Rótulo, quantos ônibus e até quando - para resolver sem sair do formulário.
 11. Os **erros** e os **avisos** também aparecem dentro do quadro. Se houver um erro que impede o envio, o quadro explica o motivo e o botão de enviar fica desabilitado - escolha outro horário ou outra data.
 12. Clique em **Enviar solicitação**. O pedido nasce **pendente de autorização** e já reserva a vaga.
@@ -295,7 +309,7 @@ do título. De cima para baixo, ela traz:
 Para decidir:
 
 1. Para conferir como está o dia do pedido antes de decidir, clique em **Ver disponibilidade do dia**, no alto da seção **Logística**. Abre a janela **Disponibilidade do dia**, com a viagem deste pedido destacada na lista de **Viagens do dia**; a seta **←** volta para o pedido.
-2. Um pedido **Solicitado** pode ir para **Pôr em análise** enquanto você o confere. Isso não decide nada; só marca que alguém está olhando.
+2. Num pedido **Solicitado**, clique em **Pôr em análise** enquanto você o confere. Isso não decide nada; só marca que alguém está olhando.
 3. **Confirmar** aprova o transporte e reserva os veículos.
 4. **Negar** recusa o pedido. Abre uma segunda janela pedindo a justificativa, que é **obrigatória** - a escola vê o texto que você escrever.
 
@@ -374,12 +388,16 @@ de enviar. Essa lista não é impressa.
 
 O que fazer depende de o pedido já ter sido aprovado ou não:
 
-| Situação | Quem cancela | Como |
+| Situação do pedido | Quem | Botão |
 |---|---|---|
-| Ainda não aprovado | a escola, ou quem aprova | **Cancelar solicitação**: cancela na hora, com justificativa |
-| Já aprovado | a escola **pede** | **Pedir cancelamento**: fica *pendente de cancelamento* até quem aprova dar ciência, em **Confirmar cancelamento** |
+| Solicitado | a escola | **Cancelar solicitação**: cancela na hora, com justificativa |
+| Solicitado, Em análise ou Aguardando adaptado | quem aprova | **Negar**: recusa o pedido, com justificativa (fica *negado*, não *cancelado*) |
+| Confirmado | a escola | **Pedir cancelamento**: fica *pendente de cancelamento* até quem aprova dar ciência |
+| Pendente de cancelamento | quem aprova | **Confirmar cancelamento**: dá ciência do pedido da escola |
+| Confirmado | quem aprova | **Cancelar solicitação**: cancela direto, com justificativa |
 
-A vaga volta ao saldo **no momento do pedido**, não no da ciência - assim o
+Quando a escola pede o cancelamento, a vaga volta a ficar livre **no momento
+do pedido**, não no da ciência - assim o
 ônibus não fica parado esperando uma formalidade.
 
 ### Sair de uma viagem sem cancelá-la para todo mundo
@@ -389,7 +407,7 @@ não cancela a viagem inteira: ela **sai da viagem**.
 
 1. Abra o agendamento e encontre a sua escola na lista **Escolas nesta viagem**.
 2. Clique em **Sair da viagem** e escreva o motivo.
-3. A sua participação fica como *pedido de saída*, e a vaga já volta ao saldo.
+3. A sua participação fica como *pedido de saída*, e a vaga já volta a ficar livre.
    As outras escolas seguem normalmente.
 4. Quando a Gerência de Transporte confirmar, a sua participação fica
    **cancelada**. Você continua vendo o agendamento e o registro de que a sua
@@ -440,7 +458,8 @@ reordenar mudam por onde o ônibus passa.
 3. Se o CEP não ajudar, confira o **Endereço**, o **Número** e o **Bairro** e
    clique em **Localizar pelo endereço**. O pino do mapa se move para o lugar
    encontrado, e Latitude e Longitude são preenchidas sozinhas. Se a busca com
-   o endereço completo não achar nada, o sistema tenta de novo só com a rua.
+   o endereço completo não achar nada, o sistema tenta de novo só com a rua e o
+   número, sem o bairro.
    Quando o mapa só encontra o bairro, o sistema avisa ("Só encontrei o
    bairro, não a rua") em vez de pôr o pino longe do lugar.
 4. Clique em **Ver no mapa** e ajuste o ponto **arrastando o pino**, ou clicando no lugar certo -
@@ -495,6 +514,27 @@ diz quantos foram.
 
 O texto original, digitado pela escola, continua registrado no histórico do
 pedido, mesmo depois de conferido.
+
+### Escolher os avisos que você recebe
+
+1. No menu do SATE, clique em **Configurações**.
+2. Procure o grupo **Notificações**. Cada pessoa vê só os interruptores que valem para ela.
+3. Ligue ou desligue o que quiser. A mudança vale na hora e fica na sua conta, em qualquer computador.
+
+Quem aprova tem:
+
+- **Pedidos das escolas** (ligado de início): o pedido de cancelamento e o pedido de saída de uma viagem.
+- **Ações de outros aprovadores** (desligado de início): análise, confirmação, negativa, cancelamento, reabertura, edição e paradas feitas por outra pessoa da equipe.
+- De **solicitação nova** quem aprova é avisado **sempre** - não há interruptor para isso.
+
+A escola tem:
+
+- **Decisão da solicitação** (ligado de início): quando a solicitação é confirmada, negada ou cancelada.
+- **Andamento da solicitação** (ligado de início): entrou em análise, foi reaberta, teve data ou horário alterado, foi aberta pela Gerência em nome da escola, ou uma escola entrou ou saiu da viagem.
+
+A equipe da SME, que só consulta, vê os mesmos dois interruptores da escola, mas desligados de início.
+
+Desligar um aviso esconde também os que já estavam no sino; ligar de novo os traz de volta, se a solicitação ainda não foi aberta. Em qualquer caso, você nunca é avisado do que você mesmo fez.
 
 ---
 
@@ -659,7 +699,7 @@ horário - "A partir das 14h10 há ônibus suficientes" -, tente esse horário
 primeiro. Senão, troque a data ou confira a página **Disponibilidade** para
 achar um horário com mais folga.
 
-**O saldo que eu vejo conta os pedidos das outras escolas?**
+**O número de ônibus livres que eu vejo conta os pedidos das outras escolas?**
 Conta. O número de ônibus livres é o da rede inteira, no dia e no horário
 pedidos, mesmo que você só enxergue os agendamentos em que a sua escola está
 envolvida - senão o aviso de vagas esgotadas não serviria para nada. O que
@@ -677,7 +717,7 @@ recusado - ele é confirmado quando a van estiver resolvida.
 
 **Aprovaram meu pedido e agora a atividade foi desmarcada.**
 Peça o cancelamento pela própria solicitação, com o motivo. Ele fica pendente
-até a Gerência de Transporte dar ciência, mas a vaga já volta ao saldo na hora.
+até a Gerência de Transporte dar ciência, mas a vaga já volta a ficar livre na hora.
 
 **Qual a diferença entre negado e cancelado?**
 Negado é um pedido que **nunca** chegou a valer - foi recusado na análise.
@@ -702,4 +742,18 @@ solicitação e, em **Logística**, use **Acrescentar parada** para colocá-la.
 Em tela estreita a lista usa o apelido, em maiúsculas, para caber. Em tela
 larga ela mostra o nome completo.
 
-> Atualizado na versão 0.43.0.
+**O aviso sumiu do sino sem eu clicar nele.**
+O aviso sai do sino quando a solicitação é aberta, por qualquer caminho -
+inclusive pela lista de **Solicitações**. Abrir o pedido pela lista também tira
+os avisos dele do sino.
+
+**Não recebi aviso do que eu mesmo fiz.**
+É assim de propósito: ninguém é avisado de uma ação que ele mesmo fez. Quem
+mais enxerga o pedido recebe o aviso.
+
+**Não aparece aviso de uma coisa que eu esperava.**
+Confira em **Configurações**, no grupo **Notificações**, se o interruptor
+daquele tipo de aviso está ligado. Só quem aprova recebe sempre o aviso de
+solicitação nova.
+
+> Atualizado na versão 0.44.0.
