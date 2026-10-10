@@ -38,7 +38,9 @@ const TODAS = ['sate', 'afastamentos', 'ocorrencias'];
 
 let unsubs = [], ligado = false;
 let eventos = [], naoLidas = 0, aberto = false;
-const nomeUnidade = {}, nomeServidor = {};
+// `nomeUnidade`: o que ocorrências mostram (apelido, como sempre); `nomeCompleto`:
+// o que os avisos do SATE mostram (é o nome da lista de solicitações).
+const nomeUnidade = {}, nomeCompleto = {}, nomeServidor = {};
 let naPaginaDoSate = false;
 let comSate = false;
 
@@ -75,7 +77,7 @@ export async function iniciar({ fontes = TODAS, naPaginaDoSate: noSate = false }
     getUnidades().catch(() => []),
     fontes.includes('afastamentos') ? getServidores().catch(() => []) : [],
   ]);
-  unidades.forEach(u => { if (u.id) nomeUnidade[u.id] = u.nome; });
+  unidades.forEach(u => { if (u.id) { nomeUnidade[u.id] = u.apelido || u.nome; nomeCompleto[u.id] = u.nome; } });
   servidores.forEach(s => { nomeServidor[s.id] = s.apelido || s.nome; });
 
   if (!ligado) return;   // parou enquanto os mapas carregavam
@@ -110,8 +112,12 @@ function aoSalvarConfiguracao(e) {
 // interessa à pessoa (e nunca para o que ela mesma fez).
 async function aoAvisoDoSate(payload) {
   if (payload?.eventType !== 'INSERT') return;
-  const aviso = await receberAviso(payload.new?.id);
-  if (aviso) toast(descrever(aviso, nomeUnidade));
+  try {
+    const aviso = await receberAviso(payload.new?.id);
+    if (aviso && ligado) toast(descrever(aviso, nomeCompleto));
+  } catch (err) {
+    console.warn('[notificacoes] aviso do SATE:', err?.message || err);
+  }
 }
 
 export function parar() {
@@ -120,6 +126,7 @@ export function parar() {
   eventos = []; naoLidas = 0;
   document.removeEventListener('visibilitychange', aoVoltarParaAba);
   document.removeEventListener('cfg:salva', aoSalvarConfiguracao);
+  document.removeEventListener('click', aoClicarFora);
   limparAvisos();
   comSate = false;
   document.querySelector('.bell-wrap')?.remove();
@@ -158,9 +165,15 @@ function montarSino() {
   right.insertBefore(wrap, right.firstChild);
 
   document.getElementById('bell').addEventListener('click', () => (aberto ? fechar() : abrir()));
-  document.addEventListener('click', (e) => { if (!wrap.contains(e.target)) fechar(); });
+  document.addEventListener('click', aoClicarFora);
   // Clicar num aviso do SATE leva à solicitação: o painel fecha.
   wrap.addEventListener('click', (e) => { if (e.target.closest('a.bell-item')) fechar(); });
+}
+
+// Clique fora do sino fecha o painel. Nomeada para `parar()` poder removê-la:
+// anônima, cada sair e entrar empilharia mais uma.
+function aoClicarFora(e) {
+  if (!document.querySelector('.bell-wrap')?.contains(e.target)) fechar();
 }
 
 function abrir() {
@@ -191,7 +204,7 @@ function pintar() {
   if (!el) return;
   const fora = naPaginaDoSate ? '' : ' target="_blank" rel="noopener"';
   const persistentes = doSate.map(a => {
-    const d = descrever(a, nomeUnidade);
+    const d = descrever(a, nomeCompleto);
     return `<a class="bell-item t-${esc(d.tipo)}" href="${esc(linkDaSolicitacao(a.solicitacao_id))}"${fora}>
       <div class="bi-tit">${esc(d.titulo)} <span class="bi-hora">${esc(fmtDataHora(a.em))}</span></div>
       <div class="bi-txt">${esc(d.texto)}</div>

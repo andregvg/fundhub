@@ -118,6 +118,9 @@ const LIMITE = 300;
 let _avisos = [];   // o que está por ver, como o banco devolveu
 let _email = null;
 let _publico = 'escola';
+// Sobe a cada limparAvisos(): uma resposta do banco que chega depois da saída
+// (logout) vê que a geração mudou e não escreve nada.
+let _geracao = 0;
 const _ouvintes = new Set();
 
 const prefs = () => ({
@@ -139,12 +142,19 @@ function avisar() {
 export async function carregarAvisos({ nivel } = {}) {
   if (nivel) _publico = publicoDe(nivel);
   if (!hasSupabase()) { _avisos = []; avisar(); return; }
+  const g = _geracao;
   try {
-    _email = _email || await emailAtual();
+    if (!_email) {
+      const email = await emailAtual();
+      if (g !== _geracao) return;
+      _email = email;
+    }
     const { data, error } = await sb().rpc('avisos_por_ver', { p_tipos: tiposDeInteresse(_publico, prefs()) });
+    if (g !== _geracao) return;
     if (error) throw error;
     _avisos = (data || []).map(deLinha);
   } catch (err) {
+    if (g !== _geracao) return;
     console.warn('[sate] avisos indisponíveis:', err?.message || err);
     _avisos = [];
   }
@@ -163,10 +173,15 @@ export const idsComNovidade = () => new Set(pendentes().map(a => a.solicitacao_i
 // ele entra na lista (é o que decide o balão).
 export async function receberAviso(id) {
   if (!hasSupabase() || id == null || _avisos.some(a => a.id === id)) return null;
+  const g = _geracao;
   try {
-    _email = _email || await emailAtual();
+    if (!_email) {
+      const email = await emailAtual();
+      if (g !== _geracao) return null;
+      _email = email;
+    }
     const { data, error } = await sb().rpc('avisos_por_ver', { p_tipos: tiposDeInteresse(_publico, prefs()), p_id: id });
-    if (error || !data?.length) return null;
+    if (g !== _geracao || error || !data?.length) return null;
     // De novo depois da espera: o mesmo evento pode chegar duas vezes
     // (reconexão), ou a carga pode ter trazido o aviso nesse meio-tempo.
     if (_avisos.some(a => a.id === id)) return null;
@@ -186,8 +201,14 @@ export async function marcarVisto(solicitacaoId) {
   const antes = _avisos.length;
   _avisos = _avisos.filter(a => a.solicitacao_id !== solicitacaoId);
   if (_avisos.length !== antes) avisar();
-  const { error } = await sb().rpc('marcar_solicitacao_vista', { p_solicitacao: solicitacaoId });
-  if (error) console.warn('[sate] visto não gravado:', error.message);
+  // Quem chama não espera nem trata erro (a ficha não depende disso): daqui
+  // não sai rejeição.
+  try {
+    const { error } = await sb().rpc('marcar_solicitacao_vista', { p_solicitacao: solicitacaoId });
+    if (error) console.warn('[sate] visto não gravado:', error.message);
+  } catch (err) {
+    console.warn('[sate] visto não gravado:', err?.message || err);
+  }
 }
 
 export function aoMudarAvisos(fn) {
@@ -200,5 +221,6 @@ export function subscribeAvisos(handler) {
 }
 
 export function limparAvisos() {
+  _geracao++;
   _avisos = []; _email = null; _publico = 'escola';
 }

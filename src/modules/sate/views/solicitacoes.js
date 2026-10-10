@@ -30,8 +30,6 @@ import { ico } from '../../../shared/ui/icones.js';
 
 let ctx = null;
 let tabela = null;
-// Solicitações com aviso por ver (as mesmas do sino): ganham o ponto.
-let novidades = new Set();
 // O filtro do BANCO. A busca da tabela é outra coisa: estreita o que já
 // está na tela, sem ida ao servidor (spec de listas, D6).
 let filtro = { status: '', periodo: '', de: addDias(hojeISO(), -30), ate: addDias(hojeISO(), 120) };
@@ -121,7 +119,6 @@ async function carregar() {
     s._escolasCurto = resumoEscolas(porViagem[s.id] || [], { curto: true });
   }
 
-  novidades = idsComNovidade();
   tabela = montarTabela(box, {
     colunas: COLUNAS,
     linhas: lista,
@@ -145,10 +142,20 @@ async function abrirPeloEndereco(lista) {
   const id = new URLSearchParams(String(location.hash).split('?')[1] || '').get('abrir');
   if (!id) return;
   history.replaceState(null, '', `${location.pathname}${location.search}#/solicitacoes`);
-  // Fora do período filtrado, busca pelo id.
-  const s = lista.find(x => x.id === id) || (await listSolicitacoes({ id }).catch(() => []))[0];
+  let s = lista.find(x => x.id === id);
+  // Fora do período filtrado, busca pelo id. Vendo como uma escola, não:
+  // a lista já foi filtrada pelo que ela veria, e a busca passaria por fora.
+  if (!s && !ctx.simulando) {
+    s = (await listSolicitacoes({ id }).catch(() => []))[0];
+    if (s) {
+      // A lista monta as escolas da viagem; a busca pelo id não.
+      const partes = await getParticipacoesDe([s.id]).catch(() => ({}));
+      s._escolas = resumoEscolas(partes[s.id] || []);
+      s._escolasCurto = resumoEscolas(partes[s.id] || [], { curto: true });
+    }
+  }
   if (!s) return toast({ titulo: 'Solicitação não encontrada', texto: 'Ela pode ter sido excluída.', tipo: 'atencao' });
-  abrirDetalhe(s, ctx);
+  abrirDetalhe(s, ctx).catch(err => console.warn('[sate] ficha:', err?.message || err));
 }
 
 // `valor` ordena e busca (texto puro); `celula` desenha (spec de listas,
@@ -164,7 +171,7 @@ const COLUNAS = [
   // para a busca achar por qualquer um; a ordem é pelo nome completo.
   { id: 'escola', rotulo: 'Escolas',
     valor: s => [nomeEscolas(s), apelidoEscolas(s)].filter(Boolean).join(' · '),
-    celula: s => `${novidades.has(s.id) ? `<span class="sol-novidade" data-novidade="${esc(s.id)}" role="img" aria-label="Há novidade nesta solicitação" title="Há novidade nesta solicitação"></span>` : ''}`
+    celula: s => `${idsComNovidade().has(s.id) ? `<span class="sol-novidade" data-novidade="${esc(s.id)}" role="img" aria-label="Há novidade nesta solicitação" title="Há novidade nesta solicitação"></span>` : ''}`
       + `<span class="sol-esc-nome">${esc(nomeEscolas(s))}</span><span class="sol-esc-apelido">${esc(apelidoEscolas(s))}</span>` },
   { id: 'data', rotulo: 'Data', tipo: 'data',
     valor: s => s.data || '',
