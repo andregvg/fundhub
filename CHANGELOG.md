@@ -54,6 +54,24 @@ partir das versões do FundHub que mudaram algo para quem usa o SATE.
 
 ---
 
+## [0.46.2] - 2026-10-10
+
+> Não exige atualização do banco. O SATE continua na 0.24.1.
+
+### Corrigido
+
+- **Montar o ano letivo:** ao desmarcar "Manter os dias que já têm registro", o assistente agora
+  refaz de fato os dias já registrados. Antes, um dia registrado como sem aula que deveria
+  voltar a ser letivo continuava sem aula.
+
+### Alterado
+
+- **Montar o ano letivo:** a prévia explica que gravar não duplica nada (cada data tem um só
+  registro) e como refazer os dias já registrados.
+- As linhas de feriados, recessos e dias extras ficaram mais enxutas: datas e horários com o
+  mesmo tamanho, o nome ocupando o resto da linha e o botão de remover alinhado aos campos.
+  No recesso, as datas e o nome ficam numa linha e os horários de aula na de baixo.
+
 ## [0.46.1] - 2026-10-10
 
 > SATE 0.24.1. Não exige atualização do banco.

@@ -9,7 +9,7 @@ export const CONFIG = {
   appName: 'FundHub',
   // Versão do sistema. Ao lançar, subir aqui E registrar em CHANGELOG.md.
   // Semântica: MINOR = módulo novo ou mudança de modelo; PATCH = correção.
-  versao: '0.46.1',
+  versao: '0.46.2',
   // Versão do SATE (sate.html), contada à parte: a escola só vê o número
   // subir quando algo mudou PARA ELA. Mudou o SATE → sobem as duas; mudou
   // só o FundHub → sobe só `versao`. Registrar na seção "SATE" do

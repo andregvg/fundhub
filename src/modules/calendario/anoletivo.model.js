@@ -75,7 +75,9 @@ const faixaValida = (de, ate) => !!de && !!ate && ate > de;
 //                      a faixa é o trecho em que HÁ aula
 //   extras             [{ data, nome?, aulaDe?, aulaAte? }] - dia letivo (inteiro ou em parte)
 //   existentes         { data: registro } - o que já está gravado
-//   preservar          (padrão true) não mexe em dia que já tem registro
+//   preservar          (padrão true) não mexe em dia que já tem registro. Com false o assistente
+//                      REFAZ o dia: o que viraria letivo comum sobrescreve o registro antigo
+//                      (letivo, sem evento, sem faixa) em vez de deixá-lo como estava.
 // Devolve { linhas, resumo } ou lança Error('...') para período inválido.
 export function montarAno({
   inicio, fim, sabadoNaoLetivo = true, domingoNaoLetivo = true,
@@ -116,8 +118,8 @@ export function montarAno({
         letivo = true; tipo = 'calendário escolar'; evento = x.nome || 'Dia letivo extra';
         de = faixaValida(x.aulaDe, x.aulaAte) ? x.aulaDe : null; ate = de ? x.aulaAte : null;
       }
-      if (!letivo || de || x) {
-        if (de) comFaixa = true;
+      if (!letivo || de || x || reg) {
+        if (de || (reg && 'letivo_de' in reg)) comFaixa = true;
         linhas.push({ data, letivo, tipo, evento, bloqueia_afastamento: false, bloqueia_extraclasse: false, obs: null, letivo_de: de, letivo_ate: ate });
       }
       if (de) parciais++;

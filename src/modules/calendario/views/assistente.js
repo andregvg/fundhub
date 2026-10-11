@@ -49,7 +49,7 @@ const listaHtml = (id) => `
     </div>
   </fieldset>`;
 
-const linhaHtml = (id) => `<div class="ano-linha" data-linha>${LISTAS[id].campos}
+const linhaHtml = (id) => `<div class="ano-linha ${id}" data-linha>${LISTAS[id].campos}
   <button type="button" class="mini-btn no" data-tirar aria-label="Remover">${ico('excluir')}</button></div>`;
 
 export function abrirAssistente({ aoGravar = () => {} } = {}) {
@@ -140,6 +140,7 @@ export function abrirAssistente({ aoGravar = () => {} } = {}) {
         <li><b>${r.naoLetivos}</b> dias sem aula no período</li>
         <li><b>${calculado.linhas.length}</b> dias serão gravados${r.preservados ? `; <b>${r.preservados}</b> já registrados ficam como estão` : ''}</li>
       </ul>
+      ${r.preservados ? `<small class="form-hint">Gravar não duplica nada: cada data tem um só registro. Para o assistente refazer os dias já registrados, desmarque “Manter os dias que já têm registro”.</small>` : ''}
       <div class="ano-meses">${r.porMes.map(m => `<span class="chip">${esc(MESES[Number(m.mes.slice(5)) - 1].slice(0, 3))}/${esc(m.mes.slice(2, 4))} <b>${m.n}</b></span>`).join('')}</div>`;
     btn.disabled = false;
   };

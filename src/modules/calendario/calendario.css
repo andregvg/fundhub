@@ -160,10 +160,16 @@
 }
 .ano-linha > label { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .ano-linha > .ano-nome { grid-column: 1 / -1; }
-.ano-linha > .mini-btn { justify-self: end; min-height: var(--campo); min-width: var(--campo); }   /* R17: divide a linha com campos */
+/* R17: o botão que divide a linha com campos tem a altura do campo; `end`
+   alinha a base dele com a dos campos, e as alturas iguais o centram. */
+.ano-linha > .mini-btn { justify-self: end; min-height: var(--campo); min-width: var(--campo); }
+/* Datas e horas do mesmo tamanho (150px); o nome toma o que sobra. */
 @media (min-width: 720px) {
-  .ano-linha { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)) auto; }
-  .ano-linha > .ano-nome { grid-column: auto; flex: 2; }
+  .ano-linha.fer { grid-template-columns: 150px 1fr auto; }
+  .ano-linha.rec { grid-template-columns: 150px 150px 1fr; }   /* De, Até, Nome; embaixo: aula das, às, ✕ */
+  .ano-linha.ext { grid-template-columns: 150px 1fr 150px 150px auto; }
+  .ano-linha > .ano-nome { grid-column: auto; }
+  .ano-linha.rec > .mini-btn { justify-self: start; }
 }
 .ano-nac-ano { margin-bottom: 8px; }
 .ano-nac-lista { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 6px 14px; margin-top: 4px; }

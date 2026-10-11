@@ -60,6 +60,17 @@ test('montarAno: preserva o que já está registrado; sem faixa as colunas nem e
   assert.equal(sobrescreve.linhas.length, 2);
 });
 
+test('montarAno: ao substituir, dia registrado como não letivo que vira letivo é redefinido', () => {
+  // 2026-10-06 é terça: o registro antigo dizia "não letivo"; sem preservar, passa a letivo.
+  const antigo = { '2026-10-06': { letivo: false, evento: 'Teste', letivo_de: null, letivo_ate: null } };
+  const { linhas, resumo } = montarAno({ inicio: '2026-10-06', fim: '2026-10-06', existentes: antigo, preservar: false });
+  assert.equal(linhas.length, 1);
+  assert.deepEqual([linhas[0].letivo, linhas[0].evento, linhas[0].letivo_de], [true, null, null]);
+  assert.equal(resumo.letivos, 1);
+  // Preservando, o registro antigo manda.
+  assert.equal(montarAno({ inicio: '2026-10-06', fim: '2026-10-06', existentes: antigo }).resumo.letivos, 0);
+});
+
 test('montarAno: período inválido', () => {
   assert.throws(() => montarAno({ inicio: '2026-10-10', fim: '2026-10-01' }), /Informe/);
   assert.throws(() => montarAno({ inicio: '2026-01-01', fim: '2027-12-31' }), /400/);
