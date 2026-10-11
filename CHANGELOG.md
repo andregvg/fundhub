@@ -19,6 +19,7 @@ partir das versões do FundHub que mudaram algo para quem usa o SATE.
 
 | SATE | FundHub | Em resumo |
 |---|---|---|
+| 0.24.0 | 0.46.0 | o calendário avisa em vermelho, mas não impede mais a solicitação; dia letivo em parte |
 | 0.23.0 | 0.45.0 | nova solicitação reorganizada (adultos, vários pontos de parada, endereço e mapa do local), ações na lista, período em cores, filtros configuráveis, aviso de exclusão no sino |
 | 0.22.1 | 0.44.1 | correções: solicitação sem escola ativa volta a abrir, ponto de novidade sempre aparece |
 | 0.22.0 | 0.44.0 | avisos que ficam no sino até a solicitação ser aberta, sem avisar quem fez a ação, com escolha do que receber |
@@ -51,6 +52,39 @@ partir das versões do FundHub que mudaram algo para quem usa o SATE.
 | 0.1.0 | 0.5.0 | a escola pede, a SME valida |
 
 ---
+
+## [0.46.0] - 2026-10-10
+
+> SATE 0.24.0.
+>
+> **Rodar a migration 051 no Supabase.** Ela permite marcar um dia como letivo só em parte.
+> Até rodar, o resto funciona, mas esse tipo de dia não é gravado.
+
+### Adicionado
+
+- **Montar o ano letivo, de uma vez.** No Calendário, o botão **Montar o ano letivo** (só para
+  quem administra) pede o início e o fim do ano e marca sozinho o que não é letivo:
+  - sábados e domingos (cada um pode ser desligado);
+  - os feriados nacionais do período, já com Carnaval, Sexta-feira Santa e Corpus Christi nas
+    datas certas - você desmarca os que, na sua rede, têm aula;
+  - os feriados municipais e outros dias sem aula, que você digita;
+  - os recessos, em intervalos com nome;
+  - os dias letivos extras (reposição), por exemplo um sábado.
+- Antes de gravar, uma prévia mostra quantos dias letivos o ano terá (comparando com os 200
+  exigidos), quantos dias ficam sem aula e a contagem de cada mês.
+- **Os dias que já têm registro são mantidos**, a menos que você peça o contrário: uma
+  reposição marcada à mão nunca é desfeita pelas regras gerais.
+- **Dia letivo em parte.** Ao editar um dia, além de "Sim" e "Não", há **Em parte do dia**:
+  você informa o trecho em que há aula. Serve para o recesso que vale só para parte do dia e
+  para a reposição num dia de recesso. A grade do calendário mostra a faixa na célula.
+
+### Alterado
+
+- **A escola agora pode pedir transporte em dia não letivo ou bloqueado.** O pedido segue
+  para a Gerência de Transporte, que avalia. O formulário mostra um **aviso em vermelho**
+  sob a data: que o dia não é letivo, que a data está bloqueada ou, num dia letivo em parte,
+  que o horário da viagem cai fora do trecho de aula.
+- Na Disponibilidade, a escola passou a ver os ônibus livres também nos dias não letivos.
 
 ## [0.45.0] - 2026-10-10
 

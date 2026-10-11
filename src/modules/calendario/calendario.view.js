@@ -6,6 +6,8 @@
 // ============================================================
 import { getCalendarioMes, upsertDiaCalendario, upsertPeriodo, upsertDias, TIPOS_DIA, getEscalasRede } from './calendario.model.js';
 import { renderEscalas } from './views/escalas.js';
+import { abrirAssistente } from './views/assistente.js';
+import { temFaixa, faixaDoDia } from './dia.model.js';
 import { getEscalas, rotulaEscala } from '../horarios/escalas.model.js';
 import { esc, falhaNoCampo } from '../../shared/dom.js';
 import { MESES, DOW, hojeISO, fmtData } from '../../shared/format.js';
@@ -83,16 +85,19 @@ function renderDias(corpo) {
       </div>
       <div class="cal-legenda">
         <span><i class="lg lg-nletivo"></i> não letivo</span>
+        <span><i class="lg lg-parcial"></i> letivo em parte</span>
         <span><i class="lg lg-evento"></i> evento</span>
         <span><i class="lg lg-bloq"></i> bloqueia extraclasse</span>
       </div>
-      ${perfil?.isAdmin ? `<button class="mini-btn" id="cal-importar">${ico('atualizar')} Importar</button>` : ''}
+      ${perfil?.isAdmin ? `<button class="mini-btn" id="cal-assistente" title="Montar o ano letivo">${ico('assistente')} Montar o ano letivo</button>
+      <button class="mini-btn" id="cal-importar">${ico('atualizar')} Importar</button>` : ''}
     </div>
     <div id="cal-grid">${loading()}</div>`;
 
   document.getElementById('cal-prev').addEventListener('click', () => mover(-1));
   document.getElementById('cal-next').addEventListener('click', () => mover(1));
   document.getElementById('cal-importar')?.addEventListener('click', abrirImportar);
+  document.getElementById('cal-assistente')?.addEventListener('click', () => abrirAssistente({ aoGravar: carregar }));
   carregar();
 }
 
@@ -148,11 +153,13 @@ function pintar() {
     const d = dias[iso];
     const cls = ['cal-cell'];
     if (d && !d.letivo) cls.push('nletivo');
+    else if (temFaixa(d)) cls.push('parcial');
     if (iso === hoje) cls.push('hoje');
     if (d?.bloqueia_extraclasse) cls.push('bloq');
     cells += `<div class="${cls.join(' ')}" data-iso="${iso}" tabindex="0" role="button">
       <div class="cal-num">${dia}</div>
       ${d?.evento ? `<div class="cal-ev">${esc(d.evento)}</div>` : ''}
+      ${temFaixa(d) ? `<div class="cal-ev">${esc(faixaDoDia(d))}</div>` : ''}
       ${escalasDoMes[iso] ? `<div class="cal-escala">${esc(rotulaEscala(escalasDoMes[iso], catalogoEscalas))}</div>` : ''}
       <div class="cal-marks">
         ${d?.bloqueia_extraclasse ? `<span title="Bloqueia extraclasse">${ico('erro', { tam: 12 })}</span>` : ''}
@@ -173,7 +180,7 @@ function abrirDia(iso) {
   const podeEditar = perfil?.isAdmin;
 
   const visao = `
-    <div class="field"><div class="lbl">Dia letivo</div><div class="val">${d.letivo ? 'Sim' : 'Não'}</div></div>
+    <div class="field"><div class="lbl">Dia letivo</div><div class="val">${temFaixa(d) ? `Em parte (aulas ${esc(faixaDoDia(d))})` : d.letivo ? 'Sim' : 'Não'}</div></div>
     ${d.tipo ? `<div class="field"><div class="lbl">Tipo</div><div class="val">${esc(d.tipo)}</div></div>` : ''}
     ${d.evento ? `<div class="field"><div class="lbl">Evento</div><div class="val">${esc(d.evento)}</div></div>` : ''}
     <div class="field"><div class="lbl">Bloqueia extraclasse</div><div class="val">${d.bloqueia_extraclasse ? 'Sim' : 'Não'}</div></div>
@@ -182,7 +189,16 @@ function abrirDia(iso) {
 
   const form = `
     <form id="dia-form" class="esc-form">
-      <label class="inline"><input type="checkbox" id="d-letivo" ${d.letivo ? 'checked' : ''}/> Dia letivo</label>
+      <label>Dia letivo
+        <select id="d-letivo">
+          <option value="sim" ${d.letivo && !temFaixa(d) ? 'selected' : ''}>Sim, o dia todo</option>
+          <option value="nao" ${!d.letivo ? 'selected' : ''}>Não</option>
+          <option value="parte" ${temFaixa(d) ? 'selected' : ''}>Em parte do dia</option>
+        </select></label>
+      <div class="esc-row" id="d-faixa" ${temFaixa(d) ? '' : 'hidden'}>
+        <label>Há aula a partir das <input id="d-aula-de" type="time" value="${esc(String(d.letivo_de || '').slice(0, 5))}" /></label>
+        <label>até às <input id="d-aula-ate" type="time" value="${esc(String(d.letivo_ate || '').slice(0, 5))}" /></label>
+      </div>
       <label>Tipo <input id="d-tipo" list="tipos" value="${esc(d.tipo || '')}" />
         <datalist id="tipos">${TIPOS_DIA.map(t => `<option>${t}</option>`).join('')}</datalist></label>
       <label>Evento <input id="d-evento" value="${esc(d.evento || '')}" /></label>
@@ -203,7 +219,11 @@ function abrirDia(iso) {
     ${modalHead(fmtData(iso), diaSemana)}
     <div class="modal-body">${podeEditar ? form : visao}</div>`);
 
-  if (podeEditar) document.getElementById('dia-form').addEventListener('submit', (e) => salvar(e, iso));
+  if (podeEditar) {
+    document.getElementById('dia-form').addEventListener('submit', (e) => salvar(e, iso));
+    const sel = document.getElementById('d-letivo');
+    sel.addEventListener('change', () => { document.getElementById('d-faixa').hidden = sel.value !== 'parte'; });
+  }
 }
 
 async function salvar(e, iso) {
@@ -212,13 +232,21 @@ async function salvar(e, iso) {
   const novo = !dias[iso];
   const dia = {
     data: iso,
-    letivo: document.getElementById('d-letivo').checked,
+    letivo: document.getElementById('d-letivo').value !== 'nao',
     tipo: document.getElementById('d-tipo').value.trim() || null,
     evento: document.getElementById('d-evento').value.trim() || null,
     bloqueia_extraclasse: document.getElementById('d-bloq').checked,
     bloqueia_afastamento: document.getElementById('d-afast').checked,
     obs: document.getElementById('d-obs').value.trim() || null,
   };
+  // A faixa de aula (em parte do dia). As colunas só entram quando o dia usa
+  // a faixa ou já as tem: antes da migration 051 elas não existem.
+  const parte = document.getElementById('d-letivo').value === 'parte';
+  const aulaDe = document.getElementById('d-aula-de').value, aulaAte = document.getElementById('d-aula-ate').value;
+  if (parte && (!aulaDe || !aulaAte || aulaAte <= aulaDe)) {
+    return falhaNoCampo(msg, aulaDe && aulaAte ? '#d-aula-ate' : '#d-aula-de', 'Informe o trecho em que há aula: o fim precisa ser depois do início.');
+  }
+  if (parte || 'letivo_de' in (dias[iso] || {})) { dia.letivo_de = parte ? aulaDe : null; dia.letivo_ate = parte ? aulaAte : null; }
   const ate = document.getElementById('d-ate').value;
   if (ate && ate < iso) return falhaNoCampo(msg, '#d-ate', 'A data final do intervalo não pode ser antes deste dia.');
 

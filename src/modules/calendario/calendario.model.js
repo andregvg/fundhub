@@ -6,7 +6,7 @@
 import { sb, hasSupabase, emailAtual } from '../../core/supabase.js';
 import { agoraISO } from '../../shared/format.js';
 
-export const TIPOS_DIA = ['calendário escolar', 'evento pedagógico', 'cultural', 'prova', 'feriado'];
+export const TIPOS_DIA = ['calendário escolar', 'evento pedagógico', 'cultural', 'prova', 'feriado', 'recesso'];
 
 // ISO de uma data civil, montado a partir dos componentes locais.
 // NUNCA toISOString(): ele volta um dia à noite no fuso do Brasil.
@@ -50,9 +50,10 @@ export async function getDiaCalendario(dataISO) {
 // Disponibilidade do SATE para mostrar feriado, bloqueio e evento.
 export async function getDiasCalendario(de, ate) {
   if (!hasSupabase()) return {};
-  const { data, error } = await sb().from('dia_calendario')
-    .select('data, letivo, tipo, evento, bloqueia_extraclasse')
-    .gte('data', de).lte('data', ate);
+  const consulta = (cols) => sb().from('dia_calendario').select(cols).gte('data', de).lte('data', ate);
+  let { data, error } = await consulta('data, letivo, tipo, evento, bloqueia_extraclasse, letivo_de, letivo_ate');
+  // Antes da migration 051 as colunas da faixa não existem: segue sem elas.
+  if (error && ['42703', 'PGRST204'].includes(error.code)) ({ data, error } = await consulta('data, letivo, tipo, evento, bloqueia_extraclasse'));
   if (error) throw error;
   return Object.fromEntries((data || []).map(d => [d.data, d]));
 }
@@ -198,35 +199,5 @@ export async function limparEscalaUnidade(unidadeId, dataISO) {
 }
 
 // ── O que um dia significa para o extraclasse ────────────────
-// A leitura de um registro de `dia_calendario` para quem agenda uma saída
-// (spec 2026-10-10-sate-disponibilidade, D1). Mora aqui, e não no SATE,
-// porque é o vocabulário do próprio calendário: a Disponibilidade, o
-// modal do dia e o formulário do SATE fazem todos a mesma leitura.
-//
-//   'bloqueado'   extraclasse bloqueado - vence o resto, é a regra mais específica
-//   'nao_letivo'  feriado, recesso
-//   'evento'      dia letivo com evento (prova, evento pedagógico, cultural)
-//   null          dia comum, ou sem registro: o silêncio é o dia letivo
-export function situacaoDoDia(dia) {
-  if (!dia) return null;
-  if (dia.bloqueia_extraclasse) return 'bloqueado';
-  if (dia.letivo === false) return 'nao_letivo';
-  return String(dia.evento || '').trim() ? 'evento' : null;
-}
-
-export const ROTULO_DIA = Object.freeze({ bloqueado: 'Extraclasse bloqueado', nao_letivo: 'Não letivo' });
-
-// A escola não pede transporte nestes dias; quem aprova pode (aviso, não erro).
-export const diaImpedeExtraclasse = (dia) => ['bloqueado', 'nao_letivo'].includes(situacaoDoDia(dia));
-
-// A frase que a pessoa lê sob o campo de data e na recusa do envio.
-export function motivoDoDia(dia) {
-  const evento = String(dia?.evento || '').trim();
-  const com = (texto) => `${texto}${evento ? ` (${evento})` : ''}.`;
-  switch (situacaoDoDia(dia)) {
-    case 'bloqueado': return com('Data bloqueada para extraclasse');
-    case 'nao_letivo': return com('Não é dia letivo');
-    case 'evento': return `Neste dia: ${evento}.`;
-    default: return '';
-  }
-}
+// As regras puras moram em dia.model.js; reexportadas para quem já importa daqui.
+export * from './dia.model.js';

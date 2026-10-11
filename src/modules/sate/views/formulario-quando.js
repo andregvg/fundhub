@@ -16,7 +16,7 @@
 import { periodoDe } from '../regras.model.js';
 import { ICONE_PERIODO } from './periodo.js';
 import { PERIODOS } from '../regras.model.js';
-import { getDiaCalendario, diaImpedeExtraclasse, motivoDoDia } from '../../calendario/calendario.model.js';
+import { getDiaCalendario, situacaoDoDia, motivoDoDia, avisoDoDia } from '../../calendario/calendario.model.js';
 import { mascaraDiaMes, dataDeDiaMes, diaMesDe, fmtExtenso, fmtData } from '../../../shared/format.js';
 import { marcarVazio } from '../../../shared/ui/campo-data-hora.js';
 import { esc, val } from '../../../shared/dom.js';
@@ -57,6 +57,7 @@ export const quandoHtml = (minData) => `
                  form="f-data-fora" tabindex="-1" aria-hidden="true" />
         </span>
         <small class="form-hint" id="f-data-ext" aria-live="polite">${DICA}</small>
+        <small class="form-hint err" id="f-dia-aviso" aria-live="polite" hidden></small>
       </div>
       <label>Horário de embarque na escola<input id="f-emb" type="time" required aria-describedby="f-emb-dica" />
         <small class="form-hint" id="f-emb-dica">Só os números: 0730 → 07:30</small></label>
@@ -100,6 +101,16 @@ export function ligarQuando(aoMudar, { aprovador = false } = {}) {
     if (meu !== consulta || !document.getElementById('f-dia')) return;
     diaCal = d;
     pintarExtenso();
+    pintarAviso();
+  };
+
+  // O calendário não IMPEDE o pedido: avisa, em vermelho, e a Gerência de
+  // Transporte decide. No dia letivo em parte, avisa se o horário sai da faixa de aula.
+  const pintarAviso = () => {
+    const aviso = avisoDoDia(diaCal, { emb: val('f-emb'), ret: val('f-ret') });
+    const el = document.getElementById('f-dia-aviso');
+    el.textContent = aviso;
+    el.hidden = !aviso;
   };
 
   // Três estados: data que não existe, data antes da primeira possível
@@ -111,11 +122,8 @@ export function ligarQuando(aoMudar, { aprovador = false } = {}) {
     let erro = '';
     if (completo && !nativo.value) erro = 'Essa data não existe.';
     else if (nativo.value && nativo.min && nativo.value < nativo.min) erro = `A primeira data possível é ${fmtData(nativo.min)}.`;
-    // Dia não letivo ou bloqueado: erro para a escola, aviso para quem
-    // aprova (R15 - erro barra, aviso não). Evento em dia letivo só informa.
-    const motivo = motivoDoDia(diaCal);
-    if (!erro && motivo && diaImpedeExtraclasse(diaCal) && !aprovador) erro = motivo;
-    const nota = !erro && motivo ? ` · ${motivo}${diaImpedeExtraclasse(diaCal) ? ' Você pode agendar mesmo assim.' : ''}` : '';
+    // Evento no dia só informa; o que merece AVISO vermelho é de pintarAviso.
+    const nota = !erro && situacaoDoDia(diaCal) === 'evento' ? ` · ${motivoDoDia(diaCal)}` : '';
     ext.textContent = erro || (nativo.value ? fmtExtenso(nativo.value) + nota : DICA);
     ext.classList.toggle('err', !!erro);
     dia.setCustomValidity(erro);
@@ -141,7 +149,7 @@ export function ligarQuando(aoMudar, { aprovador = false } = {}) {
   });
 
   for (const id of ['f-emb', 'f-ret']) {
-    document.getElementById(id).addEventListener('change', () => { pintarPeriodo(); aoMudar(); });
+    document.getElementById(id).addEventListener('change', () => { pintarPeriodo(); pintarAviso(); aoMudar(); });
   }
   pintarPeriodo();
 }

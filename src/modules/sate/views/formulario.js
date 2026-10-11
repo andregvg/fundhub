@@ -15,7 +15,6 @@ import { acrescentar } from '../participacoes.model.js';
 import { periodoDe, onibusPara, vansPara } from '../regras.model.js';
 import { calcularTrajeto, retratoTrajeto } from '../rota.model.js';
 import { capacidadeOnibus, capacidadeVan, antecedenciaMinDias, velocidadeOnibusKmh, margemParadaMin } from '../sate.config.js';
-import { getDiaCalendario, diaImpedeExtraclasse, motivoDoDia } from '../../calendario/calendario.model.js';
 import { destinoHtml, ligarDestino, lerDestino, validarDestino, rascunhoDestino, restaurarDestino } from './formulario-destino.js';
 import { quandoHtml, quemVaiHtml, ligarQuando } from './formulario-quando.js';
 import { abrirLocal } from './locais.js';
@@ -299,14 +298,6 @@ async function enviar(e) {
   if (data < hojeISO()) return erro('#f-dia', 'A data não pode ser no passado.');
   if (!val('f-prof')) return erro('#f-prof', 'Informe o servidor(a) responsável.');
   if (!val('f-tel')) return erro('#f-tel', 'Informe o telefone do responsável.');
-
-  // Bloqueios do calendário escolar. Quem aprova passa por cima.
-  if (!aprovador) {
-    try {
-      const dia = await getDiaCalendario(data);
-      if (diaImpedeExtraclasse(dia)) return erro('#f-dia', motivoDoDia(dia));
-    } catch (_) { /* sem calendário carregado, segue */ }
-  }
 
   const unidadeId = isUuid(escId) ? escId : null;
 

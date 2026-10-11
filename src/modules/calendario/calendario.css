@@ -29,6 +29,7 @@
 }
 .cal-legenda span { display: flex; align-items: center; gap: 5px; }
 .lg { display: inline-block; width: 12px; height: 12px; border-radius: 3px; }
+.lg-parcial { background: linear-gradient(135deg, var(--surface-2) 50%, var(--surface) 50%); border: 1px solid var(--border); }
 .lg-nletivo { background: var(--surface-2); border: 1px solid var(--border); }
 .lg-evento { background: color-mix(in srgb, var(--brand) 30%, transparent); }
 .lg-bloq { background: color-mix(in srgb, var(--danger) 45%, transparent); }
@@ -59,6 +60,7 @@
 .cal-cell:hover { border-color: color-mix(in srgb, var(--brand) 45%, var(--border)); }
 .cal-cell.vazio { border: 0; background: transparent; cursor: default; }
 .cal-cell.nletivo { background: var(--surface-2); }
+.cal-cell.parcial { background: color-mix(in srgb, var(--surface-2) 50%, var(--surface)); }
 .cal-cell.hoje { outline: 2px solid var(--brand); }
 .cal-cell.bloq {
   background: color-mix(in srgb, var(--danger) 8%, var(--surface));
@@ -148,3 +150,26 @@
   color: var(--accent); font-weight: 700;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
+
+/* Assistente "Montar o ano letivo". */
+.ano-linhas { display: flex; flex-direction: column; gap: 8px; }
+.ano-linhas:empty { display: none; }
+.ano-linha {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px; align-items: end;
+  padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-btn);
+}
+.ano-linha > label { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.ano-linha > .ano-nome { grid-column: 1 / -1; }
+.ano-linha > .mini-btn { justify-self: end; min-height: var(--campo); min-width: var(--campo); }   /* R17: divide a linha com campos */
+@media (min-width: 720px) {
+  .ano-linha { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)) auto; }
+  .ano-linha > .ano-nome { grid-column: auto; flex: 2; }
+}
+.ano-nac-ano { margin-bottom: 8px; }
+.ano-nac-lista { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 6px 14px; margin-top: 4px; }
+.ano-previa { display: flex; flex-direction: column; gap: 8px; margin: 4px 0 12px; padding: 12px 14px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface-2); }
+.ano-previa:empty { display: none; }
+.ano-previa-tit { font-size: 15px; }
+.ano-previa-tit small { color: var(--muted); }
+.ano-previa-lista { margin: 0; padding-left: 18px; font-size: 13.5px; }
+.ano-meses { display: flex; flex-wrap: wrap; gap: 6px; }

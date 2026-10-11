@@ -17,7 +17,7 @@
 import { lerOcupacao, livresNoPeriodo, escadaDaTarde, totalDoDia, semanaUtil } from '../disponibilidade.model.js';
 import { PERIODOS } from '../sate.model.js';
 import { paraHora } from '../regras.model.js';
-import { getDiasCalendario, diaImpedeExtraclasse, situacaoDoDia } from '../../calendario/calendario.model.js';
+import { getDiasCalendario, situacaoDoDia } from '../../calendario/calendario.model.js';
 import { esc } from '../../../shared/dom.js';
 import { hojeISO, addDias, fmtData, DOW } from '../../../shared/format.js';
 import { loading, erroBox } from '../../../shared/ui/feedback.js';
@@ -111,7 +111,6 @@ function diaHtml(linha, { i, data }, hoje, cal) {
   const totVan = totalDoDia(linha, i, 'vans');
   const passado = data < hoje;
   const sit = situacaoDoDia(cal);
-  const impede = diaImpedeExtraclasse(cal);
   // O dia em foco, na cor do SATE (o --brand do <body>). aria-current diz
   // ao leitor de tela o que o destaque diz ao olho.
   const emFoco = data === foco;
@@ -122,12 +121,6 @@ function diaHtml(linha, { i, data }, hoje, cal) {
   const faixa = faixaCalendarioHtml(cal);
   if (!tot && !totVan) {
     return `<div class="disp-dia ${marca}"${atual}>${cab}${faixa}<span class="vazio">sem frota</span></div>`;
-  }
-  // A escola não pede transporte num dia que o calendário impede: nada de
-  // número de ônibus livre que sugira o contrário. Quem aprova vê os números
-  // esmaecidos - pode, e às vezes precisa, mesmo assim (aviso, não erro).
-  if (impede && !ctx.aprovador) {
-    return `<div class="disp-dia ${marca}"${atual}>${cab}${faixa}<span class="vazio">Não há viagens neste dia</span></div>`;
   }
   const n = (v) => Math.max(0, v);
   const linhaPer = (p) => {
@@ -144,7 +137,7 @@ function diaHtml(linha, { i, data }, hoje, cal) {
   return `<div class="disp-dia ${marca} ${ctx.aprovador ? 'clicavel' : ''}"${abrir}${atual}>
     ${cab}
     ${faixa}
-    <div class="disp-nums${impede ? ' esmaecido' : ''}">
+    <div class="disp-nums${sit === 'bloqueado' || sit === 'nao_letivo' ? ' esmaecido' : ''}">
       <div class="disp-tot">${tot} ônibus no dia</div>
       ${['manha', 'tarde', 'noite'].map(linhaPer).join('')}
       ${vans}
