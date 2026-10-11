@@ -151,12 +151,12 @@
   --eixo-infantil: #b45309;
   --eixo-todas: #57606a;
 
-  /* Período da viagem (SATE): manhã = dourado, tarde = laranja, noite =
-     índigo, dia todo = verde-água. Texto e traço; o fundo é um tom dele. */
-  --per-manha: #a16207;
-  --per-tarde: #c2410c;
-  --per-noite: #4338ca;
-  --per-integral: #0f766e;
+  /* Período da viagem (SATE), as cores do agendamentos-fil: manhã = azul-petróleo,
+     tarde = âmbar, noite = roxo; dia todo = azul. Texto e traço; o fundo é um tom dele. */
+  --per-manha: #0f4c5c;
+  --per-tarde: #b06000;
+  --per-noite: #9c27b0;
+  --per-integral: #2563eb;
 
   /* Cores do SATE (sate.html). A página própria troca o --brand por uma
      delas - escolhida nas configurações do módulo, verde por padrão. O
@@ -219,10 +219,10 @@
   --eixo-infantil: #fbbf24;
   --eixo-todas: #adbac7;
 
-  --per-manha: #facc15;
-  --per-tarde: #fb923c;
-  --per-noite: #a5b4fc;
-  --per-integral: #5eead4;
+  --per-manha: #5fb7cc;
+  --per-tarde: #f0a64a;
+  --per-noite: #d98be8;
+  --per-integral: #7aa2ff;
 }
 
 @media (min-width: 720px) {

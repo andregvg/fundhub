@@ -51,11 +51,8 @@ function fatosHtml({ alunos = 0, adultos = 0, cadeirantes = 0, emb = null, traje
     `<li>${ico('onibus', { tam: 14 })} <b>${onibus}</b> ônibus (${lugares} lugares cada)`
       + `${vans ? ` · <b>${vans}</b> van(s) adaptada(s)` : ''}</li>`,
     chegada ? `<li>${ico('horario', { tam: 14 })} Chegada prevista ao local: <b>${esc(chegada)}</b>`
-      + ` <span class="sol-trajeto-fonte">Distância: © OpenStreetMap</span></li>`
+      + `</li>`
       : (trajeto ? `<li>${ico('horario', { tam: 14 })} <span class="fora">${esc(explicarTrajeto(trajeto))}</span></li>` : ''),
-    // Pelo menos 2 adultos por ônibus: dica, não bloqueio (R15).
-    alunos && adultos < 2 * onibus
-      ? `<li class="sol-dica"><span aria-hidden="true">💡</span> Recomenda-se ao menos 2 adultos acompanhantes por turma.</li>` : '',
   ].filter(Boolean).join('');
 }
 

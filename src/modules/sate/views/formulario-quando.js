@@ -31,7 +31,8 @@ export const quemVaiHtml = () => `
     <div class="campos duas">
       <label class="col-2">Turma / grupo participante <input id="f-turmas" type="text" placeholder="Ex.: 5º A, 5º B" /></label>
       <label>Qtd. estudantes<input id="f-alunos" type="number" inputmode="numeric" min="1" placeholder="0" required /></label>
-      <label>Qtd. adultos<input id="f-adultos" type="number" inputmode="numeric" min="0" placeholder="0" required /></label>
+      <label>Qtd. adultos<input id="f-adultos" type="number" inputmode="numeric" min="0" placeholder="0" required />
+        <small class="form-hint">Recomenda-se 2 adultos por turma.</small></label>
       <p class="form-hint col-2" id="f-esc01-dica" hidden>Estudantes, adultos e embarque acima são da Escola 01. As outras escolas informam os seus em “Adicionar pontos de parada”. A saída do evento é a mesma para todas.</p>
     </div>
   </fieldset>`;

@@ -19,6 +19,7 @@ partir das versões do FundHub que mudaram algo para quem usa o SATE.
 
 | SATE | FundHub | Em resumo |
 |---|---|---|
+| 0.24.1 | 0.46.1 | correção ao enviar solicitação; ícones e cores dos períodos; dica dos adultos fixa |
 | 0.24.0 | 0.46.0 | o calendário avisa em vermelho, mas não impede mais a solicitação; dia letivo em parte |
 | 0.23.0 | 0.45.0 | nova solicitação reorganizada (adultos, vários pontos de parada, endereço e mapa do local), ações na lista, período em cores, filtros configuráveis, aviso de exclusão no sino |
 | 0.22.1 | 0.44.1 | correções: solicitação sem escola ativa volta a abrir, ponto de novidade sempre aparece |
@@ -52,6 +53,23 @@ partir das versões do FundHub que mudaram algo para quem usa o SATE.
 | 0.1.0 | 0.5.0 | a escola pede, a SME valida |
 
 ---
+
+## [0.46.1] - 2026-10-10
+
+> SATE 0.24.1. Não exige atualização do banco.
+
+### Corrigido
+
+- **Enviar uma solicitação deixou de dar o erro "um campo obrigatório ficou em branco".**
+- Os períodos voltaram a usar os ícones e as cores do sistema antigo de agendamento: manhã
+  com sol em azul-petróleo, tarde com nuvem em âmbar, noite com lua em roxo e dia todo com sol
+  atrás da nuvem, legíveis nos temas claro e escuro.
+
+### Alterado
+
+- **A recomendação de adultos fica sempre sob o campo "Qtd. adultos"**: "Recomenda-se 2 adultos
+  por turma."
+- O resumo da solicitação não mostra mais a nota sobre a fonte da distância.
 
 ## [0.46.0] - 2026-10-10
 

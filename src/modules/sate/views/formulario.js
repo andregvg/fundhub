@@ -339,6 +339,7 @@ async function enviar(e) {
     qtd_cadeirante: cadeira,
     qtd_surdo: surdo,
     qtd_adultos: adultos,
+    necessidade_especifica: false,   // NOT NULL: criar_viagem() não aplica o DEFAULT (jsonb_populate_record)
     horario: emb,
   };
 
